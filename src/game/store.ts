@@ -31,6 +31,7 @@ function set(p: Partial<State>) { state = { ...state, ...p }; listeners.forEach(
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
 let saveInFlight: Promise<boolean> | null = null;
 let serverOperation = false;
+let needsServerReload = false;
 let lastSavedAt = "";
 async function performSave(): Promise<boolean> {
   const h = state.hero; const id = state.heroId;
@@ -43,13 +44,13 @@ async function performSave(): Promise<boolean> {
     updated_at: now, last_played: now,
   }).eq("id", id);
   lastSavedAt = now;
-  set({ cloud: error ? "error" : "saved" });
+  if (state.heroId === id) set({ cloud: error ? "error" : "saved" });
   return !error;
 }
 
 async function pushCloud(): Promise<boolean> {
-  if (saveInFlight) await saveInFlight;
-  const pending = performSave();
+  const previous = saveInFlight;
+  const pending = (async () => { if (previous) await previous; return performSave(); })();
   saveInFlight = pending;
   try { return await pending; } finally { if (saveInFlight === pending) saveInFlight = null; }
 }
@@ -64,14 +65,29 @@ export async function withServerHero<T>(action: (id: string) => Promise<T>): Pro
   serverOperation = true;
   clearTimeout(saveTimer);
   try {
+    if (needsServerReload) await reloadServerHero(id);
     if (!await flushSave()) throw new Error("Your save could not be synced. Please retry before claiming rewards.");
     return await action(id);
+  } catch (error) {
+    // A disconnected response may still represent a committed reward. Read it before another write.
+    needsServerReload = true;
+    try { await reloadServerHero(id); } catch { set({ cloud: "error" }); }
+    throw error;
   } finally { serverOperation = false; }
+}
+
+async function reloadServerHero(id: string) {
+  const { data, error } = await supabase.from("heroes").select("save").eq("id", id).single();
+  if (error || !data) throw new Error("Reconnect to the game server before continuing.");
+  const hero = data.save as unknown as Hero;
+  if (!hero?.name || !Array.isArray(hero.inventory)) throw new Error("Your save could not be read.");
+  adoptServerSave(id, hero);
 }
 
 export function adoptServerSave(id: string, hero: Hero) {
   if (state.heroId !== id) throw new Error("Your active character changed. Reopen the character to see the reward.");
   clearTimeout(saveTimer);
+  needsServerReload = false;
   set({ hero: normalizeHero(hero), cloud: "saved" });
 }
 
@@ -90,6 +106,7 @@ export async function setUser(userId: string | null, email: string | null) {
 }
 
 export async function selectCharacter(id: string): Promise<string | null> {
+  if (serverOperation) return "Wait for the current reward request to finish.";
   set({ cloud: "loading" });
   const { data, error } = await supabase.from("heroes").select("save,gender").eq("id", id).maybeSingle();
   if (error || !data) { set({ cloud: "error" }); return error?.message ?? "Character not found"; }
@@ -97,6 +114,7 @@ export async function selectCharacter(id: string): Promise<string | null> {
   if (hero?.name) normalizeHero(hero);
   if (!hero?.name) { set({ cloud: "error" }); return "Save data is corrupted"; }
   localStorage.setItem(LAST, id);
+  needsServerReload = false;
   set({ hero, heroId: id, gender: (data.gender as Gender) ?? "male", cloud: "saved" });
   void supabase.from("heroes").update({ last_played: new Date().toISOString() }).eq("id", id);
   return null;
@@ -137,6 +155,8 @@ export async function updateProfile(p: { bio?: string; title?: string; frame?: s
 }
 
 export async function leaveCharacter() {
+  if (serverOperation) return;
+  if (needsServerReload && state.heroId) await reloadServerHero(state.heroId);
   await flushSave();
   set({ hero: null, heroId: null });
   await loadCharacters();
@@ -151,7 +171,7 @@ export function setHero(h: Hero | null) {
 
 /** Mutate the hero with a draft function (works on a deep copy). */
 export function update(fn: (h: Hero) => void) {
-  if (!state.hero || serverOperation) return;
+  if (!state.hero || serverOperation || needsServerReload) return;
   const h = structuredClone(state.hero);
   fn(h);
   setHero(h);
