@@ -245,6 +245,14 @@ export interface Hero {
   crafts?: number;
   /** Endgame: highest difficulty cleared per challenge boss. */
   challenges?: Record<string, number>;
+  /** Passive tree ranks by passive id (see passives.ts). */
+  passives?: Record<string, number>;
+  /** Insight banked for the passive tree; earned from real campaign, elite, boss and activity results. */
+  insight?: number;
+  /** Endless "Long Road" progression beyond the campaign (see longroad.ts). */
+  road?: { stage: number; wave: number; best: number; cleared: number };
+  /** Bestiary entries the character has defeated, by bestiary id. */
+  kills?: Record<string, number>;
   weekly?: { week: number; kills: number; claimed: boolean };
 }
 
