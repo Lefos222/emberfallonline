@@ -1,20 +1,23 @@
 import { useState } from "react";
-import { Check, Gift, Lock, RotateCcw, Skull, Star } from "lucide-react";
+import { Check, Gift, Lock, RotateCcw, Skull, Star, Eye } from "lucide-react";
 import { ACHIEVEMENTS, SET_BONUSES, achProgress, activeSets, emptyRecord, isClaimable } from "./progress";
 import { CLASSES, heroSkills, heroStats, powerBreakdown, xpToNext } from "./data";
 import { update, useGame } from "./store";
 import { Gold, Panel, fmt } from "./ui";
 import { SPEC_LEVEL, TIER_REQ, TREES, freePoints, learnBlocker, resetCost, spentIn, totalPoints } from "./talents";
 import { Button } from "@/components/ui/button";
+import { SkillPreview } from "./SkillPreview";
 
 export function ThroneHall({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
   const [tab, setTab] = useState<"overview" | "skills" | "ach" | "history">("skills");
   const [confirmReset, setConfirmReset] = useState(false);
+  const [previewId, setPreviewId] = useState<string | null>(null);
   if (!hero) return null;
   const s = heroStats(hero);
   const free = freePoints(hero);
   const trees = TREES[hero.cls];
+  const preview = trees.flatMap(s => s.talents).find(t => t.id === previewId);
   const claimable = ACHIEVEMENTS.filter((a) => isClaimable(hero, a)).length;
   const rec = { ...emptyRecord(), ...(hero.record ?? {}) };
   const claim = (id: string) => update((h) => {
@@ -174,6 +177,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
                               {block && block !== "Maxed" && <span className="ml-1 text-blood"><Lock className="inline h-3 w-3" /> {block}</span>}
                             </div>
                           </Button>
+                          {t.ability && <Button variant="ghost" size="sm" className="mt-1 w-full text-xs text-gold" onClick={() => setPreviewId(t.id)}><Eye className="h-3 w-3" />Preview {t.name}</Button>}
                         </div>
                       );
                     })}
@@ -182,6 +186,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
               );
             })}
           </div>
+          {preview && <SkillPreview talent={preview} cls={hero.cls} gender={hero.gender === 'female' ? 'female' : 'male'} locked={learnBlocker(hero, preview.id)} />}
         </>
       )}
     </Panel>
