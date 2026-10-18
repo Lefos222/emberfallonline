@@ -50,8 +50,8 @@ export function Challenges({ onClose, start }: { onClose: () => void; start: Sta
           addWeeklyKill(h);
           loot = makeDrop(h.cls, h.level + Math.floor(h.paragon / 2) + d * 2, rw.minRarity);
           loot.name = `${TIER_BOSSES[id].name.split(",")[0]}'s ${loot.name.split(" ").slice(1).join(" ")}`;
-          if (h.inventory.length >= invCap(h)) { loot = null; } else addLoot(h, loot);
-          lines = [`+${fmt(rw.xp)} XP`, `+${fmt(rw.gold)} gold`, ...(rw.bossCore ? [`+${rw.bossCore} Boss Core`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : []), ...(loot ? [] : ["Bag full — boss gear lost!"])];
+          const full = h.inventory.length >= invCap(h); addLoot(h, loot); if (full) lines.push("Bag full — gear placed in your Overflow Chest (Armory)");
+          lines = [...lines, `+${fmt(rw.xp)} XP`, `+${fmt(rw.gold)} gold`, ...(rw.bossCore ? [`+${rw.bossCore} Boss Core`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         return { lines, loot };
       },

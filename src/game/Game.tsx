@@ -5,7 +5,7 @@ import castle from "@/assets/castle.jpg.asset.json";
 import theme from "@/assets/theme.mp3.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } from "./data";
-import { leaveCharacter, update, useGame } from "./store";
+import { getHero, leaveCharacter, update, useGame } from "./store";
 import { recordBattle } from "./progress";
 import { CharacterSelect, Portrait, ProfilePanel, frameClass } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
@@ -16,6 +16,8 @@ import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
 import { Gold, ItemCard, Panel, fmt } from "./ui";
 import { CONQUEST_LEVEL, canEnterConquest } from "./data";
+
+const useGameOverflow = () => getHero()?.overflow?.length ?? 0;
 
 export function Game() {
   const { hero, userId, cloud, authReady } = useGame();
@@ -52,8 +54,10 @@ export function Game() {
     // Rewards resolve exactly once per battle, even if onEnd fires twice.
     if (!battle || settled.current === battle) return;
     settled.current = battle;
+    const before = useGameOverflow();
     const r0 = await battle.onResult(won);
     const r = { ...r0, lines: [...r0.lines] };
+    if (useGameOverflow() > before && !r.lines.some((l) => /Overflow/.test(l))) r.lines.push("Bag full — loot placed in your Overflow Chest (Armory)");
     if (won) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m)); });
     update((h) => recordBattle(h, { title: battle.title, won, boss: !!battle.right.boss, arena: /arena/i.test(battle.title), rewards: [...r.lines, ...(r.loot ? [r.loot.name] : [])] }));
     setResult({ won, ...r });
