@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Panel } from "./ui";
 import { inspectHero, socialError, type InspectedProfile } from "./social";
+import { CharacterModel } from "./CharacterModel";
 
 export interface InspectPanelProps {
   heroId: string | null;
@@ -31,7 +32,7 @@ export function InspectPanel({ heroId, targetId, onClose }: InspectPanelProps) {
     {error && <p role="alert" className="py-2 text-sm text-muted-foreground">{error}</p>}
     {!error && !profile && <p role="status" className="py-2 text-sm text-muted-foreground">Loading hero…</p>}
     {profile && <div className="space-y-4 anim-pop">
-      <header><h3 className="break-words font-display text-3xl text-gold">{profile.name}</h3>
+      <header>{(profile.hero_class === 'warrior' || profile.hero_class === 'mage' || profile.hero_class === 'archer') && <CharacterModel cls={profile.hero_class} gender={profile.gender === 'female' ? 'female' : 'male'} className="mb-3 h-48" />}<h3 className="break-words font-display text-3xl text-gold">{profile.name}</h3>
         <p className="text-sm text-muted-foreground"><span className="capitalize">{profile.hero_class}</span> · Level {profile.level}</p></header>
       <dl className="grid grid-cols-2 gap-3 text-sm">
         <div className="slot p-3"><dt className="text-muted-foreground">Battle Rating</dt><dd className="text-gold">{profile.power.toLocaleString()}</dd></div>

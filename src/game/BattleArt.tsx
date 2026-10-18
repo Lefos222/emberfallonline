@@ -1,16 +1,18 @@
-import heroes from '@/assets/battle-heroes.png';
+import { CharacterModel } from './CharacterModel';
 import enemies from '@/assets/battle-enemies.png';
 import type { Unit } from './combat';
 import type { Move } from './skillAnim';
 
 export function BattleCharacter({ u }: { u: Unit }) {
+  if (u.cls) return <div className={`battle-character flex h-full w-full items-end justify-center ${u.side === 'foe' ? 'battle-mirror' : ''}`}>
+    <CharacterModel cls={u.cls} gender={u.gender === 'female' ? 'female' : 'male'} className="h-full max-w-full" />
+  </div>;
   const identity = `${u.name} ${u.img}`;
-  const col = u.cls ? ({ warrior: 0, archer: 1, mage: 2 }[u.cls]) : /dragon|wyrm/i.test(identity) ? 3 : /goblin|brute grunt/i.test(identity) ? 1 : /skeleton|bone/i.test(identity) ? 0 : 2;
-  const row = u.cls && u.gender === 'female' ? 1 : 0;
+  const col = /dragon|wyrm/i.test(identity) ? 3 : /goblin|brute grunt/i.test(identity) ? 1 : /skeleton|bone/i.test(identity) ? 0 : 2;
   return <div className={`battle-character h-full w-full ${u.side === 'foe' && u.cls ? 'battle-mirror' : ''}`}>
     <div className="relative h-full w-full overflow-hidden">
-      <img src={u.cls ? heroes : enemies} alt={u.name} width={u.cls ? 1536 : 1920} height={1024} draggable={false}
-        className="absolute max-w-none" style={{ width: u.cls ? '300%' : '400%', height: u.cls ? '200%' : '100%', left: `${-col * 100}%`, top: `${-row * 100}%` }} />
+      <img src={enemies} alt={u.name} width={1920} height={1024} draggable={false}
+        className="absolute max-w-none" style={{ width: '400%', height: '100%', left: `${-col * 100}%`, top: 0 }} />
     </div>
   </div>;
 }

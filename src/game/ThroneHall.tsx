@@ -1,19 +1,23 @@
 import { useState } from "react";
-import { Check, Gift, Lock, RotateCcw, Skull, Star } from "lucide-react";
+import { Check, Gift, Lock, RotateCcw, Skull, Star, Eye } from "lucide-react";
 import { ACHIEVEMENTS, SET_BONUSES, achProgress, activeSets, emptyRecord, isClaimable } from "./progress";
 import { CLASSES, heroSkills, heroStats, powerBreakdown, xpToNext } from "./data";
 import { update, useGame } from "./store";
 import { Gold, Panel, fmt } from "./ui";
 import { SPEC_LEVEL, TIER_REQ, TREES, freePoints, learnBlocker, resetCost, spentIn, totalPoints } from "./talents";
+import { Button } from "@/components/ui/button";
+import { SkillPreview } from "./SkillPreview";
 
 export function ThroneHall({ onClose }: { onClose: () => void }) {
-  const { hero } = useGame();
+  const { hero, gender } = useGame();
   const [tab, setTab] = useState<"overview" | "skills" | "ach" | "history">("skills");
   const [confirmReset, setConfirmReset] = useState(false);
+  const [previewId, setPreviewId] = useState<string | null>(null);
   if (!hero) return null;
   const s = heroStats(hero);
   const free = freePoints(hero);
   const trees = TREES[hero.cls];
+  const preview = trees.flatMap(s => s.talents).find(t => t.id === previewId);
   const claimable = ACHIEVEMENTS.filter((a) => isClaimable(hero, a)).length;
   const rec = { ...emptyRecord(), ...(hero.record ?? {}) };
   const claim = (id: string) => update((h) => {
@@ -158,8 +162,8 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
                       return (
                         <div key={t.id}>
                           {i > 0 && <div className={`talent-link ${prevRank > 0 ? "talent-link-on" : ""}`} aria-hidden="true" />}
-                          <button disabled={!!block} onClick={() => learn(t.id)} title={block ?? `Learn rank ${rank + 1} (${t.cost} pt)`}
-                            className={`talent-node w-full rounded border border-border p-2 text-left ${rank > 0 ? "talent-filled bg-primary/15" : ""} ${block ? "opacity-70" : "hover:border-gold"}`}>
+                          <Button variant="ghost" disabled={!!block} onClick={() => learn(t.id)} title={block ?? `Learn rank ${rank + 1} (${t.cost} pt)`}
+                            className={`talent-node block h-auto w-full whitespace-normal rounded border border-border p-2 text-left ${rank > 0 ? "talent-filled bg-primary/15" : ""} ${block ? "opacity-70" : "hover:border-gold"}`}>
                             <span key={rank} className={rank > 0 ? "talent-burst" : "hidden"} aria-hidden="true" />
                             <div className="flex items-center justify-between text-sm">
                               <span className="font-bold">{t.ability ? "◆ " : ""}{t.name}</span>
@@ -172,7 +176,8 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
                               Tier {t.tier}{TIER_REQ[t.tier] ? ` · needs ${TIER_REQ[t.tier]} pts here` : ""} · {t.cost} pt/rank
                               {block && block !== "Maxed" && <span className="ml-1 text-blood"><Lock className="inline h-3 w-3" /> {block}</span>}
                             </div>
-                          </button>
+                          </Button>
+                          {t.ability && <Button variant="ghost" size="sm" className="mt-1 w-full text-xs text-gold" onClick={() => setPreviewId(t.id)}><Eye className="h-3 w-3" />Preview {t.name}</Button>}
                         </div>
                       );
                     })}
@@ -181,6 +186,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
               );
             })}
           </div>
+          {preview && <SkillPreview talent={preview} cls={hero.cls} gender={gender} locked={learnBlocker(hero, preview.id)} />}
         </>
       )}
     </Panel>

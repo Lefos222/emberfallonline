@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Hero } from '../game/data';
-import { dailyRoad, weeklyRoad, roadWeekIndex, roadFoe, roadRewards, recordRoadClear, spireWave } from '../game/longroad';
+import { dailyRoad, weeklyRoad, roadWeekIndex, roadFoe, roadRewards, recordRoadClear, spireWave, spireCircuit } from '../game/longroad';
 const hero = (): Hero => ({ name: 'Test', cls: 'warrior', level: 80, paragon: 0, xp: 0, gold: 100, attrs: { str: 0, int: 0, agi: 0, vit: 0 }, equipment: {}, inventory: [], stage: 91, spire: 1, merchant: [], wins: 0 });
 describe('Long Road', () => {
   it('stage 91 has level 91', () => expect(roadFoe(91).level).toBe(91));
@@ -21,7 +21,24 @@ describe('Long Road', () => {
     const h = recordRoadClear(recordRoadClear(hero(), { mode: 'road', value: 91 }), { mode: 'spire', value: 1 });
     expect(recordRoadClear(h, { mode: 'spire', value: 1 }).gold).toBe(7550);
   });
-  it('Spire health multiplier caps at eight', () => expect(spireWave(91, 1000).hp).toBe(720000000));
+  it('Spire difficulty keeps increasing beyond the first circuit', () => {
+    expect(spireWave(91, 101).hp).toBeGreaterThan(spireWave(91, 1).hp);
+    expect(spireWave(91, 1001).hp).toBeGreaterThan(spireWave(91, 901).hp);
+  });
+  it('Spire rotates actual enemy identities instead of repeating one enemy', () => {
+    expect(spireWave(91, 2).rosterId).not.toBe(spireWave(91, 1).rosterId);
+  });
+  it('Spire circuits continue without a final wave', () => {
+    expect(spireCircuit(10001)).toEqual({ circuit: 101, floor: 1 });
+  });
+  it('Road boss encounters use more than the four featured bosses', () => {
+    expect(new Set(Array.from({ length: 10 }, (_, i) => roadFoe(100 + i * 10).rosterId)).size).toBe(10);
+  });
+  it('Saved progression retains the same next encounter after reload', () => {
+    const h = recordRoadClear(hero(), { mode: 'road', value: 91 });
+    const loaded: Hero = JSON.parse(JSON.stringify(h));
+    expect(spireWave(loaded.road?.cleared ?? 91, loaded.road?.wave ?? 1)).toEqual(spireWave(91, 1));
+  });
   it('daily selection is fixed throughout the epoch day', () => expect(dailyRoad(Date.UTC(1970, 0, 1, 23, 59)).name).toBe('Ashen March'));
   it('daily rotates at UTC midnight', () => expect(dailyRoad(Date.UTC(1970, 0, 2)).name).toBe('Widowroot Expanse'));
   it('weekly selection stays fixed through Sunday', () => expect(weeklyRoad(roadWeekIndex(Date.UTC(1970, 0, 4, 23, 59))).name).toBe('Ashen March'));

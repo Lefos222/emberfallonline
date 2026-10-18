@@ -56,8 +56,16 @@
 
 ## New requests (2026-10-18 11:42)
 - In-game event calendar: live countdowns, time-zone-aware schedules, reminders for recurring world bosses and seasonal events. [in progress]
-- Guilds: member roles, shared progression, guild quests, cooperative rewards (roles + invites + chat already exist; add progression/quests/co-op rewards). [open]
-- Guild activity log: quest progress, donations, and each member's contributions to shared rewards. [open]
-- Guild chat: announcement channel, message history, basic moderation controls. [open]
-- Seasonal guild rankings from cooperative activity; exclusive cosmetics for top guilds. [open]
-- Guild shop: spend earned contribution tokens on upgrade materials, equipment, cosmetics. [open]
+- Guild expansion (quests, activity log, moderation, rankings and contribution shop): deferred at the user's request; preserve existing guild features.
+
+## Current priority (2026-10-18 11:45 UTC)
+- [x] Infinite Spire scales and rotates from saved circuit/wave cursors; progression tests pass without a permanent difficulty plateau.
+- [x] Show endless circuits and upcoming milestones with existing artwork; signed-in adventure screen checked (entry remains locked for the current low-level character).
+- [x] Add nine endless skill-tree abilities with saved milestone gates, actual combat effects, matched animations and locked previews; 134 unit tests pass.
+- [x] Show skill targeting, hit counts and turn-based cooldowns; signed-in locked preview and inventory action checked without spending points.
+- [x] Replace card crops with six standalone transparent characters shared across selection, inventory, profiles and battle; correct arena opponent gender.
+- [x] Add repeatable 60-case appearance checks for six identities across equipment/progression and combat states; matching base models pass with motion disabled.
+- [x] Share idle and class-action previews in selection/inventory; isolated combat check shows sword impact and real damage with no runtime errors.
+- [ ] Item-specific visible armor/weapon changes: base outfit stays identical across screens, but equipped gear does not yet replace the painted costume; requires layered gear artwork and appearance integration.
+- [ ] Signed-in unlock and use of endless abilities: current character has not cleared Road 100/120 or Spire 100; do not alter saves to bypass milestones.
+- [ ] Measured 60-hour balancing, later equipment/content expansion and full artwork audit remain unfinished; guild expansion stays deferred.

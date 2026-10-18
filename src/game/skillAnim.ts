@@ -32,6 +32,10 @@ export const SKILL_MOVE: Record<string, Move> = {
   shadow: "dash",
   // Consumables
   potion: "drink",
+  guard: "slam", taunt: "thrust", counter: "overhead", mark: "aim", evade: "dash",
+  firestorm: "channel", barrier: "nova", restore: "siphon",
+  aegis: "slam", cyclone: "spin", sovereign: "leap", solar: "rise", winter: "nova",
+  "astral-siphon": "siphon", horizon: "aim", tempest: "rapid", eclipse: "dash",
 };
 
 /** Impact art that lands on the target. Heal/block events keep their own kind; this covers strikes. */
@@ -40,6 +44,10 @@ export const SKILL_EFFECT: Record<string, string> = {
   bolt: "arcane", nova: "ice", meteor: "meteor", inferno: "fire", spike: "ice", drain: "tether",
   shot: "arrow", volley: "arrow", snipe: "mark", pierce: "arrow", rain: "arrow", shadow: "slash",
   potion: "heal",
+  guard: "shield", taunt: "slash", counter: "shield", mark: "mark", evade: "arcane",
+  firestorm: "fire", barrier: "arcane", restore: "heal",
+  aegis: "shield", cyclone: "slash", sovereign: "mark", solar: "meteor", winter: "ice",
+  "astral-siphon": "tether", horizon: "mark", tempest: "arrow", eclipse: "tether",
 };
 
 /** The move an actor performs. Unknown skills fall back to that class's signature move. */

@@ -69,6 +69,15 @@ const ADAPT: Record<string, Partial<TSkill>> = {
   snipe: { name: "Deadly Aim", cost: 50, desc: "Lethal aimed shot that always crits." },
   pierce: { cost: 40, desc: "Armor-shredding arrow that always crits.", penBonus: 30 },
   rain: { target: "all", cost: 40, desc: "Arrows fall on every enemy." },
+  aegis: { cost: 40, desc: "A shield-driven impact stuns one foe." },
+  cyclone: { target: "all", cost: 50, desc: "Four sweeping strikes against every foe." },
+  sovereign: { cost: 60, desc: "A leaping execution; guaranteed critical damage." },
+  solar: { target: "all", cost: 55, desc: "Four solar impacts burn every foe.", applies: { kind: "burn", turns: 2, value: 0.15 } },
+  winter: { target: "all", cost: 50, desc: "An expanding frost wave freezes every foe." },
+  "astral-siphon": { cost: 45, desc: "A life-draining tether heals the caster." },
+  horizon: { cost: 50, penBonus: 40, desc: "An aimed critical arrow ignores 40% armor." },
+  tempest: { target: "all", cost: 50, desc: "Five arrow waves strike every foe." },
+  eclipse: { cost: 40, desc: "A shadow dash heals you and grants evasion.", selfApplies: { kind: "evade", turns: 2, value: 30 } },
 };
 
 const EXTRA: Record<HeroClass, TSkill[]> = {
