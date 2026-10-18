@@ -213,6 +213,9 @@
 .battle-unit { width: 320px; max-width: 36%; }
 .battle-foes .battle-unit { width: 220px; max-width: 32%; }
 .battle-figure { max-height: 46vh; }
+.battle-screen .battle-unit { width: 200px; max-width: 28%; }
+.battle-screen .battle-foes .battle-unit { width: 150px; max-width: 30%; }
+.battle-screen .battle-figure { max-height: 30vh; }
 .battle-character { transform-origin: center bottom; filter: drop-shadow(0 12px 12px var(--background)); }
 .battle-mirror { transform: scaleX(-1); }
 .combat-effect { pointer-events: none; position: absolute; inset: 10% 0 0; width: 100% !important; height: 80% !important; fill: none; stroke: var(--gold); stroke-width: 6; stroke-linecap: round; filter: drop-shadow(0 0 10px currentColor); animation: combat-impact .65s ease-out both; }

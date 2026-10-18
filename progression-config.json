@@ -1,0 +1,6 @@
+{
+  "professions": {"xpPerLevel":100,"areaUnlockLevels":[1,6,11,16,21],"journeySeconds":[30,45,60,75,90],"restSeconds":60,"rarityProbabilities":{"common":0.65,"uncommon":0.25,"rare":0.09,"exceptional":0.01},"discoveryQuantity":"1 + areaIndex + rarityIndex","discoveryXp":"20 + areaIndex * 5 + rarityIndex * 5","toolMilestonesXp":[1000,2000],"resourceUse":"Persistent collection only in this phase; production recipes and trade not enabled"},
+  "worldBoss":{"recurrenceHours":2,"openMinutes":45,"rareArmor":"Craft-only; boss gear rolls resolve to weapons or jewelry","verification":"Opening server-validated; battle outcome/rewards retain legacy client settlement"},
+  "expeditions":{"areas":6,"resourceKeys":["ore","essence","starshard","fragment","sigil","bossCore"],"unlockLevels":[1,10,20,25,35,50]},
+  "balanceStatus":"Initial configuration, not a measured 60-hour balance claim"
+}

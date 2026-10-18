@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from '@tanstack/react-start';
 import { Bell, BellOff, Calendar, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Panel, fmt } from "./ui";
@@ -6,7 +7,10 @@ import { stageRewards, type Hero, type Item } from "./data";
 import type { StartBattle } from "./panels";
 import { update } from "./store";
 import { scrollXp } from "./scrolls";
-import { campaignFoe } from "./world";
+import { confirmEventEntry } from './events.functions';
+import { eventEncounter } from './event-encounters';
+import { recordRosterEncounter } from './bestiary';
+import { Sprite } from './Sprite';
 import {
   countdown,
   occurrenceKey,
@@ -28,6 +32,10 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
   const [remind, setRemind] = useState<Record<string, boolean>>({});
   const [banner, setBanner] = useState<string | null>(null);
   const fired = useRef<Set<string>>(new Set());
+  const confirmEntry = useServerFn(confirmEventEntry);
+  const entering = useRef(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -87,12 +95,15 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
     }
   };
 
-  const join = (ev: WorldEvent) => {
-    const foe = campaignFoe(ev.stage);
+  const join = async (ev: WorldEvent) => {
+    if (entering.current) return;
+    entering.current = true; setBusy(true); setError('');
+    try {
+    const { foe } = await confirmEntry({ data: { eventId: ev.id } });
     const rw = stageRewards(ev.stage, ev.kind === "boss" ? 2 : ev.kind === "season" ? 1.5 : 1);
     start({
       title: `${ev.name} · Live Event`,
-      right: { ...foe, name: ev.kind === "boss" ? ev.name : foe.name },
+      right: foe,
       onResult: async (won, xpMultiplier = 1) => {
         const { grant, rollLoot, addLoot } = await import("./logic");
         const lines: string[] = [];
@@ -105,6 +116,7 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
           const xp = scrollXp(rw.xp, xpMultiplier);
           const { levels } = grant(hh, xp, rw.gold);
           loot = rollLoot(hh, ev.stage, 1, ev.kind === "boss" ? 2 : 0);
+          recordRosterEncounter(hh, foe.rosterId, true);
           if (loot) addLoot(hh, loot);
           lines.push(`+${fmt(rw.gold)} gold`, `+${fmt(xp)} XP`);
           if (loot) lines.push(`Loot: ${(loot as Item).name}`);
@@ -113,6 +125,8 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
         return { lines, loot };
       },
     });
+    } catch (e) { setError(e instanceof Error ? e.message : 'Could not confirm event opening.'); }
+    finally { entering.current = false; setBusy(false); }
   };
 
   return (
@@ -148,14 +162,12 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
         </div>
       )}
 
-      <p className="mb-4 text-sm text-muted-foreground">
-        Reminders ring {Math.round(REMIND_LEAD_MS / 60_000)} minutes before an event opens, once per occurrence.
-        Joining a live event fights a real encounter and pays real rewards into your bag.
-      </p>
+      {error && <p role="alert" className="mb-4 text-sm text-hp">{error}</p>}
 
       <div className="grid gap-3">
         {rows.map(({ ev, s }) => {
           const at = s.state === "live" ? s.endsAt : s.startsAt;
+          const encounter = eventEncounter(ev, s.state === 'live' ? s.startedAt : s.startsAt);
           return (
             <article
               key={ev.id}
@@ -164,6 +176,7 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
+                  <div className="mb-2 flex items-center gap-3"><Sprite rect={encounter.sprite} className="h-20 w-20 shrink-0" /><div><p className="font-display text-gold">{encounter.name}</p><p className="text-xs text-muted-foreground">Level {encounter.level} · {fmt(encounter.hp)} HP</p></div></div>
                   <h3 className="font-display text-lg font-bold">
                     {ev.name}
                     <span className="ml-2 rounded bg-muted px-2 py-0.5 text-xs uppercase tracking-wide text-muted-foreground">
@@ -187,8 +200,8 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Button size="sm" variant={s.state === "live" ? "default" : "outline"} disabled={s.state !== "live"} onClick={() => join(ev)}>
-                  {s.state === "live" ? "Join event" : "Opens later"}
+                <Button size="sm" variant={s.state === "live" ? "default" : "outline"} disabled={s.state !== "live" || busy} onClick={() => void join(ev)}>
+                  {busy ? 'Confirming…' : s.state === "live" ? "Join event" : "Opens later"}
                 </Button>
                 <Button size="sm" variant="ghost" aria-pressed={!!remind[ev.id]} onClick={() => toggle(ev)}>
                   {remind[ev.id] ? <Bell /> : <BellOff />}

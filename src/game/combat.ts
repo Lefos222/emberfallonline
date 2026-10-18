@@ -23,6 +23,7 @@ export interface FighterInput {
   cls?: HeroClass; skills?: Skill[]; critDmg?: number; pen?: number; acc?: number; block?: number; heal?: number;
   sprite?: SpriteRect; mirror?: boolean; boss?: boolean; elite?: boolean;
   gender?: 'male' | 'female'; scrolls?: ('dmg' | 'def' | 'xp')[];
+  skillLoadout?: string[];
 }
 
 export interface Unit {
@@ -97,7 +98,7 @@ const EXTRA: Record<HeroClass, TSkill[]> = {
   ],
 };
 
-export function buildKit(cls: HeroClass | undefined, skills?: Skill[]): TSkill[] {
+export function buildKit(cls: HeroClass | undefined, skills?: Skill[], chosen?: string[]): TSkill[] {
   const base = skills ?? (cls ? SKILLS[cls] : [{ id: "hit", name: "Attack", mult: 1, cd: 0, icon: "sword" } as Skill]);
   const kit: TSkill[] = base.map((s) => ({
     id: s.id, name: s.name, desc: `${Math.round(s.mult * (s.hits ?? 1) * 100)}% damage.`, icon: s.icon,
@@ -106,7 +107,8 @@ export function buildKit(cls: HeroClass | undefined, skills?: Skill[]): TSkill[]
     ...(ADAPT[s.id] ?? {}),
   }));
   if (cls) for (const e of EXTRA[cls]) if (!kit.some((k) => k.id === e.id)) kit.push(e);
-  return kit;
+  // Basic resource-generating attack is always present. Filter only the actual unlocked kit.
+  return chosen ? kit.filter((s,i)=>i===0 || chosen.includes(s.id)) : kit;
 }
 
 // ---------- Setup ----------
@@ -120,7 +122,7 @@ function toUnit(f: FighterInput, side: Unit["side"], id: string): Unit {
     block: Math.min(BLOCK_CAP, f.block ?? (f.boss ? 5 : 0)), heal: Math.min(HEAL_CAP, f.heal ?? 0),
     speed: Math.round(100 + f.dodge * 2 + (f.acc ?? 0) + (f.cls === "archer" ? 15 : f.cls === "mage" ? 5 : 0) - (f.boss ? 10 : 0)),
     mana: side === "hero" ? 40 : 0, maxMana, statuses: [], cds: {},
-    kit: side === "hero" || f.cls ? buildKit(f.cls, f.skills) : [], turnsTaken: 0,
+    kit: side === "hero" || f.cls ? buildKit(f.cls, f.skills, f.skillLoadout) : [], turnsTaken: 0,
   };
 }
 

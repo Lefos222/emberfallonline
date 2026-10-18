@@ -1,0 +1,45 @@
+{
+  "style": "Original hand-painted fantasy art; existing castle, standalone class/gender characters and encounter sheets preserved.",
+  "assets": [
+    {
+      "path": "src/assets/mat-fragment.png",
+      "feature": "Armor crafting materials; Forge and material bars"
+    },
+    {
+      "path": "src/assets/mat-sigil.png",
+      "feature": "Elite crafting materials; Forge and material bars"
+    },
+    {
+      "path": "src/assets/crafting-trophies.png",
+      "feature": "Source atlas for the integrated fragment and sigil crops"
+    },
+    {
+      "path": "src/assets/gathering-regions.jpg",
+      "feature": "Five Profession Lodge gathering locations"
+    },
+    {
+      "path": "src/assets/profession-discoveries.png",
+      "feature": "Profession Lodge discovery collection icons, six columns by four rarities"
+    },
+    {
+      "path": "src/assets/gathering-verdant.jpg",
+      "feature": "Profession Lodge location crop"
+    },
+    {
+      "path": "src/assets/gathering-ember.jpg",
+      "feature": "Profession Lodge location crop"
+    },
+    {
+      "path": "src/assets/gathering-sunken.jpg",
+      "feature": "Profession Lodge location crop"
+    },
+    {
+      "path": "src/assets/gathering-frost.jpg",
+      "feature": "Profession Lodge location crop"
+    },
+    {
+      "path": "src/assets/gathering-astral.jpg",
+      "feature": "Profession Lodge location crop"
+    }
+  ]
+}

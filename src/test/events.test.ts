@@ -12,9 +12,16 @@ import {
 
 const H = 3_600_000;
 const D = 24 * H;
-const boss = WORLD_EVENTS.find((e) => e.id === "world-boss")!;
+const boss = WORLD_EVENTS.find((e) => e.id === "world-boss");
+if (!boss) throw new Error("World boss schedule missing");
 
 describe("world event schedules", () => {
+  it("world bosses recur every two hours", () => {
+    expect(boss.everyMs).toBe(2 * H);
+    const next = statusOf(boss.anchor + 2 * H, boss);
+    expect(next.state).toBe("live");
+    if (next.state === "live") expect(next.startedAt).toBe(boss.anchor + 2 * H);
+  });
   it("every event is well-formed and uniquely identified", () => {
     expect(new Set(WORLD_EVENTS.map((e) => e.id)).size).toBe(WORLD_EVENTS.length);
     for (const e of WORLD_EVENTS) {
@@ -41,8 +48,8 @@ describe("world event schedules", () => {
     const s = statusOf(now, boss);
     expect(s.state).toBe("upcoming");
     if (s.state === "upcoming") {
-      expect(s.startsAt).toBe(boss.anchor + 4 * H);
-      expect(s.msLeft).toBe(4 * H - 50 * 60_000);
+      expect(s.startsAt).toBe(boss.anchor + 2 * H);
+      expect(s.msLeft).toBe(2 * H - 50 * 60_000);
     }
   });
 
@@ -102,10 +109,10 @@ describe("reminders", () => {
   it("keys one reminder per occurrence, so it cannot fire twice", () => {
     const before = occurrenceKey(boss, boss.anchor - 60_000);
     const inside = occurrenceKey(boss, boss.anchor + 60_000);
-    const nextCycle = occurrenceKey(boss, boss.anchor + 4 * H - 60_000);
+    const nextCycle = occurrenceKey(boss, boss.anchor + 2 * H - 60_000);
     expect(before).toBe(`${boss.id}:starts:${boss.anchor}`);
     expect(inside).toBe(`${boss.id}:ends:${boss.anchor + boss.durationMs}`);
-    expect(nextCycle).toBe(`${boss.id}:starts:${boss.anchor + 4 * H}`);
+    expect(nextCycle).toBe(`${boss.id}:starts:${boss.anchor + 2 * H}`);
     expect(new Set([before, inside, nextCycle]).size).toBe(3);
   });
   it("uses the shared five minute lead", () => {

@@ -10,6 +10,11 @@ import { ScrollShop } from "./ScrollShop";
 import { Bestiary } from "./Bestiary";
 import { PassiveTree } from "./PassiveTree";
 import { EventCalendar } from "./EventCalendar";
+import { Boutique } from './Boutique';
+import { Sanctuary } from './Sanctuary';
+import { Expeditions } from './Expeditions';
+import { Professions } from './Professions';
+import { awardAncestralRelic } from './building-content';
 import { beginScrollBattle } from "./services";
 import { scrollFighter } from "./scrolls";
 import castle from "@/assets/castle.jpg.asset.json";
@@ -38,6 +43,7 @@ export function Game() {
   const [battle, setBattle] = useState<null | { right: Fighter; left: Fighter; auto?: boolean; title: string; onResult: Parameters<StartBattle>[0]["onResult"] }>(null);
   const [result, setResult] = useState<null | { won: boolean; lines: string[]; loot?: Item | null }>(null);
   const [crafting, setCrafting] = useState(false);
+  const [expeditions, setExpeditions] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem("bm-muted") === "1");
   const audio = useRef<HTMLAudioElement>(null);
   const starting = useRef(false);
@@ -89,7 +95,9 @@ export function Game() {
     const r0 = await battle.onResult(won, battle.left.scrolls?.includes("xp") ? 1.2 : 1);
     const r = { ...r0, lines: [...r0.lines] };
     if (useGameOverflow() > before && !r.lines.some((l) => /Overflow/.test(l))) r.lines.push("Bag full — loot placed in your Overflow Chest (Armory)");
-    if (won) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m)); });
+    if (won) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m));
+      if (awardAncestralRelic(h, !!battle.right.boss)) r.lines.push('+1 Ancestral Relic');
+    });
     update((h) => recordBattle(h, { title: battle.title, won, boss: !!battle.right.boss, arena: /arena/i.test(battle.title), rewards: [...r.lines, ...(r.loot ? [r.loot.name] : [])] }));
     setResult({ won, ...r });
   };
@@ -111,6 +119,7 @@ export function Game() {
             <Button variant="ghost" size="icon" aria-label="Battle Scrolls" title="Battle Scrolls" onClick={() => setOpen("scrolls")}><ScrollText /></Button>
             <Button variant="ghost" size="icon" aria-label="Passive Tree" title="Passive Tree" onClick={() => setOpen("passives")}><Leaf /></Button>
             <Button variant="ghost" size="icon" aria-label="Bestiary" title="Bestiary" onClick={() => setOpen("bestiary")}><BookOpen /></Button>
+            <Button variant="ghost" size="icon" aria-label="Profession Lodge" title="Profession Lodge" onClick={()=>setOpen('professions')}><Anvil/></Button>
           </nav>
           <WorldChat heroId={heroId} />
           <Hud muted={muted} setMuted={setMuted} cloud={cloud} onProfile={() => setOpen("profile")} />
@@ -126,6 +135,9 @@ export function Game() {
           {open === "bestiary" && <Bestiary h={hero} onClose={() => setOpen(null)} />}
           {open === "road" && <LongRoad onClose={() => setOpen(null)} start={start} />}
           {open === "calendar" && <EventCalendar h={hero} onClose={() => setOpen(null)} start={start} />}
+          {open === 'boutique' && <Boutique onClose={()=>setOpen(null)} />}
+          {open === 'professions' && <Professions onClose={()=>setOpen(null)} />}
+          {open === 'sanctuary' && <Sanctuary onClose={()=>setOpen(null)} start={start} />}
           {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
           {open === "friends" && (
             <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-background/70 p-4 pt-16" onClick={() => setOpen(null)}>
@@ -139,7 +151,8 @@ export function Game() {
           {open === "spire" && (canEnterConquest(hero.level) ? <Campaign spire onClose={() => setOpen(null)} start={start} /> : <ComingSoon id="spire" locked onClose={() => setOpen(null)} />)}
           {open === "forge" && <Forge onClose={() => setOpen(null)} onCraft={() => setCrafting(true)} />}
           {crafting && <Crafting onClose={() => setCrafting(false)} />}
-          {open === "dungeon" && <Challenges onClose={() => setOpen(null)} start={start} />}
+          {open === "dungeon" && <Challenges onClose={() => setOpen(null)} start={start} onExpeditions={()=>{setOpen(null);setExpeditions(true);}} />}
+          {expeditions && <Expeditions onClose={()=>setExpeditions(false)} start={o=>{setExpeditions(false);start(o);}} />}
           {open === "gems" && <GemWorkshop onClose={() => setOpen(null)} />}
           {open === "tower" && <MagicTower onClose={() => setOpen(null)} />}
           {open === "temple" && <Temple onClose={() => setOpen(null)} />}
@@ -260,7 +273,7 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "passives" | "bestiary" | "road" | "calendar";
+type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "passives" | "bestiary" | "road" | "calendar" | 'professions';
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof Backpack }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", Icon: Backpack },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", Icon: Anvil },
