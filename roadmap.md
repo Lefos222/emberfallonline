@@ -1,8 +1,8 @@
 # Roadmap
 
 ## Current request
-- [ ] Reduce battle-only character sizes without changing selection/inventory proportions.
-- [ ] Let players choose unlocked skills as they level up using existing talent and combat systems.
+- [x] Reduce battle-only characters to 200px player / 150px enemies; signed-in campaign screenshot verified, selection/inventory unchanged.
+- [x] Choose unlocked battle skills in Throne Hall while retaining existing level/talent unlocks and basic attack; saved choice verified after refresh, 157 tests pass.
 
 ## Verified foundations
 - [x] Preserve existing accounts, saves, castle, combat, equipment, crafting, gems/Astrals and online reward services.
