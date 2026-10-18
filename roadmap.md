@@ -69,3 +69,4 @@
 - [ ] Add repeatable visual appearance checks for combat states, equipment swaps and progression milestones (2026-10-18 11:48 UTC).
 - [ ] Replace selection-card crops with standalone full-body characters matching the selection designs, shared across selection, inventory and battle (user correction 2026-10-18 11:51 UTC).
 - [ ] Verify shared model proportions and visible equipment across selection, inventory and battle (2026-10-18 11:52 UTC).
+- [ ] Share idle motion and class-action previews across selection, inventory and battle (2026-10-18 11:53 UTC).
