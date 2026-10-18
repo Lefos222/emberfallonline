@@ -57,3 +57,4 @@
 ## New requests (2026-10-18 11:42)
 - In-game event calendar: live countdowns, time-zone-aware schedules, reminders for recurring world bosses and seasonal events. [in progress]
 - Guilds: member roles, shared progression, guild quests, cooperative rewards (roles + invites + chat already exist; add progression/quests/co-op rewards). [open]
+- Guild activity log: quest progress, donations, and each member's contributions to shared rewards. [open]
