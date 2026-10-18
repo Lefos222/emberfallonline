@@ -9,9 +9,9 @@ describe('chosen battle skills',()=>{
   expect(buildKit('warrior',SKILLS.warrior,['cleave','meteor','unearned']).map(s=>s.id)).toEqual(['strike','cleave']);
  });
  it('retains selected talent abilities and their real combat adaptation',()=>{
-  const skills=[...SKILLS.mage,{id:'firestorm',name:'Firestorm',mult:.95,cd:3,icon:'flame'}];
-  const chosen=buildKit('mage',skills,['firestorm']);
-  expect(chosen.map(s=>s.id)).toEqual(['bolt','firestorm']);expect(chosen[1]?.target).toBe('all');
+  const skills=[...SKILLS.mage,{id:'inferno',name:'Inferno',mult:2,cd:3,icon:'flame'}];
+  const chosen=buildKit('mage',skills,['inferno']);
+  expect(chosen.map(s=>s.id)).toEqual(['bolt','inferno']);expect(chosen[1]?.target).toBe('all');
  });
  it('chosen skills enter the actual battle state',()=>{
   const fighter={name:'Knight',img:'',hp:100,atk:10,def:5,crit:0,dodge:0,level:2,cls:'warrior' as const,skills:SKILLS.warrior,skillLoadout:['guard']};
