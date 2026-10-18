@@ -22,6 +22,7 @@ import { Battle, type Fighter } from "./Battle";
 import { Arena, Campaign, Forge, HeroHall, Market, Oracle, Temple, XpBar, heroFighter, type StartBattle } from "./panels";
 import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
+import { LongRoad } from "./LongRoad";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
 import { Gold, ItemCard, Panel, fmt } from "./ui";
@@ -122,6 +123,7 @@ export function Game() {
           {open === "armory" && <HeroHall onClose={() => setOpen(null)} />}
           {open === "passives" && <PassiveTree onClose={() => setOpen(null)} />}
           {open === "bestiary" && <Bestiary h={hero} onClose={() => setOpen(null)} />}
+          {open === "road" && <LongRoad onClose={() => setOpen(null)} start={start} />}
           {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
           {open === "friends" && (
             <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-background/70 p-4 pt-16" onClick={() => setOpen(null)}>
@@ -256,11 +258,12 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls";
+type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "passives" | "bestiary" | "road";
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof Backpack }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", Icon: Backpack },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", Icon: Anvil },
   { id: "daily", label: "Daily Rewards", tip: "7-day reward board", Icon: Gift },
+  { id: "road", label: "Long Road", tip: "Endless regions past the campaign", Icon: Sparkles },
   { id: "friends", label: "Friends", tip: "Friends & messages", Icon: Users },
   { id: "profile", label: "Profile", tip: "Your hero profile", Icon: UserCircle },
   { id: "oracle", label: "Quest Board", tip: "AI-generated quests", Icon: ScrollText },
