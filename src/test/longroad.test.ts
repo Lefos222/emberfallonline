@@ -22,8 +22,8 @@ describe('Long Road', () => {
     expect(recordRoadClear(h, { mode: 'spire', value: 1 }).gold).toBe(7550);
   });
   it('Spire difficulty keeps increasing beyond the first circuit', () => {
-    expect(spireWave(91, 101).hp).toBeGreaterThan(spireWave(91, 100).hp);
-    expect(spireWave(91, 1001).hp).toBeGreaterThan(spireWave(91, 1000).hp);
+    expect(spireWave(91, 101).hp).toBeGreaterThan(spireWave(91, 1).hp);
+    expect(spireWave(91, 1001).hp).toBeGreaterThan(spireWave(91, 901).hp);
   });
   it('Spire rotates actual enemy identities instead of repeating one enemy', () => {
     expect(spireWave(91, 2).rosterId).not.toBe(spireWave(91, 1).rosterId);

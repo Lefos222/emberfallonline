@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Loader2, Plus, Trash2, Play, ArrowLeft, LogOut, RefreshCw } from "lucide-react";
-import sheet from "@/assets/character_selection.jpg.asset.json";
+import { CharacterModel } from './CharacterModel';
 import castle from "@/assets/castle.jpg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { CLASSES, type HeroClass } from "./data";
@@ -10,25 +10,8 @@ import {
 import { Panel, fmt } from "./ui";
 import { earnedTitles } from "./progress";
 
-// Portrait boxes on the uploaded 1920x1072 character sheet.
-const BOX: Record<HeroClass, Record<Gender, [number, number]>> = {
-  warrior: { female: [150, 395], male: [395, 395] },
-  mage: { female: [735, 385], male: [1000, 385] },
-  archer: { female: [1320, 395], male: [1595, 395] },
-};
-const BW = 250, BH = 380;
-
 export function Portrait({ cls, gender, className = "" }: { cls: HeroClass; gender: Gender; className?: string }) {
-  const [x, y] = BOX[cls][gender];
-  return (
-    <div className={`overflow-hidden ${className}`} style={{ aspectRatio: `${BW} / ${BH}` }}>
-      <div className="h-full w-full" style={{
-        backgroundImage: `url(${sheet.url})`,
-        backgroundSize: `${(1920 / BW) * 100}% ${(1072 / BH) * 100}%`,
-        backgroundPosition: `${(x / (1920 - BW)) * 100}% ${(y / (1072 - BH)) * 100}%`,
-      }} />
-    </div>
-  );
+  return <CharacterModel cls={cls} gender={gender} className={className} />;
 }
 
 const DESC: Record<HeroClass, { style: string; text: string }> = {
