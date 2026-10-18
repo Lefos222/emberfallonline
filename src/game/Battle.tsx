@@ -7,6 +7,7 @@ import arenaCrypt from "@/assets/arena-crypt.jpg";
 import arenaLair from "@/assets/arena-lair.jpg";
 import arenaRift from "@/assets/arena-rift.jpg";
 import { Sprite } from "./Sprite";
+import { SkillIcon } from "./SkillIcon";
 import { BattleCharacter, CombatEffect, WeaponArc } from "./BattleArt";
 import { effectFor, moveFor, type Move } from "./skillAnim";
 import { SCROLLS } from "./scrolls";
@@ -236,7 +237,6 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2">
             {hero.kit.map((sk) => {
-              const Icon = ICONS[sk.icon] ?? Sword;
               const cd = hero.cds[sk.id] ?? 0;
               const why = skillReady(hero, sk);
               const disabled = !myTurn || !!why || autoOn;
