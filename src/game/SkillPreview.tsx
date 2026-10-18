@@ -24,7 +24,7 @@ export function SkillPreview({ talent, cls, gender, locked }: { talent: Talent; 
       <Button variant="outline" size="sm" onClick={() => setReplay(n => n + 1)}><Play className="h-4 w-4" />Replay animation</Button>
     </div>
     <div className="mt-3 grid items-center gap-4 sm:grid-cols-[240px_1fr]">
-      <div className="relative flex h-56 items-end justify-center overflow-hidden bg-muted/30" key={replay}>
+      <div className="battle-unit relative flex h-56 items-end justify-center overflow-hidden bg-muted/30" key={replay}>
         <div className={`relative h-48 w-32 anim-${move}`}><CharacterModel cls={cls} gender={gender} className="h-full" /><WeaponArc move={move} /></div>
         <div className="pointer-events-none absolute right-0 top-0 h-full w-28"><CombatEffect kind={effect} /></div>
       </div>

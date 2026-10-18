@@ -15,6 +15,7 @@ import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
+import { CharacterModel } from "./CharacterModel";
 
 export type StartBattle = (opts: {
   right: Fighter; auto?: boolean; title: string;
@@ -379,7 +380,7 @@ export function Market({ onClose }: { onClose: () => void }) {
 }
 
 // ---------------- Arena (online) ----------------
-interface Opp { id: string; user_id: string; name: string; hero_class: string; level: number; power: number; arena_rating: number; stats: Stats & { paragon?: number } }
+interface Opp { id: string; user_id: string; name: string; hero_class: string; gender: string; level: number; power: number; arena_rating: number; stats: Stats & { paragon?: number } }
 interface Match { id: string; attacker_id: string; attacker_name: string; defender_name: string; attacker_won: boolean; rating_change: number; created_at: string }
 
 export function Arena({ onClose, start }: { onClose: () => void; start: StartBattle }) {
@@ -393,7 +394,7 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
   const load = async () => {
     if (!userId) return;
     setLoading(true);
-    const cols = "id,user_id,name,hero_class,level,power,arena_rating,stats";
+    const cols = "id,user_id,name,hero_class,gender,level,power,arena_rating,stats";
     const [mine, tops, hist] = await Promise.all([
       supabase.from("heroes").select(cols).eq("id", heroId ?? "").maybeSingle(),
       supabase.from("heroes").select(cols).order("arena_rating", { ascending: false }).limit(10),
@@ -434,7 +435,7 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
     start({
       title: "Blood Arena",
       auto: true,
-      right: { name: o.name, img: CLASSES[cls].img, hp: o.stats.hp, atk: o.stats.atk, def: o.stats.def, crit: o.stats.crit, dodge: o.stats.dodge ?? 5, critDmg: o.stats.critDmg ?? 200, pen: o.stats.pen ?? 0, acc: o.stats.acc ?? 0, level: o.level + (o.stats.paragon ?? 0), cls, mirror: true },
+      right: { name: o.name, img: CLASSES[cls].img, gender: o.gender === 'female' ? 'female' : 'male', hp: o.stats.hp, atk: o.stats.atk, def: o.stats.def, crit: o.stats.crit, dodge: o.stats.dodge ?? 5, critDmg: o.stats.critDmg ?? 200, pen: o.stats.pen ?? 0, acc: o.stats.acc ?? 0, level: o.level + (o.stats.paragon ?? 0), cls, mirror: true },
       onResult: async (won, xpMultiplier = 1) => {
         const { data, error } = await supabase.rpc("record_arena_result", { _attacker: heroId ?? "", _defender: o.id, _won: won });
         let lines = [won ? "Victory in the arena!" : "Defeated…"];
@@ -464,7 +465,7 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
             const cls = (CLASSES[o.hero_class as HeroClass] ? o.hero_class : "warrior") as HeroClass;
             return (
               <div key={o.id} className="slot flex flex-col items-center p-2 text-center">
-                <img src={CLASSES[cls].img} alt={o.name} className="h-32 w-full object-contain" style={{ transform: "scaleX(-1)" }} />
+                <CharacterModel cls={cls} gender={o.gender === 'female' ? 'female' : 'male'} className="h-32" />
                 <div className="truncate font-display">{o.name}</div>
                 <div className="text-xs text-muted-foreground">Lv {o.level} · {CLASSES[cls].name}</div>
                 <div className="text-sm"><Trophy className="inline h-3 w-3 text-r4" /> {fmt(o.power)} · <span className="text-gold">{o.arena_rating}</span></div>
