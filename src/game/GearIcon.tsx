@@ -1,5 +1,5 @@
-import gear from "@/assets/gear.jpg.asset.json";
-import anc from "@/assets/ancestral-gear.jpg.asset.json";
+import gear from "@/assets/equipment_for_classes.jpg.asset.json";
+import anc from "@/assets/astrals.jpg.asset.json";
 import { ATLAS_H, ATLAS_W, iconRect, type Item } from "./data";
 
 export function GearIcon({ item, size = 56 }: { item: Pick<Item, "slot" | "cls" | "icon"> & { anc?: boolean }; size?: number }) {
