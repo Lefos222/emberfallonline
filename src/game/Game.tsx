@@ -28,7 +28,7 @@ import { CONQUEST_LEVEL, canEnterConquest } from "./data";
 const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
 
 export function Game() {
-  const { hero, userId, cloud, authReady } = useGame();
+  const { hero, heroId, userId, cloud, authReady } = useGame();
   const nav = useNavigate();
   const [open, setOpen] = useState<ShortcutTarget | null>(null);
   const [battle, setBattle] = useState<null | { right: Fighter; left: Fighter; auto?: boolean; title: string; onResult: Parameters<StartBattle>[0]["onResult"] }>(null);
@@ -106,7 +106,7 @@ export function Game() {
             <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><Crosshair /></Button>
             <Button variant="ghost" size="icon" aria-label="Battle Scrolls" title="Battle Scrolls" onClick={() => setOpen("scrolls")}><ScrollText /></Button>
           </nav>
-          <WorldChat heroId={hero.id} />
+          <WorldChat heroId={heroId} />
           <Hud muted={muted} setMuted={setMuted} cloud={cloud} onProfile={() => setOpen("profile")} />
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
           {open === "mailbox" && <Mailbox onClose={() => setOpen(null)} />}
@@ -120,7 +120,7 @@ export function Game() {
           {open === "friends" && (
             <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-background/70 p-4 pt-16" onClick={() => setOpen(null)}>
               <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-                <FriendsPanel heroId={hero.id} />
+                <FriendsPanel heroId={heroId} />
                 <button className="btn-ghost mt-2 w-full py-2" onClick={() => setOpen(null)}>Close</button>
               </div>
             </div>
