@@ -56,8 +56,9 @@
 
 ## New requests (2026-10-18 11:42)
 - In-game event calendar: live countdowns, time-zone-aware schedules, reminders for recurring world bosses and seasonal events. [in progress]
-- Guilds: member roles, shared progression, guild quests, cooperative rewards (roles + invites + chat already exist; add progression/quests/co-op rewards). [open]
-- Guild activity log: quest progress, donations, and each member's contributions to shared rewards. [open]
-- Guild chat: announcement channel, message history, basic moderation controls. [open]
-- Seasonal guild rankings from cooperative activity; exclusive cosmetics for top guilds. [open]
-- Guild shop: spend earned contribution tokens on upgrade materials, equipment, cosmetics. [open]
+- Guild expansion (quests, activity log, moderation, rankings and contribution shop): deferred at the user's request; preserve existing guild features.
+
+## Current priority (2026-10-18 11:45 UTC)
+- [ ] Make Infinite Spire encounters continue scaling and rotating instead of reaching a fixed difficulty plateau.
+- [ ] Show endless circuit progression and upcoming milestones using existing original artwork.
+- [ ] Run progression tests and check the adventure screen; do not claim measured 60-hour playtime.
