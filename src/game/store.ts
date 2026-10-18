@@ -29,10 +29,12 @@ const COLS = "id,name,hero_class,gender,level,power,arena_rating,last_played,bio
 function set(p: Partial<State>) { state = { ...state, ...p }; listeners.forEach((l) => l()); }
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
+let saveInFlight: Promise<boolean> | null = null;
+let serverOperation = false;
 let lastSavedAt = "";
-async function pushCloud() {
+async function performSave(): Promise<boolean> {
   const h = state.hero; const id = state.heroId;
-  if (!state.userId || !h || !id) return;
+  if (!state.userId || !h || !id) return false;
   set({ cloud: "saving" });
   const s = heroStats(h);
   const now = new Date().toISOString();
@@ -42,9 +44,36 @@ async function pushCloud() {
   }).eq("id", id);
   lastSavedAt = now;
   set({ cloud: error ? "error" : "saved" });
+  return !error;
+}
+
+async function pushCloud(): Promise<boolean> {
+  if (saveInFlight) await saveInFlight;
+  const pending = performSave();
+  saveInFlight = pending;
+  try { return await pending; } finally { if (saveInFlight === pending) saveInFlight = null; }
 }
 
 export function flushSave() { clearTimeout(saveTimer); return pushCloud(); }
+
+/** Serialize valuable RPCs with cloud writes; never overwrite their returned save with an old draft. */
+export async function withServerHero<T>(action: (id: string) => Promise<T>): Promise<T> {
+  if (serverOperation) throw new Error("Another reward request is still pending.");
+  const id = state.heroId;
+  if (!id || !state.hero || !state.userId) throw new Error("Select a character first.");
+  serverOperation = true;
+  clearTimeout(saveTimer);
+  try {
+    if (!await flushSave()) throw new Error("Your save could not be synced. Please retry before claiming rewards.");
+    return await action(id);
+  } finally { serverOperation = false; }
+}
+
+export function adoptServerSave(id: string, hero: Hero) {
+  if (state.heroId !== id) throw new Error("Your active character changed. Reopen the character to see the reward.");
+  clearTimeout(saveTimer);
+  set({ hero: normalizeHero(hero), cloud: "saved" });
+}
 
 export async function loadCharacters() {
   if (!state.userId) return;
@@ -122,7 +151,7 @@ export function setHero(h: Hero | null) {
 
 /** Mutate the hero with a draft function (works on a deep copy). */
 export function update(fn: (h: Hero) => void) {
-  if (!state.hero) return;
+  if (!state.hero || serverOperation) return;
   const h = structuredClone(state.hero);
   fn(h);
   setHero(h);
