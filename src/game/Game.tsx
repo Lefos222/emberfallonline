@@ -5,7 +5,7 @@ import castle from "@/assets/castle.jpg.asset.json";
 import theme from "@/assets/theme.mp3.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } from "./data";
-import { getHero, leaveCharacter, update, useGame } from "./store";
+import { getState, leaveCharacter, update, useGame } from "./store";
 import { recordBattle } from "./progress";
 import { CharacterSelect, Portrait, ProfilePanel, frameClass } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
@@ -17,7 +17,7 @@ import { battleMats, matsLine, addMats } from "./crafting";
 import { Gold, ItemCard, Panel, fmt } from "./ui";
 import { CONQUEST_LEVEL, canEnterConquest } from "./data";
 
-const useGameOverflow = () => getHero()?.overflow?.length ?? 0;
+const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
 
 export function Game() {
   const { hero, userId, cloud, authReady } = useGame();

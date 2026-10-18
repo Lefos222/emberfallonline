@@ -117,6 +117,13 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               </button>
             )}
           </div>
+          {(hero.overflow?.length ?? 0) > 0 && (
+            <div className="mb-2 flex items-center justify-between rounded-md border border-gold/60 bg-gold/10 px-2 py-1.5 text-xs">
+              <span>Overflow Chest: <b>{hero.overflow!.length}</b> item(s) waiting — free bag space to claim them.</span>
+              <button className="btn-gold px-2 py-0.5 text-xs" disabled={hero.inventory.length >= invCap(hero)}
+                onClick={async () => { const { claimOverflow } = await import("./logic"); update((h) => { claimOverflow(h); }); }}>Claim</button>
+            </div>
+          )}
           <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
             {Array.from({ length: invCap(hero) }).map((_, i) => {
               const it = hero.inventory[i];
