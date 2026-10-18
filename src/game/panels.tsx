@@ -13,10 +13,11 @@ import { refreshMerchant } from "./logic";
 import { update, useGame } from "./store";
 import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import type { Fighter } from "./Battle";
+import { scrollXp } from "./scrolls";
 
 export type StartBattle = (opts: {
   right: Fighter; auto?: boolean; title: string;
-  onResult: (won: boolean) => { lines: string[]; loot?: Item | null } | Promise<{ lines: string[]; loot?: Item | null }>;
+  onResult: (won: boolean, xpMultiplier?: number) => { lines: string[]; loot?: Item | null } | Promise<{ lines: string[]; loot?: Item | null }>;
 }) => void;
 
 export const heroFighter = (h: Hero, s: Stats): Fighter => ({
@@ -195,19 +196,19 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
     title: spire ? `Endless Conquest · Stage ${stage}` : `${zone.name} · Stage ${stage}`,
     auto,
     right: { ...foe, name: foe.boss ? `${foe.name}` : foe.name },
-    onResult: async (won) => {
+    onResult: async (won, xpMultiplier = 1) => {
       if (!won) return { lines: ["Defeated… grow stronger and return."] };
       const { grant, rollLoot, addLoot } = await import("./logic");
       let lines: string[] = [];
       let loot: Item | null = null;
       update((h) => {
-        const { levels } = grant(h, rw.xp, rw.gold);
+        const { levels } = grant(h, scrollXp(rw.xp, xpMultiplier), rw.gold);
         loot = rollLoot(h, stage, foe.boss || spire ? 1 : 0.45, spire ? 2 : foe.boss ? 2 : 0);
         if (loot) addLoot(h, loot);
         if (spire && stage === h.spire) h.spire++;
         if (!spire && stage === h.stage) h.stage++;
         h.wins++;
-        lines = [`+${fmt(rw.xp)} XP`, `+${fmt(rw.gold)} gold`, ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+        lines = [`+${fmt(scrollXp(rw.xp, xpMultiplier))} XP`, `+${fmt(rw.gold)} gold`, ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
       });
       if (stage === max) setStage(stage + 1);
       return { lines, loot };
@@ -430,7 +431,7 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
       title: "Blood Arena",
       auto: true,
       right: { name: o.name, img: CLASSES[cls].img, hp: o.stats.hp, atk: o.stats.atk, def: o.stats.def, crit: o.stats.crit, dodge: o.stats.dodge ?? 5, critDmg: o.stats.critDmg ?? 200, pen: o.stats.pen ?? 0, acc: o.stats.acc ?? 0, level: o.level + (o.stats.paragon ?? 0), cls, mirror: true },
-      onResult: async (won) => {
+      onResult: async (won, xpMultiplier = 1) => {
         const { data, error } = await supabase.rpc("record_arena_result", { _attacker: heroId ?? "", _defender: o.id, _won: won });
         let lines = [won ? "Victory in the arena!" : "Defeated…"];
         if (!error && typeof data === "number") lines.push(`Rating ${data >= 0 ? "+" : ""}${data}`);
@@ -546,14 +547,14 @@ export function Oracle({ onClose, start }: { onClose: () => void; start: StartBa
     setQuests((qs) => qs.filter((x) => x !== q));
     start({
       title: q.title, right: foe,
-      onResult: async (won) => {
+      onResult: async (won, xpMultiplier = 1) => {
         if (!won) return { lines: ["The quest has failed…"] };
         const { grant, makeLoot } = await import("./oracle-loot");
         let lines: string[] = []; let loot: Item | null = null;
         update((h) => {
-          const { levels } = grant(h, rw.xp, rw.gold);
+          const { levels } = grant(h, scrollXp(rw.xp, xpMultiplier), rw.gold);
           loot = makeLoot(h, lvl, q.rewardRarity);
-          lines = [`+${fmt(rw.xp)} XP`, `+${fmt(rw.gold)} gold`, ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+          lines = [`+${fmt(scrollXp(rw.xp, xpMultiplier))} XP`, `+${fmt(rw.gold)} gold`, ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         return { lines, loot };
       },
