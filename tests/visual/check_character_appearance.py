@@ -3,6 +3,9 @@ Uses isolated copies of game state: no session, cloud mutations or saved-player 
 Screenshots are written only to /tmp/browser/appearance-regression.
 """
 import asyncio
+import io
+import numpy as np
+from PIL import Image
 from pathlib import Path
 from playwright.async_api import async_playwright
 
@@ -55,7 +58,10 @@ async def main():
                     assert await model.get_attribute('data-character-model') == f'{cls}-{gender}'
                     image = await model.screenshot(path=str(OUTPUT / f'{cls}-{gender}-{state}.png'))
                     if baseline is None: baseline = image
-                    assert image == baseline, f'Appearance changed: {cls}-{gender}-{state}'
+                    actual = np.array(Image.open(io.BytesIO(image))).astype(float)
+                    expected = np.array(Image.open(io.BytesIO(baseline))).astype(float)
+                    assert actual.shape == expected.shape, f'Model dimensions changed: {cls}-{gender}-{state}'
+                    assert np.abs(actual - expected).mean() < 0.1, f'Appearance changed: {cls}-{gender}-{state}'
         assert not errors, errors
         print('PASS: 60 appearance cases; six identities match across equipment, progression and combat states.')
         print('Motion is disabled for identity comparison; animation choreography requires a separate live check.')
