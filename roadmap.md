@@ -50,3 +50,6 @@
 - [ ] Inspect uploaded emberfall-the-long-road-main-2.zip and fold in anything useful
 - [ ] Skill trees + passives with original artwork stored in project assets
 - [ ] Unending progression: enough content for 60+ hours (stages, bosses, enemies, activities)
+- [ ] Four-hourly timed world events (world boss spawn, timed dungeon, treasure caravan) with real rewards
+- [ ] More equipment families and more crafting materials (artwork + drop tables + forge recipes)
+- [ ] Wartune-style event calendar / activity board refresh
