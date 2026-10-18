@@ -59,14 +59,13 @@
 - Guild expansion (quests, activity log, moderation, rankings and contribution shop): deferred at the user's request; preserve existing guild features.
 
 ## Current priority (2026-10-18 11:45 UTC)
-- [ ] Make Infinite Spire encounters continue scaling and rotating instead of reaching a fixed difficulty plateau.
-- [ ] Show endless circuit progression and upcoming milestones using existing original artwork.
-- [ ] Run progression tests and check the adventure screen; do not claim measured 60-hour playtime.
-- [ ] Prioritize skill trees and matching ability animations, and use the character-creation models for in-game characters (2026-10-18 11:46 UTC).
-- [ ] Add endless-progression skill-tree branches unlocking real abilities and animation variants (2026-10-18 11:47 UTC).
-- [ ] Clearly show skill range, impacts and cooldowns during combat; preserve character identity across equipment changes and milestones (2026-10-18 11:47 UTC).
-- [ ] Preview upcoming abilities and their animation variants before unlocking (2026-10-18 11:48 UTC).
-- [ ] Add repeatable visual appearance checks for combat states, equipment swaps and progression milestones (2026-10-18 11:48 UTC).
-- [ ] Replace selection-card crops with standalone full-body characters matching the selection designs, shared across selection, inventory and battle (user correction 2026-10-18 11:51 UTC).
-- [ ] Verify shared model proportions and visible equipment across selection, inventory and battle (2026-10-18 11:52 UTC).
-- [ ] Share idle motion and class-action previews across selection, inventory and battle (2026-10-18 11:53 UTC).
+- [x] Infinite Spire scales and rotates from saved circuit/wave cursors; progression tests pass without a permanent difficulty plateau.
+- [x] Show endless circuits and upcoming milestones with existing artwork; signed-in adventure screen checked (entry remains locked for the current low-level character).
+- [x] Add nine endless skill-tree abilities with saved milestone gates, actual combat effects, matched animations and locked previews; 134 unit tests pass.
+- [x] Show skill targeting, hit counts and turn-based cooldowns; signed-in locked preview and inventory action checked without spending points.
+- [x] Replace card crops with six standalone transparent characters shared across selection, inventory, profiles and battle; correct arena opponent gender.
+- [x] Add repeatable 60-case appearance checks for six identities across equipment/progression and combat states; matching base models pass with motion disabled.
+- [x] Share idle and class-action previews in selection/inventory; isolated combat check shows sword impact and real damage with no runtime errors.
+- [ ] Item-specific visible armor/weapon changes: base outfit stays identical across screens, but equipped gear does not yet replace the painted costume; requires layered gear artwork and appearance integration.
+- [ ] Signed-in unlock and use of endless abilities: current character has not cleared Road 100/120 or Spire 100; do not alter saves to bypass milestones.
+- [ ] Measured 60-hour balancing, later equipment/content expansion and full artwork audit remain unfinished; guild expansion stays deferred.
