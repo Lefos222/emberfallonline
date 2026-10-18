@@ -120,6 +120,7 @@ export function Game() {
             <Button variant="ghost" size="icon" aria-label="Passive Tree" title="Passive Tree" onClick={() => setOpen("passives")}><Leaf /></Button>
             <Button variant="ghost" size="icon" aria-label="Bestiary" title="Bestiary" onClick={() => setOpen("bestiary")}><BookOpen /></Button>
             <Button variant="ghost" size="icon" aria-label="Profession Lodge" title="Profession Lodge" onClick={()=>setOpen('professions')}><Anvil/></Button>
+            <Button variant="ghost" size="icon" aria-label="Premium Shop" title="Premium Shop" onClick={()=>setOpen('premium')}><Gem/></Button>
           </nav>
           <WorldChat heroId={heroId} />
           <Hud muted={muted} setMuted={setMuted} cloud={cloud} onProfile={() => setOpen("profile")} />
@@ -137,6 +138,7 @@ export function Game() {
           {open === "calendar" && <EventCalendar h={hero} onClose={() => setOpen(null)} start={start} />}
           {open === 'boutique' && <Boutique onClose={()=>setOpen(null)} />}
           {open === 'professions' && <Professions onClose={()=>setOpen(null)} />}
+          {open === 'premium' && <PremiumShop onClose={()=>setOpen(null)} />}
           {open === 'sanctuary' && <Sanctuary onClose={()=>setOpen(null)} start={start} />}
           {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
           {open === "friends" && (
