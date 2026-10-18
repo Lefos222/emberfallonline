@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  FastForward, Zap,
+  FastForward, Skull, Zap,
 } from "lucide-react";
 import arenaField from "@/assets/arena-field.jpg";
 import arenaCrypt from "@/assets/arena-crypt.jpg";
