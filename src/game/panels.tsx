@@ -34,7 +34,7 @@ const RIGHT_DOLL: WearSlot[] = ["weapon", "ring", "ring2", "talisman"];
 
 // ---------------- Hero Keep ----------------
 export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; title?: string }) {
-  const { hero } = useGame();
+  const { hero, gender } = useGame();
   const [sel, setSel] = useState<{ id: string; equipped: boolean } | null>(null);
   const [filter, setFilter] = useState<Slot | "all">("all");
   const [sort, setSort] = useState<"new" | "rarity" | "level">("new");
@@ -66,8 +66,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               ))}
             </div>
             <div className="relative h-80">
-              <div className="absolute inset-x-6 bottom-2 h-6 rounded-full bg-blood/40 blur-xl" />
-              <img src={CLASSES[hero.cls].img} alt={hero.cls} className="relative h-full w-full object-contain anim-idle" />
+              <CharacterModel cls={hero.cls} gender={gender} className="h-full w-full anim-idle" />
             </div>
             <div className="flex flex-col gap-2">
               {RIGHT_DOLL.map((sl) => (
