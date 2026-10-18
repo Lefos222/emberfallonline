@@ -23,7 +23,7 @@ async function auctionCall(op: string, rpc: "auction_list" | "auction_buy" | "au
   if (!id) throw new Error("Select a character first.");
   const req = requestKey(localStorage, id, op, () => crypto.randomUUID());
   await withServerHero(async (heroId) => {
-    const { data, error } = await supabase.rpc(rpc, { _hero: heroId, _req: req, ...args });
+    const { data, error } = await supabase.rpc(rpc, { _hero: heroId, _req: req, ...args } as never);
     if (error) throw new Error(error.message);
     adoptServerSave(heroId, returnedSave(data));
   });
