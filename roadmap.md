@@ -22,3 +22,4 @@
 - [ ] Real high-level unlock/use verification and measured 60-hour balance; current test character lacks endgame milestones.
 - [ ] Full hosted stranger Google/Lovable round trip and funded scroll ten-battle cycle remain unverified.
 - Guild expansion remains deferred in favor of general endless progression.
+- [ ] Add skill icons/pictures to the battle skill bar.
