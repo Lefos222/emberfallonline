@@ -2,13 +2,15 @@ import ore from "@/assets/mat-ore.png";
 import essence from "@/assets/mat-essence.png";
 import starshard from "@/assets/mat-starshard.png";
 import bossCore from "@/assets/mat-bossCore.png";
+import fragment from '@/assets/mat-fragment.png';
+import sigil from '@/assets/mat-sigil.png';
 import ruby from "@/assets/gem-ruby.png";
 import sapphire from "@/assets/gem-sapphire.png";
 import emerald from "@/assets/gem-emerald.png";
 import topaz from "@/assets/gem-topaz.png";
 import type { GemType, Mat } from "./crafting";
 
-const MAT_IMG: Partial<Record<Mat, string>> = { ore, essence, starshard, bossCore };
+const MAT_IMG: Partial<Record<Mat, string>> = { ore, essence, starshard, bossCore, fragment, sigil };
 const GEM_IMG: Partial<Record<GemType, string>> = { ruby, sapphire, emerald, topaz };
 import { GEMS } from "./crafting";
 

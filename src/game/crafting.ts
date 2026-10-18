@@ -17,6 +17,7 @@ export interface CraftState {
   mats?: Mats; gems?: Record<string, number>; astrals?: Astral[]; astralSlots?: (string | null)[];
   equipment: Partial<Record<Slot, Item>>; inventory: Item[];
   crafts?: number;
+  anc?: { step: number; relics: number; done: boolean };
 }
 
 export const matCount = (h: Pick<CraftState, "mats">, m: Mat) => h.mats?.[m] ?? 0;
@@ -259,12 +260,16 @@ export const RECIPES: Recipe[] = [
   { id: "epic", name: "Forged Epic piece", rarity: 3, mats: { ore: 50, essence: 8 }, gold: 2500, minLevel: 15, desc: "A guaranteed Epic item with 2 sockets." },
   { id: "legend", name: "Boss-forged Legendary", rarity: 4, mats: { ore: 120, essence: 20, bossCore: 3 }, gold: 12000, minLevel: 35, desc: "Legendary gear forged from boss cores." },
   { id: "mythic", name: "Mythic Masterwork", rarity: 5, mats: { ore: 300, essence: 60, bossCore: 10 }, gold: 60000, minLevel: 60, desc: "Mythic gear with 3 sockets." },
+  { id: "sentinel", name: "Iron Sentinel", rarity: 3, mats: { ore: 65, essence: 6, fragment: 8, sigil: 2 }, gold: 3200, minLevel: 20, desc: "An Epic sentinel piece forged from elite trophies. Two gem sockets." },
+  { id: "starweave", name: "Starweave Relic", rarity: 4, mats: { ore: 100, essence: 25, starshard: 20, bossCore: 3 }, gold: 15000, minLevel: 40, desc: "A Legendary Starweave piece for your chosen slot. Two gem sockets." },
+  { id: "voidforged", name: "Voidforged Sovereign", rarity: 5, mats: { ore: 350, essence: 80, starshard: 40, bossCore: 12, sigil: 15 }, gold: 80000, minLevel: 80, desc: "A Mythic sovereign piece for Ascension builds. Three gem sockets." },
+  { id: "ancestral", name: "Ancestral Heirloom", rarity: 6, mats: { ore: 500, essence: 100, bossCore: 20, fragment: 80, sigil: 20 }, gold: 120000, minLevel: 60, desc: "Ancestral gear. Complete the Sanctuary trials to unlock this recipe." },
 ];
 /** Armor slots: Rare and better armor exists only through crafting. */
 export const ARMOR_SLOTS: Slot[] = ["helmet", "armour", "boots", "belt"];
 export const isArmor = (s: Slot) => ARMOR_SLOTS.includes(s);
 /** Extra ingredients armor recipes need on top of the base recipe. */
-export const ARMOR_EXTRA: Record<string, Mats> = { rare: { fragment: 5 }, epic: { fragment: 12, sigil: 2 }, legend: { fragment: 25, sigil: 5 }, mythic: { fragment: 60, sigil: 12 } };
+export const ARMOR_EXTRA: Record<string, Mats> = { rare: { fragment: 5 }, epic: { fragment: 12, sigil: 2 }, legend: { fragment: 25, sigil: 5 }, mythic: { fragment: 60, sigil: 12 }, sentinel: { fragment: 12, sigil: 2 }, starweave: { fragment: 25, sigil: 5 }, voidforged: { fragment: 60, sigil: 12 } };
 export const recipeMats = (r: Recipe, slot: Slot): Mats => {
   if (!isArmor(slot)) return r.mats;
   const out: Mats = { ...r.mats };
@@ -272,6 +277,7 @@ export const recipeMats = (r: Recipe, slot: Slot): Mats => {
   return out;
 };
 export function craftBlocker(h: CraftState, r: Recipe, invCap: number, slot: Slot = "weapon"): string | null {
+  if (r.id === "ancestral" && !h.anc?.done) return "Complete the Ancestral Sanctuary trials";
   if (h.level + h.paragon < r.minLevel) return `Requires level ${r.minLevel}`;
   if (h.gold < r.gold) return "Not enough gold";
   if (!hasMats(h, recipeMats(r, slot))) return "Missing materials";

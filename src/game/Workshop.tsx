@@ -1,5 +1,6 @@
 import { MatIcon, GemIcon } from "./MatIcon";
 import { useState } from "react";
+import { Button } from '@/components/ui/button';
 import { ArrowUp, Gem, Hammer, Sparkles, X } from "lucide-react";
 import { invCap, SLOTS, WEAR_SLOTS, wornCompare, makeItem, type Item, type Slot } from "./data";
 import { update, useGame } from "./store";
@@ -7,7 +8,7 @@ import { Gold, ItemCard, Panel, fmt } from "./ui";
 import {
   ASTRAL_BASES, ASTRAL_MAX_LVL, ASTRAL_MILESTONES, ASTRAL_RARITY, ASTRAL_SLOTS, FUSE_COUNT, GEMS, GEM_CUT_COST, GEM_MAX_TIER, MATS, RECIPES, SUMMON_COST,
   astralUpgradeCost, astralValue, craft, craftBlocker, cutGem, equipAstral, fuseCost, fuseGem, gemName, gemValue, insertGem, matCount, parseGem, removeGem,
-  socketCount, sockets, STAT_LABEL, recipeMats, summonAstral, upgradeAstral, type Mat,
+  socketCount, sockets, STAT_LABEL, recipeMats, summonAstral, upgradeAstral, absorbAstral, GEM_TYPES, GEM_TARGET_COST, type GemType, type Mat,
 } from "./crafting";
 
 function MatsBar() {
@@ -33,6 +34,7 @@ function useToast() {
 export function GemWorkshop({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
   const [selId, setSelId] = useState<string | null>(null);
+  const [cutType, setCutType] = useState<GemType | 'random'>('random');
   const [toast, say] = useToast();
   if (!hero) return null;
   const gear = [...WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean) as Item[], ...hero.inventory].filter((i) => socketCount(i) > 0);
@@ -74,12 +76,12 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
         <div>
           <div className="mb-2 flex items-center justify-between font-display">
             Your gems
-            <button className="btn-gold px-2 py-1 text-xs" disabled={matCount(hero, "ore") < GEM_CUT_COST.ore || hero.gold < GEM_CUT_COST.gold}
-              title={`Costs ${GEM_CUT_COST.ore} Ember Ore + ${GEM_CUT_COST.gold} gold`}
-              onClick={() => act((h) => { const k = cutGem(h); say(!!k && k.includes(":"), k && k.includes(":") ? `Cut a ${gemName(k)}!` : k ?? ""); })}>
-              Cut gem ({GEM_CUT_COST.ore} ore)
-            </button>
+            <Button size="sm" disabled={matCount(hero, 'ore') < (cutType === 'random' ? GEM_CUT_COST.ore : GEM_TARGET_COST.ore) || hero.gold < (cutType === 'random' ? GEM_CUT_COST.gold : GEM_TARGET_COST.gold) || (cutType !== 'random' && matCount(hero, 'essence') < GEM_TARGET_COST.essence)}
+              onClick={() => act((h) => { const k = cutGem(h, Math.random, cutType === 'random' ? undefined : cutType); say(!!k && k.includes(':'), k && k.includes(':') ? `Cut a ${gemName(k)}!` : k ?? ''); })}>
+              <Gem className="h-4 w-4" />Cut gem
+            </Button>
           </div>
+          <label className="mb-3 block text-xs">Gem cut<select aria-label="Gem cut" className="mt-1 w-full rounded border border-border bg-background p-2" value={cutType} onChange={e=>setCutType(e.target.value as GemType | 'random')}><option value="random">Random · 8 ore / 150 gold</option>{GEM_TYPES.map(t=><option key={t} value={t}>{GEMS[t].name} · 24 ore / 450 gold / 1 essence</option>)}</select></label>
           {owned.length === 0 && <p className="text-sm text-muted-foreground">No gems yet. Cut some from Ember Ore.</p>}
           <div className="space-y-1">
             {owned.map(([k, n]) => {
@@ -153,8 +155,9 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
       <div className="grid gap-2 md:grid-cols-2">
         {list.map((a) => (
           <div key={a.id} className="slot flex items-center justify-between gap-2 p-2 text-sm">
-            <span><b>{label(a)}</b> <span className="text-xs text-muted-foreground">· {ASTRAL_BASES[a.base].kind}</span><span className="block text-xs">{fx(a)}</span></span>
-            <span className="flex gap-1">
+            <span className="min-w-0"><b>{label(a)}</b> <span className="text-xs text-muted-foreground">· {ASTRAL_BASES[a.base].kind}</span><span className="block text-xs">{fx(a)}</span></span>
+            <span className="flex flex-wrap gap-1">
+              {list.some(f=>f.id !== a.id && f.base === a.base) && <Button size="sm" variant="outline" disabled={a.lvl >= ASTRAL_MAX_LVL || !list.some(f=>f.id !== a.id && f.base === a.base && !slots.includes(f.id))} onClick={()=>update(h=>{const food=h.astrals?.find(f=>f.id!==a.id && f.base===a.base && !(h.astralSlots??[]).includes(f.id));if(!food)return;const err=absorbAstral(h,a.id,food.id);say(!err,err??'Duplicate absorbed');})}><Sparkles className="h-3 w-3" />Absorb duplicate</Button>}
               {slots.map((_, i) => <button key={i} className="btn-ghost px-2 py-0.5 text-xs" disabled={slots[i] === a.id} onClick={() => update((h) => { equipAstral(h, a.id, i); })}>Slot {i + 1}</button>)}
               <button className="btn-ghost px-2 py-0.5 text-xs" disabled={a.lvl >= ASTRAL_MAX_LVL || matCount(hero, "starshard") < astralUpgradeCost(a)} title={`Upgrade: ${astralUpgradeCost(a)} Starshards`}
                 onClick={() => update((h) => { const e = upgradeAstral(h, a.id); say(!e, e ?? "Astral upgraded"); })}><ArrowUp className="inline h-3 w-3" />{astralUpgradeCost(a)}</button>
@@ -179,8 +182,10 @@ export function Crafting({ onClose }: { onClose: () => void }) {
     if (busy) return; // prevents double-click double crafts
     setBusy(true);
     update((h) => {
-      const r = RECIPES.find((x) => x.id === id)!;
+      const r = RECIPES.find((x) => x.id === id);
+      if (!r) return;
       const out = craft(h, r, invCap(h), () => makeItem(h.cls, ilvl, r.rarity, slot), slot);
+      if (typeof out !== 'string' && !['rare','epic','legend','mythic'].includes(r.id)) out.name = `${r.name} ${slot}`;
       if (typeof out === "string") say(false, out); else { setLast(out); say(true, `Forged ${out.name}!`); }
     });
     setTimeout(() => setBusy(false), 400);
@@ -190,7 +195,7 @@ export function Crafting({ onClose }: { onClose: () => void }) {
       <MatsBar />
       {toast}
       <div className="mb-3 flex flex-wrap gap-1 text-sm">
-        {SLOTS.map((s) => <button key={s} className={slot === s ? "btn-gold px-3 py-1" : "btn-ghost px-3 py-1"} onClick={() => setSlot(s)}>{s}</button>)}
+        {SLOTS.map((s) => <Button key={s} size="sm" variant={slot === s ? 'default' : 'ghost'} onClick={() => setSlot(s)}>{s}</Button>)}
       </div>
       <div className="grid gap-4 md:grid-cols-[1.4fr_1fr]">
         <div className="space-y-2">
@@ -206,7 +211,7 @@ export function Crafting({ onClose }: { onClose: () => void }) {
                     <Gold n={r.gold} />
                   </div>
                 </div>
-                <button className="btn-gold flex items-center gap-1 px-3 py-1.5" disabled={!!b || busy} title={b ?? "Craft"} onClick={() => doCraft(r.id)}><Hammer className="h-4 w-4" />Craft</button>
+                <Button size="sm" disabled={!!b || busy} title={b ?? 'Craft'} onClick={() => doCraft(r.id)}><Hammer className="h-4 w-4" />Craft</Button>
               </div>
             );
           })}

@@ -29,6 +29,20 @@
       "when": 1792322214677,
       "tag": "0003_restore_game_functions",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792324991685,
+      "tag": "0004_timed_profession_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792325219685,
+      "tag": "0005_gathering_input_guards",
+      "breakpoints": true
     }
   ]
 }

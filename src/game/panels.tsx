@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Button } from '@/components/ui/button';
+import { trainingCost, trainAttribute } from './building-content';
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Shield, Heart, Swords, Clover, Lock, Sparkles, Trophy, Hammer, RefreshCw, Trash2, Skull } from "lucide-react";
@@ -317,21 +319,23 @@ const ATTRS: { k: Attr; name: string; icon: React.ReactNode; d: string }[] = [
 ];
 export function Temple({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
+  const [count,setCount]=useState(1);
   if (!hero) return null;
   return (
     <Panel title="Barracks — Attribute Training" onClose={onClose}>
+      <div role="group" aria-label="Training batch" className="mb-4 flex gap-2">{[1,5,10].map(n=><Button key={n} size="sm" variant={count===n?'default':'outline'} aria-pressed={count===n} onClick={()=>setCount(n)}>+{n} points</Button>)}</div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {ATTRS.map((a) => {
-          const cost = attrCost(hero.attrs[a.k]);
+          const cost = trainingCost(hero,a.k,count);
           return (
             <div key={a.k} className="slot flex flex-col items-center gap-2 p-4 text-center">
               {a.icon}
               <div className="font-display">{a.name}</div>
               <div className="font-display text-3xl text-gold">{hero.attrs[a.k]}</div>
               <div className="text-xs text-muted-foreground">{a.d}</div>
-              <button className="btn-gold w-full py-1.5" disabled={hero.gold < cost} onClick={() => update((h) => { h.gold -= cost; h.attrs[a.k]++; })}>
+              <Button className="w-full" disabled={hero.gold < cost} onClick={() => update((h) => { trainAttribute(h,a.k,count); })}>
                 <Gold n={cost} className="text-primary-foreground" />
-              </button>
+              </Button>
             </div>
           );
         })}

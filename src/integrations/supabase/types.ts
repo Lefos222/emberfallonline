@@ -550,6 +550,15 @@ export type Database = {
       activate_scroll: { Args: { _hero: string; _kind: string }; Returns: Json }
       add_friend: { Args: { _hero: string; _name: string }; Returns: string }
       begin_battle: { Args: { _hero: string }; Returns: Json }
+      begin_gathering: {
+        Args: {
+          _area: number
+          _hero: string
+          _profession: string
+          _req: string
+        }
+        Returns: Json
+      }
       buy_scroll: {
         Args: { _hero: string; _kind: string; _req: string }
         Returns: Json
@@ -569,6 +578,7 @@ export type Database = {
         }
         Returns: string
       }
+      finish_gathering: { Args: { _hero: string; _req: string }; Returns: Json }
       get_activities: { Args: { _hero: string }; Returns: Json }
       guild_disband: { Args: { _hero: string }; Returns: undefined }
       guild_invite: {
@@ -633,6 +643,7 @@ export type Database = {
       lucky_shot: { Args: { _hero: string; _req: string }; Returns: Json }
       my_guild_ids: { Args: never; Returns: string[] }
       my_hero_ids: { Args: never; Returns: string[] }
+      profession_state: { Args: { _hero: string }; Returns: Json }
       read_mail: { Args: { _hero: string; _mail: string }; Returns: undefined }
       record_arena_result: {
         Args: { _attacker: string; _defender: string; _won: boolean }
