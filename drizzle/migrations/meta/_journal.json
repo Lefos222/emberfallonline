@@ -50,6 +50,13 @@
       "when": 1792329378810,
       "tag": "0006_premium_diamonds_vip",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792359257303,
+      "tag": "0007_auction_house",
+      "breakpoints": true
     }
   ]
 }

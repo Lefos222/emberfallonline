@@ -104,6 +104,53 @@ export type Database = {
         }
         Relationships: []
       }
+      auction_listings: {
+        Row: {
+          buyer_hero: string | null
+          closed_at: string | null
+          created_at: string
+          id: string
+          price: number
+          quantity: number
+          resource: string
+          seller_hero: string
+          seller_name: string
+          status: string
+        }
+        Insert: {
+          buyer_hero?: string | null
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          price: number
+          quantity: number
+          resource: string
+          seller_hero: string
+          seller_name: string
+          status?: string
+        }
+        Update: {
+          buyer_hero?: string | null
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          price?: number
+          quantity?: number
+          resource?: string
+          seller_hero?: string
+          seller_name?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_listings_seller_hero_fkey"
+            columns: ["seller_hero"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           body: string
@@ -553,6 +600,24 @@ export type Database = {
         Returns: Json
       }
       add_friend: { Args: { _hero: string; _name: string }; Returns: string }
+      auction_buy: {
+        Args: { _hero: string; _listing: string; _req: string }
+        Returns: Json
+      }
+      auction_cancel: {
+        Args: { _hero: string; _listing: string; _req: string }
+        Returns: Json
+      }
+      auction_list: {
+        Args: {
+          _hero: string
+          _price: number
+          _qty: number
+          _req: string
+          _resource: string
+        }
+        Returns: Json
+      }
       begin_battle: { Args: { _hero: string }; Returns: Json }
       begin_gathering: {
         Args: {
