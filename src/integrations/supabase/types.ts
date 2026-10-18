@@ -548,6 +548,10 @@ export type Database = {
       _weekly_target: { Args: { _k: string; _stage: number }; Returns: number }
       _write_save: { Args: { _hero: string; _save: Json }; Returns: undefined }
       activate_scroll: { Args: { _hero: string; _kind: string }; Returns: Json }
+      activate_vip: {
+        Args: { _hero: string; _level: number; _req: string }
+        Returns: Json
+      }
       add_friend: { Args: { _hero: string; _name: string }; Returns: string }
       begin_battle: { Args: { _hero: string }; Returns: Json }
       begin_gathering: {
@@ -557,6 +561,14 @@ export type Database = {
           _profession: string
           _req: string
         }
+        Returns: Json
+      }
+      buy_diamond_item: {
+        Args: { _hero: string; _item: string; _req: string }
+        Returns: Json
+      }
+      buy_gold_pack: {
+        Args: { _hero: string; _pack: string; _req: string }
         Returns: Json
       }
       buy_scroll: {
@@ -569,6 +581,7 @@ export type Database = {
       }
       claim_login: { Args: { _hero: string }; Returns: Json }
       claim_mail: { Args: { _hero: string; _mail: string }; Returns: Json }
+      claim_vip_daily: { Args: { _hero: string; _req: string }; Returns: Json }
       create_guild: {
         Args: {
           _description: string
@@ -643,6 +656,7 @@ export type Database = {
       lucky_shot: { Args: { _hero: string; _req: string }; Returns: Json }
       my_guild_ids: { Args: never; Returns: string[] }
       my_hero_ids: { Args: never; Returns: string[] }
+      premium_state: { Args: { _hero: string }; Returns: Json }
       profession_state: { Args: { _hero: string }; Returns: Json }
       read_mail: { Args: { _hero: string; _mail: string }; Returns: undefined }
       record_arena_result: {
