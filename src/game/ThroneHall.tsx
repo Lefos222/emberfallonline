@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { SkillPreview } from "./SkillPreview";
 
 export function ThroneHall({ onClose }: { onClose: () => void }) {
-  const { hero } = useGame();
+  const { hero, gender } = useGame();
   const [tab, setTab] = useState<"overview" | "skills" | "ach" | "history">("skills");
   const [confirmReset, setConfirmReset] = useState(false);
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -186,7 +186,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
               );
             })}
           </div>
-          {preview && <SkillPreview talent={preview} cls={hero.cls} gender={hero.gender === 'female' ? 'female' : 'male'} locked={learnBlocker(hero, preview.id)} />}
+          {preview && <SkillPreview talent={preview} cls={hero.cls} gender={gender} locked={learnBlocker(hero, preview.id)} />}
         </>
       )}
     </Panel>
