@@ -15,6 +15,6 @@
 - Guild UI reads existing membership tables and invokes existing permission-checked RPCs; client role checks only control presentation and never authorize mutations.
 - Scroll effects use a validated `begin_battle` snapshot after serialized save sync; never retry charge consumption automatically, and retain an interruption marker until acknowledged because the existing RPC has no idempotency key.
 - Battle reward callbacks accept the confirmed XP multiplier explicitly; non-battle rewards remain unaffected, avoiding global buff state leaking into unrelated rewards.
-- Character creation, profiles and battles use the shared CharacterModel crop of the original class/gender sheet; battle motion/effects remain presentation-only and distinct enemy/boss sprites are preserved.
+- Character creation, inventory, profiles and battles use CharacterModel with the shared standalone transparent class/gender assets, never selection-card crops; object-contain preserves proportions and battle effects remain presentation-only.
 - Endless encounters derive their roster and circuit difficulty from saved road/wave cursors, not hero snapshots or random UI state; this preserves encounters across refreshes and avoids a fixed Spire difficulty plateau.
 - Endless talent branches use the existing talent ranks, point budget and saved Road/Spire high-water marks; their abilities enter buildKit and the shared animation table, so no separate progression or damage engine is introduced.
