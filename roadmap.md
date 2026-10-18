@@ -53,3 +53,7 @@
 - [ ] Four-hourly timed world events (world boss spawn, timed dungeon, treasure caravan) with real rewards
 - [ ] More equipment families and more crafting materials (artwork + drop tables + forge recipes)
 - [ ] Wartune-style event calendar / activity board refresh
+
+## New requests (2026-10-18 11:42)
+- In-game event calendar: live countdowns, time-zone-aware schedules, reminders for recurring world bosses and seasonal events. [in progress]
+- Guilds: member roles, shared progression, guild quests, cooperative rewards (roles + invites + chat already exist; add progression/quests/co-op rewards). [open]
