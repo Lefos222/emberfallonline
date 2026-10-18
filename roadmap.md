@@ -63,3 +63,5 @@
 - [ ] Show endless circuit progression and upcoming milestones using existing original artwork.
 - [ ] Run progression tests and check the adventure screen; do not claim measured 60-hour playtime.
 - [ ] Prioritize skill trees and matching ability animations, and use the character-creation models for in-game characters (2026-10-18 11:46 UTC).
+- [ ] Add endless-progression skill-tree branches unlocking real abilities and animation variants (2026-10-18 11:47 UTC).
+- [ ] Clearly show skill range, impacts and cooldowns during combat; preserve character identity across equipment changes and milestones (2026-10-18 11:47 UTC).
