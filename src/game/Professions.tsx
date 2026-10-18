@@ -16,9 +16,9 @@ import { PROFESSIONS,GATHERING_AREAS,DISCOVERY_NAMES,DISCOVERY_RARITIES,professi
 import { countdown } from './events';
 
 const icons=[Pickaxe,Leaf,Axe,Fish,Landmark,Compass];
-function DiscoveryArt({profession,rarity}:{profession:ProfessionId;rarity:number}){
+export function DiscoveryArt({profession,rarity,className='h-16 w-16'}:{profession:ProfessionId;rarity:number;className?:string}){
  const index=PROFESSIONS.findIndex(p=>p.id===profession);
- return <div role="img" aria-label={DISCOVERY_NAMES[profession][rarity]} className="h-16 w-16 shrink-0 bg-no-repeat" style={{backgroundImage:`url(${discoveries})`,backgroundSize:'600% 400%',backgroundPosition:`${index*20}% ${rarity*100/3}%`}}/>;
+ return <div role="img" aria-label={DISCOVERY_NAMES[profession][rarity]} className={`${className} shrink-0 bg-no-repeat`} style={{backgroundImage:`url(${discoveries})`,backgroundSize:'600% 400%',backgroundPosition:`${index*20}% ${rarity*100/3}%`}}/>;
 }
 export function Professions({onClose}:{onClose:()=>void}){
  const {hero,heroId}=useGame();const [profession,setProfession]=useState<ProfessionId>('mining');const [area,setArea]=useState(0);const [now,setNow]=useState(Date.now());const [offset,setOffset]=useState(0);const request=useRequest();

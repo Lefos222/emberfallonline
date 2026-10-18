@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Axe, Crosshair, Flame, FlaskConical, Snowflake, Sparkles, Sword, Target, Wind, FastForward, Shield, Heart, Megaphone, Swords, ScanEye, Skull, Zap,
+  FastForward, Skull, Zap,
 } from "lucide-react";
 import arenaField from "@/assets/arena-field.jpg";
 import arenaCrypt from "@/assets/arena-crypt.jpg";
 import arenaLair from "@/assets/arena-lair.jpg";
 import arenaRift from "@/assets/arena-rift.jpg";
 import { Sprite } from "./Sprite";
+import { SkillIcon } from "./SkillIcon";
 import { BattleCharacter, CombatEffect, WeaponArc } from "./BattleArt";
 import { effectFor, moveFor, type Move } from "./skillAnim";
 import { SCROLLS } from "./scrolls";
@@ -18,10 +19,6 @@ import {
 
 export type Fighter = FighterInput;
 
-const ICONS: Record<string, typeof Sword> = {
-  sword: Sword, axe: Axe, flame: Flame, sparkles: Sparkles, snowflake: Snowflake, target: Target, wind: Wind, crosshair: Crosshair,
-  shield: Shield, heart: Heart, megaphone: Megaphone, swords: Swords, scan: ScanEye,
-};
 
 interface Float { id: number; tgt: string; text: string; kind: CEvent["kind"] }
 
@@ -236,7 +233,6 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2">
             {hero.kit.map((sk) => {
-              const Icon = ICONS[sk.icon] ?? Sword;
               const cd = hero.cds[sk.id] ?? 0;
               const why = skillReady(hero, sk);
               const disabled = !myTurn || !!why || autoOn;
@@ -244,7 +240,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
                 <Button variant="ghost" key={sk.id} onClick={() => pickSkill(sk)} disabled={disabled}
                   title={`${sk.name} — ${sk.desc}${sk.cost ? ` Cost ${sk.cost} ${resourceName(hero.cls)}.` : ""}${sk.cd ? ` Cooldown ${sk.cd}.` : ""}${why ? ` (${why})` : ""}`}
                   className={`slot relative flex h-16 w-16 flex-col items-center justify-center gap-0.5 transition hover:scale-105 disabled:opacity-50 md:h-20 md:w-20 ${selSkill === sk.id ? "rarity-5 ring-2 ring-gold" : "rarity-4"}`}>
-                  <Icon className="h-6 w-6 text-gold md:h-7 md:w-7" />
+                  <SkillIcon icon={sk.icon} className="h-8 w-8 md:h-10 md:w-10" />
                   <span className="px-0.5 text-center text-[9px] font-bold uppercase leading-tight">{sk.name}</span>
                   {sk.cost > 0 && <span className="absolute right-0.5 top-0.5 rounded bg-background/80 px-1 text-[9px] text-r3">{sk.cost}</span>}
                   {cd > 0 && <span className="absolute inset-0 flex flex-col items-center justify-center rounded-md bg-background/75"><span className="font-display text-2xl">{cd}</span><span className="text-[9px]">turn{cd > 1 ? "s" : ""}</span></span>}
@@ -252,7 +248,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
               );
             })}
             <Button variant="ghost" onClick={potion} disabled={!myTurn || s.potions <= 0 || autoOn} className="slot relative flex h-16 w-16 flex-col items-center justify-center gap-0.5 rarity-5 transition hover:scale-105 disabled:opacity-50 md:h-20 md:w-20">
-              <FlaskConical className="h-6 w-6 text-hp" />
+              <SkillIcon icon="potion" className="h-8 w-8 md:h-10 md:w-10" />
               <span className="text-[9px] font-bold uppercase">Potion ×{s.potions}</span>
             </Button>
             <Button variant="ghost" onClick={() => setAutoOn((a) => !a)} className={`slot flex h-12 w-12 flex-col items-center justify-center text-[9px] font-bold ${autoOn ? "rarity-2" : ""}`} title="Auto battle">
@@ -304,7 +300,7 @@ function UnitView({ u, anim, effect, move, victory, floats, active, targetable, 
         {targetable && <div className={`absolute inset-x-4 bottom-0 h-6 rounded-full blur-md ${selected ? "bg-gold" : "bg-r1/70 animate-pulse"}`} />}
         {active && <div className="absolute inset-x-8 bottom-1 h-4 rounded-full bg-gold/50 blur-md" />}
         <div key={anim ?? "idle"} className={`h-full w-full ${anim?.split("#")[0] ?? ""}`}>
-          {u.cls || !u.sprite ? <div className={`h-full w-full ${victory ? "battle-victory" : "anim-idle"}`}><BattleCharacter u={u} /></div> : <div className="flex h-full w-full items-end anim-idle"><Sprite rect={u.sprite} className="battle-sprite w-full" /></div>}
+          {u.cls ? <div className={`h-full w-full ${victory ? "battle-victory" : "anim-idle"}`}><BattleCharacter u={u} /></div> : u.sprite ? <div className="flex h-full w-full items-end anim-idle"><Sprite rect={u.sprite} className="battle-sprite w-full" /></div> : <div className="battle-sprite h-full w-full anim-idle"><BattleCharacter u={u} /></div>}
           {move && <WeaponArc key={"arc" + move} move={move} />}
           {effect && <CombatEffect key={effect} kind={effect.split("#")[0]} />}
         </div>

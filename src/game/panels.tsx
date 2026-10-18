@@ -19,6 +19,8 @@ import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
 import { CharacterModel } from "./CharacterModel";
 import { CharacterPose } from "./CharacterPose";
+import { DiscoveryArt } from "./Professions";
+import { DISCOVERY_NAMES, DISCOVERY_RARITIES, GATHERING_AREAS, gatheringState, type ProfessionId } from "./professions";
 
 export type StartBattle = (opts: {
   right: Fighter; auto?: boolean; title: string;
@@ -152,6 +154,31 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               return <ItemSlot key={it?.id ?? i} item={it} size={44} selected={!!it && sel?.id === it.id} onClick={() => it && setSel({ id: it.id, equipped: false })} />;
             })}
           </div>
+          {(() => {
+            const supplies = Object.entries(gatheringState(hero).resources).filter(([, n]) => n > 0);
+            if (!supplies.length) return null;
+            return (
+              <div className="mt-4">
+                <div className="mb-1.5 font-display text-sm text-gold">Gathering supplies · {supplies.reduce((a, [, n]) => a + n, 0)}</div>
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                  {supplies.map(([key, n]) => {
+                    const [p, a, r] = key.split(":");
+                    const rarity = Number(r);
+                    if (!DISCOVERY_NAMES[p as ProfessionId]) return null;
+                    return (
+                      <div key={key} className={`slot rarity-${Math.min(rarity + 1, 5)} flex items-center gap-2 p-1.5`} title={`${DISCOVERY_RARITIES[rarity]} · ${GATHERING_AREAS[Number(a)]}`}>
+                        <DiscoveryArt profession={p as ProfessionId} rarity={rarity} className="h-9 w-9 rounded" />
+                        <div className="min-w-0">
+                          <div className="truncate text-[11px] font-bold">{DISCOVERY_NAMES[p as ProfessionId][rarity]}</div>
+                          <div className="text-[10px] text-muted-foreground">×{n} · {DISCOVERY_RARITIES[rarity]}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
           <div className="mt-4 min-h-40">
             {selItem ? (
               <ItemCard
