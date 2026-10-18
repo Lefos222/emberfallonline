@@ -26,3 +26,5 @@
 - [ ] Animated gendered battle sprites, scroll buffs in battle, server-validated battle rewards
 - [x] Bag filters, search and sorting
 - [ ] Mailbox/Lucky Shots/Guild screens
+- [ ] Continue: connect Mailbox, Lucky Shots, Activities and Guild Hall screens to existing game services; verify online claims when the game server is available
+- [ ] Continue: apply server-returned scroll buffs in combat (blocked until existing server response contract can be inspected)
