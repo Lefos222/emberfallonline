@@ -148,7 +148,7 @@ function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: 
         </span>
         <button className="slot flex h-10 w-10 items-center justify-center" onClick={onProfile} aria-label="Profile"><IdCard className="h-5 w-5" /></button>
         <button className="slot flex h-10 w-10 items-center justify-center" onClick={() => void leaveCharacter()} aria-label="Switch character" title="Switch character"><Users className="h-5 w-5" /></button>
-        <button className="slot flex h-10 w-10 items-center justify-center" onClick={async () => { await leaveCharacter(); await supabase.auth.signOut(); }} aria-label="Sign out"><LogOut className="h-5 w-5" /></button>
+        <button className="slot flex h-10 w-10 items-center justify-center" onClick={async () => { if (await leaveCharacter()) await supabase.auth.signOut(); }} aria-label="Sign out"><LogOut className="h-5 w-5" /></button>
       </div>
     </div>
   );

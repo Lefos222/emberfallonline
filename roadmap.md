@@ -25,6 +25,8 @@
 - [ ] Painted artwork for 9 gems, fragments, sigils, Astrals, scrolls (Build credits exhausted; distinct drawn icons used meanwhile)
 - [ ] Animated gendered battle sprites, scroll buffs in battle, server-validated battle rewards
 - [x] Bag filters, search and sorting
-- [ ] Mailbox/Lucky Shots/Guild screens
-- [ ] Continue: connect Mailbox, Lucky Shots, Activities and Guild Hall screens to existing game services; verify online claims when the game server is available
-- [ ] Continue: apply server-returned scroll buffs in combat (blocked until existing server response contract can be inspected)
+- [x] Mailbox, Lucky Shots, Activities and initial Guild Hall screens connected to existing typed RPCs; no invented rows or local rewards
+- [x] Protect reward save ordering, retain Lucky Shot retry UUIDs, recover uncertain claims by rereading online saves, and retain overflow beyond 60 items
+- [ ] Verify online claims and signed-in guild flows (blocked: external game server has no managed test session)
+- [ ] Scroll buffs in combat (original begin_battle decrements charges without retry IDs; effect multipliers unspecified, needs safe server contract before consumption)
+- [ ] Finish guild management controls, Wardrobe, scroll shop, world/private chat, and trusted activity reporting

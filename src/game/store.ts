@@ -34,6 +34,7 @@ let serverOperation = false;
 let needsServerReload = false;
 let lastSavedAt = "";
 async function performSave(): Promise<boolean> {
+  if (needsServerReload) return false;
   const h = state.hero; const id = state.heroId;
   if (!state.userId || !h || !id) return false;
   set({ cloud: "saving" });
@@ -64,14 +65,18 @@ export async function withServerHero<T>(action: (id: string) => Promise<T>): Pro
   if (!id || !state.hero || !state.userId) throw new Error("Select a character first.");
   serverOperation = true;
   clearTimeout(saveTimer);
+  let requested = false;
   try {
     if (needsServerReload) await reloadServerHero(id);
     if (!await flushSave()) throw new Error("Your save could not be synced. Please retry before claiming rewards.");
+    requested = true;
     return await action(id);
   } catch (error) {
     // A disconnected response may still represent a committed reward. Read it before another write.
-    needsServerReload = true;
-    try { await reloadServerHero(id); } catch { set({ cloud: "error" }); }
+    if (requested) {
+      needsServerReload = true;
+      try { await reloadServerHero(id); } catch { set({ cloud: "error" }); }
+    }
     throw error;
   } finally { serverOperation = false; }
 }
@@ -155,11 +160,12 @@ export async function updateProfile(p: { bio?: string; title?: string; frame?: s
 }
 
 export async function leaveCharacter() {
-  if (serverOperation) return;
+  if (serverOperation) return false;
   if (needsServerReload && state.heroId) await reloadServerHero(state.heroId);
   await flushSave();
   set({ hero: null, heroId: null });
   await loadCharacters();
+  return true;
 }
 
 export function lastCharacterId() { return typeof window === "undefined" ? null : localStorage.getItem(LAST); }
