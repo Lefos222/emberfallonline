@@ -62,3 +62,4 @@
 - [ ] Make Infinite Spire encounters continue scaling and rotating instead of reaching a fixed difficulty plateau.
 - [ ] Show endless circuit progression and upcoming milestones using existing original artwork.
 - [ ] Run progression tests and check the adventure screen; do not claim measured 60-hour playtime.
+- [ ] Prioritize skill trees and matching ability animations, and use the character-creation models for in-game characters (2026-10-18 11:46 UTC).
