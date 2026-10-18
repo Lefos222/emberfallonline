@@ -218,7 +218,9 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   return (
     <Panel title={spire ? "Endless Conquest" : "Campaign Gate"} onClose={onClose}>
       <div className="grid items-center gap-6 md:grid-cols-2">
-        <div className="relative h-72">
+        <div className="relative h-72 overflow-hidden rounded-lg">
+          <img src={worldMap} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-40" />
+          <div className="absolute inset-0 bg-background/55" aria-hidden="true" />
           <div className="absolute inset-x-10 bottom-2 h-8 rounded-full bg-blood/50 blur-xl" />
           <img src={foe.img} alt={foe.name} className="relative h-full w-full object-contain anim-idle" />
           {foe.boss && <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-blood px-2 py-0.5 font-display text-sm"><Skull className="h-4 w-4" />BOSS</div>}
