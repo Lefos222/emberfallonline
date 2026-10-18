@@ -22,3 +22,4 @@
 - Building expansions reuse existing material keys, craft/socket/Astral helpers and saved ancestral state; event entry validates the shared UTC opening in an authenticated server function, while encounter rewards retain the existing battle settlement path.
 - Professions persist timers, XP, resource ownership and request history under protected save.srv.gathering through owner-checked SQL RPCs; browser services flush queued saves, validate replies and adopt without resaving to prevent forged discoveries or refresh duplication.
 - Optional saved skill loadouts filter the existing unlocked combat kit at battle entry and always preserve its basic attack; absent loadouts retain legacy kits so progression and old saves remain compatible.
+- Diamond prices, gold-pack rates and VIP costs live in both `src/game/economy.ts` and the `premium_diamonds_vip` SQL functions; keep them identical (same rule as Lucky Shot odds). The server is authoritative.

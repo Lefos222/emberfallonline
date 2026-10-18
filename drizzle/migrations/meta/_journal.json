@@ -43,6 +43,13 @@
       "when": 1792325219685,
       "tag": "0005_gathering_input_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792329378810,
+      "tag": "0006_premium_diamonds_vip",
+      "breakpoints": true
     }
   ]
 }

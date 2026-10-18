@@ -24,3 +24,9 @@
 - Guild expansion remains deferred in favor of general endless progression.
 - [ ] Add skill icons/pictures to the battle skill bar.
 - [x] Show gathering resources (ores, crystals, herbs, etc.) in the inventory.
+- [~] Premium monetization (foundations done: Diamonds backend, Diamond Shop, Gold packs, VIP 1-5 + daily claims; real-money checkout awaits provider enablement) (per uploaded spec): Diamonds currency (server-owned, tx history, idempotent), Diamond Shop (cosmetics/convenience/progression), Gold packs (Diamonds→Gold, atomic), VIP 1-5 (membership duration + daily rewards calendar), starter packs, battle-pass track structure, real-money store via provider (Stripe/Paddle) with server verification; keep purchases disabled until provider verified.
+- [ ] Auction house: list items, bidding, server-authoritative purchases, trade gathered supplies.
+- [ ] Profession quests for all six gathering professions; rewards unlock crafting recipes and faction access.
+- [ ] Personal estate: build homes, decorate, display gathered items.
+- [ ] Ranked arena: server-authoritative matchmaking, rating gains, divisions, division cosmetics.
+- [ ] Collection Codex: illustrated entries for every gathered material, monster, discovered location.
