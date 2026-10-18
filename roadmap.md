@@ -45,3 +45,8 @@
 - [ ] Battle fighter uses the same character model as character selection
 - [ ] More original artwork wherever the game still reads flat, and general liveliness (ambient motion, feedback)
 - [x] Google sign-in works on its own for new people on the public link (verified: reaches Google's own account page, no Lovable step); the editor preview URL stays Lovable-gated by design
+
+## New requests (2026-10-18 11:36)
+- [ ] Inspect uploaded emberfall-the-long-road-main-2.zip and fold in anything useful
+- [ ] Skill trees + passives with original artwork stored in project assets
+- [ ] Unending progression: enough content for 60+ hours (stages, bosses, enemies, activities)

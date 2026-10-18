@@ -29,6 +29,7 @@ export function WorldChat({ heroId }: { heroId: string | null }) {
   useEffect(() => { if (heroId && !collapsed) listRef.current?.scrollTo({ top: listRef.current.scrollHeight }); }, [messages, collapsed, heroId]);
 
   const send = async () => {
+    if (!heroId) return;
     const trimmed = body.trim();
     if (!trimmed || trimmed.length > 200 || sending) return;
     setSending(true); setError("");
