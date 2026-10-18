@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircle, Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2, BookOpen, Leaf, CalendarDays } from "lucide-react";
+import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircle, Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2, BookOpen, Leaf, CalendarDays, Gem } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
 import { GuildHall } from "./GuildHall";
@@ -14,6 +14,7 @@ import { Boutique } from './Boutique';
 import { Sanctuary } from './Sanctuary';
 import { Expeditions } from './Expeditions';
 import { Professions } from './Professions';
+import { PremiumShop } from './PremiumShop';
 import { awardAncestralRelic } from './building-content';
 import { beginScrollBattle } from "./services";
 import { scrollFighter } from "./scrolls";
@@ -275,7 +276,7 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "passives" | "bestiary" | "road" | "calendar" | 'professions';
+type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "passives" | "bestiary" | "road" | "calendar" | 'professions' | 'premium';
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof Backpack }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", Icon: Backpack },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", Icon: Anvil },
