@@ -14,6 +14,18 @@ export type Database = {
   }
   public: {
     Tables: {
+      _ef_probe: {
+        Row: {
+          id: number | null
+        }
+        Insert: {
+          id?: number | null
+        }
+        Update: {
+          id?: number | null
+        }
+        Relationships: []
+      }
       activity_claims: {
         Row: {
           created_at: string
