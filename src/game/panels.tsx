@@ -70,7 +70,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
                   onClick={() => wearClick(sl)} />
               ))}
             </div>
-            <div className="relative aspect-square w-full">
+            <div className="relative mx-auto h-64 w-full max-w-[280px]">
               <CharacterPose cls={hero.cls} gender={gender} className="h-full w-full" />
             </div>
             <div className="flex flex-col gap-2">
