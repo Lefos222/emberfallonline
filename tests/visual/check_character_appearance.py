@@ -49,7 +49,7 @@ async def main():
           document.body.appendChild(host); DOM.default.createRoot(host).render(React.default.createElement(React.default.Fragment, null, ...cases));
         }''')
         await page.wait_for_timeout(1200)
-        await page.add_style_tag(content='#appearance-cases *, #appearance-cases { animation: none !important; transform: none !important; filter: none !important; }')
+        await page.add_style_tag(content='#appearance-cases *, #appearance-cases { animation: none !important; transform: none !important; filter: none !important; } #appearance-cases [data-case], #appearance-cases [data-character-model] { width: 192px !important; height: 192px !important; }')
         for cls in ['warrior', 'mage', 'archer']:
             for gender in ['male', 'female']:
                 baseline = None
