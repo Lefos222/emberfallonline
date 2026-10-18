@@ -35,3 +35,13 @@
 - [ ] Finish guild management controls, Wardrobe, world/private chat, and trusted activity reporting
 - [ ] Equipped-item/cosmetic-specific battle appearance beyond the new class/gender artwork
 - [ ] Remaining all-stage feature work and full collectible artwork audit; not completed by this combat increment
+## Requested next (this turn)
+- [x] Two ring slots: rings wear in Ring 1 and Ring 2, third ring swaps the weaker, old saves keep their ring, full bag blocks unequip
+- [ ] Skill tree screens with animation, and every skill the character performs plays a matching battle animation (sword swing, cast volley, etc.)
+- [ ] World chat panel bottom-left: send and receive messages for everyone in the world
+- [ ] World events plus a wider roster: 50 bosses and 50 enemies so encounters vary
+- [ ] Add friends by name
+- [ ] View and inspect another player (gear, stats, astrals)
+- [ ] Battle fighter uses the same character model as character selection
+- [ ] More original artwork wherever the game still reads flat, and general liveliness (ambient motion, feedback)
+- [x] Google sign-in works on its own for new people on the public link (verified: reaches Google's own account page, no Lovable step); the editor preview URL stays Lovable-gated by design

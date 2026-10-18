@@ -4,6 +4,8 @@ import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircl
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
 import { GuildHall } from "./GuildHall";
+import { WorldChat } from "./WorldChat";
+import { FriendsPanel } from "./FriendsPanel";
 import { ScrollShop } from "./ScrollShop";
 import { beginScrollBattle } from "./services";
 import { scrollFighter } from "./scrolls";
@@ -11,7 +13,7 @@ import castle from "@/assets/castle.jpg.asset.json";
 import theme from "@/assets/theme.mp3.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } from "./data";
-import { getState, leaveCharacter, update, useGame } from "./store";
+import { authHandoffPending, getState, leaveCharacter, update, useGame } from "./store";
 import { recordBattle } from "./progress";
 import { CharacterSelect, Portrait, ProfilePanel, frameClass } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
@@ -37,7 +39,15 @@ export function Game() {
   const starting = useRef(false);
   const [entryError, setEntryError] = useState("");
 
-  useEffect(() => { if (authReady && !userId) void nav({ to: "/auth" }); }, [authReady, userId, nav]);
+  // A sign-in that lands a beat late must not bounce the player out; re-check live state at fire time.
+  useEffect(() => {
+    if (!authReady || userId) return;
+    const t = setTimeout(() => {
+      if (getState().userId || authHandoffPending()) return;
+      void nav({ to: "/auth" });
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [authReady, userId, nav]);
 
   useEffect(() => {
     const a = audio.current;
@@ -96,6 +106,7 @@ export function Game() {
             <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><Crosshair /></Button>
             <Button variant="ghost" size="icon" aria-label="Battle Scrolls" title="Battle Scrolls" onClick={() => setOpen("scrolls")}><ScrollText /></Button>
           </nav>
+          <WorldChat heroId={hero.id} />
           <Hud muted={muted} setMuted={setMuted} cloud={cloud} onProfile={() => setOpen("profile")} />
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
           {open === "mailbox" && <Mailbox onClose={() => setOpen(null)} />}
@@ -106,6 +117,14 @@ export function Game() {
           {open === "hall" && <ThroneHall onClose={() => setOpen(null)} />}
           {open === "armory" && <HeroHall onClose={() => setOpen(null)} />}
           {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
+          {open === "friends" && (
+            <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-background/70 p-4 pt-16" onClick={() => setOpen(null)}>
+              <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                <FriendsPanel heroId={hero.id} />
+                <button className="btn-ghost mt-2 w-full py-2" onClick={() => setOpen(null)}>Close</button>
+              </div>
+            </div>
+          )}
           {open === "portal" && <Campaign onClose={() => setOpen(null)} start={start} />}
           {open === "spire" && (canEnterConquest(hero.level) ? <Campaign spire onClose={() => setOpen(null)} start={start} /> : <ComingSoon id="spire" locked onClose={() => setOpen(null)} />)}
           {open === "forge" && <Forge onClose={() => setOpen(null)} onCraft={() => setCrafting(true)} />}

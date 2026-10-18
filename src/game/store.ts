@@ -104,7 +104,17 @@ export async function loadCharacters() {
   set({ chars: (data ?? []) as unknown as CharacterRow[] });
 }
 
-export async function setUser(userId: string | null, email: string | null) {
+let authEventSeen = false;
+
+/**
+ * Adopt the signed-in account. "event" results come from the auth stream and are authoritative;
+ * "lookup" results come from a one-off getUser() and must never drop a session the stream already
+ * delivered — that race is what bounced people back to the sign-in page after Google/Lovable.
+ */
+export async function setUser(userId: string | null, email: string | null, source: "event" | "lookup" = "event") {
+  if (source === "event") authEventSeen = true;
+  else if (authEventSeen) return;
+  if (source === "lookup" && !userId && state.userId) return;
   if (userId === state.userId && state.authReady) return;
   set({ userId, email, authReady: true, hero: null, heroId: null, chars: null, cloud: userId ? "loading" : "off" });
   if (userId) await loadCharacters();
@@ -169,6 +179,15 @@ export async function leaveCharacter() {
 }
 
 export function lastCharacterId() { return typeof window === "undefined" ? null : localStorage.getItem(LAST); }
+
+/** True while an OAuth handoff is still landing (tokens in the URL that supabase-js hasn't adopted yet). */
+export function authHandoffPending() {
+  if (typeof window === "undefined") return false;
+  const hash = window.location.hash;
+  if (/access_token|id_token|error_description|type=recovery/.test(hash)) return true;
+  const q = new URLSearchParams(window.location.search);
+  return q.has("code") || (q.has("state") && q.has("session_id"));
+}
 
 export function setHero(h: Hero | null) {
   set({ hero: h });

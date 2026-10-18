@@ -172,6 +172,39 @@ export type Database = {
           },
         ]
       }
+      friendships: {
+        Row: {
+          created_at: string
+          friend_hero: string
+          owner_hero: string
+        }
+        Insert: {
+          created_at?: string
+          friend_hero: string
+          owner_hero: string
+        }
+        Update: {
+          created_at?: string
+          friend_hero?: string
+          owner_hero?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friendships_friend_hero_fkey"
+            columns: ["friend_hero"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friendships_owner_hero_fkey"
+            columns: ["owner_hero"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_invites: {
         Row: {
           created_at: string
@@ -515,6 +548,7 @@ export type Database = {
       _weekly_target: { Args: { _k: string; _stage: number }; Returns: number }
       _write_save: { Args: { _hero: string; _save: Json }; Returns: undefined }
       activate_scroll: { Args: { _hero: string; _kind: string }; Returns: Json }
+      add_friend: { Args: { _hero: string; _name: string }; Returns: string }
       begin_battle: { Args: { _hero: string }; Returns: Json }
       buy_scroll: {
         Args: { _hero: string; _kind: string; _req: string }
@@ -562,7 +596,40 @@ export type Database = {
         }
         Returns: undefined
       }
+      inspect_hero: {
+        Args: { _hero: string; _target: string }
+        Returns: {
+          arena_rating: number
+          bio: string
+          frame: string
+          gender: string
+          hero_class: string
+          id: string
+          last_played: string
+          level: number
+          name: string
+          power: number
+          stats: Json
+          title: string
+        }[]
+      }
       leave_guild: { Args: { _hero: string }; Returns: undefined }
+      list_friends: {
+        Args: { _hero: string }
+        Returns: {
+          arena_rating: number
+          bio: string
+          frame: string
+          gender: string
+          hero_class: string
+          id: string
+          last_played: string
+          level: number
+          name: string
+          power: number
+          title: string
+        }[]
+      }
       lucky_shot: { Args: { _hero: string; _req: string }; Returns: Json }
       my_guild_ids: { Args: never; Returns: string[] }
       my_hero_ids: { Args: never; Returns: string[] }
@@ -570,6 +637,10 @@ export type Database = {
       record_arena_result: {
         Args: { _attacker: string; _defender: string; _won: boolean }
         Returns: number
+      }
+      remove_friend: {
+        Args: { _friend: string; _hero: string }
+        Returns: undefined
       }
       report_message: {
         Args: { _hero: string; _message: string; _reason: string }

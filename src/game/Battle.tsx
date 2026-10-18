@@ -7,7 +7,8 @@ import arenaCrypt from "@/assets/arena-crypt.jpg";
 import arenaLair from "@/assets/arena-lair.jpg";
 import arenaRift from "@/assets/arena-rift.jpg";
 import { Sprite } from "./Sprite";
-import { BattleCharacter, CombatEffect } from "./BattleArt";
+import { BattleCharacter, CombatEffect, WeaponArc } from "./BattleArt";
+import { effectFor, moveFor, type Move } from "./skillAnim";
 import { SCROLLS } from "./scrolls";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,6 +44,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
   const [floats, setFloats] = useState<Float[]>([]);
   const [anim, setAnim] = useState<Record<string, string>>({});
   const [effects, setEffects] = useState<Record<string, string>>({});
+  const [moves, setMoves] = useState<Record<string, Move>>({});
   const [fast, setFast] = useState(auto);
   const [autoOn, setAutoOn] = useState(auto);
   const [banner, setBanner] = useState<string | null>(null);
@@ -62,16 +64,19 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
 
   async function play(events: CEvent[], actorId: string, sk?: string) {
     const a = s.units.find((u) => u.id === actorId);
-    const ranged = a?.cls === "mage" || a?.cls === "archer";
-    setAnim({ [actorId]: (a?.side === "hero" ? (ranged ? "anim-cast" : "anim-lunge-r") : "anim-lunge-l") + "#" + ++fid.current });
+    const move = moveFor(a ?? {}, sk);
+    setAnim({ [actorId]: "anim-" + move + "#" + ++fid.current });
+    setMoves((m) => ({ ...m, [actorId]: move }));
     await wait(280);
     for (const e of events) {
       if (e.kind === "telegraph") { setBanner(e.text); }
       if (e.tgt && e.kind !== "telegraph") {
         const target = e.tgt;
         const id = ++fid.current;
-        const used = a?.kit.find(k => k.id === (e.skill ?? sk));
-        const effect = e.kind === "heal" ? "heal" : e.kind === "block" || e.kind === "absorb" || used?.icon === "shield" ? "shield" : used?.icon === "snowflake" ? "ice" : used?.icon === "flame" || e.skill === "cataclysm" ? "fire" : a?.cls === "archer" ? "arrow" : a?.cls === "mage" ? "arcane" : "slash";
+        const named = e.skill ?? sk;
+        const effect = e.kind === "heal" ? "heal"
+          : e.kind === "block" || e.kind === "absorb" ? "shield"
+          : effectFor(named) ?? (a?.cls === "archer" ? "arrow" : a?.cls === "mage" ? "arcane" : "slash");
         if (["dmg", "crit", "heal", "block", "absorb", "status"].includes(e.kind)) setEffects(m => ({ ...m, [target]: effect + "#" + id }));
         setFloats((f) => [...f, { id, tgt: target, text: e.text, kind: e.kind }]);
         setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 1100);
@@ -81,7 +86,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
     }
     rerender();
     await wait(380);
-    setAnim({}); setEffects({});
+    setAnim({}); setEffects({}); setMoves({});
   }
 
   function finish() {
@@ -201,12 +206,12 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
 
       {/* Battlefield */}
       <div className="relative z-10 flex flex-1 items-end justify-between gap-2 px-4 pb-4 md:px-16">
-        <UnitView u={hero} anim={anim[hero.id]} effect={effects[hero.id]} victory={s.over === "won"} floats={floats} active={actor?.id === hero.id} />
+        <UnitView u={hero} anim={anim[hero.id]} effect={effects[hero.id]} move={moves[hero.id]} victory={s.over === "won"} floats={floats} active={actor?.id === hero.id} />
         <div className="flex min-w-0 flex-1 items-end justify-end gap-2 md:gap-6 battle-foes">
           {foes.map((f) => {
             const isValid = !!skill && valid.includes(f.id);
             return (
-              <UnitView key={f.id} u={f} anim={anim[f.id]} effect={effects[f.id]} floats={floats} active={actor?.id === f.id}
+              <UnitView key={f.id} u={f} anim={anim[f.id]} effect={effects[f.id]} move={moves[f.id]} floats={floats} active={actor?.id === f.id}
                 targetable={isValid} selected={selTargets.includes(f.id)} onClick={() => pickTarget(f)} small={foes.length > 1 && !f.boss} />
             );
           })}
@@ -269,8 +274,8 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
   );
 }
 
-function UnitView({ u, anim, effect, victory, floats, active, targetable, selected, onClick, small }: {
-  u: Unit; anim?: string; effect?: string; victory?: boolean; floats: Float[]; active?: boolean; targetable?: boolean; selected?: boolean; onClick?: () => void; small?: boolean;
+function UnitView({ u, anim, effect, move, victory, floats, active, targetable, selected, onClick, small }: {
+  u: Unit; anim?: string; effect?: string; move?: Move; victory?: boolean; floats: Float[]; active?: boolean; targetable?: boolean; selected?: boolean; onClick?: () => void; small?: boolean;
 }) {
   const dead = u.hp <= 0;
   const h = u.boss ? "battle-figure boss-figure" : small ? "battle-figure small-figure" : "battle-figure";
@@ -300,6 +305,7 @@ function UnitView({ u, anim, effect, victory, floats, active, targetable, select
         {active && <div className="absolute inset-x-8 bottom-1 h-4 rounded-full bg-gold/50 blur-md" />}
         <div key={anim ?? "idle"} className={`h-full w-full ${anim?.split("#")[0] ?? ""}`}>
           {u.cls || !u.sprite ? <div className={`h-full w-full ${victory ? "battle-victory" : "anim-idle"}`}><BattleCharacter u={u} /></div> : <div className="flex h-full w-full items-end anim-idle"><Sprite rect={u.sprite} className="w-full" /></div>}
+          {move && <WeaponArc key={"arc" + move} move={move} />}
           {effect && <CombatEffect key={effect} kind={effect.split("#")[0]} />}
         </div>
         {floats.filter((f) => f.tgt === u.id).map((f, i) => (

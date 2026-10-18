@@ -14,6 +14,18 @@ export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | 
 export type Attr = "str" | "int" | "agi" | "vit";
 
 export const SLOTS: Slot[] = ["helmet", "armour", "boots", "belt", "weapon", "ring", "talisman"];
+/** Where a piece is worn. Rings have two positions, every other slot has one. */
+export type WearSlot = Slot | "ring2";
+export const WEAR_SLOTS: WearSlot[] = ["helmet", "armour", "boots", "belt", "weapon", "ring", "ring2", "talisman"];
+export const WEAR_LABEL: Record<WearSlot, string> = {
+  helmet: "Head", armour: "Chest", boots: "Feet", belt: "Waist", weapon: "Weapon",
+  ring: "Ring 1", ring2: "Ring 2", talisman: "Amulet",
+};
+/** The wear positions a piece of this item slot may occupy. */
+export const wearOf = (s: Slot): WearSlot[] => (s === "ring" ? ["ring", "ring2"] : [s]);
+/** What a character is wearing, keyed by wear position. */
+export type GearRecord = Partial<Record<WearSlot, Item>>;
+
 export const MAX_LEVEL = 80;
 export const CONQUEST_LEVEL = 20;
 export const canEnterConquest = (level: number) => level >= CONQUEST_LEVEL;
@@ -153,6 +165,50 @@ export function buyPrice(it: Item) { return sellValue(it) * 4; }
 export function enhanceCost(it: Item) { return Math.round(it.ilvl * 10 * Math.pow(it.enh + 1, 1.5)); }
 export function enhanceChance(it: Item) { return Math.max(0.2, 1 - it.enh * 0.08); }
 
+// ---------- Wearing gear ----------
+/** Which wear position a worn item occupies. */
+export function posOf(eq: GearRecord, id: string): WearSlot | undefined {
+  return WEAR_SLOTS.find((p) => eq[p]?.id === id);
+}
+
+/** The piece a new item would displace: nothing while a position is free, else the weakest worn one. */
+export function wornCompare(h: { equipment: GearRecord }, it: Item): Item | undefined {
+  const pos = wearOf(it.slot);
+  if (pos.some((p) => !h.equipment[p])) return undefined;
+  return h.equipment[weakestWorn(h.equipment, pos)!];
+}
+
+/**
+ * Put a piece on: it fills the first free position for its slot, and when every position
+ * is taken it replaces the weakest one — a second ring never silently overwrites the first.
+ * Returns the position used, or null when the piece could not be worn.
+ */
+export function equipItem(h: { equipment: GearRecord; inventory: Item[] }, it: Item, at?: WearSlot): WearSlot | null {
+  const pos = wearOf(it.slot);
+  const target = (at && pos.includes(at) ? at : undefined) ?? pos.find((p) => !h.equipment[p]) ?? weakestWorn(h.equipment, pos);
+  if (!target) return null;
+  h.inventory = h.inventory.filter((i) => i.id !== it.id);
+  const old = h.equipment[target];
+  if (old) h.inventory.unshift(old);
+  h.equipment[target] = it;
+  return target;
+}
+
+/** Take a worn piece off into the bag. False when the bag is full or the piece isn't worn. */
+export function unequipItem(h: { equipment: GearRecord; inventory: Item[] }, it: Item, cap: number): boolean {
+  const pos = posOf(h.equipment, it.id);
+  if (!pos || h.inventory.length >= cap) return false;
+  delete h.equipment[pos];
+  h.inventory.unshift(it);
+  return true;
+}
+
+function weakestWorn(eq: GearRecord, pos: WearSlot[]): WearSlot | undefined {
+  const filled = pos.filter((p) => eq[p]);
+  return filled.length ? filled.reduce((a, b) => (itemScore(eq[a]!) <= itemScore(eq[b]!) ? a : b)) : undefined;
+}
+
+
 // ---------- Hero ----------
 export interface Hero {
   name: string;
@@ -162,7 +218,7 @@ export interface Hero {
   paragon: number;
   gold: number;
   attrs: Record<Attr, number>;
-  equipment: Partial<Record<Slot, Item>>;
+  equipment: GearRecord;
   inventory: Item[];
   /** Items earned while the bag was full; claim them from the Armory. */
   overflow?: Item[];
@@ -373,7 +429,7 @@ export const BUILDINGS = [
   { id: "sanctuary", name: "Ancestral Sanctuary", x: 87, y: 42, r: 5, desc: "Ancestral questline", soon: true , shortcut: true },
   { id: "gems", name: "Gem Workshop", x: 54.5, y: 71, r: 4, desc: "Cut, socket & fuse gems", soon: false },
   { id: "guild", name: "Guild Hall", x: 35, y: 55, r: 4, desc: "Guilds & guild chat", soon: false },
-  { id: "friends", name: "Friends", x: 0, y: 0, r: 0, desc: "Friends & messages", soon: true, shortcut: true },
+  { id: "friends", name: "Friends", x: 0, y: 0, r: 0, desc: "Friends & messages", soon: false, shortcut: true },
   { id: "daily", name: "Daily Rewards", x: 46, y: 66, r: 3.5, desc: "Login rewards & activities", soon: false , shortcut: true },
 ] as const;
 /** Buildings physically placed in the castle (shortcut-only screens excluded). */

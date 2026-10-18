@@ -119,10 +119,10 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => void setUser(data.user?.id ?? null, data.user?.email ?? null));
+    supabase.auth.getUser().then(({ data }) => void setUser(data.user?.id ?? null, data.user?.email ?? null, "lookup"));
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      void setUser(session?.user.id ?? null, session?.user.email ?? null);
+      void setUser(session?.user.id ?? null, session?.user.email ?? null, "event");
     });
     return () => data.subscription.unsubscribe();
   }, []);

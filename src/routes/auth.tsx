@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import "@lovable.dev/cloud-auth-js/styles.css";
 import castle from "@/assets/castle.jpg.asset.json";
@@ -38,8 +38,13 @@ function AuthPage() {
     nav({ to: "/" });
   };
 
+  // A social sign-in that already handed us a session must go straight into the game, not show the form.
+  useEffect(() => {
+    void supabase.auth.getSession().then(({ data }) => { if (data.session?.user) void enterGame(data.session.user); });
+  }, []);
+
   const friendly = (m: string) => {
-    if (/unauthori[sz]ed|not enabled|provider/i.test(m)) return "This sign-in option isn't switched on for the game yet. Please use email and password for now.";
+    if (/unauthori[sz]ed|not enabled|provider/i.test(m)) return "Google sign-in couldn't start right now. Please try again, or use email and password.";
     if (/popup/i.test(m)) return "Your browser blocked the sign-in window. Allow pop-ups for this site and try again.";
     if (/email not confirmed/i.test(m)) return "Please confirm your email first — check your inbox.";
     if (/invalid login/i.test(m)) return "Wrong email or password.";
@@ -68,7 +73,7 @@ function AuthPage() {
     if (socialBusy) return;
     setSocialBusy(p); setMsg(null);
     try {
-      const r = await lovable.auth.signInWithOAuth(p, { redirect_uri: window.location.origin });
+      const r = await lovable.auth.signInWithOAuth(p, { redirect_uri: `${window.location.origin}/auth-callback` });
       if (r.error) { setMsg(friendly(String((r.error as Error).message ?? r.error))); return; }
       if (r.redirected) return;
       const { data } = await supabase.auth.getUser();
