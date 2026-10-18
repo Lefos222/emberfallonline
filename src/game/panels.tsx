@@ -63,14 +63,14 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
     <Panel title={title} onClose={onClose} wide>
       <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
         <div>
-          <div className="relative mx-auto grid max-w-xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
+          <div className="relative mx-auto grid max-w-xl grid-cols-[auto_minmax(0,1fr)_auto] items-stretch gap-2">
             <div className="flex flex-col gap-2">
               {LEFT_DOLL.map((sl) => (
                 <ItemSlot key={sl} item={hero.equipment[sl]} empty={WEAR_LABEL[sl]} selected={sel?.id === hero.equipment[sl]?.id}
                   onClick={() => wearClick(sl)} />
               ))}
             </div>
-            <div className="relative mx-auto h-64 w-full max-w-[280px]">
+            <div className="relative mx-auto h-full min-h-[280px] w-full max-w-[320px] self-center">
               <CharacterPose cls={hero.cls} gender={gender} className="h-full w-full" />
             </div>
             <div className="flex flex-col gap-2">
