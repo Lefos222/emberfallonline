@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Backpack, Anvil, Gift, ScrollText, Sparkles, UserCircle, Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2 } from "lucide-react";
+import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircle, Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
+import { GuildHall } from "./GuildHall";
 import castle from "@/assets/castle.jpg.asset.json";
 import theme from "@/assets/theme.mp3.asset.json";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +25,7 @@ const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
 export function Game() {
   const { hero, userId, cloud, authReady } = useGame();
   const nav = useNavigate();
-  const [open, setOpen] = useState<BuildingId | "profile" | null>(null);
+  const [open, setOpen] = useState<ShortcutTarget | null>(null);
   const [battle, setBattle] = useState<null | { right: Fighter; left: Fighter; auto?: boolean; title: string; onResult: Parameters<StartBattle>[0]["onResult"] }>(null);
   const [result, setResult] = useState<null | { won: boolean; lines: string[]; loot?: Item | null }>(null);
   const [crafting, setCrafting] = useState(false);
@@ -74,8 +77,16 @@ export function Game() {
         <>
           <CastleMap onOpen={setOpen} />
           <ShortcutBar open={open} onOpen={setOpen} />
+          <nav aria-label="Rewards" className="game-panel absolute bottom-3 left-3 z-20 flex gap-1 p-1.5">
+            <Button variant="ghost" size="icon" aria-label="Mailbox" title="Mailbox" onClick={() => setOpen("mailbox")}><Mail /></Button>
+            <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><Crosshair /></Button>
+          </nav>
           <Hud muted={muted} setMuted={setMuted} cloud={cloud} onProfile={() => setOpen("profile")} />
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
+          {open === "mailbox" && <Mailbox onClose={() => setOpen(null)} />}
+          {open === "lucky" && <LuckyShots onClose={() => setOpen(null)} />}
+          {open === "daily" && <ActivityBoard onClose={() => setOpen(null)} />}
+          {open === "guild" && <GuildHall onClose={() => setOpen(null)} />}
           {open === "hall" && <ThroneHall onClose={() => setOpen(null)} />}
           {open === "armory" && <HeroHall onClose={() => setOpen(null)} />}
           {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
@@ -203,7 +214,7 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile";
+type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky";
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof Backpack }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", Icon: Backpack },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", Icon: Anvil },
