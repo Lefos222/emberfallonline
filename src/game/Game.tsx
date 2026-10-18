@@ -47,8 +47,11 @@ export function Game() {
     setBattle({ ...o, left: heroFighter(hero, heroStats(hero)) });
   };
 
+  const settled = useRef<object | null>(null);
   const onEnd = async (won: boolean) => {
-    if (!battle) return;
+    // Rewards resolve exactly once per battle, even if onEnd fires twice.
+    if (!battle || settled.current === battle) return;
+    settled.current = battle;
     const r0 = await battle.onResult(won);
     const r = { ...r0, lines: [...r0.lines] };
     if (won) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m)); });

@@ -204,3 +204,8 @@
 @utility anim-idle { animation: idle-bob 2.4s ease-in-out infinite; }
 @utility anim-pop { animation: pop-in 0.25s ease-out; }
 @utility anim-ember { animation: ember linear infinite; }
+
+@keyframes cast-glow { 0%,100% { filter: none; transform: translateY(0); } 40% { filter: brightness(1.6) drop-shadow(0 0 24px var(--r3)); transform: translateY(-8px); } }
+@keyframes block-flash { 0%,100% { filter: none; } 30% { filter: brightness(1.8) drop-shadow(0 0 18px var(--r2)); transform: translateX(-4px); } }
+@utility anim-cast { animation: cast-glow 0.5s ease-out; }
+@utility anim-block { animation: block-flash 0.45s ease-out; }

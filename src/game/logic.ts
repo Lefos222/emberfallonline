@@ -1,6 +1,6 @@
 import { isArmor } from "./crafting";
 import {
-  invCap, MAX_LEVEL, makeItem, rollRarity, sellValue, xpToNext, type Hero, type Item, type Slot,
+  invCap, MAX_LEVEL, makeItem, rollRarity, xpToNext, type Hero, type Item, type Slot,
 } from "./data";
 
 /** Grant xp & gold; handles level ups up to 80 then endless Ascension (paragon) levels. */
@@ -18,9 +18,17 @@ export function grant(h: Hero, xp: number, gold: number): { levels: number } {
 }
 
 export function addLoot(h: Hero, item: Item): boolean {
-  if (h.inventory.length >= invCap(h)) { h.gold += sellValue(item); return false; }
+  // Full bag: never destroy or auto-sell — park it in the persistent overflow chest (claimable in the Armory).
+  if (h.inventory.length >= invCap(h)) { h.overflow = [item, ...(h.overflow ?? [])].slice(0, 60); return false; }
   h.inventory.unshift(item);
   return true;
+}
+
+/** Move overflow items into the bag while space remains. Returns how many moved. */
+export function claimOverflow(h: Hero): number {
+  let n = 0;
+  while ((h.overflow?.length ?? 0) > 0 && h.inventory.length < invCap(h)) { h.inventory.unshift(h.overflow!.shift()!); n++; }
+  return n;
 }
 
 export function rollLoot(h: Hero, stage: number, chance: number, minRarity = 0): Item | null {

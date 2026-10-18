@@ -164,6 +164,8 @@ export interface Hero {
   attrs: Record<Attr, number>;
   equipment: Partial<Record<Slot, Item>>;
   inventory: Item[];
+  /** Items earned while the bag was full; claim them from the Armory. */
+  overflow?: Item[];
   bagRows?: number;
   stage: number;
   spire: number;
