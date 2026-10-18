@@ -65,3 +65,5 @@
 - [ ] Prioritize skill trees and matching ability animations, and use the character-creation models for in-game characters (2026-10-18 11:46 UTC).
 - [ ] Add endless-progression skill-tree branches unlocking real abilities and animation variants (2026-10-18 11:47 UTC).
 - [ ] Clearly show skill range, impacts and cooldowns during combat; preserve character identity across equipment changes and milestones (2026-10-18 11:47 UTC).
+- [ ] Preview upcoming abilities and their animation variants before unlocking (2026-10-18 11:48 UTC).
+- [ ] Add repeatable visual appearance checks for combat states, equipment swaps and progression milestones (2026-10-18 11:48 UTC).
