@@ -15,6 +15,13 @@
       "when": 1792308065819,
       "tag": "0001_stage5_expansion",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792322116896,
+      "tag": "0002_probe_connectivity",
+      "breakpoints": true
     }
   ]
 }
