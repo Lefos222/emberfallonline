@@ -1,4 +1,6 @@
 # Roadmap
+- [x] Current continuation: +20% damage/defence/XP scrolls connected to existing server RPCs, saved quantities, battle snapshots and reward callbacks; six original gendered fighters, four base enemies, three scroll icons, animated impacts and stable battle framing.
+- [ ] Verify signed-in scroll purchase/activation/ten-battle consumption and online rewards (blocked: external server has no managed test session); battle presentation was checked only in an isolated no-reward browser harness.
 - [x] Core game imported into this project with Cloud saves, sign-in, artwork and music
 - [x] Phase 1: Daily Rewards / Quest Board / Ancestral Sanctuary removed from castle; bottom-right 7-icon shortcut bar; Music Off pauses
 - [x] Phase 1b: Throne Hall (skill tree + progression) and Armory (inventory) open different screens
@@ -23,10 +25,13 @@
 - [x] Tactical turn-based battle engine (turn order, multi-enemy formations, target selection, statuses, boss telegraphs, block/heal caps) + 4 arena backgrounds
 - [x] Full bag never destroys loot (Overflow Chest in Armory); reward settle-once guard
 - [ ] Painted artwork for 9 gems, fragments, sigils, Astrals, scrolls (Build credits exhausted; distinct drawn icons used meanwhile)
-- [ ] Animated gendered battle sprites, scroll buffs in battle, server-validated battle rewards
+- [x] Original gendered fighter artwork animated for idle, attacks, casting, hits, blocks, death and victory; class skill impact effects
+- [ ] Server-validated battle rewards and idempotent battle consumption (blocked: existing external backend cannot be migrated through this project connection)
 - [x] Bag filters, search and sorting
 - [x] Mailbox, Lucky Shots, Activities and initial Guild Hall screens connected to existing typed RPCs; no invented rows or local rewards
 - [x] Protect reward save ordering, retain Lucky Shot retry UUIDs, recover uncertain claims by rereading online saves, and retain overflow beyond 60 items
 - [ ] Verify online claims and signed-in guild flows (blocked: external game server has no managed test session)
-- [ ] Scroll buffs in combat (original begin_battle decrements charges without retry IDs; effect multipliers unspecified, needs safe server contract before consumption)
-- [ ] Finish guild management controls, Wardrobe, scroll shop, world/private chat, and trusted activity reporting
+- [x] Scroll buffs in combat: user-confirmed +20% effects, server charge snapshots, duplicate-entry guard and interrupted-request acknowledgment; seven additional rule tests
+- [ ] Finish guild management controls, Wardrobe, world/private chat, and trusted activity reporting
+- [ ] Equipped-item/cosmetic-specific battle appearance beyond the new class/gender artwork
+- [ ] Remaining all-stage feature work and full collectible artwork audit; not completed by this combat increment

@@ -7,6 +7,9 @@ import arenaCrypt from "@/assets/arena-crypt.jpg";
 import arenaLair from "@/assets/arena-lair.jpg";
 import arenaRift from "@/assets/arena-rift.jpg";
 import { Sprite } from "./Sprite";
+import { BattleCharacter, CombatEffect } from "./BattleArt";
+import { SCROLLS } from "./scrolls";
+import { Button } from "@/components/ui/button";
 import {
   current, drinkPotion, enemyAct, formation, heroUnit, initBattle, playerAct, resourceName, skillReady, STATUS_LABEL, upcoming, validTargets,
   type BattleState, type CEvent, type FighterInput, type TSkill, type Unit,
@@ -39,6 +42,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
   const [selTargets, setSelTargets] = useState<string[]>([]);
   const [floats, setFloats] = useState<Float[]>([]);
   const [anim, setAnim] = useState<Record<string, string>>({});
+  const [effects, setEffects] = useState<Record<string, string>>({});
   const [fast, setFast] = useState(auto);
   const [autoOn, setAutoOn] = useState(auto);
   const [banner, setBanner] = useState<string | null>(null);
@@ -64,17 +68,20 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
     for (const e of events) {
       if (e.kind === "telegraph") { setBanner(e.text); }
       if (e.tgt && e.kind !== "telegraph") {
+        const target = e.tgt;
         const id = ++fid.current;
-        setFloats((f) => [...f, { id, tgt: e.tgt!, text: e.text, kind: e.kind }]);
+        const used = a?.kit.find(k => k.id === (e.skill ?? sk));
+        const effect = e.kind === "heal" ? "heal" : e.kind === "block" || e.kind === "absorb" || used?.icon === "shield" ? "shield" : used?.icon === "snowflake" ? "ice" : used?.icon === "flame" || e.skill === "cataclysm" ? "fire" : a?.cls === "archer" ? "arrow" : a?.cls === "mage" ? "arcane" : "slash";
+        if (["dmg", "crit", "heal", "block", "absorb", "status"].includes(e.kind)) setEffects(m => ({ ...m, [target]: effect + "#" + id }));
+        setFloats((f) => [...f, { id, tgt: target, text: e.text, kind: e.kind }]);
         setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 1100);
-        if (["dmg", "crit", "block"].includes(e.kind)) setAnim((m) => ({ ...m, [e.tgt!]: (e.kind === "block" ? "anim-block" : "anim-hit") + "#" + id }));
+        if (["dmg", "crit", "block"].includes(e.kind)) setAnim((m) => ({ ...m, [target]: (e.kind === "block" ? "anim-block" : "anim-hit") + "#" + id }));
         await wait(e.kind === "status" ? 120 : 200);
       }
     }
-    void sk;
     rerender();
     await wait(380);
-    setAnim({});
+    setAnim({}); setEffects({});
   }
 
   function finish() {
@@ -181,7 +188,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
           {order.map((u, i) => (
             <div key={u.id + i} title={u.name}
               className={`h-8 w-8 overflow-hidden rounded-full border-2 bg-card ${i === 0 ? "border-gold scale-110 shadow-[0_0_12px_var(--gold)]" : u.side === "hero" ? "border-r1" : "border-blood"}`}>
-              <img src={u.img} alt={u.name} className="h-full w-full object-cover object-top" style={u.mirror ? { transform: "scaleX(-1)" } : undefined} />
+              {u.cls || !u.sprite ? <BattleCharacter u={u} /> : <Sprite rect={u.sprite} className="w-full" />}
             </div>
           ))}
         </div>
@@ -194,12 +201,12 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
 
       {/* Battlefield */}
       <div className="relative z-10 flex flex-1 items-end justify-between gap-2 px-4 pb-4 md:px-16">
-        <UnitView u={hero} anim={anim[hero.id]} floats={floats} active={actor?.id === hero.id} />
-        <div className="flex flex-1 items-end justify-end gap-2 md:gap-6">
+        <UnitView u={hero} anim={anim[hero.id]} effect={effects[hero.id]} victory={s.over === "won"} floats={floats} active={actor?.id === hero.id} />
+        <div className="flex min-w-0 flex-1 items-end justify-end gap-2 md:gap-6 battle-foes">
           {foes.map((f) => {
             const isValid = !!skill && valid.includes(f.id);
             return (
-              <UnitView key={f.id} u={f} anim={anim[f.id]} floats={floats} active={actor?.id === f.id}
+              <UnitView key={f.id} u={f} anim={anim[f.id]} effect={effects[f.id]} floats={floats} active={actor?.id === f.id}
                 targetable={isValid} selected={selTargets.includes(f.id)} onClick={() => pickTarget(f)} small={foes.length > 1 && !f.boss} />
             );
           })}
@@ -212,14 +219,15 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
           {s.log.map((l, i) => <div key={i} className={i === 0 ? "text-foreground" : "text-muted-foreground"}>{l}</div>)}
         </div>
         <div className="flex flex-col items-center gap-2">
-          <div className="flex items-center gap-3 text-xs">
+          {hero.scrolls && hero.scrolls.length > 0 && <div className="flex flex-wrap justify-center gap-2 text-xs text-gold">{hero.scrolls.map(k => <span key={k} title="Server-confirmed for this battle">{SCROLLS[k].name} +20%</span>)}</div>}
+          <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
             <span className="font-bold text-r3">{resourceName(hero.cls)} {hero.mana}/{hero.maxMana}</span>
             {err && <span className="text-blood">{err}</span>}
             {skill && <span className="text-gold">Selected: {skill.name}</span>}
             {skill?.target === "multi" && selTargets.length > 0 && (
-              <button className="btn-gold px-3 py-1 text-xs" onClick={() => void execute(skill.id, selTargets)}>Fire at {selTargets.length}</button>
+              <Button variant="ghost" className="btn-gold px-3 py-1 text-xs" onClick={() => void execute(skill.id, selTargets)}>Fire at {selTargets.length}</Button>
             )}
-            {skill && <button className="text-muted-foreground underline" onClick={() => { setSelSkill(null); setSelTargets([]); }}>Cancel</button>}
+            {skill && <Button variant="ghost" className="text-muted-foreground underline" onClick={() => { setSelSkill(null); setSelTargets([]); }}>Cancel</Button>}
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2">
             {hero.kit.map((sk) => {
@@ -228,26 +236,26 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
               const why = skillReady(hero, sk);
               const disabled = !myTurn || !!why || autoOn;
               return (
-                <button key={sk.id} onClick={() => pickSkill(sk)} disabled={disabled}
+                <Button variant="ghost" key={sk.id} onClick={() => pickSkill(sk)} disabled={disabled}
                   title={`${sk.name} — ${sk.desc}${sk.cost ? ` Cost ${sk.cost} ${resourceName(hero.cls)}.` : ""}${sk.cd ? ` Cooldown ${sk.cd}.` : ""}${why ? ` (${why})` : ""}`}
                   className={`slot relative flex h-16 w-16 flex-col items-center justify-center gap-0.5 transition hover:scale-105 disabled:opacity-50 md:h-20 md:w-20 ${selSkill === sk.id ? "rarity-5 ring-2 ring-gold" : "rarity-4"}`}>
                   <Icon className="h-6 w-6 text-gold md:h-7 md:w-7" />
                   <span className="px-0.5 text-center text-[9px] font-bold uppercase leading-tight">{sk.name}</span>
                   {sk.cost > 0 && <span className="absolute right-0.5 top-0.5 rounded bg-background/80 px-1 text-[9px] text-r3">{sk.cost}</span>}
                   {cd > 0 && <span className="absolute inset-0 flex items-center justify-center rounded-md bg-background/75 font-display text-2xl">{cd}</span>}
-                </button>
+                </Button>
               );
             })}
-            <button onClick={potion} disabled={!myTurn || s.potions <= 0 || autoOn} className="slot relative flex h-16 w-16 flex-col items-center justify-center gap-0.5 rarity-5 transition hover:scale-105 disabled:opacity-50 md:h-20 md:w-20">
+            <Button variant="ghost" onClick={potion} disabled={!myTurn || s.potions <= 0 || autoOn} className="slot relative flex h-16 w-16 flex-col items-center justify-center gap-0.5 rarity-5 transition hover:scale-105 disabled:opacity-50 md:h-20 md:w-20">
               <FlaskConical className="h-6 w-6 text-hp" />
               <span className="text-[9px] font-bold uppercase">Potion ×{s.potions}</span>
-            </button>
-            <button onClick={() => setAutoOn((a) => !a)} className={`slot flex h-12 w-12 flex-col items-center justify-center text-[9px] font-bold ${autoOn ? "rarity-2" : ""}`} title="Auto battle">
+            </Button>
+            <Button variant="ghost" onClick={() => setAutoOn((a) => !a)} className={`slot flex h-12 w-12 flex-col items-center justify-center text-[9px] font-bold ${autoOn ? "rarity-2" : ""}`} title="Auto battle">
               <Zap className="h-4 w-4" />AUTO
-            </button>
-            <button onClick={() => setFast((f) => !f)} className={`slot flex h-12 w-12 items-center justify-center ${fast ? "rarity-2" : ""}`} title="Speed">
+            </Button>
+            <Button variant="ghost" onClick={() => setFast((f) => !f)} className={`slot flex h-12 w-12 items-center justify-center ${fast ? "rarity-2" : ""}`} title="Speed">
               <FastForward className="h-5 w-5" />
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -261,17 +269,17 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
   );
 }
 
-function UnitView({ u, anim, floats, active, targetable, selected, onClick, small }: {
-  u: Unit; anim?: string; floats: Float[]; active?: boolean; targetable?: boolean; selected?: boolean; onClick?: () => void; small?: boolean;
+function UnitView({ u, anim, effect, victory, floats, active, targetable, selected, onClick, small }: {
+  u: Unit; anim?: string; effect?: string; victory?: boolean; floats: Float[]; active?: boolean; targetable?: boolean; selected?: boolean; onClick?: () => void; small?: boolean;
 }) {
   const dead = u.hp <= 0;
-  const h = u.boss ? "h-[46vh]" : small ? "h-[28vh]" : "h-[38vh]";
+  const h = u.boss ? "battle-figure boss-figure" : small ? "battle-figure small-figure" : "battle-figure";
   return (
-    <button type="button" onClick={onClick} disabled={!onClick || dead}
+    <Button variant="ghost" type="button" onClick={onClick} disabled={!onClick || dead}
       aria-label={`${u.name}${targetable ? " (valid target)" : ""}`}
-      className={`relative flex flex-col items-center transition-all duration-500 ${dead ? "pointer-events-none translate-y-6 opacity-0 grayscale" : ""} ${targetable ? "cursor-crosshair" : "cursor-default"}`}>
+      className={`relative h-auto min-w-0 shrink-0 flex flex-col items-center p-0 hover:bg-transparent transition-all duration-500 battle-unit disabled:opacity-100 ${dead ? "pointer-events-none battle-death" : ""} ${targetable ? "cursor-crosshair" : "cursor-default"}`}>
       {/* Nameplate */}
-      <div className={`mb-1 w-36 rounded-md bg-background/75 px-2 py-1 text-left backdrop-blur md:w-44 ${active ? "ring-2 ring-gold" : ""}`}>
+      <div className={`mb-1 w-full max-w-44 rounded-md bg-background/75 px-2 py-1 text-left backdrop-blur ${active ? "ring-2 ring-gold" : ""}`}>
         <div className="flex items-center justify-between gap-1 truncate text-[11px] font-bold">
           <span className="truncate">{u.boss && <Skull className="mr-0.5 inline h-3 w-3 text-blood" />}{u.elite && <span className="text-r4">★ </span>}{u.name}</span>
           <span className="text-muted-foreground">Lv {u.level}</span>
@@ -287,14 +295,12 @@ function UnitView({ u, anim, floats, active, targetable, selected, onClick, smal
         )}
       </div>
       {/* Figure */}
-      <div className={`relative ${h} aspect-[3/4]`}>
+      <div className={`relative ${h} w-full shrink-0 ${u.cls ? "aspect-square" : u.sprite ? "aspect-[3/4]" : "aspect-[480/1024]"}`}>
         {targetable && <div className={`absolute inset-x-4 bottom-0 h-6 rounded-full blur-md ${selected ? "bg-gold" : "bg-r1/70 animate-pulse"}`} />}
         {active && <div className="absolute inset-x-8 bottom-1 h-4 rounded-full bg-gold/50 blur-md" />}
         <div key={anim ?? "idle"} className={`h-full w-full ${anim?.split("#")[0] ?? ""}`}>
-          {u.sprite ? <div className="flex h-full w-full items-end anim-idle"><Sprite rect={u.sprite} className="w-full rounded-xl" /></div> : (
-            <img src={u.img} alt={u.name} className={`h-full w-full object-contain object-bottom drop-shadow-[0_20px_30px_black] anim-idle ${u.telegraph ? "brightness-125 saturate-150" : ""}`}
-              style={u.mirror ? { transform: "scaleX(-1)" } : undefined} />
-          )}
+          {u.cls || !u.sprite ? <div className={`h-full w-full ${victory ? "battle-victory" : "anim-idle"}`}><BattleCharacter u={u} /></div> : <div className="flex h-full w-full items-end anim-idle"><Sprite rect={u.sprite} className="w-full" /></div>}
+          {effect && <CombatEffect key={effect} kind={effect.split("#")[0]} />}
         </div>
         {floats.filter((f) => f.tgt === u.id).map((f, i) => (
           <div key={f.id} className={`pointer-events-none absolute left-1/2 anim-float whitespace-nowrap font-display font-black drop-shadow-[0_2px_2px_black] ${
@@ -302,6 +308,6 @@ function UnitView({ u, anim, floats, active, targetable, selected, onClick, smal
           }`} style={{ top: `${15 + (i % 3) * 10}%` }}>{f.text}</div>
         ))}
       </div>
-    </button>
+    </Button>
   );
 }

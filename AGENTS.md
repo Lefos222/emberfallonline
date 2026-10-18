@@ -13,3 +13,6 @@
 - Browser reward integration uses typed existing RPCs through `services.ts`, validates response envelopes through `services-contract.ts`, serializes cloud writes before mutation, and adopts returned saves without resaving; this prevents stale drafts from overwriting online rewards.
 - Keep pending valuable request UUIDs scoped to character and operation until a validated response succeeds; this makes uncertain Lucky Shot retries safe across refreshes.
 - Guild UI reads existing membership tables and invokes existing permission-checked RPCs; client role checks only control presentation and never authorize mutations.
+- Scroll effects use a validated `begin_battle` snapshot after serialized save sync; never retry charge consumption automatically, and retain an interruption marker until acknowledged because the existing RPC has no idempotency key.
+- Battle reward callbacks accept the confirmed XP multiplier explicitly; non-battle rewards remain unaffected, avoiding global buff state leaking into unrelated rewards.
+- Battle art renders original class/gender atlases for heroes and matching base enemies, preserving uploaded distinct boss/bestiary sprites; presentation effects never resolve damage or rewards.

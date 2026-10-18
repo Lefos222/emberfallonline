@@ -22,11 +22,13 @@ export interface FighterInput {
   name: string; img: string; hp: number; atk: number; def: number; crit: number; dodge: number; level: number;
   cls?: HeroClass; skills?: Skill[]; critDmg?: number; pen?: number; acc?: number; block?: number; heal?: number;
   sprite?: SpriteRect; mirror?: boolean; boss?: boolean; elite?: boolean;
+  gender?: 'male' | 'female'; scrolls?: ('dmg' | 'def' | 'xp')[];
 }
 
 export interface Unit {
   id: string; side: "hero" | "foe"; name: string; img: string; sprite?: SpriteRect; mirror?: boolean;
   cls?: HeroClass; boss?: boolean; elite?: boolean; level: number;
+  gender?: 'male' | 'female'; scrolls?: ('dmg' | 'def' | 'xp')[];
   maxHp: number; hp: number; atk: number; def: number; crit: number; critDmg: number; dodge: number;
   pen: number; acc: number; block: number; heal: number; speed: number;
   mana: number; maxMana: number; statuses: Status[]; cds: Record<string, number>;
@@ -103,6 +105,7 @@ function toUnit(f: FighterInput, side: Unit["side"], id: string): Unit {
   const maxMana = 100;
   return {
     id, side, name: f.name, img: f.img, sprite: f.sprite, mirror: f.mirror, cls: f.cls, boss: f.boss, elite: f.elite, level: f.level,
+    gender: f.gender, scrolls: f.scrolls,
     maxHp: Math.max(1, Math.round(f.hp)), hp: Math.max(1, Math.round(f.hp)), atk: f.atk, def: f.def, crit: f.crit,
     critDmg: f.critDmg ?? 200, dodge: f.dodge, pen: f.pen ?? 0, acc: f.acc ?? 0,
     block: Math.min(BLOCK_CAP, f.block ?? (f.boss ? 5 : 0)), heal: Math.min(HEAL_CAP, f.heal ?? 0),
@@ -135,8 +138,8 @@ export function initBattle(hero: FighterInput, foes: FighterInput[]): BattleStat
 }
 
 const alive = (u: Unit) => u.hp > 0;
-export const unit = (s: BattleState, id: string) => s.units.find((u) => u.id === id)!;
-export const heroUnit = (s: BattleState) => s.units.find((u) => u.side === "hero")!;
+export const unit = (s: BattleState, id: string) => { const u = s.units.find((x) => x.id === id); if (!u) throw new Error('Unknown combatant'); return u; };
+export const heroUnit = (s: BattleState) => { const u = s.units.find((x) => x.side === 'hero'); if (!u) throw new Error('Missing hero'); return u; };
 export const livingFoes = (s: BattleState) => s.units.filter((u) => u.side === "foe" && alive(u));
 const status = (u: Unit, k: StatusKind) => u.statuses.find((x) => x.kind === k);
 export const effSpeed = (u: Unit) => Math.round(u.speed * (1 - (status(u, "slow")?.value ?? 0) / 100));

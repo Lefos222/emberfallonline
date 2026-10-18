@@ -4,6 +4,9 @@ import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircl
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
 import { GuildHall } from "./GuildHall";
+import { ScrollShop } from "./ScrollShop";
+import { beginScrollBattle } from "./services";
+import { scrollFighter } from "./scrolls";
 import castle from "@/assets/castle.jpg.asset.json";
 import theme from "@/assets/theme.mp3.asset.json";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +34,8 @@ export function Game() {
   const [crafting, setCrafting] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem("bm-muted") === "1");
   const audio = useRef<HTMLAudioElement>(null);
+  const starting = useRef(false);
+  const [entryError, setEntryError] = useState("");
 
   useEffect(() => { if (authReady && !userId) void nav({ to: "/auth" }); }, [authReady, userId, nav]);
 
@@ -47,9 +52,18 @@ export function Game() {
   }, [muted]);
 
   const start: StartBattle = (o) => {
-    if (!hero) return;
-    setOpen(null);
-    setBattle({ ...o, left: heroFighter(hero, heroStats(hero)) });
+    if (!hero || starting.current || battle) return;
+    starting.current = true; setEntryError("");
+    void (async () => {
+      try {
+        const active = await beginScrollBattle();
+        const current = getState();
+        if (!current.hero) return;
+        setOpen(null);
+        setBattle({ ...o, left: scrollFighter({ ...heroFighter(current.hero, heroStats(current.hero)), gender: current.gender }, active) });
+      } catch (e) { setEntryError(e instanceof Error ? e.message : "Battle entry failed."); }
+      finally { starting.current = false; }
+    })();
   };
 
   const settled = useRef<object | null>(null);
@@ -58,7 +72,7 @@ export function Game() {
     if (!battle || settled.current === battle) return;
     settled.current = battle;
     const before = useGameOverflow();
-    const r0 = await battle.onResult(won);
+    const r0 = await battle.onResult(won, battle.left.scrolls?.includes("xp") ? 1.2 : 1);
     const r = { ...r0, lines: [...r0.lines] };
     if (useGameOverflow() > before && !r.lines.some((l) => /Overflow/.test(l))) r.lines.push("Bag full — loot placed in your Overflow Chest (Armory)");
     if (won) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m)); });
@@ -80,6 +94,7 @@ export function Game() {
           <nav aria-label="Rewards" className="game-panel absolute bottom-3 left-3 z-20 flex gap-1 p-1.5">
             <Button variant="ghost" size="icon" aria-label="Mailbox" title="Mailbox" onClick={() => setOpen("mailbox")}><Mail /></Button>
             <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><Crosshair /></Button>
+            <Button variant="ghost" size="icon" aria-label="Battle Scrolls" title="Battle Scrolls" onClick={() => setOpen("scrolls")}><ScrollText /></Button>
           </nav>
           <Hud muted={muted} setMuted={setMuted} cloud={cloud} onProfile={() => setOpen("profile")} />
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
@@ -87,6 +102,7 @@ export function Game() {
           {open === "lucky" && <LuckyShots onClose={() => setOpen(null)} />}
           {open === "daily" && <ActivityBoard onClose={() => setOpen(null)} />}
           {open === "guild" && <GuildHall onClose={() => setOpen(null)} />}
+          {open === "scrolls" && <ScrollShop onClose={() => setOpen(null)} />}
           {open === "hall" && <ThroneHall onClose={() => setOpen(null)} />}
           {open === "armory" && <HeroHall onClose={() => setOpen(null)} />}
           {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
@@ -104,6 +120,7 @@ export function Game() {
         </>
       )}
       {battle && <Battle key={battle.title + battle.right.name} left={battle.left} right={battle.right} auto={battle.auto} title={battle.title} onEnd={onEnd} />}
+      {entryError && <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4"><div className="game-panel max-w-md p-5"><p role="alert">{entryError}</p><Button className="mt-4" onClick={() => { const id = getState().heroId; if (id) localStorage.removeItem(`ef-scroll-battle:${id}`); setEntryError(""); }}>Acknowledge and close</Button></div></div>}
       {result && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4">
           <div className="game-panel anim-pop w-full max-w-sm p-6 text-center">
@@ -214,7 +231,7 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky";
+type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls";
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof Backpack }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", Icon: Backpack },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", Icon: Anvil },

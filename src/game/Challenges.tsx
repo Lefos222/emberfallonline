@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { scrollXp } from "./scrolls";
 import { Crown, Lock, Skull, Swords } from "lucide-react";
 import { invCap, heroStats, makeItem, type Item } from "./data";
 import { update, useGame } from "./store";
@@ -39,19 +40,19 @@ export function Challenges({ onClose, start }: { onClose: () => void; start: Sta
     start({
       title: `Boss Challenge · ${TIER_BOSSES[id].name} · Difficulty ${d}`,
       right: foe,
-      onResult: async (won) => {
+      onResult: async (won, xpMultiplier = 1) => {
         if (!won) return { lines: ["The boss stands victorious. Grow stronger."] };
         const { grant, addLoot, makeDrop } = await import("./logic");
         let lines: string[] = []; let loot: Item | null = null;
         update((h) => {
-          const { levels } = grant(h, rw.xp, rw.gold);
+          const { levels } = grant(h, scrollXp(rw.xp, xpMultiplier), rw.gold);
           h.challenges = { ...(h.challenges ?? {}), [id]: Math.max(cleared(h, id), d) };
           if (rw.bossCore) addMats(h, { bossCore: rw.bossCore });
           addWeeklyKill(h);
           loot = makeDrop(h.cls, h.level + Math.floor(h.paragon / 2) + d * 2, rw.minRarity);
           loot.name = `${TIER_BOSSES[id].name.split(",")[0]}'s ${loot.name.split(" ").slice(1).join(" ")}`;
           const full = h.inventory.length >= invCap(h); addLoot(h, loot); if (full) lines.push("Bag full — gear placed in your Overflow Chest (Armory)");
-          lines = [...lines, `+${fmt(rw.xp)} XP`, `+${fmt(rw.gold)} gold`, ...(rw.bossCore ? [`+${rw.bossCore} Boss Core`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+          lines = [...lines, `+${fmt(scrollXp(rw.xp, xpMultiplier))} XP`, `+${fmt(rw.gold)} gold`, ...(rw.bossCore ? [`+${rw.bossCore} Boss Core`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         return { lines, loot };
       },
@@ -63,16 +64,16 @@ export function Challenges({ onClose, start }: { onClose: () => void; start: Sta
     start({
       title: `Elite Hunt · ${foe.name}`,
       right: foe,
-      onResult: async (won) => {
+      onResult: async (won, xpMultiplier = 1) => {
         if (!won) return { lines: ["The elite escaped…"] };
         const { grant, rollLoot, addLoot } = await import("./logic");
         let lines: string[] = []; let loot: Item | null = null;
         update((h) => {
-          const { levels } = grant(h, lvl * 60, lvl * 40);
+          const { levels } = grant(h, scrollXp(lvl * 60, xpMultiplier), lvl * 40);
           loot = rollLoot(h, lvl + 5, 0.8, 2);
           if (loot) addLoot(h, loot);
           addMats(h, { essence: 2 });
-          lines = [`+${fmt(lvl * 60)} XP`, `+${fmt(lvl * 40)} gold`, "+2 Soul Essence", ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+          lines = [`+${fmt(scrollXp(lvl * 60, xpMultiplier))} XP`, `+${fmt(lvl * 40)} gold`, "+2 Soul Essence", ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         return { lines, loot };
       },
