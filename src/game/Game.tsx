@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircle, Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2, BookOpen, Leaf } from "lucide-react";
+import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircle, Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2, BookOpen, Leaf, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
 import { GuildHall } from "./GuildHall";
@@ -9,6 +9,7 @@ import { FriendsPanel } from "./FriendsPanel";
 import { ScrollShop } from "./ScrollShop";
 import { Bestiary } from "./Bestiary";
 import { PassiveTree } from "./PassiveTree";
+import { EventCalendar } from "./EventCalendar";
 import { beginScrollBattle } from "./services";
 import { scrollFighter } from "./scrolls";
 import castle from "@/assets/castle.jpg.asset.json";
@@ -124,6 +125,7 @@ export function Game() {
           {open === "passives" && <PassiveTree onClose={() => setOpen(null)} />}
           {open === "bestiary" && <Bestiary h={hero} onClose={() => setOpen(null)} />}
           {open === "road" && <LongRoad onClose={() => setOpen(null)} start={start} />}
+          {open === "calendar" && <EventCalendar h={hero} onClose={() => setOpen(null)} start={start} />}
           {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
           {open === "friends" && (
             <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-background/70 p-4 pt-16" onClick={() => setOpen(null)}>
@@ -258,12 +260,13 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "passives" | "bestiary" | "road";
+type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "passives" | "bestiary" | "road" | "calendar";
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof Backpack }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", Icon: Backpack },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", Icon: Anvil },
   { id: "daily", label: "Daily Rewards", tip: "7-day reward board", Icon: Gift },
   { id: "road", label: "Long Road", tip: "Endless regions past the campaign", Icon: Sparkles },
+  { id: "calendar", label: "Events", tip: "World event calendar & reminders", Icon: CalendarDays },
   { id: "friends", label: "Friends", tip: "Friends & messages", Icon: Users },
   { id: "profile", label: "Profile", tip: "Your hero profile", Icon: UserCircle },
   { id: "oracle", label: "Quest Board", tip: "AI-generated quests", Icon: ScrollText },
