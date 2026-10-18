@@ -60,3 +60,4 @@
 - Guild activity log: quest progress, donations, and each member's contributions to shared rewards. [open]
 - Guild chat: announcement channel, message history, basic moderation controls. [open]
 - Seasonal guild rankings from cooperative activity; exclusive cosmetics for top guilds. [open]
+- Guild shop: spend earned contribution tokens on upgrade materials, equipment, cosmetics. [open]
