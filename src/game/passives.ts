@@ -86,7 +86,8 @@ export function learnPassive(h: Hero, id: string): Hero {
 /** Call once inside the accepted reward/claim transaction; losses grant nothing. */
 export type InsightEvent =
   | { kind: "campaign"; won: boolean; boss?: boolean; elite?: boolean }
-  | { kind: "dungeon" | "endless"; won: boolean }
+  | { kind: "dungeon"; won: boolean }
+  | { kind: "endless"; won: boolean }
   | { kind: "achievement"; claimed: boolean };
 export function insightFrom(event: InsightEvent): number {
   if (event.kind === "achievement") return event.claimed ? 5 : 0;
