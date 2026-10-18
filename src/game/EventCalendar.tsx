@@ -56,7 +56,7 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
   useEffect(() => {
     for (const ev of WORLD_EVENTS) {
       if (!remind[ev.id] || !reminderDue(now, ev)) continue;
-      const key = `${ev.id}:notify:${statusOf(now, ev).startsAt}`;
+      const s = statusOf(now, ev); if (s.state !== "upcoming") continue; const key = `${ev.id}:notify:${s.startsAt}`;
       if (fired.current.has(key)) continue;
       fired.current.add(key);
       setBanner(`${ev.name} opens in ${countdown(statusOf(now, ev).msLeft)}`);
