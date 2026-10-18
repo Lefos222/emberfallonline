@@ -244,7 +244,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
                 <Button variant="ghost" key={sk.id} onClick={() => pickSkill(sk)} disabled={disabled}
                   title={`${sk.name} — ${sk.desc}${sk.cost ? ` Cost ${sk.cost} ${resourceName(hero.cls)}.` : ""}${sk.cd ? ` Cooldown ${sk.cd}.` : ""}${why ? ` (${why})` : ""}`}
                   className={`slot relative flex h-16 w-16 flex-col items-center justify-center gap-0.5 transition hover:scale-105 disabled:opacity-50 md:h-20 md:w-20 ${selSkill === sk.id ? "rarity-5 ring-2 ring-gold" : "rarity-4"}`}>
-                  <Icon className="h-6 w-6 text-gold md:h-7 md:w-7" />
+                  <SkillIcon icon={sk.icon} className="h-8 w-8 md:h-10 md:w-10" />
                   <span className="px-0.5 text-center text-[9px] font-bold uppercase leading-tight">{sk.name}</span>
                   {sk.cost > 0 && <span className="absolute right-0.5 top-0.5 rounded bg-background/80 px-1 text-[9px] text-r3">{sk.cost}</span>}
                   {cd > 0 && <span className="absolute inset-0 flex flex-col items-center justify-center rounded-md bg-background/75"><span className="font-display text-2xl">{cd}</span><span className="text-[9px]">turn{cd > 1 ? "s" : ""}</span></span>}
@@ -252,7 +252,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
               );
             })}
             <Button variant="ghost" onClick={potion} disabled={!myTurn || s.potions <= 0 || autoOn} className="slot relative flex h-16 w-16 flex-col items-center justify-center gap-0.5 rarity-5 transition hover:scale-105 disabled:opacity-50 md:h-20 md:w-20">
-              <FlaskConical className="h-6 w-6 text-hp" />
+              <SkillIcon icon="potion" className="h-8 w-8 md:h-10 md:w-10" />
               <span className="text-[9px] font-bold uppercase">Potion ×{s.potions}</span>
             </Button>
             <Button variant="ghost" onClick={() => setAutoOn((a) => !a)} className={`slot flex h-12 w-12 flex-col items-center justify-center text-[9px] font-bold ${autoOn ? "rarity-2" : ""}`} title="Auto battle">
