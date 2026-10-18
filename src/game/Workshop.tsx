@@ -1,7 +1,7 @@
 import { MatIcon, GemIcon } from "./MatIcon";
 import { useState } from "react";
 import { ArrowUp, Gem, Hammer, Sparkles, X } from "lucide-react";
-import { invCap, SLOTS, makeItem, type Item, type Slot } from "./data";
+import { invCap, SLOTS, WEAR_SLOTS, wornCompare, makeItem, type Item, type Slot } from "./data";
 import { update, useGame } from "./store";
 import { Gold, ItemCard, Panel, fmt } from "./ui";
 import {
@@ -35,7 +35,7 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
   const [selId, setSelId] = useState<string | null>(null);
   const [toast, say] = useToast();
   if (!hero) return null;
-  const gear = [...SLOTS.map((s) => hero.equipment[s]).filter(Boolean) as Item[], ...hero.inventory].filter((i) => socketCount(i) > 0);
+  const gear = [...WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean) as Item[], ...hero.inventory].filter((i) => socketCount(i) > 0);
   const sel = gear.find((i) => i.id === selId);
   const owned = Object.entries(hero.gems ?? {}).filter(([, n]) => n > 0).sort();
 
@@ -212,7 +212,7 @@ export function Crafting({ onClose }: { onClose: () => void }) {
           })}
           <p className="text-xs text-muted-foreground">Crafted items: {hero.crafts ?? 0}</p>
         </div>
-        <div>{last ? <ItemCard item={last} compare={hero.equipment[last.slot]} /> : <p className="py-10 text-center text-muted-foreground">Your newest creation appears here, compared with what you wear.</p>}</div>
+        <div>{last ? <ItemCard item={last} compare={wornCompare(hero, last)} /> : <p className="py-10 text-center text-muted-foreground">Your newest creation appears here, compared with what you wear.</p>}</div>
       </div>
     </Panel>
   );

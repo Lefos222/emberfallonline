@@ -139,7 +139,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
               const spent = spentIn(hero, spec.id);
               const mine = hero.spec === spec.id;
               return (
-                <div key={spec.id} className={`slot p-3 ${mine ? "ring-2 ring-gold" : ""}`}>
+                <div key={spec.id} className={`slot p-3 ${mine ? "ring-2 ring-gold spec-mine" : ""}`}>
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-display text-lg">{spec.name}{mine && <Star className="ml-1 inline h-4 w-4 text-gold" />}</div>
@@ -151,22 +151,29 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
                     )}
                   </div>
                   <div className="mt-3 space-y-2">
-                    {spec.talents.map((t) => {
+                    {spec.talents.map((t, i) => {
                       const rank = hero.talents?.[t.id] ?? 0;
                       const block = learnBlocker(hero, t.id);
+                      const prevRank = i > 0 ? hero.talents?.[spec.talents[i - 1].id] ?? 0 : 1;
                       return (
-                        <button key={t.id} disabled={!!block} onClick={() => learn(t.id)} title={block ?? `Learn rank ${rank + 1} (${t.cost} pt)`}
-                          className={`w-full rounded border border-border p-2 text-left transition ${rank > 0 ? "bg-primary/15" : ""} ${block ? "opacity-70" : "hover:border-gold"}`}>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="font-bold">{t.ability ? "◆ " : ""}{t.name}</span>
-                            <span className="text-xs">{rank}/{t.max}</span>
-                          </div>
-                          <div className="text-xs text-muted-foreground">{t.desc}</div>
-                          <div className="mt-0.5 text-[10px] text-muted-foreground">
-                            Tier {t.tier}{TIER_REQ[t.tier] ? ` · needs ${TIER_REQ[t.tier]} pts here` : ""} · {t.cost} pt/rank
-                            {block && block !== "Maxed" && <span className="ml-1 text-blood"><Lock className="inline h-3 w-3" /> {block}</span>}
-                          </div>
-                        </button>
+                        <div key={t.id}>
+                          {i > 0 && <div className={`talent-link ${prevRank > 0 ? "talent-link-on" : ""}`} aria-hidden="true" />}
+                          <button disabled={!!block} onClick={() => learn(t.id)} title={block ?? `Learn rank ${rank + 1} (${t.cost} pt)`}
+                            className={`talent-node w-full rounded border border-border p-2 text-left ${rank > 0 ? "talent-filled bg-primary/15" : ""} ${block ? "opacity-70" : "hover:border-gold"}`}>
+                            <span key={rank} className={rank > 0 ? "talent-burst" : "hidden"} aria-hidden="true" />
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="font-bold">{t.ability ? "◆ " : ""}{t.name}</span>
+                              <span className="flex items-center gap-1" aria-label={`${rank} of ${t.max} ranks learned`}>
+                                {Array.from({ length: t.max }, (_, p) => <i key={p} className={`talent-pip ${p < rank ? "talent-pip-on" : ""}`} />)}
+                              </span>
+                            </div>
+                            <div className="text-xs text-muted-foreground">{t.desc}</div>
+                            <div className="mt-0.5 text-[10px] text-muted-foreground">
+                              Tier {t.tier}{TIER_REQ[t.tier] ? ` · needs ${TIER_REQ[t.tier]} pts here` : ""} · {t.cost} pt/rank
+                              {block && block !== "Maxed" && <span className="ml-1 text-blood"><Lock className="inline h-3 w-3" /> {block}</span>}
+                            </div>
+                          </button>
+                        </div>
                       );
                     })}
                   </div>

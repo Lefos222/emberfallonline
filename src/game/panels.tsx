@@ -7,11 +7,12 @@ import { recordEnhance } from "./progress";
 import { adviseStrategy, generateQuests } from "@/lib/quests.functions";
 import {
   attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, ENEMIES, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, RARITIES, sellValue,
-  SLOTS, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, type Attr, type EnemyType, type Hero, type HeroClass, type Item, type Slot, type Stats,
+  SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, type Attr, type EnemyType, type Hero, type HeroClass, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import { refreshMerchant } from "./logic";
 import { update, useGame } from "./store";
 import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
+import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
 
@@ -27,6 +28,8 @@ export const heroFighter = (h: Hero, s: Stats): Fighter => ({
 });
 
 const SLOT_LABEL: Record<Slot, string> = { helmet: "Head", armour: "Chest", boots: "Feet", belt: "Waist", weapon: "Weapon", ring: "Ring", talisman: "Amulet" };
+const LEFT_DOLL: WearSlot[] = ["helmet", "armour", "belt", "boots"];
+const RIGHT_DOLL: WearSlot[] = ["weapon", "ring", "ring2", "talisman"];
 
 // ---------------- Hero Keep ----------------
 export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; title?: string }) {
@@ -39,17 +42,15 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
   const s = heroStats(hero);
   const selItem = sel ? (sel.equipped ? Object.values(hero.equipment).find((i) => i?.id === sel.id) : hero.inventory.find((i) => i.id === sel.id)) : undefined;
 
-  const equip = (it: Item) => update((h) => {
-    h.inventory = h.inventory.filter((i) => i.id !== it.id);
-    const old = h.equipment[it.slot];
-    if (old) h.inventory.unshift(old);
-    h.equipment[it.slot] = it;
-  });
-  const unequip = (it: Item) => update((h) => {
-    if (h.inventory.length >= invCap(h)) return;
-    delete h.equipment[it.slot];
-    h.inventory.unshift(it);
-  });
+  const equip = (it: Item, at?: WearSlot) => update((h) => { equipItem(h, it, at); });
+  const unequip = (it: Item) => update((h) => { unequipItem(h, it, invCap(h)); });
+  /** Click a worn piece to inspect it; click an empty position to wear the selected bag item there. */
+  const wearClick = (sl: WearSlot) => {
+    const worn = hero.equipment[sl];
+    if (worn) { setSel({ id: worn.id, equipped: true }); return; }
+    const it = sel && !sel.equipped ? hero.inventory.find((i) => i.id === sel.id) : undefined;
+    if (it && wearOf(it.slot).includes(sl)) { equip(it, sl); setSel({ id: it.id, equipped: true }); }
+  };
   const sell = (it: Item) => update((h) => { h.inventory = h.inventory.filter((i) => i.id !== it.id); h.gold += sellValue(it); });
 
   return (
@@ -58,9 +59,9 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
         <div>
           <div className="relative mx-auto grid max-w-md grid-cols-[auto_1fr_auto] items-center gap-2">
             <div className="flex flex-col gap-2">
-              {(["helmet", "armour", "belt", "boots"] as Slot[]).map((sl) => (
-                <ItemSlot key={sl} item={hero.equipment[sl]} empty={SLOT_LABEL[sl]} selected={sel?.id === hero.equipment[sl]?.id}
-                  onClick={() => hero.equipment[sl] && setSel({ id: hero.equipment[sl]!.id, equipped: true })} />
+              {LEFT_DOLL.map((sl) => (
+                <ItemSlot key={sl} item={hero.equipment[sl]} empty={WEAR_LABEL[sl]} selected={sel?.id === hero.equipment[sl]?.id}
+                  onClick={() => wearClick(sl)} />
               ))}
             </div>
             <div className="relative h-80">
@@ -68,9 +69,9 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               <img src={CLASSES[hero.cls].img} alt={hero.cls} className="relative h-full w-full object-contain anim-idle" />
             </div>
             <div className="flex flex-col gap-2">
-              {(["weapon", "ring", "talisman"] as Slot[]).map((sl) => (
-                <ItemSlot key={sl} item={hero.equipment[sl]} empty={SLOT_LABEL[sl]} selected={sel?.id === hero.equipment[sl]?.id}
-                  onClick={() => hero.equipment[sl] && setSel({ id: hero.equipment[sl]!.id, equipped: true })} />
+              {RIGHT_DOLL.map((sl) => (
+                <ItemSlot key={sl} item={hero.equipment[sl]} empty={WEAR_LABEL[sl]} selected={sel?.id === hero.equipment[sl]?.id}
+                  onClick={() => wearClick(sl)} />
               ))}
             </div>
           </div>
@@ -152,7 +153,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             {selItem ? (
               <ItemCard
                 item={selItem}
-                compare={!sel?.equipped ? hero.equipment[selItem.slot] : undefined}
+                compare={!sel?.equipped ? wornCompare(hero, selItem) : undefined}
                 actions={sel?.equipped ? (
                   <button className="btn-blood px-4 py-1.5 text-sm" onClick={() => { unequip(selItem); setSel(null); }}>Unequip</button>
                 ) : (
@@ -218,7 +219,9 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   return (
     <Panel title={spire ? "Endless Conquest" : "Campaign Gate"} onClose={onClose}>
       <div className="grid items-center gap-6 md:grid-cols-2">
-        <div className="relative h-72">
+        <div className="relative h-72 overflow-hidden rounded-lg">
+          <img src={worldMap} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-40" />
+          <div className="absolute inset-0 bg-background/55" aria-hidden="true" />
           <div className="absolute inset-x-10 bottom-2 h-8 rounded-full bg-blood/50 blur-xl" />
           <img src={foe.img} alt={foe.name} className="relative h-full w-full object-contain anim-idle" />
           {foe.boss && <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-blood px-2 py-0.5 font-display text-sm"><Skull className="h-4 w-4" />BOSS</div>}
@@ -260,7 +263,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
   if (!hero) return null;
   const all: (Item & { eq?: boolean })[] = [
-    ...SLOTS.map((s) => hero.equipment[s]).filter(Boolean).map((i) => ({ ...i!, eq: true })),
+    ...WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean).map((i) => ({ ...i!, eq: true })),
     ...hero.inventory,
   ];
   const sel = all.find((i) => i.id === selId);
@@ -271,7 +274,8 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
     const ok = Math.random() < enhanceChance(sel);
     update((h) => {
       h.gold -= cost;
-      const target = sel.eq ? h.equipment[sel.slot] : h.inventory.find((i) => i.id === sel.id);
+      const pos = sel.eq ? posOf(h.equipment, sel.id) : undefined;
+      const target = pos ? h.equipment[pos] : h.inventory.find((i) => i.id === sel.id);
       if (target && ok) { target.enh++; recordEnhance(h, target.enh); }
     });
     setMsg(ok ? { ok, t: `Success! +${sel.enh + 1}` } : { ok, t: "The metal cracked… failed" });
@@ -361,7 +365,7 @@ export function Market({ onClose }: { onClose: () => void }) {
         </div>
         <div>
           {item ? (
-            <ItemCard item={item} compare={hero.equipment[item.slot]} actions={
+            <ItemCard item={item} compare={wornCompare(hero, item)} actions={
               <button className="btn-gold px-4 py-1.5" disabled={hero.gold < buyPrice(item) || hero.inventory.length >= invCap(hero)}
                 onClick={() => { update((h) => { h.gold -= buyPrice(item); h.merchant = h.merchant.filter((m) => m.id !== item.id); h.inventory.unshift(item); }); setSel(null); }}>
                 Buy <Gold n={buyPrice(item)} className="text-primary-foreground" />

@@ -35,3 +35,29 @@
 - [ ] Finish guild management controls, Wardrobe, world/private chat, and trusted activity reporting
 - [ ] Equipped-item/cosmetic-specific battle appearance beyond the new class/gender artwork
 - [ ] Remaining all-stage feature work and full collectible artwork audit; not completed by this combat increment
+## Requested next (this turn)
+- [x] Two ring slots: rings wear in Ring 1 and Ring 2, third ring swaps the weaker, old saves keep their ring, full bag blocks unequip
+- [ ] Skill tree screens with animation, and every skill the character performs plays a matching battle animation (sword swing, cast volley, etc.)
+- [ ] World chat panel bottom-left: send and receive messages for everyone in the world
+- [ ] World events plus a wider roster: 50 bosses and 50 enemies so encounters vary
+- [ ] Add friends by name
+- [ ] View and inspect another player (gear, stats, astrals)
+- [ ] Battle fighter uses the same character model as character selection
+- [ ] More original artwork wherever the game still reads flat, and general liveliness (ambient motion, feedback)
+- [x] Google sign-in works on its own for new people on the public link (verified: reaches Google's own account page, no Lovable step); the editor preview URL stays Lovable-gated by design
+
+## New requests (2026-10-18 11:36)
+- [ ] Inspect uploaded emberfall-the-long-road-main-2.zip and fold in anything useful
+- [ ] Skill trees + passives with original artwork stored in project assets
+- [ ] Unending progression: enough content for 60+ hours (stages, bosses, enemies, activities)
+- [ ] Four-hourly timed world events (world boss spawn, timed dungeon, treasure caravan) with real rewards
+- [ ] More equipment families and more crafting materials (artwork + drop tables + forge recipes)
+- [ ] Wartune-style event calendar / activity board refresh
+
+## New requests (2026-10-18 11:42)
+- In-game event calendar: live countdowns, time-zone-aware schedules, reminders for recurring world bosses and seasonal events. [in progress]
+- Guilds: member roles, shared progression, guild quests, cooperative rewards (roles + invites + chat already exist; add progression/quests/co-op rewards). [open]
+- Guild activity log: quest progress, donations, and each member's contributions to shared rewards. [open]
+- Guild chat: announcement channel, message history, basic moderation controls. [open]
+- Seasonal guild rankings from cooperative activity; exclusive cosmetics for top guilds. [open]
+- Guild shop: spend earned contribution tokens on upgrade materials, equipment, cosmetics. [open]

@@ -1,23 +1,29 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircle, Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2 } from "lucide-react";
+import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircle, Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2, BookOpen, Leaf, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
 import { GuildHall } from "./GuildHall";
+import { WorldChat } from "./WorldChat";
+import { FriendsPanel } from "./FriendsPanel";
 import { ScrollShop } from "./ScrollShop";
+import { Bestiary } from "./Bestiary";
+import { PassiveTree } from "./PassiveTree";
+import { EventCalendar } from "./EventCalendar";
 import { beginScrollBattle } from "./services";
 import { scrollFighter } from "./scrolls";
 import castle from "@/assets/castle.jpg.asset.json";
 import theme from "@/assets/theme.mp3.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } from "./data";
-import { getState, leaveCharacter, update, useGame } from "./store";
+import { authHandoffPending, getState, leaveCharacter, update, useGame } from "./store";
 import { recordBattle } from "./progress";
 import { CharacterSelect, Portrait, ProfilePanel, frameClass } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
 import { Arena, Campaign, Forge, HeroHall, Market, Oracle, Temple, XpBar, heroFighter, type StartBattle } from "./panels";
 import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
+import { LongRoad } from "./LongRoad";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
 import { Gold, ItemCard, Panel, fmt } from "./ui";
@@ -26,7 +32,7 @@ import { CONQUEST_LEVEL, canEnterConquest } from "./data";
 const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
 
 export function Game() {
-  const { hero, userId, cloud, authReady } = useGame();
+  const { hero, heroId, userId, cloud, authReady } = useGame();
   const nav = useNavigate();
   const [open, setOpen] = useState<ShortcutTarget | null>(null);
   const [battle, setBattle] = useState<null | { right: Fighter; left: Fighter; auto?: boolean; title: string; onResult: Parameters<StartBattle>[0]["onResult"] }>(null);
@@ -37,7 +43,15 @@ export function Game() {
   const starting = useRef(false);
   const [entryError, setEntryError] = useState("");
 
-  useEffect(() => { if (authReady && !userId) void nav({ to: "/auth" }); }, [authReady, userId, nav]);
+  // A sign-in that lands a beat late must not bounce the player out; re-check live state at fire time.
+  useEffect(() => {
+    if (!authReady || userId) return;
+    const t = setTimeout(() => {
+      if (getState().userId || authHandoffPending()) return;
+      void nav({ to: "/auth" });
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [authReady, userId, nav]);
 
   useEffect(() => {
     const a = audio.current;
@@ -95,7 +109,10 @@ export function Game() {
             <Button variant="ghost" size="icon" aria-label="Mailbox" title="Mailbox" onClick={() => setOpen("mailbox")}><Mail /></Button>
             <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><Crosshair /></Button>
             <Button variant="ghost" size="icon" aria-label="Battle Scrolls" title="Battle Scrolls" onClick={() => setOpen("scrolls")}><ScrollText /></Button>
+            <Button variant="ghost" size="icon" aria-label="Passive Tree" title="Passive Tree" onClick={() => setOpen("passives")}><Leaf /></Button>
+            <Button variant="ghost" size="icon" aria-label="Bestiary" title="Bestiary" onClick={() => setOpen("bestiary")}><BookOpen /></Button>
           </nav>
+          <WorldChat heroId={heroId} />
           <Hud muted={muted} setMuted={setMuted} cloud={cloud} onProfile={() => setOpen("profile")} />
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
           {open === "mailbox" && <Mailbox onClose={() => setOpen(null)} />}
@@ -105,7 +122,19 @@ export function Game() {
           {open === "scrolls" && <ScrollShop onClose={() => setOpen(null)} />}
           {open === "hall" && <ThroneHall onClose={() => setOpen(null)} />}
           {open === "armory" && <HeroHall onClose={() => setOpen(null)} />}
+          {open === "passives" && <PassiveTree onClose={() => setOpen(null)} />}
+          {open === "bestiary" && <Bestiary h={hero} onClose={() => setOpen(null)} />}
+          {open === "road" && <LongRoad onClose={() => setOpen(null)} start={start} />}
+          {open === "calendar" && <EventCalendar h={hero} onClose={() => setOpen(null)} start={start} />}
           {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
+          {open === "friends" && (
+            <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-background/70 p-4 pt-16" onClick={() => setOpen(null)}>
+              <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                <FriendsPanel heroId={heroId} />
+                <button className="btn-ghost mt-2 w-full py-2" onClick={() => setOpen(null)}>Close</button>
+              </div>
+            </div>
+          )}
           {open === "portal" && <Campaign onClose={() => setOpen(null)} start={start} />}
           {open === "spire" && (canEnterConquest(hero.level) ? <Campaign spire onClose={() => setOpen(null)} start={start} /> : <ComingSoon id="spire" locked onClose={() => setOpen(null)} />)}
           {open === "forge" && <Forge onClose={() => setOpen(null)} onCraft={() => setCrafting(true)} />}
@@ -231,11 +260,13 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls";
+type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "passives" | "bestiary" | "road" | "calendar";
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof Backpack }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", Icon: Backpack },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", Icon: Anvil },
   { id: "daily", label: "Daily Rewards", tip: "7-day reward board", Icon: Gift },
+  { id: "road", label: "Long Road", tip: "Endless regions past the campaign", Icon: Sparkles },
+  { id: "calendar", label: "Events", tip: "World event calendar & reminders", Icon: CalendarDays },
   { id: "friends", label: "Friends", tip: "Friends & messages", Icon: Users },
   { id: "profile", label: "Profile", tip: "Your hero profile", Icon: UserCircle },
   { id: "oracle", label: "Quest Board", tip: "AI-generated quests", Icon: ScrollText },
