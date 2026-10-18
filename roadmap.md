@@ -16,7 +16,7 @@
 ## Next phases — intentionally not implemented together
 - [ ] Production crafting from gathered resources, profession quests/milestone claims and broad Codex/reputation. Depends on secure item-consumption design.
 - [ ] Mounts/pets/bonding and estate editor/visitors. Depends on collectible ownership and placement implementation.
-- [ ] Atomic auction economy/trade. Blocked on authoritative currency/item ownership, since legacy client saves still control most gold.
+- [~] Atomic auction economy/trade. Verified end to end: list → buy → cancel, buyer debit, ore delivery, seller credit, self-buy blocked, sold listings can't be re-bought. Remaining: authoritative currency ownership so a seller's open preview can't overwrite credited gold with a stale client save (observed once in testing).
 - [ ] Ranked seasons and reusable validated seasonal reward cycle/catch-up. Blocked on authoritative battle settlement; Arena currently trusts submitted outcomes.
 - [ ] Outfit/weapon-specific layered artwork, original art for future phases and full legacy asset audit.
 - [ ] Real high-level unlock/use verification and measured 60-hour balance; current test character lacks endgame milestones.
