@@ -23,4 +23,4 @@
 - [ ] Full hosted stranger Google/Lovable round trip and funded scroll ten-battle cycle remain unverified.
 - Guild expansion remains deferred in favor of general endless progression.
 - [ ] Add skill icons/pictures to the battle skill bar.
-- [ ] Show gathering resources (ores, crystals, herbs, etc.) in the inventory.
+- [x] Show gathering resources (ores, crystals, herbs, etc.) in the inventory.
