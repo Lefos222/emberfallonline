@@ -21,8 +21,8 @@ function everySkillId() {
 
 describe("skill battle animations", () => {
   it("knows every skill the game can actually put on the bar", () => {
-    // 3 base skills x 3 classes, plus the 9 tier-3 abilities unlocked by the trees.
-    expect(everySkillId()).toHaveLength(18);
+    // Nine base abilities, nine specialization abilities and nine endless branches.
+    expect(everySkillId()).toHaveLength(27);
   });
 
   it("gives every skill its own move", () => {

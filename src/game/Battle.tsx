@@ -228,7 +228,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
             <span className="font-bold text-r3">{resourceName(hero.cls)} {hero.mana}/{hero.maxMana}</span>
             {err && <span className="text-blood">{err}</span>}
-            {skill && <span className="text-gold">Selected: {skill.name}</span>}
+            {skill && <span className="text-gold">{skill.name} · {skill.target === "all" ? "All enemies" : skill.target === "self" ? "Self" : skill.target === "multi" ? `Up to ${skill.maxTargets} enemies` : "One enemy"} · {skill.hits ?? 1} hit{(skill.hits ?? 1) > 1 ? "s" : ""} · {skill.cd} turn cooldown</span>}
             {skill?.target === "multi" && selTargets.length > 0 && (
               <Button variant="ghost" className="btn-gold px-3 py-1 text-xs" onClick={() => void execute(skill.id, selTargets)}>Fire at {selTargets.length}</Button>
             )}
@@ -247,7 +247,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
                   <Icon className="h-6 w-6 text-gold md:h-7 md:w-7" />
                   <span className="px-0.5 text-center text-[9px] font-bold uppercase leading-tight">{sk.name}</span>
                   {sk.cost > 0 && <span className="absolute right-0.5 top-0.5 rounded bg-background/80 px-1 text-[9px] text-r3">{sk.cost}</span>}
-                  {cd > 0 && <span className="absolute inset-0 flex items-center justify-center rounded-md bg-background/75 font-display text-2xl">{cd}</span>}
+                  {cd > 0 && <span className="absolute inset-0 flex flex-col items-center justify-center rounded-md bg-background/75"><span className="font-display text-2xl">{cd}</span><span className="text-[9px]">turn{cd > 1 ? "s" : ""}</span></span>}
                 </Button>
               );
             })}
