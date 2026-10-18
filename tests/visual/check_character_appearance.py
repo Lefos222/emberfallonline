@@ -40,7 +40,7 @@ async def main():
               const motion = state === 'idle' ? 'anim-idle' : state === 'death' ? 'battle-death' : state === 'victory' ? 'battle-victory' : `anim-${state}`;
               cases.push(React.default.createElement('div', {key: `${cls}-${gender}-${state}`, 'data-case': `${cls}-${gender}-${state}`, className: `battle-unit relative h-48 w-32 ${motion}`},
                 ['creation', 'equipment', 'progression'].includes(state)
-                  ? React.default.createElement(CharacterModel, {cls, gender, className: 'h-full'})
+                  ? React.default.createElement(CharacterModel, {cls, gender, className: 'h-full w-full'})
                   : React.default.createElement(BattleCharacter, {u: unit})));
             }
           }

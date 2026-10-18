@@ -16,6 +16,7 @@ import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
 import { CharacterModel } from "./CharacterModel";
+import { CharacterPose } from "./CharacterPose";
 
 export type StartBattle = (opts: {
   right: Fighter; auto?: boolean; title: string;
@@ -66,7 +67,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               ))}
             </div>
             <div className="relative h-80">
-              <CharacterModel cls={hero.cls} gender={gender} className="h-full w-full anim-idle" />
+              <CharacterPose cls={hero.cls} gender={gender} className="h-full w-full" />
             </div>
             <div className="flex flex-col gap-2">
               {RIGHT_DOLL.map((sl) => (

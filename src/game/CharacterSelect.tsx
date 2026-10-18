@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Loader2, Plus, Trash2, Play, ArrowLeft, LogOut, RefreshCw } from "lucide-react";
 import { CharacterModel } from './CharacterModel';
+import { CharacterPose } from './CharacterPose';
 import castle from "@/assets/castle.jpg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { CLASSES, type HeroClass } from "./data";
@@ -66,7 +67,7 @@ export function CharacterSelect() {
             <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-4">
               {chars.map((c) => (
                 <div key={c.id} className="game-panel flex flex-col p-2">
-                  <Portrait cls={c.hero_class} gender={c.gender} className="w-full rounded" />
+                  <CharacterPose cls={c.hero_class} gender={c.gender} className="aspect-square w-full" />
                   <div className="mt-2 truncate text-center font-display text-lg">{c.name}</div>
                   <div className="text-center text-xs text-muted-foreground">{CLASSES[c.hero_class].name} · {c.gender}</div>
                   <div className="text-center text-xs">Lv {c.level}{c.stats?.paragon ? ` · Asc ${c.stats.paragon}` : ""} · BR {fmt(c.power)}</div>
