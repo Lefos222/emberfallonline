@@ -78,7 +78,7 @@ export function LuckyShots({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
   const request = useRequest();
   const [last, setLast] = useState<Astral | null>(null);
-  const count = object(object(hero).srv).luckyShots;
+  const count = object(object(hero)['srv'])['luckyShots'];
   const shots = typeof count === "number" ? count : null;
   return <Panel title="Lucky Shots" onClose={onClose}>
     <div className="border-b border-border pb-5 text-center">

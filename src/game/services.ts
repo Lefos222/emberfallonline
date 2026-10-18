@@ -11,6 +11,7 @@ export async function reward<K extends RewardRpc>(name: K, args: Omit<Rpc[K]["Ar
     const { data, error } = await supabase.rpc(name, { ...args, _hero: id } as Rpc[K]["Args"]);
     if (error) throw new Error(error.message);
     const save = returnedSave(data);
+    if (name === "lucky_shot") returnedAstral(data);
     adoptServerSave(id, save);
     return data;
   });
@@ -34,7 +35,7 @@ export async function activities(id: string) {
 
 export function rewardLines(value: unknown): string[] {
   const r = object(value);
-  return Object.entries(object(r.reward ?? value)).flatMap(([key, v]) => {
+  return Object.entries(object(r['reward'] ?? value)).flatMap(([key, v]) => {
     if (typeof v === "number") return v ? [`${key}: ${v.toLocaleString()}`] : [];
     if (typeof v === "string") return [`${key}: ${v.replaceAll("_", " ")}`];
     if (v && typeof v === "object") return rewardLines(v).map((line) => `${key} · ${line}`);

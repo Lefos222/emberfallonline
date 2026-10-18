@@ -58,7 +58,7 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
     const channel = supabase.channel(`guild-hall:${guild.id}`).on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `guild_id=eq.${guild.id}` }, () => { void request.run(load); }).subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [guild?.id]);
-  const mutate = async (fn: (id: string) => Promise<{ error: { message: string } | null }>) => withServerHero(async (id) => {
+  const mutate = async (fn: (id: string) => PromiseLike<{ error: { message: string } | null }>) => withServerHero(async (id) => {
     const result = await fn(id);
     if (result.error) throw new Error(result.error.message);
     const { data, error } = await supabase.from("heroes").select("save").eq("id", id).single();
