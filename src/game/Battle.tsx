@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Axe, Crosshair, Flame, FlaskConical, Snowflake, Sparkles, Sword, Target, Wind, FastForward, Shield, Heart, Megaphone, Swords, ScanEye, Skull, Zap,
+  FastForward, Zap,
 } from "lucide-react";
 import arenaField from "@/assets/arena-field.jpg";
 import arenaCrypt from "@/assets/arena-crypt.jpg";
@@ -19,10 +19,6 @@ import {
 
 export type Fighter = FighterInput;
 
-const ICONS: Record<string, typeof Sword> = {
-  sword: Sword, axe: Axe, flame: Flame, sparkles: Sparkles, snowflake: Snowflake, target: Target, wind: Wind, crosshair: Crosshair,
-  shield: Shield, heart: Heart, megaphone: Megaphone, swords: Swords, scan: ScanEye,
-};
 
 interface Float { id: number; tgt: string; text: string; kind: CEvent["kind"] }
 
