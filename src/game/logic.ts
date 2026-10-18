@@ -19,7 +19,7 @@ export function grant(h: Hero, xp: number, gold: number): { levels: number } {
 
 export function addLoot(h: Hero, item: Item): boolean {
   // Full bag: never destroy or auto-sell — park it in the persistent overflow chest (claimable in the Armory).
-  if (h.inventory.length >= invCap(h)) { h.overflow = [item, ...(h.overflow ?? [])].slice(0, 60); return false; }
+  if (h.inventory.length >= invCap(h)) { h.overflow = [item, ...(h.overflow ?? [])]; return false; }
   h.inventory.unshift(item);
   return true;
 }
@@ -27,7 +27,11 @@ export function addLoot(h: Hero, item: Item): boolean {
 /** Move overflow items into the bag while space remains. Returns how many moved. */
 export function claimOverflow(h: Hero): number {
   let n = 0;
-  while ((h.overflow?.length ?? 0) > 0 && h.inventory.length < invCap(h)) { h.inventory.unshift(h.overflow!.shift()!); n++; }
+  while ((h.overflow?.length ?? 0) > 0 && h.inventory.length < invCap(h)) {
+    const item = h.overflow?.shift();
+    if (!item) break;
+    h.inventory.unshift(item); n++;
+  }
   return n;
 }
 
