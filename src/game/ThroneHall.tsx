@@ -7,6 +7,7 @@ import { Gold, Panel, fmt } from "./ui";
 import { SPEC_LEVEL, TIER_REQ, TREES, freePoints, learnBlocker, resetCost, spentIn, totalPoints } from "./talents";
 import { Button } from "@/components/ui/button";
 import { SkillPreview } from "./SkillPreview";
+import { SkillLoadout } from './SkillLoadout';
 
 export function ThroneHall({ onClose }: { onClose: () => void }) {
   const { hero, gender } = useGame();
@@ -121,6 +122,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
         </div>
       ) : (
         <>
+          <SkillLoadout />
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="font-display text-lg">Skill points: <span className="text-gold">{free}</span> / {totalPoints(hero)}</div>
             {!confirmReset ? (

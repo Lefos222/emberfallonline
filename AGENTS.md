@@ -21,3 +21,4 @@
 - Appearance checks run through tests/visual/check_character_appearance.py using isolated in-memory equipment/progression and fixed-size screenshot frames; they never restore sessions or write player saves.
 - Building expansions reuse existing material keys, craft/socket/Astral helpers and saved ancestral state; event entry validates the shared UTC opening in an authenticated server function, while encounter rewards retain the existing battle settlement path.
 - Professions persist timers, XP, resource ownership and request history under protected save.srv.gathering through owner-checked SQL RPCs; browser services flush queued saves, validate replies and adopt without resaving to prevent forged discoveries or refresh duplication.
+- Optional saved skill loadouts filter the existing unlocked combat kit at battle entry and always preserve its basic attack; absent loadouts retain legacy kits so progression and old saves remain compatible.

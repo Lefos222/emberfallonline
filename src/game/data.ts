@@ -232,6 +232,8 @@ export interface Hero {
   dungeons?: Record<string, number>;
   /** Skill tree ranks by talent id. */
   talents?: Record<string, number>;
+  /** Optional chosen combat abilities; absent keeps the legacy full kit. */
+  skillLoadout?: string[];
   /** Chosen class specialization id. */
   spec?: string;
   record?: CombatRecord;

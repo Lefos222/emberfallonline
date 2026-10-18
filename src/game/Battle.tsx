@@ -181,7 +181,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
   const order = upcoming(s, 7);
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-background anim-pop">
+    <div className="battle-screen fixed inset-0 z-40 flex flex-col overflow-hidden bg-background anim-pop">
       <img src={bg} alt="" width={1920} height={1088} className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 vignette" />
 

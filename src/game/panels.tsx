@@ -28,7 +28,7 @@ export type StartBattle = (opts: {
 export const heroFighter = (h: Hero, s: Stats): Fighter => ({
   name: h.name, img: CLASSES[h.cls].img, hp: s.hp, atk: s.atk, def: s.def, crit: s.crit, dodge: s.dodge,
   critDmg: s.critDmg, pen: s.pen, acc: s.acc, block: s.block, heal: s.heal,
-  level: h.level + h.paragon, cls: h.cls, skills: heroSkills(h),
+  level: h.level + h.paragon, cls: h.cls, skills: heroSkills(h), skillLoadout: h.skillLoadout,
 });
 
 const SLOT_LABEL: Record<Slot, string> = { helmet: "Head", armour: "Chest", boots: "Feet", belt: "Waist", weapon: "Weapon", ring: "Ring", talisman: "Amulet" };
