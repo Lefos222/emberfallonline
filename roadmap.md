@@ -22,6 +22,7 @@
 ## Tactical Combat Overhaul
 - [x] Tactical turn-based battle engine (turn order, multi-enemy formations, target selection, statuses, boss telegraphs, block/heal caps) + 4 arena backgrounds
 - [x] Full bag never destroys loot (Overflow Chest in Armory); reward settle-once guard
-- [ ] Per-item artwork for all 13 gems / 13 Astrals / materials / scrolls (needs image generation over several turns)
+- [ ] Painted artwork for 9 gems, fragments, sigils, Astrals, scrolls (Build credits exhausted; distinct drawn icons used meanwhile)
 - [ ] Animated gendered battle sprites, scroll buffs in battle, server-validated battle rewards
-- [ ] Universal bag filters/search, Mailbox/Lucky Shots/Guild screens
+- [x] Bag filters, search and sorting
+- [ ] Mailbox/Lucky Shots/Guild screens

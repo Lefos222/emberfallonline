@@ -31,6 +31,9 @@ const SLOT_LABEL: Record<Slot, string> = { helmet: "Head", armour: "Chest", boot
 export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; title?: string }) {
   const { hero } = useGame();
   const [sel, setSel] = useState<{ id: string; equipped: boolean } | null>(null);
+  const [filter, setFilter] = useState<Slot | "all">("all");
+  const [sort, setSort] = useState<"new" | "rarity" | "level">("new");
+  const [q, setQ] = useState("");
   if (!hero) return null;
   const s = heroStats(hero);
   const selItem = sel ? (sel.equipped ? Object.values(hero.equipment).find((i) => i?.id === sel.id) : hero.inventory.find((i) => i.id === sel.id)) : undefined;
@@ -124,9 +127,23 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
                 onClick={async () => { const { claimOverflow } = await import("./logic"); update((h) => { claimOverflow(h); }); }}>Claim</button>
             </div>
           )}
+          <div className="mb-2 flex flex-wrap items-center gap-1 text-xs">
+            {(["all", ...SLOTS] as const).map((f) => (
+              <button key={f} onClick={() => setFilter(f)} className={`rounded px-2 py-0.5 ${filter === f ? "bg-gold text-background" : "bg-secondary"}`}>{f === "all" ? "All" : SLOT_LABEL[f]}</button>
+            ))}
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="ml-auto w-24 rounded bg-secondary px-2 py-0.5" aria-label="Search bag" />
+            <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className="rounded bg-secondary px-1 py-0.5" aria-label="Sort bag">
+              <option value="new">Newest</option><option value="rarity">Rarity</option><option value="level">Item level</option>
+            </select>
+          </div>
           <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
-            {Array.from({ length: invCap(hero) }).map((_, i) => {
-              const it = hero.inventory[i];
+            {(() => {
+              const view = hero.inventory.filter((it) => (filter === "all" || it.slot === filter) && (!q || it.name.toLowerCase().includes(q.toLowerCase())));
+              if (sort === "rarity") view.sort((a, b) => b.rarity - a.rarity || b.ilvl - a.ilvl);
+              if (sort === "level") view.sort((a, b) => b.ilvl - a.ilvl);
+              const filtered = filter !== "all" || !!q;
+              return Array.from({ length: filtered ? Math.max(view.length, 8) : invCap(hero) }).map((_, i) => [view[i], i] as const);
+            })().map(([it, i]) => {
               return <ItemSlot key={it?.id ?? i} item={it} size={44} selected={!!it && sel?.id === it.id} onClick={() => it && setSel({ id: it.id, equipped: false })} />;
             })}
           </div>
