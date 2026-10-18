@@ -19,3 +19,9 @@
 - [ ] Screens for Mailbox, Lucky Shots, Activities, Wardrobe, Guild Hall, bottom-left chat, scroll shop, universal bag filters
 - [ ] Block/healing applied inside battles; scroll buffs applied in battles; activity progress reporting from battles
 - [ ] New item artwork (image credits exhausted — simple drawn icons used for new gems/materials meanwhile)
+## Tactical Combat Overhaul
+- [x] Tactical turn-based battle engine (turn order, multi-enemy formations, target selection, statuses, boss telegraphs, block/heal caps) + 4 arena backgrounds
+- [x] Full bag never destroys loot (Overflow Chest in Armory); reward settle-once guard
+- [ ] Per-item artwork for all 13 gems / 13 Astrals / materials / scrolls (needs image generation over several turns)
+- [ ] Animated gendered battle sprites, scroll buffs in battle, server-validated battle rewards
+- [ ] Universal bag filters/search, Mailbox/Lucky Shots/Guild screens
