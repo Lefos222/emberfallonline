@@ -24,3 +24,4 @@
 - Guild expansion remains deferred in favor of general endless progression.
 - [ ] Add skill icons/pictures to the battle skill bar.
 - [x] Show gathering resources (ores, crystals, herbs, etc.) in the inventory.
+- [ ] Premium monetization (per uploaded spec): Diamonds currency (server-owned, tx history, idempotent), Diamond Shop (cosmetics/convenience/progression), Gold packs (Diamonds→Gold, atomic), VIP 1-5 (membership duration + daily rewards calendar), starter packs, battle-pass track structure, real-money store via provider (Stripe/Paddle) with server verification; keep purchases disabled until provider verified.
