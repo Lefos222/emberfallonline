@@ -38,14 +38,14 @@ async def main():
             const unit = initBattle({ ...heroStats(progressed), name: 'Visual check', img: '', level: 90, cls, gender }, []).units[0];
             for (const state of ['creation', 'equipment', 'progression', 'idle', 'swing', 'cast', 'hit', 'block', 'death', 'victory']) {
               const motion = state === 'idle' ? 'anim-idle' : state === 'death' ? 'battle-death' : state === 'victory' ? 'battle-victory' : `anim-${state}`;
-              cases.push(React.default.createElement('div', {key: `${cls}-${gender}-${state}`, 'data-case': `${cls}-${gender}-${state}`, className: `battle-unit relative h-48 w-32 ${motion}`},
+              cases.push(React.default.createElement('div', {key: `${cls}-${gender}-${state}`, 'data-case': `${cls}-${gender}-${state}`, className: `battle-unit relative h-48 w-48 ${motion}`},
                 ['creation', 'equipment', 'progression'].includes(state)
                   ? React.default.createElement(CharacterModel, {cls, gender, className: 'h-full w-full'})
                   : React.default.createElement(BattleCharacter, {u: unit})));
             }
           }
           const host = document.createElement('div'); host.id = 'appearance-cases';
-          host.className = 'fixed inset-0 z-50 grid grid-cols-10 gap-2 overflow-auto bg-background p-4';
+          host.className = 'fixed inset-0 z-50 grid grid-cols-[repeat(10,192px)] gap-2 overflow-auto bg-background p-4';
           document.body.appendChild(host); DOM.default.createRoot(host).render(React.default.createElement(React.default.Fragment, null, ...cases));
         }''')
         await page.wait_for_timeout(1200)
