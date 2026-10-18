@@ -5,6 +5,7 @@ import "@lovable.dev/cloud-auth-js/styles.css";
 import castle from "@/assets/castle.jpg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { setUser } from "@/game/store";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -29,6 +30,22 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
 
+  const [socialBusy, setSocialBusy] = useState<null | "google" | "lovable">(null);
+
+  const enterGame = async (user: { id: string; email?: string | null } | null | undefined) => {
+    if (!user) return;
+    await setUser(user.id, user.email ?? null);
+    nav({ to: "/" });
+  };
+
+  const friendly = (m: string) => {
+    if (/unauthori[sz]ed|not enabled|provider/i.test(m)) return "This sign-in option isn't switched on for the game yet. Please use email and password for now.";
+    if (/popup/i.test(m)) return "Your browser blocked the sign-in window. Allow pop-ups for this site and try again.";
+    if (/email not confirmed/i.test(m)) return "Please confirm your email first — check your inbox.";
+    if (/invalid login/i.test(m)) return "Wrong email or password.";
+    return m;
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true); setMsg(null);
@@ -36,22 +53,30 @@ function AuthPage() {
       const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
       setMsg(error ? error.message : "If that email has an account, a reset link is on its way.");
     } else if (mode === "in") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setMsg(error.message); else nav({ to: "/" });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) setMsg(friendly(error.message)); else await enterGame(data.user);
     } else {
       const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
-      if (error) setMsg(error.message);
-      else if (data.session) nav({ to: "/" });
+      if (error) setMsg(friendly(error.message));
+      else if (data.session) await enterGame(data.user);
       else setMsg("Check your email to confirm your account.");
     }
     setBusy(false);
   };
 
   const social = async (p: "google" | "lovable") => {
-    const r = await lovable.auth.signInWithOAuth(p, { redirect_uri: window.location.origin });
-    if (r.error) { setMsg(String(r.error.message ?? r.error)); return; }
-    if (r.redirected) return;
-    nav({ to: "/" });
+    if (socialBusy) return;
+    setSocialBusy(p); setMsg(null);
+    try {
+      const r = await lovable.auth.signInWithOAuth(p, { redirect_uri: window.location.origin });
+      if (r.error) { setMsg(friendly(String((r.error as Error).message ?? r.error))); return; }
+      if (r.redirected) return;
+      const { data } = await supabase.auth.getUser();
+      if (data.user) await enterGame(data.user);
+      else setMsg("Sign-in didn't finish. Please try again.");
+    } catch (e) {
+      setMsg(friendly(e instanceof Error ? e.message : String(e)));
+    } finally { setSocialBusy(null); }
   };
 
   return (
@@ -75,8 +100,8 @@ function AuthPage() {
         </form>
         <div className="my-4 text-center text-xs text-muted-foreground">or</div>
         <div className="space-y-2">
-          <button className="btn-blood w-full py-2.5" onClick={() => social("google")}>Continue with Google</button>
-          <button type="button" className="lovable-auth-button w-full" onClick={() => social("lovable")}>Continue with Lovable</button>
+          <button type="button" className="btn-blood w-full py-2.5" disabled={!!socialBusy} onClick={() => social("google")}>{socialBusy === "google" ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Continue with Google"}</button>
+          <button type="button" className="lovable-auth-button w-full" disabled={!!socialBusy} onClick={() => social("lovable")}>{socialBusy === "lovable" ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Continue with Lovable"}</button>
         </div>
         {msg && <p className="mt-3 text-center text-sm text-gold">{msg}</p>}
         <div className="mt-4 flex justify-between text-sm">
