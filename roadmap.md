@@ -1,9 +1,9 @@
 # Roadmap
 
 ## Current request
-- [ ] Diagnose current game errors and verify fixes.
+- [x] Correct inventory battle-size leakage and invalid guild-chat recipient UUID; 168 tests passed, build OK, signed-in Armory has no runtime errors.
 - [x] Enlarge the inventory character between equipment slots without changing character selection; verified at 790px with a 320px model.
-- [ ] Add recurring guild cooperative supply situations with persistent contributions and validated rewards.
+- [~] Add recurring guild cooperative supply situations with persistent contributions and validated scroll rewards: three daily missions, contribution ledger, owned-resource consumption, replay-safe claims. Full contribution/claim and guild-chat send verification blocked: no guilds exist in the current backend; no player funds or membership were changed to manufacture a test.
 - [x] Reduce battle-only characters to 200px player / 150px enemies; signed-in campaign screenshot verified, selection/inventory unchanged.
 - [x] Choose unlocked battle skills in Throne Hall while retaining existing level/talent unlocks and basic attack; saved choice verified after refresh, 157 tests pass.
 
