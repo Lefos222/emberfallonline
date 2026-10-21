@@ -7,6 +7,7 @@ import { adoptServerSave, useGame, withServerHero } from "./store";
 import { returnedSave } from "./services-contract";
 import { Panel } from "./ui";
 import { RequestStatus, useRequest } from "./Rewards";
+import { GuildEvents } from './GuildEvents';
 
 export function GuildHall({ onClose }: { onClose: () => void }) {
   const { heroId, hero } = useGame();
@@ -84,13 +85,14 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
     {guild && <>
       <h3 className="font-display text-3xl text-gold">{guild.name}</h3><p className="text-xs text-muted-foreground">Level {guild.level} · {members.length} members · {role}</p><p className="mt-3 break-words text-sm">{guild.description}</p>
       {guild.announcement && <p className="my-4 border-l-2 border-primary pl-3 text-sm">{guild.announcement}</p>}
+      <GuildEvents />
       <div className="mt-5 grid gap-6 md:grid-cols-[1fr_1.4fr]">
         <div><h4 className="font-display text-xl">Members</h4>{members.map((m) => <div key={m.hero_id} className="flex justify-between gap-2 border-b border-border py-3 text-sm"><span>{names[m.hero_id] ?? "Member"}</span><span className="text-muted-foreground">{m.role}</span></div>)}
           {(role === "leader" || role === "officer") && <form className="mt-4 flex gap-2" onSubmit={(e) => { e.preventDefault(); void request.run(async () => { await mutate((id) => supabase.rpc("guild_invite", { _hero: id, _target_name: target.trim() })); setTarget(""); }); }}><input aria-label="Hero name to invite" className="slot min-w-0 flex-1 px-2" required value={target} onChange={(e) => setTarget(e.target.value)} /><Button size="icon" aria-label="Invite hero" disabled={request.busy}><UserPlus /></Button></form>}
           <Button variant="outline" className="mt-4" disabled={request.busy} onClick={() => { if (window.confirm("Leave your guild?")) void request.run(() => mutate((id) => supabase.rpc("leave_guild", { _hero: id }))); }}>Leave guild</Button>
         </div>
         <div><h4 className="mb-2 font-display text-xl">Guild chat</h4><div className="h-72 overflow-y-auto border-y border-border py-2">{messages.length === 0 && <p className="text-sm text-muted-foreground">No guild messages yet.</p>}{messages.map((m) => <p key={m.id} className="mb-2 break-words text-sm"><b className="text-gold">{m.sender_name}</b><span className="ml-2 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span><span className="block">{m.body}</span></p>)}</div>
-          <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); void request.run(async () => { if (!heroId) return; const { error } = await supabase.rpc("send_chat", { _hero: heroId, _channel: "guild", _body: body, _to: "" }); if (error) throw new Error(error.message); setBody(""); await load(); }); }}><input className="slot min-w-0 flex-1 px-3" aria-label="Guild message" maxLength={200} required value={body} onChange={(e) => setBody(e.target.value)} /><Button size="icon" aria-label="Send guild message" disabled={request.busy || !body.trim()}><Send /></Button></form>
+          <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); void request.run(async () => { if (!heroId) return; const { error } = await supabase.rpc("send_chat", { _hero: heroId, _channel: "guild", _body: body, _to: "00000000-0000-0000-0000-000000000000" }); if (error) throw new Error(error.message); setBody(""); await load(); }); }}><input className="slot min-w-0 flex-1 px-3" aria-label="Guild message" maxLength={200} required value={body} onChange={(e) => setBody(e.target.value)} /><Button size="icon" aria-label="Send guild message" disabled={request.busy || !body.trim()}><Send /></Button></form>
         </div>
       </div>
     </>}

@@ -57,6 +57,13 @@
       "when": 1792359257303,
       "tag": "0007_auction_house",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792567303354,
+      "tag": "0008_guild_supply_events",
+      "breakpoints": true
     }
   ]
 }

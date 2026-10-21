@@ -211,6 +211,7 @@
 @utility anim-block { animation: block-flash 0.45s ease-out; }
 
 .battle-unit { width: 320px; max-width: 36%; }
+.inventory-character.battle-unit { width: 100%; max-width: none; }
 .battle-foes .battle-unit { width: 220px; max-width: 32%; }
 .battle-figure { max-height: 46vh; }
 .battle-screen .battle-unit { width: 200px; max-width: 28%; }

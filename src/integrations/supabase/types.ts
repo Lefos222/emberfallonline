@@ -313,6 +313,90 @@ export type Database = {
           },
         ]
       }
+      guild_supply_claims: {
+        Row: {
+          day: string
+          event: string
+          guild_id: string
+          hero_id: string
+        }
+        Insert: {
+          day: string
+          event: string
+          guild_id: string
+          hero_id: string
+        }
+        Update: {
+          day?: string
+          event?: string
+          guild_id?: string
+          hero_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_supply_claims_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_supply_claims_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_supply_contributions: {
+        Row: {
+          day: string
+          event: string
+          guild_id: string
+          hero_id: string
+          hero_name: string
+          quantity: number
+          request_id: string
+          resource: string
+        }
+        Insert: {
+          day: string
+          event: string
+          guild_id: string
+          hero_id: string
+          hero_name: string
+          quantity: number
+          request_id: string
+          resource: string
+        }
+        Update: {
+          day?: string
+          event?: string
+          guild_id?: string
+          hero_id?: string
+          hero_name?: string
+          quantity?: number
+          request_id?: string
+          resource?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_supply_contributions_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_supply_contributions_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guilds: {
         Row: {
           announcement: string
@@ -671,6 +755,22 @@ export type Database = {
         Args: { _hero: string; _role: string; _target: string }
         Returns: undefined
       }
+      guild_supply_claim: {
+        Args: { _event: string; _hero: string }
+        Returns: Json
+      }
+      guild_supply_contribute: {
+        Args: {
+          _event: string
+          _hero: string
+          _quantity: number
+          _req: string
+          _resource: string
+        }
+        Returns: Json
+      }
+      guild_supply_rules: { Args: never; Returns: Json }
+      guild_supply_state: { Args: { _hero: string }; Returns: Json }
       guild_transfer: {
         Args: { _hero: string; _target: string }
         Returns: undefined
