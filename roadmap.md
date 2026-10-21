@@ -1,6 +1,9 @@
 # Roadmap
 
 ## Current request
+- [ ] Diagnose current game errors and verify fixes.
+- [ ] Enlarge the inventory character between equipment slots without changing character selection.
+- [ ] Add recurring guild cooperative supply situations with persistent contributions and validated rewards.
 - [x] Reduce battle-only characters to 200px player / 150px enemies; signed-in campaign screenshot verified, selection/inventory unchanged.
 - [x] Choose unlocked battle skills in Throne Hall while retaining existing level/talent unlocks and basic attack; saved choice verified after refresh, 157 tests pass.
 
