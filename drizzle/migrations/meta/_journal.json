@@ -64,6 +64,20 @@
       "when": 1792567303354,
       "tag": "0008_guild_supply_events",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792678953044,
+      "tag": "0009_daily_login_inventory_items",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792679072686,
+      "tag": "0010_protect_daily_reward_revision",
+      "breakpoints": true
     }
   ]
 }

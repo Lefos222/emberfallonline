@@ -24,3 +24,6 @@
 - Professions persist timers, XP, resource ownership and request history under protected save.srv.gathering through owner-checked SQL RPCs; browser services flush queued saves, validate replies and adopt without resaving to prevent forged discoveries or refresh duplication.
 - Optional saved skill loadouts filter the existing unlocked combat kit at battle entry and always preserve its basic attack; absent loadouts retain legacy kits so progression and old saves remain compatible.
 - Diamond prices, gold-pack rates and VIP costs live in both `src/game/economy.ts` and the `premium_diamonds_vip` SQL functions; keep them identical (same rule as Lucky Shot odds). The server is authoritative.
+- InventoryCollections presents existing material, gem, scroll, Astral and cosmetic ownership without copying it into a second inventory; consumption stays with existing helpers/RPCs to prevent double counting.
+- Daily reward previews mirror daily_login_items; claim_login is authoritative and retains UTC-day uniqueness, while the response save is adopted through existing reward services.
+- Daily login claims increment a protected save revision checked before the ordinary save-field trigger; stale daily-reward writes are rejected and the browser reloads the saved character, preventing an open old game from erasing the claim.
