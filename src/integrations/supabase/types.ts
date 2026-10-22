@@ -740,6 +740,10 @@ export type Database = {
         }
         Returns: string
       }
+      daily_login_items: {
+        Args: { _class: string; _streak: number }
+        Returns: Json
+      }
       finish_gathering: { Args: { _hero: string; _req: string }; Returns: Json }
       get_activities: { Args: { _hero: string }; Returns: Json }
       guild_disband: { Args: { _hero: string }; Returns: undefined }
