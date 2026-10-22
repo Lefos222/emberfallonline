@@ -11,8 +11,3 @@
   SUPABASE_ANONYMOUS_KEY = "sb_publishable_MZtQvmwE764YsAj3DXVF6g_QV__3MQv"
   SUPABASE_PUBLISHABLE_KEY = "sb_publishable_MZtQvmwE764YsAj3DXVF6g_QV__3MQv"
   SUPABASE_PROJECT_ID = "mslhiynjqcerwiwpqteu"
-
-[[redirects]]
-  from = "/*"
-  to = "index.html"
-  status = 200
