@@ -8,6 +8,10 @@ import { Panel } from "./ui";
 import { activities, reward, rewardLines, takeLuckyShot } from "./services";
 import { object, type Activities, type Objective } from "./services-contract";
 import { ASTRAL_ODDS, ASTRAL_RARITY, astralLabel, astralStatText, type Astral } from "./crafting";
+import { dailyLoginItems } from './daily-rewards';
+import { MATS, gemName, parseGem, type Mat } from './crafting';
+import { MatIcon, GemIcon } from './MatIcon';
+import { SCROLLS, isScroll } from './scrolls';
 
 export function useRequest() {
   const locked = useRef(false);
@@ -96,7 +100,7 @@ export function LuckyShots({ onClose }: { onClose: () => void }) {
 
 const KIND_LABEL: Record<string, string> = { kill: "Enemies defeated", dungeon: "Dungeons cleared", boss: "Bosses defeated", craft: "Items crafted", gem: "Gem actions", astral: "Astral actions", arena: "Arena battles" };
 export function ActivityBoard({ onClose }: { onClose: () => void }) {
-  const { heroId } = useGame();
+  const { heroId, hero } = useGame();
   const request = useRequest();
   const [board, setBoard] = useState<Activities | null>(null);
   const [tab, setTab] = useState<"daily" | "weekly">("daily");
@@ -113,6 +117,14 @@ export function ActivityBoard({ onClose }: { onClose: () => void }) {
     <RequestStatus {...request} />
     {board && <>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-4"><div><h3 className="font-display text-xl text-gold">Login reward</h3><p className="text-sm text-muted-foreground">Streak: {board.login.streak} days · Total: {board.login.total}</p></div><Button disabled={request.busy || board.login.claimedToday} onClick={() => void request.run(async () => { const r = await reward("claim_login", {}); setReceipt(rewardLines(r)); await load(); })}><Gift />{board.login.claimedToday ? "Claimed today" : "Claim login reward"}</Button></div>
+      {hero && <div className="my-3 flex flex-wrap gap-2" aria-label="Daily reward items">{(() => {
+        const today = new Date().toISOString().slice(0,10);
+        const yesterday = new Date(Date.parse(`${today}T00:00:00Z`)-86400000).toISOString().slice(0,10);
+        const continuing = board.daily.some(o=>o.claimed) || board.login.streak>0;
+        const items = dailyLoginItems(hero.cls, board.login.claimedToday ? board.login.streak : (continuing ? board.login.streak+1 : 1));
+        void yesterday;
+        return <>{Object.entries(items.mats).map(([key,n])=><span key={key} className="slot flex items-center gap-2 p-2 text-xs"><MatIcon mat={key as Mat} size={28}/>{MATS[key as Mat].name} ×{n}</span>)}{Object.entries(items.gems).map(([key,n])=>{const g=parseGem(key);return g?<span key={key} className="slot flex items-center gap-2 p-2 text-xs"><GemIcon type={g.type} size={28}/>{gemName(key)} ×{n}</span>:null;})}{Object.entries(items.scrolls).map(([key,n])=>isScroll(key)?<span key={key} className="slot flex items-center gap-2 p-2 text-xs"><ScrollRewardIcon/>{SCROLLS[key].name} ×{n}</span>:null)}</>;
+      })()}</div>}
       <div role="tablist" aria-label="Activity period" className="my-4 flex gap-2">{(["daily", "weekly"] as const).map((t) => <Button key={t} role="tab" aria-selected={t === tab} variant={t === tab ? "default" : "ghost"} onClick={() => setTab(t)}>{t === "daily" ? "Daily" : "Weekly"}</Button>)}</div>
       <p className="text-xs text-muted-foreground">Resets {new Date(tab === "daily" ? board.dailyReset : board.weeklyReset).toLocaleString()}</p>
       {board[tab].map(row)}
@@ -121,3 +133,5 @@ export function ActivityBoard({ onClose }: { onClose: () => void }) {
     {receipt.length > 0 && <p role="status" className="mt-4 break-words text-sm text-r1">Received: {receipt.join(" · ")}</p>}
   </Panel>;
 }
+
+function ScrollRewardIcon(){ return <Gift className="h-6 w-6 shrink-0 text-gold"/>; }
