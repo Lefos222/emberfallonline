@@ -44,13 +44,6 @@ async function performSave(): Promise<boolean> {
     level: h.level, power: s.power, stats: { ...s, paragon: h.paragon } as never, save: h as never,
     updated_at: now, last_played: now,
   }).eq("id", id);
-  if (error?.message.includes('newer daily reward')) {
-    needsServerReload = true;
-    if (state.heroId === id) {
-      try { await reloadServerHero(id); } catch { set({ cloud: 'error' }); }
-    }
-    return false;
-  }
   lastSavedAt = now;
   if (state.heroId === id) set({ cloud: error ? "error" : "saved" });
   return !error;

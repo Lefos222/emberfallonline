@@ -20,7 +20,6 @@ import { scrollXp } from "./scrolls";
 import { CharacterModel } from "./CharacterModel";
 import { CharacterPose } from "./CharacterPose";
 import { DiscoveryArt } from "./Professions";
-import { InventoryCollections } from './InventoryCollections';
 import { DISCOVERY_NAMES, DISCOVERY_RARITIES, GATHERING_AREAS, gatheringState, type ProfessionId } from "./professions";
 
 export type StartBattle = (opts: {
@@ -180,7 +179,6 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               </div>
             );
           })()}
-          <InventoryCollections hero={hero} />
           <div className="mt-4 min-h-40">
             {selItem ? (
               <ItemCard

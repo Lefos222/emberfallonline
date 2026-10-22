@@ -1,7 +1,6 @@
 # Roadmap
 
 ## Current request
-- [ ] Add real daily login item rewards, show saved item collections in the inventory, and disable the Cosmetic Boutique without deleting ownership.
 - [x] Correct inventory battle-size leakage and invalid guild-chat recipient UUID; 168 tests passed, build OK, signed-in Armory has no runtime errors.
 - [x] Enlarge the inventory character between equipment slots without changing character selection; verified at 790px with a 320px model.
 - [~] Add recurring guild cooperative supply situations with persistent contributions and validated scroll rewards: three daily missions, contribution ledger, owned-resource consumption, replay-safe claims. Full contribution/claim and guild-chat send verification blocked: no guilds exist in the current backend; no player funds or membership were changed to manufacture a test.
