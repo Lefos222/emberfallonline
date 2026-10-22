@@ -3,9 +3,17 @@
   publish = "dist"
 
 [build.environment]
-  VITE_SUPABASE_URL = "https://supabase.co"
+  VITE_SUPABASE_URL = "https://mslhiynjqcerwiwpqteu.supabase.co"
+  VITE_SUPABASE_ANONYMOUS_KEY = "sb_publishable_MZtQvmwE764YsAj3DXVF6g_QV__3MQv"
   VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_MZtQvmwE764YsAj3DXVF6g_QV__3MQv"
   VITE_SUPABASE_PROJECT_ID = "mslhiynjqcerwiwpqteu"
-  SUPABASE_URL = "https://supabase.co"
+  SUPABASE_URL = "https://mslhiynjqcerwiwpqteu.supabase.co"
+  SUPABASE_ANONYMOUS_KEY = "sb_publishable_MZtQvmwE764YsAj3DXVF6g_QV__3MQv"
   SUPABASE_PUBLISHABLE_KEY = "sb_publishable_MZtQvmwE764YsAj3DXVF6g_QV__3MQv"
   SUPABASE_PROJECT_ID = "mslhiynjqcerwiwpqteu"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = true
