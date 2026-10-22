@@ -30,10 +30,6 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
 
-  // Google/Lovable buttons only work on Lovable hosting; hide them elsewhere (e.g. Netlify).
-  const [socialOk, setSocialOk] = useState(false);
-  useEffect(() => { setSocialOk(/\.lovable\.app$|localhost/.test(window.location.hostname)); }, []);
-
   const [socialBusy, setSocialBusy] = useState<null | "google" | "lovable">(null);
 
   const enterGame = async (user: { id: string; email?: string | null } | null | undefined) => {
@@ -107,13 +103,11 @@ function AuthPage() {
           )}
           <button className="btn-gold w-full py-2.5" disabled={busy}>{busy ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : mode === "in" ? "Sign in" : mode === "up" ? "Create account" : "Send reset link"}</button>
         </form>
-        {socialOk && (<>
         <div className="my-4 text-center text-xs text-muted-foreground">or</div>
         <div className="space-y-2">
           <button type="button" className="btn-blood w-full py-2.5" disabled={!!socialBusy} onClick={() => social("google")}>{socialBusy === "google" ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Continue with Google"}</button>
           <button type="button" className="lovable-auth-button w-full" disabled={!!socialBusy} onClick={() => social("lovable")}>{socialBusy === "lovable" ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Continue with Lovable"}</button>
         </div>
-        </>)}
         {msg && <p className="mt-3 text-center text-sm text-gold">{msg}</p>}
         <div className="mt-4 flex justify-between text-sm">
           <button className="text-muted-foreground hover:text-gold" onClick={() => setMode(mode === "up" ? "in" : "up")}>
