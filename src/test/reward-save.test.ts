@@ -1,10 +1,10 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { newHero } from "@/game/data";
 
-const fake = vi.hoisted(() => ({ writes: [] as string[], failed: false, save: {} as unknown }));
+const fake = vi.hoisted(() => ({ writes: [] as string[], failed: false, stale: false, save: {} as unknown }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: { from: () => ({
-    update: () => ({ eq: async () => { fake.writes.push("save"); return { error: fake.failed ? { message: "offline" } : null }; } }),
+    update: () => ({ eq: async () => { fake.writes.push("save"); return { error: fake.stale ? { message: 'A newer daily reward is saved. Reopen your character before saving.' } : fake.failed ? { message: "offline" } : null }; } }),
     select: (cols: string) => ({
       eq: () => ({
         order: async () => ({ data: [], error: null }),
@@ -16,7 +16,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 describe("save and online reward ordering", () => {
-  beforeEach(() => { vi.resetModules(); vi.useFakeTimers(); fake.writes = []; fake.failed = false; fake.save = newHero("Saved", "warrior"); });
+  beforeEach(() => { vi.resetModules(); vi.useFakeTimers(); fake.writes = []; fake.failed = false; fake.stale = false; fake.save = newHero("Saved", "warrior"); });
   afterEach(() => { vi.useRealTimers(); });
   const setup = async () => {
     const store = await import("@/game/store");
@@ -56,5 +56,14 @@ describe("save and online reward ordering", () => {
     await expect(store.withServerHero(async () => { fake.save = { ...newHero("Saved", "warrior"), gold: 900 }; throw new Error("connection lost"); })).rejects.toThrow("connection lost");
     expect(fake.writes).toEqual(["save", "read"]);
     expect(store.getState().hero?.gold).toBe(900);
+  });
+  it('adopts saved daily items when another open game tries a stale write',async()=>{
+    const store=await setup();
+    fake.save={...newHero('Saved','warrior'),mats:{ore:5,fragment:2,starshard:1},gems:{'ruby:1':1},srv:{dailyRewardRevision:1}};
+    fake.stale=true;
+    expect(await store.flushSave()).toBe(false);
+    expect(fake.writes).toEqual(['save','read']);
+    expect(store.getState().hero?.gems?.['ruby:1']).toBe(1);
+    expect(store.getState().hero?.mats?.ore).toBe(5);
   });
 });
