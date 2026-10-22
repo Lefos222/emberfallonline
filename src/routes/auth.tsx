@@ -1,10 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import "@lovable.dev/cloud-auth-js/styles.css";
 import castle from "@/assets/castle.jpg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { setUser } from "@/game/store";
 
 export const Route = createFileRoute("/auth")({
@@ -30,11 +28,7 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
 
-  // Google/Lovable buttons only work on Lovable hosting; hide them elsewhere (e.g. Netlify).
-  const [socialOk, setSocialOk] = useState(false);
-  useEffect(() => { setSocialOk(/\.lovable\.app$|localhost/.test(window.location.hostname)); }, []);
-
-  const [socialBusy, setSocialBusy] = useState<null | "google" | "lovable">(null);
+  const [googleBusy, setGoogleBusy] = useState(false);
 
   const enterGame = async (user: { id: string; email?: string | null } | null | undefined) => {
     if (!user) return;
@@ -73,19 +67,22 @@ function AuthPage() {
     setBusy(false);
   };
 
-  const social = async (p: "google" | "lovable") => {
-    if (socialBusy) return;
-    setSocialBusy(p); setMsg(null);
+  // Google sign-in goes straight to the game's account system, so it works on any host (Netlify included).
+  // Google sends the player back to /auth-callback, which finishes the sign-in and enters the game.
+  const google = async () => {
+    if (googleBusy) return;
+    setGoogleBusy(true); setMsg(null);
     try {
-      const r = await lovable.auth.signInWithOAuth(p, { redirect_uri: `${window.location.origin}/auth-callback` });
-      if (r.error) { setMsg(friendly(String((r.error as Error).message ?? r.error))); return; }
-      if (r.redirected) return;
-      const { data } = await supabase.auth.getUser();
-      if (data.user) await enterGame(data.user);
-      else setMsg("Sign-in didn't finish. Please try again.");
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth-callback` },
+      });
+      if (error) { setMsg(friendly(error.message)); setGoogleBusy(false); }
+      // On success the browser leaves this page for Google, so keep the spinner showing.
     } catch (e) {
       setMsg(friendly(e instanceof Error ? e.message : String(e)));
-    } finally { setSocialBusy(null); }
+      setGoogleBusy(false);
+    }
   };
 
   return (
@@ -107,13 +104,8 @@ function AuthPage() {
           )}
           <button className="btn-gold w-full py-2.5" disabled={busy}>{busy ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : mode === "in" ? "Sign in" : mode === "up" ? "Create account" : "Send reset link"}</button>
         </form>
-        {socialOk && (<>
         <div className="my-4 text-center text-xs text-muted-foreground">or</div>
-        <div className="space-y-2">
-          <button type="button" className="btn-blood w-full py-2.5" disabled={!!socialBusy} onClick={() => social("google")}>{socialBusy === "google" ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Continue with Google"}</button>
-          <button type="button" className="lovable-auth-button w-full" disabled={!!socialBusy} onClick={() => social("lovable")}>{socialBusy === "lovable" ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Continue with Lovable"}</button>
-        </div>
-        </>)}
+        <button type="button" className="btn-blood w-full py-2.5" disabled={googleBusy} onClick={() => void google()}>{googleBusy ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Continue with Google"}</button>
         {msg && <p className="mt-3 text-center text-sm text-gold">{msg}</p>}
         <div className="mt-4 flex justify-between text-sm">
           <button className="text-muted-foreground hover:text-gold" onClick={() => setMode(mode === "up" ? "in" : "up")}>
