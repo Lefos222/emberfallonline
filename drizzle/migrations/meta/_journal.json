@@ -64,6 +64,13 @@
       "when": 1792567303354,
       "tag": "0008_guild_supply_events",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792756217814,
+      "tag": "0009_six_daily_profession_quests",
+      "breakpoints": true
     }
   ]
 }
