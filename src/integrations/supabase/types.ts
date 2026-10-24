@@ -219,56 +219,6 @@ export type Database = {
           },
         ]
       }
-      daily_boss_runs: {
-        Row: {
-          active: Json
-          boss: number
-          day: string
-          hero_id: string
-          id: string
-          last_request: string | null
-          snapshot: Json
-          state: Json | null
-          status: string
-          updated_at: string
-          version: number
-        }
-        Insert: {
-          active?: Json
-          boss: number
-          day: string
-          hero_id: string
-          id?: string
-          last_request?: string | null
-          snapshot: Json
-          state?: Json | null
-          status?: string
-          updated_at?: string
-          version?: number
-        }
-        Update: {
-          active?: Json
-          boss?: number
-          day?: string
-          hero_id?: string
-          id?: string
-          last_request?: string | null
-          snapshot?: Json
-          state?: Json | null
-          status?: string
-          updated_at?: string
-          version?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "daily_boss_runs_hero_id_fkey"
-            columns: ["hero_id"]
-            isOneToOne: false
-            referencedRelation: "heroes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       daily_profession_claims: {
         Row: {
           claimed_at: string
@@ -807,10 +757,6 @@ export type Database = {
         Args: { _hero: string; _objective: string }
         Returns: Json
       }
-      claim_auction_proceeds: {
-        Args: { _hero: string; _req: string }
-        Returns: Json
-      }
       claim_daily_profession: {
         Args: { _hero: string; _profession: string }
         Returns: Json
@@ -827,18 +773,6 @@ export type Database = {
         }
         Returns: string
       }
-      daily_boss_board: { Args: { _hero: string }; Returns: Json }
-      daily_boss_commit: {
-        Args: {
-          _owner: string
-          _request: string
-          _run: string
-          _state: Json
-          _version: number
-        }
-        Returns: Json
-      }
-      daily_boss_open: { Args: { _boss: number; _hero: string }; Returns: Json }
       daily_login_items: {
         Args: { _class: string; _streak: number }
         Returns: Json

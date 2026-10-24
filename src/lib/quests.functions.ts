@@ -1,6 +1,24 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { adviseStrategyWithAI } from "./quests.server";
+import { adviseStrategyWithAI, generateQuestsWithAI } from "./quests.server";
+
+export const generateQuests = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: { theme: string; heroClass: string; level: number; stage: number }) => ({
+    theme: String(i.theme ?? "").slice(0, 120) || "dark fantasy",
+    heroClass: ["warrior", "mage", "archer"].includes(i.heroClass) ? i.heroClass : "warrior",
+    level: Math.max(1, Math.min(1000, Number(i.level) || 1)),
+    stage: Math.max(1, Math.min(100000, Number(i.stage) || 1)),
+  }))
+  .handler(async ({ data }) => {
+    try {
+      return { quests: await generateQuestsWithAI(data), error: null as string | null };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "The oracle is silent";
+      console.error("quest gen failed", msg);
+      return { quests: [], error: msg.includes("402") ? "Out of AI credits" : msg.includes("429") ? "The oracle is busy, try again shortly" : "The oracle is silent, try again" };
+    }
+  });
 
 export const adviseStrategy = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({
       { title: "EmberFall Online — Fantasy Browser MMORPG" },
       { name: "description", content: "Create a Knight, Mage or Archer, rule your castle, loot endless gear and battle real players in EmberFall Online." },
       { property: "og:title", content: "EmberFall Online — Fantasy Browser MMORPG" },
-      { property: "og:description", content: "A persistent dark-fantasy browser MMORPG with gear, daily bosses, guild activities and player trading." },
+      { property: "og:description", content: "A persistent dark-fantasy browser MMORPG with gear, bosses, AI quests and a PvP arena." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

@@ -10,7 +10,7 @@ import { ScrollShop } from "./ScrollShop";
 import { Bestiary } from "./Bestiary";
 import { PassiveTree } from "./PassiveTree";
 import { EventCalendar } from "./EventCalendar";
-import { DailyQuests } from './DailyQuests';
+import { Boutique } from './Boutique';
 import { Sanctuary } from './Sanctuary';
 import { Expeditions } from './Expeditions';
 import { Professions } from './Professions';
@@ -27,7 +27,7 @@ import { authHandoffPending, getState, leaveCharacter, update, useGame } from ".
 import { recordBattle } from "./progress";
 import { CharacterSelect, Portrait, ProfilePanel, frameClass } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
-import { Arena, Campaign, Forge, HeroHall, Market, Temple, XpBar, heroFighter, type StartBattle } from "./panels";
+import { Arena, Campaign, Forge, HeroHall, Market, Oracle, Temple, XpBar, heroFighter, type StartBattle } from "./panels";
 import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
 import { LongRoad } from "./LongRoad";
@@ -139,6 +139,7 @@ export function Game() {
           {open === "bestiary" && <Bestiary h={hero} onClose={() => setOpen(null)} />}
           {open === "road" && <LongRoad onClose={() => setOpen(null)} start={start} />}
           {open === "calendar" && <EventCalendar h={hero} onClose={() => setOpen(null)} start={start} />}
+          {open === 'boutique' && <Boutique onClose={()=>setOpen(null)} />}
           {open === 'professions' && <Professions onClose={()=>setOpen(null)} />}
           {open === 'premium' && <PremiumShop onClose={()=>setOpen(null)} />}
           {open === 'auction' && <AuctionHouse onClose={()=>setOpen(null)} />}
@@ -163,7 +164,7 @@ export function Game() {
           {open === "temple" && <Temple onClose={() => setOpen(null)} />}
           {open === "market" && <Market onClose={() => setOpen(null)} />}
           {open === "arena" && <Arena onClose={() => setOpen(null)} start={start} />}
-          {open === "oracle" && <DailyQuests onClose={() => setOpen(null)} />}
+          {open === "oracle" && <Oracle onClose={() => setOpen(null)} start={start} />}
         </>
       )}
       {battle && <Battle key={battle.title + battle.right.name} left={battle.left} right={battle.right} auto={battle.auto} title={battle.title} onEnd={onEnd} />}
@@ -247,6 +248,7 @@ function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
 
 const SOON_TEXT: Record<string, string> = {
   dungeon: "Replayable dungeons with boss encounters, entry requirements and reward tables.",
+  boutique: "Outfits, weapon skins, mounts, auras and profile frames for Gold and Ember Crystals.",
   tower: "Collect Astrals, equip them into slots and upgrade them for stat bonuses.",
   sanctuary: "A multi-stage Ancestral questline unlocking the Ancestral skill tree and equipment.",
   gems: "Socket gems into gear, combine fragments and upgrade gems for real stat bonuses.",
@@ -286,7 +288,7 @@ const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof 
   { id: "calendar", label: "Events", tip: "World event calendar & reminders", Icon: CalendarDays },
   { id: "friends", label: "Friends", tip: "Friends & messages", Icon: Users },
   { id: "profile", label: "Profile", tip: "Your hero profile", Icon: UserCircle },
-  { id: "oracle", label: "Quest Board", tip: "Five daily boss bounties", Icon: ScrollText },
+  { id: "oracle", label: "Quest Board", tip: "AI-generated quests", Icon: ScrollText },
   { id: "sanctuary", label: "Ancestral Sanctuary", tip: "Ancestral questline", Icon: Sparkles },
 ];
 
