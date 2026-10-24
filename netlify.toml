@@ -1,9 +1,0 @@
-[build]
-  command = "bun run build"
-  publish = "dist"
-
-[build.environment]
-  NODE_VERSION = "22"
-  NITRO_PRESET = "netlify"
-
-# Nitro generates the SSR function and routing rules. Do not add an SPA fallback.

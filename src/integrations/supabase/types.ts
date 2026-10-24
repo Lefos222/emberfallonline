@@ -219,35 +219,6 @@ export type Database = {
           },
         ]
       }
-      daily_profession_claims: {
-        Row: {
-          claimed_at: string
-          day: string
-          hero_id: string
-          profession: string
-        }
-        Insert: {
-          claimed_at?: string
-          day: string
-          hero_id: string
-          profession: string
-        }
-        Update: {
-          claimed_at?: string
-          day?: string
-          hero_id?: string
-          profession?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "daily_profession_claims_hero_id_fkey"
-            columns: ["hero_id"]
-            isOneToOne: false
-            referencedRelation: "heroes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       friendships: {
         Row: {
           created_at: string
@@ -757,10 +728,6 @@ export type Database = {
         Args: { _hero: string; _objective: string }
         Returns: Json
       }
-      claim_daily_profession: {
-        Args: { _hero: string; _profession: string }
-        Returns: Json
-      }
       claim_login: { Args: { _hero: string }; Returns: Json }
       claim_mail: { Args: { _hero: string; _mail: string }; Returns: Json }
       claim_vip_daily: { Args: { _hero: string; _req: string }; Returns: Json }
@@ -777,7 +744,6 @@ export type Database = {
         Args: { _class: string; _streak: number }
         Returns: Json
       }
-      daily_profession_quests: { Args: { _hero: string }; Returns: Json }
       finish_gathering: { Args: { _hero: string; _req: string }; Returns: Json }
       get_activities: { Args: { _hero: string }; Returns: Json }
       guild_disband: { Args: { _hero: string }; Returns: undefined }
