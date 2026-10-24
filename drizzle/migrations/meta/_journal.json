@@ -71,6 +71,13 @@
       "when": 1792756217814,
       "tag": "0009_six_daily_profession_quests",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792853081942,
+      "tag": "0010_daily_bosses_safe_auctions",
+      "breakpoints": true
     }
   ]
 }

@@ -1,11 +1,11 @@
 # Roadmap
 
 ## Current request
-- [ ] Prepare Netlify hosting with existing accounts and verify external-host sign-in requirements.
-- [ ] Replace AI quest rewards with exactly six server-validated daily profession quests and daily rewards.
+- Netlify work paused by request; leave existing hosting configuration untouched.
+- [ ] Replace AI quests with five daily boss quests, server UTC resets and replay-safe rewards; connect the board to the game.
 - [ ] Remove the Cosmetic Boutique entry and screen while preserving owned cosmetics.
 - [ ] Surface all existing reward collections in Armory without duplicating saved items.
-- [ ] Expand scalable guild supply situations and add paginated/filterable auction browsing.
+- [ ] Expand scalable guild supply situations and add paginated/filterable auction browsing plus protected proceeds claims.
 - [ ] Run regression tests and verify daily quests, inventory, and auction screens; report hosting/security blockers honestly.
 - [x] Correct inventory battle-size leakage and invalid guild-chat recipient UUID; 168 tests passed, build OK, signed-in Armory has no runtime errors.
 - [x] Enlarge the inventory character between equipment slots without changing character selection; verified at 790px with a 320px model.
