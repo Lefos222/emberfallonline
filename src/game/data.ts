@@ -223,6 +223,10 @@ export interface Hero {
   /** Items earned while the bag was full; claim them from the Armory. */
   overflow?: Item[];
   bagRows?: number;
+  /** Upgrade levels of castle buildings, by building id (see barracks.ts). */
+  buildings?: Record<string, number>;
+  /** Daily commission board: day snapshot plus claimed quest ids (see quest-board.ts). */
+  daily?: { day: string; base: Record<string, number>; claimed: string[] };
   stage: number;
   spire: number;
   merchant: Item[];

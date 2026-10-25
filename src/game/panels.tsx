@@ -6,9 +6,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { Shield, Heart, Swords, Clover, Lock, Sparkles, Trophy, Hammer, RefreshCw, Trash2, Skull, Backpack } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
-import { adviseStrategy, generateQuests } from "@/lib/quests.functions";
+import { adviseStrategy } from "@/lib/quests.functions";
 import {
-  attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, ENEMIES, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, RARITIES, sellValue,
+  attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
   SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, type Attr, type EnemyType, type Hero, type HeroClass, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import { refreshMerchant } from "./logic";
@@ -20,6 +20,9 @@ import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
 import { CharacterModel } from "./CharacterModel";
+import { QuestBoard } from "./QuestBoard";
+import { BarracksUpgrade } from "./Barracks";
+import { batchSizes } from "./barracks";
 import { CharacterPose } from "./CharacterPose";
 import { DiscoveryArt } from "./Professions";
 import { DISCOVERY_NAMES, DISCOVERY_RARITIES, GATHERING_AREAS, gatheringState, type ProfessionId } from "./professions";
@@ -464,7 +467,8 @@ export function Temple({ onClose }: { onClose: () => void }) {
   if (!hero) return null;
   return (
     <Panel title="Barracks — Attribute Training" onClose={onClose}>
-      <div role="group" aria-label="Training batch" className="mb-4 flex gap-2">{[1,5,10].map(n=><Button key={n} size="sm" variant={count===n?'default':'outline'} aria-pressed={count===n} onClick={()=>setCount(n)}>+{n} points</Button>)}</div>
+      <BarracksUpgrade hero={hero} />
+      <div role="group" aria-label="Training batch" className="mb-4 flex flex-wrap gap-2">{batchSizes(hero).map(n=><Button key={n} size="sm" variant={count===n?'default':'outline'} aria-pressed={count===n} onClick={()=>setCount(n)}>+{n} points</Button>)}</div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {ATTRS.map((a) => {
           const cost = trainingCost(hero,a.k,count);
@@ -632,7 +636,7 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
             <div className="mb-1 font-display text-gold">Recent fights</div>
             {history.length === 0 && <div className="text-sm text-muted-foreground">None yet</div>}
             {history.map((m) => {
-              const mine = m.attacker_id === userId;
+              const mine = m.attacker_id === heroId;
               const won = mine ? m.attacker_won : !m.attacker_won;
               return (
                 <div key={m.id} className="flex justify-between text-sm">
@@ -648,104 +652,10 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
   );
 }
 
-// ---------------- Oracle (AI quests) ----------------
-const THEMES: { id: string; label: string; enemy: EnemyType }[] = [
-  { id: "Goblin war-camps in the burning marsh", label: "War-camps", enemy: "goblin" },
-  { id: "Haunted crypts beneath the cathedral", label: "Crypts", enemy: "skeleton" },
-  { id: "A demon rift torn open by the blood moon", label: "Demon Rift", enemy: "demon" },
-  { id: "Ancient dragon peaks above the clouds", label: "Dragon Peaks", enemy: "dragon" },
-];
-type Quest = Awaited<ReturnType<typeof generateQuests>>["quests"][number];
-
-export function Oracle({ onClose, start }: { onClose: () => void; start: StartBattle }) {
-  const { hero, userId } = useGame();
-  const gen = useServerFn(generateQuests);
-  const [theme, setTheme] = useState(THEMES[0].id);
-  const [custom, setCustom] = useState("");
-  const [quests, setQuests] = useState<Quest[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  if (!hero) return null;
-
-  if (!userId) {
-    return (
-      <Panel title="Summoning Circle" onClose={onClose}>
-        <div className="py-10 text-center">
-          <Sparkles className="mx-auto mb-3 h-12 w-12 text-r3" />
-          <p className="mb-4 text-muted-foreground">Sign in to consult the Oracle</p>
-          <Link to="/auth" className="btn-gold inline-block px-6 py-2">Sign in</Link>
-        </div>
-      </Panel>
-    );
-  }
-
-  const summon = async () => {
-    setLoading(true); setErr(null); setQuests([]);
-    try {
-      const r = await gen({ data: { theme: custom.trim() || theme, heroClass: hero.cls, level: hero.level + hero.paragon, stage: hero.stage } });
-      if (r.error) setErr(r.error); else setQuests(r.quests);
-    } catch { setErr("The oracle is silent, try again"); }
-    setLoading(false);
-  };
-
-  const accept = (q: Quest) => {
-    const lvl = Math.max(1, hero.stage - 1 + (q.difficulty - 1) * 3);
-    const mult = [0.9, 1.15, 1.45][q.difficulty - 1];
-    const foe = stageFoe(lvl, mult, q.enemyType as EnemyType, q.enemyName);
-    foe.boss = q.difficulty === 3;
-    const rw = stageRewards(lvl, 1.5 + q.difficulty * 0.5);
-    setQuests((qs) => qs.filter((x) => x !== q));
-    start({
-      title: q.title, right: foe,
-      onResult: async (won, xpMultiplier = 1) => {
-        if (!won) return { lines: ["The quest has failed…"] };
-        const { grant, makeLoot } = await import("./oracle-loot");
-        let lines: string[] = []; let loot: Item | null = null;
-        update((h) => {
-          const { levels } = grant(h, scrollXp(rw.xp, xpMultiplier), rw.gold);
-          loot = makeLoot(h, lvl, q.rewardRarity);
-          lines = [`+${fmt(scrollXp(rw.xp, xpMultiplier))} XP`, `+${fmt(rw.gold)} gold`, ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
-        });
-        return { lines, loot };
-      },
-    });
-  };
-
-  return (
-    <Panel title="Summoning Circle" onClose={onClose} wide>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {THEMES.map((t) => (
-          <button key={t.id} onClick={() => { setTheme(t.id); setCustom(""); }}
-            className={`slot flex flex-col items-center p-2 transition hover:scale-105 ${theme === t.id && !custom ? "rarity-4" : ""}`}>
-            <img src={ENEMIES[t.enemy].img} alt={t.label} className="h-24 w-full object-contain" />
-            <span className="font-display text-sm">{t.label}</span>
-          </button>
-        ))}
-      </div>
-      <div className="mt-3 flex gap-2">
-        <input value={custom} onChange={(e) => setCustom(e.target.value)} maxLength={120} placeholder="…or whisper your own theme"
-          className="slot flex-1 px-3 py-2 text-foreground outline-none placeholder:text-muted-foreground" />
-        <button className="btn-gold px-5" disabled={loading} onClick={summon}>
-          <Sparkles className={`mr-1 inline h-4 w-4 ${loading ? "animate-spin" : ""}`} />{loading ? "Summoning" : "Summon"}
-        </button>
-      </div>
-      {err && <div className="mt-3 text-center text-hp">{err}</div>}
-      <div className="mt-4 grid gap-3 md:grid-cols-3">
-        {quests.map((q, i) => (
-          <div key={i} className={`slot anim-pop flex flex-col p-3 rarity-${q.rewardRarity}`}>
-            <img src={ENEMIES[q.enemyType as EnemyType]?.img ?? ENEMIES.goblin.img} alt={q.enemyName} className="h-32 w-full object-contain" />
-            <div className="font-display text-lg leading-tight text-gold">{q.title}</div>
-            <div className="my-1 text-sm text-muted-foreground">{q.story}</div>
-            <div className="flex items-center justify-between text-sm">
-              <span>{"☠".repeat(q.difficulty)} {q.enemyName}</span>
-              <span style={{ color: `var(--r${q.rewardRarity})` }}>{RARITIES[q.rewardRarity].name}</span>
-            </div>
-            <button className="btn-blood mt-2 py-1.5" onClick={() => accept(q)}><Swords className="mr-1 inline h-4 w-4" />Accept</button>
-          </div>
-        ))}
-      </div>
-    </Panel>
-  );
+// ---------------- Quest Board (daily commissions) ----------------
+/** The old AI oracle is gone: the board is six fixed daily commissions that reset at Greek midnight. */
+export function Oracle(props: { onClose: () => void; start?: StartBattle }) {
+  return <QuestBoard onClose={props.onClose} />;
 }
 
 export function XpBar({ hero }: { hero: Hero }) {
