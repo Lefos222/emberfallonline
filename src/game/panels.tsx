@@ -347,7 +347,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
     <Panel title="Forge" onClose={onClose}>
       {onCraft && <button className="btn-gold mb-4 w-full py-2" onClick={onCraft}><Hammer className="mr-2 inline h-4 w-4" />Open crafting recipes</button>}
       <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
-        <div className="grid grid-cols-6 content-start gap-1.5">
+        <div className="grid grid-cols-3 content-start gap-1.5 md:grid-cols-6">
           {all.map((it) => <ItemSlot key={it.id} item={it} size={40} selected={it.id === selId} onClick={() => { setSelId(it.id); setArmed(null); setMsg(null); }} />)}
         </div>
         <div className="space-y-3">

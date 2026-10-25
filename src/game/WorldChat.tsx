@@ -42,7 +42,7 @@ export function WorldChat({ heroId }: { heroId: string | null }) {
   };
 
   if (!heroId) return null;
-  return <section className="game-panel pointer-events-auto absolute bottom-16 left-3 z-20 w-[min(22rem,calc(100vw-1.5rem))] p-2">
+  return <section className="game-panel world-chat pointer-events-auto absolute bottom-16 left-3 z-20 w-[min(22rem,calc(100vw-1.5rem))] p-2">
     <header className="flex items-center justify-between border-b border-border pb-1">
       <h2 className="panel-title text-sm font-bold">World</h2>
       <button className="text-xs text-muted-foreground hover:text-gold" aria-expanded={!collapsed} onClick={() => setCollapsed((v) => !v)}>{collapsed ? "Expand" : "Collapse"}</button>

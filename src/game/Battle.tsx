@@ -183,7 +183,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
       <div className="absolute inset-0 vignette" />
 
       {/* Top bar: title + turn order */}
-      <div className="relative z-10 flex flex-col items-center gap-2 pt-3">
+      <div className="safe-top relative z-10 flex flex-col items-center gap-2">
         {title && <div className="font-display text-xl panel-title md:text-2xl">{title}</div>}
         <div className="flex items-center gap-1.5 rounded-full bg-background/70 px-3 py-1 backdrop-blur" aria-label="Turn order">
           <span className="mr-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Round {s.round}</span>
@@ -216,7 +216,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
       </div>
 
       {/* Bottom: log + action bar */}
-      <div className="relative z-10 grid gap-2 bg-gradient-to-t from-background via-background/90 to-transparent px-3 pb-3 pt-6 md:grid-cols-[260px_1fr]">
+      <div className="battle-actions relative z-10 grid gap-2 bg-gradient-to-t from-background via-background/90 to-transparent md:grid-cols-[260px_1fr]">
         <div className="hidden h-28 overflow-y-auto rounded-md border border-border bg-background/70 p-2 text-xs md:block" aria-label="Combat log">
           {s.log.map((l, i) => <div key={i} className={i === 0 ? "text-foreground" : "text-muted-foreground"}>{l}</div>)}
         </div>
