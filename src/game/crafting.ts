@@ -1,7 +1,7 @@
 import type { HeroClass, Item, Slot } from "./data";
 
 // ---------- Materials ----------
-export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil";
+export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal";
 export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity: number }> = {
   ore: { name: "Ember Ore", desc: "Common ore used in crafting and gem cutting.", src: "Every won battle (more in higher regions)", rarity: 0 },
   essence: { name: "Soul Essence", desc: "Distilled souls used in crafting and gem fusion.", src: "Tougher fights, elites, bosses", rarity: 2 },
@@ -9,6 +9,9 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   bossCore: { name: "Boss Core", desc: "Heart of a fallen tyrant. Needed for Legendary and Mythic armor.", src: "Campaign bosses and Dungeon Gate challenges", rarity: 4 },
   fragment: { name: "Armor Fragment", desc: "Shards of fine armor. Rare+ armor can only be forged from these.", src: "Monsters (12%), elites, bosses, weekly activities", rarity: 2 },
   sigil: { name: "Elite Sigil", desc: "Trophy of an elite foe. Needed for Epic+ armor.", src: "Elite Hunt and Dungeon Gate bosses", rarity: 3 },
+  hide: { name: "Beast Hide", desc: "Hide stripped from slain monsters. Refines into Armor Fragments.", src: "Every won battle (more in higher regions)", rarity: 1 },
+  bloom: { name: "Emberbloom", desc: "Fire-touched herb. Refines into Soul Essence.", src: "Won battles, elites and gathering journeys", rarity: 1 },
+  crystal: { name: "Arcane Crystal", desc: "Crystallised mana. Refines into Starshards.", src: "Elites and Dungeon Gate bosses", rarity: 2 },
 };
 type Mats = Partial<Record<Mat, number>>;
 
@@ -66,9 +69,27 @@ export function battleMats(level: number, boss: boolean, rand = Math.random, eli
   if (boss || elite || rand() < 0.12) out.fragment = boss ? 3 : elite ? 2 : 1;
   if (elite) out.sigil = 1;
   if (boss) out.bossCore = 1;
+  out.hide = 1 + Math.floor(level / 15) + (boss ? 3 : elite ? 2 : 0);
+  if (rand() < 0.3) out.bloom = 1 + (elite ? 1 : 0);
+  if (boss || elite) out.crystal = boss ? 2 : 1;
   return out;
 }
 export const matsLine = (m: Mats) => (Object.entries(m) as [Mat, number][]).filter(([, v]) => v > 0).map(([k, v]) => `+${v} ${MATS[k].name}`);
+
+/** Spare materials refine into the forge materials that recipes need. */
+export const REFINE = [
+  { id: "hide", from: "hide" as Mat, need: 3, to: "fragment" as Mat, gain: 1 },
+  { id: "bloom", from: "bloom" as Mat, need: 3, to: "essence" as Mat, gain: 1 },
+  { id: "crystal", from: "crystal" as Mat, need: 3, to: "starshard" as Mat, gain: 1 },
+];
+export function refine(h: CraftState, id: string): string | null {
+  const r = REFINE.find((x) => x.id === id);
+  if (!r) return "Unknown refinement";
+  if (matCount(h, r.from) < r.need) return "Not enough " + MATS[r.from].name;
+  spendMats(h, { [r.from]: r.need } as Mats);
+  addMats(h, { [r.to]: r.gain } as Mats);
+  return null;
+}
 
 // ---------- Combat bonus stats shared by gems, Astrals and buffs ----------
 export interface BonusFx {

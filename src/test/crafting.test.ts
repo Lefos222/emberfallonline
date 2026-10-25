@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { heroStats, makeItem, newHero, INVENTORY_CAP } from "@/game/data";
-import { RECIPES, craft, fuseGem, insertGem, removeGem, scrapItem, scrapYield, summonAstral, equipAstral } from "@/game/crafting";
+import { RECIPES, battleMats, craft, fuseGem, insertGem, refine, removeGem, scrapItem, scrapYield, summonAstral, equipAstral } from "@/game/crafting";
 
 describe("gems, astrals, crafting", () => {
   it("a socketed ruby raises attack and removing returns the gem", () => {
@@ -85,5 +85,22 @@ describe("forge salvaging", () => {
     expect(Number(mythic.ore)).toBeGreaterThan(Number(common.ore));
     expect(Number(mythic.bossCore)).toBeGreaterThan(0);
     expect(Number(common.bossCore ?? 0)).toBe(0);
+  });
+});
+
+describe("materials carried in the bag", () => {
+  it("refines spare materials into forge materials", () => {
+    const h = newHero("T", "mage"); h.mats = { hide: 3 };
+    expect(refine(h, "hide")).toBeNull();
+    expect(h.mats.hide).toBe(0); expect(h.mats.fragment).toBe(1);
+  });
+  it("refuses a refinement the bag cannot pay for", () => {
+    const h = newHero("T", "mage"); h.mats = { crystal: 2 };
+    expect(refine(h, "crystal")).toBe("Not enough Arcane Crystal");
+    expect(h.mats.crystal).toBe(2);
+  });
+  it("battles drop the spare materials", () => {
+    const m = battleMats(30, false, () => 0.5);
+    expect(m.hide).toBe(3); expect(m.ore).toBeGreaterThan(0);
   });
 });

@@ -10,7 +10,6 @@ import { ScrollShop } from "./ScrollShop";
 import { Bestiary } from "./Bestiary";
 import { PassiveTree } from "./PassiveTree";
 import { EventCalendar } from "./EventCalendar";
-import { Boutique } from './Boutique';
 import { Sanctuary } from './Sanctuary';
 import { Expeditions } from './Expeditions';
 import { Professions } from './Professions';
@@ -140,7 +139,6 @@ export function Game() {
           {open === "bestiary" && <Bestiary h={hero} onClose={() => setOpen(null)} />}
           {open === "road" && <LongRoad onClose={() => setOpen(null)} start={start} />}
           {open === "calendar" && <EventCalendar h={hero} onClose={() => setOpen(null)} start={start} />}
-          {open === 'boutique' && <Boutique onClose={()=>setOpen(null)} />}
           {open === 'professions' && <Professions onClose={()=>setOpen(null)} />}
           {open === 'premium' && <PremiumShop onClose={()=>setOpen(null)} />}
           {open === 'auction' && <AuctionHouse onClose={()=>setOpen(null)} />}
@@ -250,7 +248,6 @@ function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
 
 const SOON_TEXT: Record<string, string> = {
   dungeon: "Replayable dungeons with boss encounters, entry requirements and reward tables.",
-  boutique: "Outfits, weapon skins, mounts, auras and profile frames for Gold and Ember Crystals.",
   tower: "Collect Astrals, equip them into slots and upgrade them for stat bonuses.",
   sanctuary: "A multi-stage Ancestral questline unlocking the Ancestral skill tree and equipment.",
   gems: "Socket gems into gear, combine fragments and upgrade gems for real stat bonuses.",

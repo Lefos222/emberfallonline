@@ -15,7 +15,7 @@ import { refreshMerchant } from "./logic";
 import { update, useGame } from "./store";
 import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { MatIcon } from "./MatIcon";
-import { MATS, scrapItem, scrapYield, sockets, type Mat } from "./crafting";
+import { MATS, REFINE, matCount, refine, scrapItem, scrapYield, sockets, type Mat } from "./crafting";
 import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
@@ -156,6 +156,26 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               return <ItemSlot key={it?.id ?? i} item={it} size={44} selected={!!it && sel?.id === it.id} onClick={() => it && setSel({ id: it.id, equipped: false })} />;
             })}
           </div>
+          {(() => {
+            const carried = (Object.keys(MATS) as Mat[]).filter((m) => matCount(hero, m) > 0);
+            if (!carried.length) return null;
+            return (
+              <div className="mt-4">
+                <div className="mb-1.5 font-display text-sm text-gold">Forge materials in your bag · {carried.reduce((a, m) => a + matCount(hero, m), 0)}</div>
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                  {carried.map((m) => (
+                    <div key={m} className={"slot rarity-" + Math.min(MATS[m].rarity + 1, 5) + " flex items-center gap-2 p-1.5"} title={MATS[m].desc + " Source: " + MATS[m].src}>
+                      <MatIcon mat={m} size={34} />
+                      <div className="min-w-0">
+                        <div className="truncate text-[11px] font-bold">{MATS[m].name}</div>
+                        <div className="text-[10px] text-muted-foreground">×{fmt(matCount(hero, m))} · Bag item</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           {(() => {
             const supplies = Object.entries(gatheringState(hero).resources).filter(([, n]) => n > 0);
             if (!supplies.length) return null;
@@ -363,6 +383,19 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
               {msg && <div className={`anim-pop text-center font-display text-lg ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</div>}
             </>
           ) : <div className="py-16 text-center text-muted-foreground"><Hammer className="mx-auto mb-2 h-10 w-10" />Choose gear to empower</div>}
+          <div className="slot p-3">
+            <div className="mb-2 flex items-center gap-2 font-display text-sm"><Sparkles className="h-4 w-4" />Refine spare materials</div>
+            <div className="space-y-2">
+              {REFINE.map((r) => (
+                <button key={r.id} className="btn-ghost flex w-full items-center justify-between gap-2 px-2 py-1.5 text-xs" disabled={matCount(hero, r.from) < r.need}
+                  onClick={() => update((h) => { const err = refine(h, r.id); setMsg(err ? { ok: false, t: err } : { ok: true, t: "Refined: +" + r.gain + " " + MATS[r.to].name }); })}>
+                  <span className="flex items-center gap-1"><MatIcon mat={r.from} size={16} /> {MATS[r.from].name} ×{r.need}</span>
+                  <span className="flex items-center gap-1 text-gold">→ <MatIcon mat={r.to} size={16} /> {MATS[r.to].name}</span>
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">Spare materials from battles refine into the ones recipes need.</p>
+          </div>
         </div>
       </div>
     </Panel>
