@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { trainingCost, trainAttribute } from './building-content';
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Shield, Heart, Swords, Clover, Lock, Sparkles, Trophy, Hammer, RefreshCw, Trash2, Skull } from "lucide-react";
+import { Shield, Heart, Swords, Clover, Lock, Sparkles, Trophy, Hammer, RefreshCw, Trash2, Skull, Backpack } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import { adviseStrategy, generateQuests } from "@/lib/quests.functions";
@@ -157,18 +157,19 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             })}
           </div>
           {(() => {
-            const carried = (Object.keys(MATS) as Mat[]).filter((m) => matCount(hero, m) > 0);
-            if (!carried.length) return null;
+            const all = Object.keys(MATS) as Mat[];
+            const owned = all.filter((m) => matCount(hero, m) > 0);
+            const total = owned.reduce((a, m) => a + matCount(hero, m), 0);
             return (
               <div className="mt-4">
-                <div className="mb-1.5 font-display text-sm text-gold">Forge materials in your bag · {carried.reduce((a, m) => a + matCount(hero, m), 0)}</div>
+                <div className="mb-1.5 font-display text-sm text-gold">Forge materials · {total} in your bag · {owned.length}/{all.length} types</div>
                 <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-                  {carried.map((m) => (
+                  {all.map((m) => (
                     <div key={m} className={"slot rarity-" + Math.min(MATS[m].rarity + 1, 5) + " flex items-center gap-2 p-1.5"} title={MATS[m].desc + " Source: " + MATS[m].src}>
                       <MatIcon mat={m} size={34} />
                       <div className="min-w-0">
                         <div className="truncate text-[11px] font-bold">{MATS[m].name}</div>
-                        <div className="text-[10px] text-muted-foreground">×{fmt(matCount(hero, m))} · Bag item</div>
+                        <div className="text-[10px] text-muted-foreground">×{fmt(matCount(hero, m))}{matCount(hero, m) ? " · Bag item" : " · Not found yet"}</div>
                       </div>
                     </div>
                   ))}
@@ -177,11 +178,11 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             );
           })()}
           {(() => {
-            const supplies = Object.entries(gatheringState(hero).resources).filter(([, n]) => n > 0);
-            if (!supplies.length) return null;
+            const supplies = Object.entries(gatheringState(hero).resources);
+            if (!supplies.length) return (<div className="mt-4"><div className="mb-1.5 font-display text-sm text-gold">Gathering supplies</div><p className="text-xs text-muted-foreground">Nothing gathered yet - supplies you collect stay listed here with their exact counts.</p></div>);
             return (
               <div className="mt-4">
-                <div className="mb-1.5 font-display text-sm text-gold">Gathering supplies · {supplies.reduce((a, [, n]) => a + n, 0)}</div>
+                <div className="mb-1.5 font-display text-sm text-gold">Gathering supplies · {supplies.reduce((a, [, n]) => a + n, 0)} held · {supplies.length} type{supplies.length === 1 ? "" : "s"}</div>
                 <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
                   {supplies.map(([key, n]) => {
                     const [p, a, r] = key.split(":");
@@ -314,21 +315,36 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   const [selId, setSelId] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
   const [armed, setArmed] = useState<string | null>(null);
+  const [warn, setWarn] = useState<Item | null>(null);
   if (!hero) return null;
+  const equipped = WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean) as Item[];
+  const bagged = hero.inventory;
   const all: (Item & { eq?: boolean })[] = [
-    ...WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean).map((i) => ({ ...i!, eq: true })),
-    ...hero.inventory,
+    ...equipped.map((i) => ({ ...i, eq: true })),
+    ...bagged,
   ];
   const sel = all.find((i) => i.id === selId);
+  const equippedSel = !!sel && equipped.some((i) => i.id === sel.id);
   const salvage = () => {
     if (!sel) return;
-    if (!hero.inventory.some((i) => i.id === sel.id)) { setMsg({ ok: false, t: "Equipped gear can't be salvaged - move it to your bag first" }); setArmed(null); return; }
+    
     if (armed !== sel.id) { setArmed(sel.id); setMsg(null); return; }
     const gain = (Object.entries(scrapYield(sel)) as [Mat, number][]).map(([m, n]) => "+" + n + " " + MATS[m].name).join(" - ");
     update((h) => { scrapItem(h, sel.id); });
     setArmed(null);
     setSelId(null);
     setMsg({ ok: true, t: "Salvaged " + sel.name + ": " + gain });
+  };
+  // Salvaging worn gear takes a second, explicit confirmation and unequips it first.
+  const salvageEquipped = () => {
+    const it = warn;
+    if (!it) return;
+    const gain = (Object.entries(scrapYield(it)) as [Mat, number][]).map(([m, n]) => "+" + n + " " + MATS[m].name).join(" - ");
+    update((h) => { unequipItem(h, it, invCap(h)); scrapItem(h, it.id); });
+    setWarn(null);
+    setArmed(null);
+    setSelId(null);
+    setMsg({ ok: true, t: "Unequipped and salvaged " + it.name + ": " + gain });
   };
   const enhance = () => {
     if (!sel) return;
@@ -347,8 +363,28 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
     <Panel title="Forge" onClose={onClose}>
       {onCraft && <button className="btn-gold mb-4 w-full py-2" onClick={onCraft}><Hammer className="mr-2 inline h-4 w-4" />Open crafting recipes</button>}
       <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
-        <div className="grid grid-cols-3 content-start gap-1.5 md:grid-cols-6">
-          {all.map((it) => <ItemSlot key={it.id} item={it} size={40} selected={it.id === selId} onClick={() => { setSelId(it.id); setArmed(null); setMsg(null); }} />)}
+        <div className="space-y-4">
+          <div>
+            <div className="mb-1.5 flex items-center gap-2 font-display text-sm text-gold"><Shield className="h-4 w-4" />Equipped on you <span className="text-xs text-muted-foreground">({equipped.length})</span></div>
+            {equipped.length ? (
+              <div className="grid grid-cols-3 content-start gap-1.5 md:grid-cols-6">
+                {equipped.map((it) => (
+                  <span key={it.id} className="relative inline-flex">
+                    <ItemSlot item={it} size={40} selected={it.id === selId} onClick={() => { setSelId(it.id); setArmed(null); setMsg(null); }} />
+                    <span className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded bg-gold px-1 text-[9px] font-bold uppercase text-background">Worn</span>
+                  </span>
+                ))}
+              </div>
+            ) : <p className="text-xs text-muted-foreground">Nothing equipped yet.</p>}
+          </div>
+          <div>
+            <div className="mb-1.5 flex items-center gap-2 font-display text-sm text-gold"><Backpack className="h-4 w-4" />In your bag <span className="text-xs text-muted-foreground">({bagged.length})</span></div>
+            {bagged.length ? (
+              <div className="grid grid-cols-3 content-start gap-1.5 md:grid-cols-6">
+                {bagged.map((it) => <ItemSlot key={it.id} item={it} size={40} selected={it.id === selId} onClick={() => { setSelId(it.id); setArmed(null); setMsg(null); }} />)}
+              </div>
+            ) : <p className="text-xs text-muted-foreground">Your bag is empty.</p>}
+          </div>
         </div>
         <div className="space-y-3">
           {sel ? (
@@ -364,20 +400,21 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
 
               <div className="slot p-3">
                 <div className="mb-2 flex items-center gap-2 font-display text-sm"><Trash2 className="h-4 w-4" />Salvage into materials</div>
-                {hero.inventory.some((i) => i.id === sel.id) ? (
+                <div className="mb-3 flex flex-wrap gap-2 text-xs">
+                  {(Object.entries(scrapYield(sel)) as [Mat, number][]).map(([m, n]) => (
+                    <span key={m} className="slot px-2 py-0.5"><MatIcon mat={m} size={14} /> {MATS[m].name} +{n}</span>
+                  ))}
+                  {sockets(sel).some(Boolean) && <span className="slot px-2 py-0.5">Socketed gems return to your pouch</span>}
+                </div>
+                {equippedSel ? (
                   <>
-                    <div className="mb-3 flex flex-wrap gap-2 text-xs">
-                      {(Object.entries(scrapYield(sel)) as [Mat, number][]).map(([m, n]) => (
-                        <span key={m} className="slot px-2 py-0.5"><MatIcon mat={m} size={14} /> {MATS[m].name} +{n}</span>
-                      ))}
-                      {sockets(sel).some(Boolean) && <span className="slot px-2 py-0.5">Socketed gems return to your pouch</span>}
-                    </div>
-                    <button className={"w-full py-2 " + (armed === sel.id ? "btn-blood" : "btn-ghost")} onClick={salvage}>
-                      {armed === sel.id ? "Confirm - destroy " + sel.name : "Salvage this piece"}
-                    </button>
+                    <p className="mb-2 text-xs text-blood">This piece is equipped right now.</p>
+                    <button className="btn-blood w-full py-2" onClick={() => { setWarn(sel); setArmed(null); }}>Salvage equipped gear...</button>
                   </>
                 ) : (
-                  <p className="text-xs text-muted-foreground">Equipped gear can't be salvaged - move it to your bag first.</p>
+                  <button className={"w-full py-2 " + (armed === sel.id ? "btn-blood" : "btn-ghost")} onClick={salvage}>
+                    {armed === sel.id ? "Confirm - destroy " + sel.name : "Salvage this piece"}
+                  </button>
                 )}
               </div>
               {msg && <div className={`anim-pop text-center font-display text-lg ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</div>}
@@ -398,6 +435,18 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
           </div>
         </div>
       </div>
+      {warn && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" role="alertdialog" aria-modal="true" aria-label="Confirm salvaging equipped gear">
+          <div className="game-panel anim-pop w-full max-w-md p-5">
+            <div className="mb-2 flex items-center gap-2 font-display text-xl text-blood"><Trash2 className="h-5 w-5" />This gear is equipped</div>
+            <p className="text-sm"><b>{warn.name}</b> is worn right now. Salvaging it will unequip and permanently destroy it, returning its materials and socketed gems. This cannot be undone.</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button className="btn-ghost flex-1 py-2" onClick={() => setWarn(null)}>Keep it equipped</button>
+              <button className="btn-blood flex-1 py-2" onClick={salvageEquipped}>Unequip and destroy</button>
+            </div>
+          </div>
+        </div>
+      )}
     </Panel>
   );
 }

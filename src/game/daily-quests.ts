@@ -4,6 +4,9 @@ import { PROFESSIONS } from './professions';
 export const DAILY_QUESTS = PROFESSIONS.map(p => ({ id: p.id, name: `${p.name} commission`, target: 1,
   scroll: p.id === 'mining' || p.id === 'logging' ? 'def' : p.id === 'herbalism' || p.id === 'fishing' ? 'xp' : 'dmg',
 }));
+/** Reward for finishing a daily commission. Mirrored in claim_daily_profession (SQL) - keep identical. */
+export const DAILY_REWARD = { scrolls: 2, gold: 750, essence: 2 };
+
 export const dailyQuestSchema = z.object({
   now: z.string().datetime({ offset: true }), resetAt: z.string().datetime({ offset: true }),
   quests: z.array(z.object({ id: z.enum(['mining','herbalism','logging','fishing','archaeology','treasure']),

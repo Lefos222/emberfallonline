@@ -18,6 +18,7 @@ import {
   REMIND_LEAD_MS,
   statusOf,
   timeIn,
+  GAME_TZ,
   TZ_CHOICES,
   WORLD_EVENTS,
   zoneLabel,
@@ -28,7 +29,7 @@ const STORE_KEY = "ef-event-reminders";
 
 export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => void; start: StartBattle }) {
   const [now, setNow] = useState(() => Date.now());
-  const [tz, setTz] = useState("local");
+  const [tz, setTz] = useState(GAME_TZ);
   const [remind, setRemind] = useState<Record<string, boolean>>({});
   const [banner, setBanner] = useState<string | null>(null);
   const fired = useRef<Set<string>>(new Set());
@@ -133,8 +134,8 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
     <Panel title="World Event Calendar" onClose={onClose} wide>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Recurring events run on one shared clock. Times below are shown in{" "}
-          <span className="font-semibold text-foreground">{tz === "local" ? zoneLabel(now) : tz}</span>.
+          Ember Fall runs on Greek time — every window opens on the same Greek hour for every player, no matter what your own device clock says. Times below are shown in{" "}
+          <span className="font-semibold text-foreground">{tz === "local" ? zoneLabel(now) : tz === GAME_TZ ? "Greek time" : tz}</span>.
         </p>
         <label className="flex items-center gap-2 text-sm">
           Show times in
@@ -146,7 +147,7 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
           >
             {TZ_CHOICES.map((z) => (
               <option key={z} value={z}>
-                {z === "local" ? "My zone" : z}
+                {z === "local" ? "My zone" : z === GAME_TZ ? "Greek time (server)" : z}
               </option>
             ))}
           </select>
