@@ -1,7 +1,8 @@
 # Roadmap
 
 ## Current request
-- [ ] Prepare Netlify hosting with existing accounts and verify external-host sign-in requirements.
+- [ ] Make phone navigation, inventory, battles, chat, quests and trading usable; preserve character-selection artwork.
+- Netlify work paused at the user's request; leave existing hosting configuration untouched.
 - [ ] Replace AI quest rewards with exactly six server-validated daily profession quests and daily rewards.
 - [ ] Remove the Cosmetic Boutique entry and screen while preserving owned cosmetics.
 - [ ] Surface all existing reward collections in Armory without duplicating saved items.
