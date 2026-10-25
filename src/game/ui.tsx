@@ -10,8 +10,8 @@ export function Panel({ title, onClose, children, wide }: { title: string; onClo
         className={`game-panel anim-pop relative flex max-h-[92vh] w-full flex-col ${wide ? "max-w-6xl" : "max-w-3xl"}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-border px-6 py-3">
-          <h2 className="panel-title text-2xl font-bold md:text-3xl">{title}</h2>
+        <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3 md:px-6">
+          <h2 className="panel-title min-w-0 truncate text-xl font-bold md:text-3xl">{title}</h2>
           <button onClick={onClose} className="btn-blood flex h-9 w-9 items-center justify-center" aria-label="Close">
             <X className="h-5 w-5" />
           </button>

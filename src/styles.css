@@ -336,3 +336,49 @@
   .combat-effect, .battle-arc { animation: none; opacity: .7; }
   .talent-node, .talent-burst, .talent-pip-on, .talent-link-on, .spec-mine { animation: none; }
 }
+
+/* ---------- phone playability ----------
+   A phone has no hover, a quarter of the width and a notch. Taps get no
+   double-tap delay, the two bottom strips become swipeable rows (so no button
+   is clipped off-screen), the castle can be dragged to reach every building and
+   the edges keep clear of the home bar. */
+html { -webkit-text-size-adjust: 100%; touch-action: manipulation; }
+body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+
+.hud-top {
+  padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) 0.75rem max(0.75rem, env(safe-area-inset-left));
+}
+.safe-top { padding-top: max(0.75rem, env(safe-area-inset-top)); }
+.battle-actions {
+  padding: 1.5rem max(0.75rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+}
+.castle-map { width: max(100vw, calc(100vh * 1.791)); aspect-ratio: 1920 / 1072; }
+.castle-view { touch-action: none; cursor: grab; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.castle-view:active { cursor: grabbing; }
+.castle-hint { display: none; }
+
+@media (max-width: 1023px) {
+  .hud-top { flex-wrap: wrap; gap: 0.375rem; }
+  .castle-hint { display: block; animation: hint-fade 7s ease forwards; }
+  .hotspot { min-width: 40px; min-height: 40px; }
+  .bottom-nav {
+    position: absolute;
+    left: max(0.25rem, env(safe-area-inset-left));
+    right: max(0.25rem, env(safe-area-inset-right));
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
+    scrollbar-width: none;
+    padding: 0.375rem;
+  }
+  .bottom-nav::-webkit-scrollbar { display: none; }
+  .bottom-nav > * { flex: 0 0 auto; }
+  /* No hover on touch: the hover cards would only be clipped by the swipe row. */
+  .bottom-nav [role="tooltip"] { display: none; }
+  .rewards-nav { bottom: max(0.25rem, env(safe-area-inset-bottom)); }
+  .shortcut-nav { bottom: calc(3.75rem + env(safe-area-inset-bottom)); }
+  .world-chat { bottom: calc(7.75rem + env(safe-area-inset-bottom)); }
+}
+
+@keyframes hint-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }

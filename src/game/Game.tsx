@@ -115,7 +115,7 @@ export function Game() {
         <>
           <CastleMap onOpen={setOpen} />
           <ShortcutBar open={open} onOpen={setOpen} />
-          <nav aria-label="Rewards" className="game-panel absolute bottom-3 left-3 z-20 flex gap-1 p-1.5">
+          <nav aria-label="Rewards" className="game-panel bottom-nav rewards-nav absolute bottom-3 left-3 z-20 flex gap-1 p-1.5">
             <Button variant="ghost" size="icon" aria-label="Mailbox" title="Mailbox" onClick={() => setOpen("mailbox")}><Mail /></Button>
             <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><Crosshair /></Button>
             <Button variant="ghost" size="icon" aria-label="Battle Scrolls" title="Battle Scrolls" onClick={() => setOpen("scrolls")}><ScrollText /></Button>
@@ -127,6 +127,7 @@ export function Game() {
           </nav>
           <WorldChat heroId={heroId} />
           <Hud muted={muted} setMuted={setMuted} cloud={cloud} onProfile={() => setOpen("profile")} />
+          <p className="castle-hint pointer-events-none absolute inset-x-0 top-32 z-20 text-center font-display text-xs text-gold drop-shadow-[0_1px_2px_black]">Drag the castle to reach every building</p>
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
           {open === "mailbox" && <Mailbox onClose={() => setOpen(null)} />}
           {open === "lucky" && <LuckyShots onClose={() => setOpen(null)} />}
@@ -188,42 +189,79 @@ function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: 
   if (!hero) return null;
   const s = heroStats(hero);
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-3">
+    <div className="hud-top pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2">
       <div className="game-panel pointer-events-auto flex items-center gap-3 p-2 pr-4">
-        <button className={`slot h-14 w-14 overflow-hidden ${frameClass(frame)}`} onClick={onProfile} aria-label="Profile">
+        <button className={`slot h-11 w-11 shrink-0 overflow-hidden lg:h-14 lg:w-14 ${frameClass(frame)}`} onClick={onProfile} aria-label="Profile">
           <Portrait cls={hero.cls} gender={gender} className="w-full" />
         </button>
-        <div className="w-24 sm:w-40">
+        <div className="w-24 lg:w-40">
           <div className="truncate font-display">{hero.name}</div>
           <div className="text-xs text-muted-foreground">Lv {hero.level}{hero.paragon ? ` · Asc ${hero.paragon}` : ""}</div>
           <XpBar hero={hero} />
         </div>
-        <div className="flex flex-col text-xs sm:text-sm">
+        <div className="flex flex-col text-xs lg:text-sm">
           <Gold n={hero.gold} />
           <Diamonds n={premiumState(hero).balance} />
           <span className="font-bold"><Trophy className="mr-1 inline h-4 w-4 text-r4" />{fmt(s.power)}</span>
         </div>
       </div>
-      <div className="game-panel pointer-events-auto flex items-center gap-2 p-2">
-        <button className="slot flex h-10 w-10 items-center justify-center" onClick={() => setMuted(!muted)} aria-label="Music">
+      <div className="game-panel pointer-events-auto flex items-center gap-1 p-2 lg:gap-2">
+        <button className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" onClick={() => setMuted(!muted)} aria-label="Music">
           {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5 text-gold" />}
         </button>
-        <span className="slot flex h-10 w-10 items-center justify-center" title={`Cloud: ${cloud}`}>
+        <span className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" title={`Cloud: ${cloud}`}>
           {cloud === "error" ? <CloudOff className="h-5 w-5 text-hp" /> : <Cloud className={`h-5 w-5 ${cloud === "saved" ? "text-r1" : "text-muted-foreground"}`} />}
         </span>
-        <button className="slot flex h-10 w-10 items-center justify-center" onClick={onProfile} aria-label="Profile"><IdCard className="h-5 w-5" /></button>
-        <button className="slot flex h-10 w-10 items-center justify-center" onClick={() => void leaveCharacter()} aria-label="Switch character" title="Switch character"><Users className="h-5 w-5" /></button>
-        <button className="slot flex h-10 w-10 items-center justify-center" onClick={async () => { if (await leaveCharacter()) await supabase.auth.signOut(); }} aria-label="Sign out"><LogOut className="h-5 w-5" /></button>
+        <button className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" onClick={onProfile} aria-label="Profile"><IdCard className="h-5 w-5" /></button>
+        <button className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" onClick={() => void leaveCharacter()} aria-label="Switch character" title="Switch character"><Users className="h-5 w-5" /></button>
+        <button className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" onClick={async () => { if (await leaveCharacter()) await supabase.auth.signOut(); }} aria-label="Sign out"><LogOut className="h-5 w-5" /></button>
       </div>
     </div>
   );
 }
 
+/** Keep the castle centred: it may be dragged, never past its own edges. */
+function castleClamp(el: HTMLDivElement | null, x: number, y: number) {
+  if (!el) return { x: 0, y: 0 };
+  const maxX = Math.max(0, (el.offsetWidth - window.innerWidth) / 2);
+  const maxY = Math.max(0, (el.offsetHeight - window.innerHeight) / 2);
+  return { x: Math.min(maxX, Math.max(-maxX, x)), y: Math.min(maxY, Math.max(-maxY, y)) };
+}
+
 function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
   const [hover, setHover] = useState<string | null>(null);
+  const map = useRef<HTMLDivElement>(null);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const drag = useRef<null | { x: number; y: number; ox: number; oy: number; moved: boolean }>(null);
+  // A tap must still open a building: only a real drag counts as panning.
+  const moved = useRef(false);
+  useEffect(() => {
+    const onResize = () => setOffset((o) => castleClamp(map.current, o.x, o.y));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   return (
-    <div className="absolute inset-0 flex items-center justify-center">
-      <div className="relative" style={{ width: "max(100vw, calc(100vh * 1.791))", aspectRatio: "1920 / 1072" }}>
+    <div
+      className="castle-view absolute inset-0 flex items-center justify-center overflow-hidden"
+      onPointerDown={(e) => {
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        drag.current = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y, moved: false };
+        moved.current = false;
+      }}
+      onPointerMove={(e) => {
+        const d = drag.current;
+        if (!d) return;
+        const dx = e.clientX - d.x;
+        const dy = e.clientY - d.y;
+        if (!d.moved && Math.abs(dx) + Math.abs(dy) < 10) return;
+        d.moved = true;
+        moved.current = true;
+        setOffset(castleClamp(map.current, d.ox + dx, d.oy + dy));
+      }}
+      onPointerUp={() => { drag.current = null; }}
+      onPointerCancel={() => { drag.current = null; }}
+    >
+      <div ref={map} className="castle-map relative" style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}>
         <img src={castle.url} alt="Blood moon castle" className="absolute inset-0 h-full w-full select-none" draggable={false} />
         {Array.from({ length: 14 }).map((_, i) => (
           <span key={i} className="anim-ember pointer-events-none absolute bottom-0 h-1 w-1 rounded-full bg-gold"
@@ -232,7 +270,7 @@ function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
         {CASTLE_BUILDINGS.map((b) => (
           <button key={b.id} className="hotspot" aria-label={b.name}
             style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.r * 2}%`, aspectRatio: "1" }}
-            onMouseEnter={() => setHover(b.id)} onMouseLeave={() => setHover(null)} onClick={() => onOpen(b.id)}>
+            onMouseEnter={() => setHover(b.id)} onMouseLeave={() => setHover(null)} onClick={(e) => { if (e.detail === 0 || !moved.current) onOpen(b.id); }}>
             <span className={`hotspot-label ${b.soon ? "opacity-60" : ""} absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded px-2 py-0.5 text-xs transition md:text-sm ${hover === b.id ? "scale-110" : "opacity-90"}`}>
               {b.name}{b.soon ? " · soon" : ""}
               {hover === b.id && <span className="block text-[10px] text-foreground/80">{b.desc}</span>}
@@ -293,7 +331,7 @@ const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof 
 
 function ShortcutBar({ open, onOpen }: { open: ShortcutTarget | null; onOpen: (t: ShortcutTarget) => void }) {
   return (
-    <nav aria-label="Shortcuts" className="game-panel pointer-events-auto absolute bottom-3 right-3 z-20 flex gap-1.5 p-1.5">
+    <nav aria-label="Shortcuts" className="game-panel bottom-nav shortcut-nav pointer-events-auto absolute bottom-3 right-3 z-20 flex gap-1.5 p-1.5">
       {SHORTCUTS.map(({ id, label, tip, Icon }) => (
         <button key={id} onClick={() => onOpen(id)} aria-label={label} aria-pressed={open === id}
           className={`slot group relative flex h-11 w-11 items-center justify-center transition hover:scale-110 ${open === id ? "ring-2 ring-gold" : ""}`}>
