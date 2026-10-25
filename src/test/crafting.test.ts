@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { heroStats, makeItem, newHero, INVENTORY_CAP } from "@/game/data";
-import { RECIPES, craft, fuseGem, insertGem, removeGem, summonAstral, equipAstral } from "@/game/crafting";
+import { RECIPES, craft, fuseGem, insertGem, removeGem, scrapItem, scrapYield, summonAstral, equipAstral } from "@/game/crafting";
 
 describe("gems, astrals, crafting", () => {
   it("a socketed ruby raises attack and removing returns the gem", () => {
@@ -52,5 +52,38 @@ describe("bag expansion", () => {
     expect(invCap({ bagRows: 2 })).toBe(56);
     expect(bagRowCost({})).toBe(5000);
     expect(bagRowCost({ bagRows: 1 })).toBe(10000);
+  });
+});
+
+describe("forge salvaging", () => {
+  it("breaks bagged gear into materials and returns socketed gems to the pouch", () => {
+    const h = newHero("T", "warrior");
+    const it = makeItem("warrior", 40, 4, "weapon");
+    it.gems = ["ruby:2", null];
+    h.inventory = [it];
+    h.gems = {};
+    const y = scrapYield(it);
+    expect(Number(y.ore)).toBeGreaterThan(0);
+    expect(scrapItem(h, it.id)).toBeNull();
+    expect(h.inventory).toHaveLength(0);
+    expect(h.mats?.ore).toBe(y.ore);
+    expect(h.gems["ruby:2"]).toBe(1);
+  });
+  it("never salvages worn gear and gives nothing for an unknown item", () => {
+    const h = newHero("T", "mage");
+    const worn = makeItem("mage", 30, 5, "armour");
+    h.equipment.armour = worn;
+    h.inventory = [];
+    expect(scrapItem(h, worn.id)).toMatch(/Equipped gear/);
+    expect(h.equipment.armour?.id).toBe(worn.id);
+    expect(h.mats?.ore ?? 0).toBe(0);
+    expect(scrapItem(h, "nope")).toMatch(/Equipped gear/);
+  });
+  it("rarer and higher level gear is worth more", () => {
+    const common = scrapYield(makeItem("archer", 5, 0, "boots"));
+    const mythic = scrapYield(makeItem("archer", 60, 5, "boots"));
+    expect(Number(mythic.ore)).toBeGreaterThan(Number(common.ore));
+    expect(Number(mythic.bossCore)).toBeGreaterThan(0);
+    expect(Number(common.bossCore ?? 0)).toBe(0);
   });
 });

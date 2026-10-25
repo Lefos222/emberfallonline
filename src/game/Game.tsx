@@ -33,7 +33,8 @@ import { Challenges } from "./Challenges";
 import { LongRoad } from "./LongRoad";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
-import { Gold, ItemCard, Panel, fmt } from "./ui";
+import { Diamonds, Gold, ItemCard, Panel, fmt } from "./ui";
+import { premiumState } from "./economy";
 import { CONQUEST_LEVEL, canEnterConquest } from "./data";
 
 const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
@@ -194,13 +195,14 @@ function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: 
         <button className={`slot h-14 w-14 overflow-hidden ${frameClass(frame)}`} onClick={onProfile} aria-label="Profile">
           <Portrait cls={hero.cls} gender={gender} className="w-full" />
         </button>
-        <div className="w-40">
+        <div className="w-24 sm:w-40">
           <div className="truncate font-display">{hero.name}</div>
           <div className="text-xs text-muted-foreground">Lv {hero.level}{hero.paragon ? ` · Asc ${hero.paragon}` : ""}</div>
           <XpBar hero={hero} />
         </div>
-        <div className="hidden flex-col text-sm sm:flex">
+        <div className="flex flex-col text-xs sm:text-sm">
           <Gold n={hero.gold} />
+          <Diamonds n={premiumState(hero).balance} />
           <span className="font-bold"><Trophy className="mr-1 inline h-4 w-4 text-r4" />{fmt(s.power)}</span>
         </div>
       </div>

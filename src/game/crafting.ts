@@ -28,6 +28,36 @@ export function addMats(h: CraftState, add: Mats) {
 export function hasMats(h: CraftState, need: Mats) { return (Object.entries(need) as [Mat, number][]).every(([k, v]) => matCount(h, k) >= v); }
 function spendMats(h: CraftState, need: Mats) { for (const [k, v] of Object.entries(need) as [Mat, number][]) h.mats![k] = matCount(h, k) - v; }
 
+/** Materials a piece of gear breaks down into at the Forge. Rarer and higher level gear yields more. */
+export function scrapYield(it: Item): Mats {
+  const tier = 1 + Math.floor(it.ilvl / 20);
+  const enh = Math.floor((it.enh ?? 0) / 2);
+  const out: Mats = { ore: (1 + it.rarity) * tier + enh };
+  if (it.rarity >= 2) out.fragment = tier + it.rarity - 1;
+  if (it.rarity >= 3) out.essence = 1 + Math.floor(it.rarity / 2) + enh;
+  if (it.rarity >= 4) out.sigil = 1 + Math.floor(it.rarity / 3);
+  if (it.rarity >= 4) out.bossCore = it.rarity >= 5 ? 2 : 1;
+  if (it.rarity >= 5) out.starshard = tier + 1;
+  return out;
+}
+
+/** Salvage a bagged item into materials. Socketed gems return to the pouch; worn gear is never touched. */
+export function scrapItem(h: CraftState, itemId: string): string | null {
+  const idx = h.inventory.findIndex((i) => i.id === itemId);
+  if (idx < 0) return "Equipped gear can't be salvaged - move it to your bag first";
+  const it = h.inventory[idx];
+  const gems = (it.gems ?? []).filter((g): g is string => !!g);
+  if (gems.length) {
+    const pouch = { ...(h.gems ?? {}) };
+    for (const g of gems) pouch[g] = (pouch[g] ?? 0) + 1;
+    h.gems = pouch;
+  }
+  addMats(h, scrapYield(it));
+  h.inventory.splice(idx, 1);
+  return null;
+}
+
+
 /** Materials earned from a won battle. Elites/bosses give better ingredients; higher levels give more. */
 export function battleMats(level: number, boss: boolean, rand = Math.random, elite = false): Mats {
   const out: Mats = { ore: 1 + Math.floor(level / 10) + Math.floor(rand() * 3) };
