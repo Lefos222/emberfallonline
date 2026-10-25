@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { X, Coins } from "lucide-react";
+import { X, Coins, Gem } from "lucide-react";
 import { GearIcon } from "./GearIcon";
 import { itemStats, itemScore, RARITIES, type Item } from "./data";
 
@@ -30,6 +30,16 @@ export function Gold({ n, className = "" }: { n: number; className?: string }) {
     </span>
   );
 }
+
+export function Diamonds({ n, className = "" }: { n: number; className?: string }) {
+  return (
+    <span className={"inline-flex items-center gap-1 font-bold text-r3 " + className} title="Diamonds">
+      <Gem className="h-4 w-4" />
+      {fmt(n)}
+    </span>
+  );
+}
+
 
 export function fmt(n: number) {
   if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";

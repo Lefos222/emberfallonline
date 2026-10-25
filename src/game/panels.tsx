@@ -14,6 +14,8 @@ import {
 import { refreshMerchant } from "./logic";
 import { update, useGame } from "./store";
 import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
+import { MatIcon } from "./MatIcon";
+import { MATS, scrapItem, scrapYield, sockets, type Mat } from "./crafting";
 import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
@@ -291,12 +293,23 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   const { hero } = useGame();
   const [selId, setSelId] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
+  const [armed, setArmed] = useState<string | null>(null);
   if (!hero) return null;
   const all: (Item & { eq?: boolean })[] = [
     ...WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean).map((i) => ({ ...i!, eq: true })),
     ...hero.inventory,
   ];
   const sel = all.find((i) => i.id === selId);
+  const salvage = () => {
+    if (!sel) return;
+    if (!hero.inventory.some((i) => i.id === sel.id)) { setMsg({ ok: false, t: "Equipped gear can't be salvaged - move it to your bag first" }); setArmed(null); return; }
+    if (armed !== sel.id) { setArmed(sel.id); setMsg(null); return; }
+    const gain = (Object.entries(scrapYield(sel)) as [Mat, number][]).map(([m, n]) => "+" + n + " " + MATS[m].name).join(" - ");
+    update((h) => { scrapItem(h, sel.id); });
+    setArmed(null);
+    setSelId(null);
+    setMsg({ ok: true, t: "Salvaged " + sel.name + ": " + gain });
+  };
   const enhance = () => {
     if (!sel) return;
     const cost = enhanceCost(sel);
@@ -315,7 +328,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
       {onCraft && <button className="btn-gold mb-4 w-full py-2" onClick={onCraft}><Hammer className="mr-2 inline h-4 w-4" />Open crafting recipes</button>}
       <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
         <div className="grid grid-cols-6 content-start gap-1.5">
-          {all.map((it) => <ItemSlot key={it.id} item={it} size={40} selected={it.id === selId} onClick={() => { setSelId(it.id); setMsg(null); }} />)}
+          {all.map((it) => <ItemSlot key={it.id} item={it} size={40} selected={it.id === selId} onClick={() => { setSelId(it.id); setArmed(null); setMsg(null); }} />)}
         </div>
         <div className="space-y-3">
           {sel ? (
@@ -328,6 +341,25 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
               <button className="btn-gold w-full py-3 text-lg" disabled={hero.gold < enhanceCost(sel)} onClick={enhance}>
                 <Hammer className="mr-2 inline" />Enhance +{sel.enh + 1}
               </button>
+
+              <div className="slot p-3">
+                <div className="mb-2 flex items-center gap-2 font-display text-sm"><Trash2 className="h-4 w-4" />Salvage into materials</div>
+                {hero.inventory.some((i) => i.id === sel.id) ? (
+                  <>
+                    <div className="mb-3 flex flex-wrap gap-2 text-xs">
+                      {(Object.entries(scrapYield(sel)) as [Mat, number][]).map(([m, n]) => (
+                        <span key={m} className="slot px-2 py-0.5"><MatIcon mat={m} size={14} /> {MATS[m].name} +{n}</span>
+                      ))}
+                      {sockets(sel).some(Boolean) && <span className="slot px-2 py-0.5">Socketed gems return to your pouch</span>}
+                    </div>
+                    <button className={"w-full py-2 " + (armed === sel.id ? "btn-blood" : "btn-ghost")} onClick={salvage}>
+                      {armed === sel.id ? "Confirm - destroy " + sel.name : "Salvage this piece"}
+                    </button>
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Equipped gear can't be salvaged - move it to your bag first.</p>
+                )}
+              </div>
               {msg && <div className={`anim-pop text-center font-display text-lg ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</div>}
             </>
           ) : <div className="py-16 text-center text-muted-foreground"><Hammer className="mx-auto mb-2 h-10 w-10" />Choose gear to empower</div>}
