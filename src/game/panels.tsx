@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { trainingCost, trainAttribute } from './building-content';
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Shield, Heart, Swords, Clover, Lock, Sparkles, Trophy, Hammer, RefreshCw, Trash2, Skull } from "lucide-react";
+import { Shield, Heart, Swords, Clover, Lock, Sparkles, Trophy, Hammer, RefreshCw, Trash2, Skull, Backpack } from "lucide-react";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import { adviseStrategy, generateQuests } from "@/lib/quests.functions";
@@ -313,20 +314,17 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   const { hero } = useGame();
   const [selId, setSelId] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
-  const [armed, setArmed] = useState<string | null>(null);
+  const [salvageOpen, setSalvageOpen] = useState(false);
   if (!hero) return null;
-  const all: (Item & { eq?: boolean })[] = [
-    ...WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean).map((i) => ({ ...i!, eq: true })),
-    ...hero.inventory,
-  ];
+  const equipped: (Item & { eq?: boolean })[] = WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean).map((i) => ({ ...i!, eq: true }));
+  const bag: (Item & { eq?: boolean })[] = hero.inventory.map((i) => ({ ...i, eq: false }));
+  const all: (Item & { eq?: boolean })[] = [...equipped, ...bag];
   const sel = all.find((i) => i.id === selId);
-  const salvage = () => {
-    if (!sel) return;
-    if (!hero.inventory.some((i) => i.id === sel.id)) { setMsg({ ok: false, t: "Equipped gear can't be salvaged - move it to your bag first" }); setArmed(null); return; }
-    if (armed !== sel.id) { setArmed(sel.id); setMsg(null); return; }
+  const doSalvage = () => {
+    if (!sel || sel.eq) return;
     const gain = (Object.entries(scrapYield(sel)) as [Mat, number][]).map(([m, n]) => "+" + n + " " + MATS[m].name).join(" - ");
     update((h) => { scrapItem(h, sel.id); });
-    setArmed(null);
+    setSalvageOpen(false);
     setSelId(null);
     setMsg({ ok: true, t: "Salvaged " + sel.name + ": " + gain });
   };
@@ -341,14 +339,32 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
       const target = pos ? h.equipment[pos] : h.inventory.find((i) => i.id === sel.id);
       if (target && ok) { target.enh++; recordEnhance(h, target.enh); }
     });
-    setMsg(ok ? { ok, t: `Success! +${sel.enh + 1}` } : { ok, t: "The metal cracked… failed" });
+    setMsg(ok ? { ok, t: "Success! +" + (sel.enh + 1) } : { ok, t: "The metal cracked… failed" });
   };
   return (
     <Panel title="Forge" onClose={onClose}>
       {onCraft && <button className="btn-gold mb-4 w-full py-2" onClick={onCraft}><Hammer className="mr-2 inline h-4 w-4" />Open crafting recipes</button>}
       <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
-        <div className="grid grid-cols-3 content-start gap-1.5 md:grid-cols-6">
-          {all.map((it) => <ItemSlot key={it.id} item={it} size={40} selected={it.id === selId} onClick={() => { setSelId(it.id); setArmed(null); setMsg(null); }} />)}
+        <div className="space-y-3">
+          {equipped.length > 0 && (
+            <div>
+              <div className="mb-1.5 flex items-center gap-1.5 font-display text-xs uppercase tracking-wide text-gold"><Shield className="h-3.5 w-3.5" /> Equipped · {equipped.length}</div>
+              <div className="grid grid-cols-3 content-start gap-1.5 md:grid-cols-6">
+                {equipped.map((it) => (
+                  <div key={it.id} className="relative">
+                    <ItemSlot item={it} size={40} selected={it.id === selId} onClick={() => { setSelId(it.id); setMsg(null); }} />
+                    <span className="pointer-events-none absolute left-0.5 top-0 rounded bg-gold px-1 text-[9px] font-black text-black">E</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <div>
+            <div className="mb-1.5 flex items-center gap-1.5 font-display text-xs uppercase tracking-wide text-muted-foreground"><Backpack className="h-3.5 w-3.5" /> In Bag · {bag.length}</div>
+            <div className="grid grid-cols-3 content-start gap-1.5 md:grid-cols-6">
+              {bag.length === 0 ? <p className="col-span-full py-4 text-center text-xs text-muted-foreground">Your bag is empty.</p> : bag.map((it) => <ItemSlot key={it.id} item={it} size={40} selected={it.id === selId} onClick={() => { setSelId(it.id); setMsg(null); }} />)}
+            </div>
+          </div>
         </div>
         <div className="space-y-3">
           {sel ? (
@@ -364,23 +380,44 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
 
               <div className="slot p-3">
                 <div className="mb-2 flex items-center gap-2 font-display text-sm"><Trash2 className="h-4 w-4" />Salvage into materials</div>
-                {hero.inventory.some((i) => i.id === sel.id) ? (
-                  <>
-                    <div className="mb-3 flex flex-wrap gap-2 text-xs">
-                      {(Object.entries(scrapYield(sel)) as [Mat, number][]).map(([m, n]) => (
-                        <span key={m} className="slot px-2 py-0.5"><MatIcon mat={m} size={14} /> {MATS[m].name} +{n}</span>
-                      ))}
-                      {sockets(sel).some(Boolean) && <span className="slot px-2 py-0.5">Socketed gems return to your pouch</span>}
-                    </div>
-                    <button className={"w-full py-2 " + (armed === sel.id ? "btn-blood" : "btn-ghost")} onClick={salvage}>
-                      {armed === sel.id ? "Confirm - destroy " + sel.name : "Salvage this piece"}
-                    </button>
-                  </>
-                ) : (
-                  <p className="text-xs text-muted-foreground">Equipped gear can't be salvaged - move it to your bag first.</p>
-                )}
+                {sel.eq && <p className="mb-2 text-xs font-semibold text-hp">This piece is equipped — it can't be salvaged until you unequip it.</p>}
+                <div className="mb-3 flex flex-wrap gap-2 text-xs">
+                  {(Object.entries(scrapYield(sel)) as [Mat, number][]).map(([m, n]) => (
+                    <span key={m} className="slot px-2 py-0.5"><MatIcon mat={m} size={14} /> {MATS[m].name} +{n}</span>
+                  ))}
+                  {sockets(sel).some(Boolean) && <span className="slot px-2 py-0.5">Socketed gems return to your pouch</span>}
+                </div>
+                <button className="w-full py-2 btn-ghost" onClick={() => setSalvageOpen(true)}>Salvage this piece</button>
               </div>
-              {msg && <div className={`anim-pop text-center font-display text-lg ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</div>}
+              {msg && <div className={"anim-pop text-center font-display text-lg " + (msg.ok ? "text-r1" : "text-hp")}>{msg.t}</div>}
+              <AlertDialog open={salvageOpen} onOpenChange={setSalvageOpen}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{sel.eq ? "Equipped — can't salvage" : "Salvage " + sel.name + "?"}</AlertDialogTitle>
+                    <AlertDialogDescription asChild>
+                      <div className="space-y-2 text-sm">
+                        {sel.eq ? (
+                          <p className="text-hp">This item is currently equipped. Unequip it to your bag first if you want to salvage it.</p>
+                        ) : (
+                          <>
+                            <p>Destroy <b>{sel.name}</b> for materials: {(Object.entries(scrapYield(sel)) as [Mat, number][]).map(([m, n]) => n + " " + MATS[m].name).join(", ")}.</p>
+                            {sockets(sel).some(Boolean) && <p>Socketed gems return to your pouch.</p>}
+                            <p className="text-muted-foreground">This cannot be undone.</p>
+                          </>
+                        )}
+                      </div>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    {sel.eq ? (
+                      <AlertDialogAction>Got it</AlertDialogAction>
+                    ) : (
+                      <AlertDialogAction className="btn-blood" onClick={doSalvage}>Confirm salvage</AlertDialogAction>
+                    )}
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </>
           ) : <div className="py-16 text-center text-muted-foreground"><Hammer className="mx-auto mb-2 h-10 w-10" />Choose gear to empower</div>}
           <div className="slot p-3">
