@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { ArrowUp, Gem, Hammer, Sparkles, X } from "lucide-react";
 import { invCap, SLOTS, WEAR_SLOTS, wornCompare, makeItem, type Item, type Slot } from "./data";
 import { update, useGame } from "./store";
+import { GemCutWindow, GemPicker } from "./GemWindows";
 import { Gold, ItemCard, Panel, fmt } from "./ui";
 import {
-  ASTRAL_BASES, ASTRAL_MAX_LVL, ASTRAL_MILESTONES, ASTRAL_RARITY, ASTRAL_SLOTS, FUSE_COUNT, GEMS, GEM_CUT_COST, GEM_MAX_TIER, MATS, RECIPES, SUMMON_COST,
+  ASTRAL_BASES, ASTRAL_MAX_LVL, ASTRAL_MILESTONES, ASTRAL_RARITY, ASTRAL_SLOTS, FUSE_COUNT, GEMS, GEM_MAX_TIER, MATS, RECIPES, SUMMON_COST,
   astralUpgradeCost, astralValue, craft, craftBlocker, cutGem, equipAstral, fuseCost, fuseGem, gemName, gemValue, insertGem, matCount, parseGem, removeGem,
-  socketCount, sockets, STAT_LABEL, recipeMats, summonAstral, upgradeAstral, absorbAstral, GEM_TYPES, GEM_TARGET_COST, type GemType, type Mat,
+  socketCount, sockets, STAT_LABEL, recipeMats, summonAstral, upgradeAstral, absorbAstral, type Mat,
 } from "./crafting";
 
 function MatsBar() {
@@ -34,7 +35,8 @@ function useToast() {
 export function GemWorkshop({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
   const [selId, setSelId] = useState<string | null>(null);
-  const [cutType, setCutType] = useState<GemType | 'random'>('random');
+  const [pick, setPick] = useState<number | null>(null);
+  const [cutOpen, setCutOpen] = useState(false);
   const [toast, say] = useToast();
   if (!hero) return null;
   const gear = [...WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean) as Item[], ...hero.inventory].filter((i) => socketCount(i) > 0);
@@ -64,9 +66,12 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
               <ItemCard item={sel} />
               <div className="mt-3 space-y-2">
                 {sockets(sel).map((g, i) => (
-                  <div key={i} className="slot flex items-center justify-between px-3 py-2 text-sm">
-                    {g ? <span><GemIcon type={parseGem(g)!.type} />{gemName(g)} (+{gemValue(g)} {STAT_LABEL[GEMS[parseGem(g)!.type].stat]})</span> : <span className="text-muted-foreground">Empty socket</span>}
-                    {g && <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => act((h) => { const e = removeGem(h, sel.id, i); say(!e, e ?? "Gem removed"); })}><X className="inline h-3 w-3" /> Remove</button>}
+                  <div key={i} className="slot flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                    {g ? <span><GemIcon type={parseGem(g)!.type} />{gemName(g)} (+{gemValue(g)} {STAT_LABEL[GEMS[parseGem(g)!.type].stat]})</span>
+                       : <span className="text-muted-foreground">Empty socket {i + 1}</span>}
+                    {g
+                      ? <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => act((h) => { const e = removeGem(h, sel.id, i); say(!e, e ?? "Gem removed"); })}><X className="inline h-3 w-3" /> Remove</button>
+                      : <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => setPick(i)}><Gem className="inline h-3 w-3" /> Insert gem</button>}
                   </div>
                 ))}
               </div>
@@ -76,12 +81,9 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
         <div>
           <div className="mb-2 flex items-center justify-between font-display">
             Your gems
-            <Button size="sm" disabled={matCount(hero, 'ore') < (cutType === 'random' ? GEM_CUT_COST.ore : GEM_TARGET_COST.ore) || hero.gold < (cutType === 'random' ? GEM_CUT_COST.gold : GEM_TARGET_COST.gold) || (cutType !== 'random' && matCount(hero, 'essence') < GEM_TARGET_COST.essence)}
-              onClick={() => act((h) => { const k = cutGem(h, Math.random, cutType === 'random' ? undefined : cutType); say(!!k && k.includes(':'), k && k.includes(':') ? `Cut a ${gemName(k)}!` : k ?? ''); })}>
-              <Gem className="h-4 w-4" />Cut gem
-            </Button>
+            <Button size="sm" onClick={() => setCutOpen(true)}><Gem className="h-4 w-4" />Cut a gem</Button>
           </div>
-          <label className="mb-3 block text-xs">Gem cut<select aria-label="Gem cut" className="mt-1 w-full rounded border border-border bg-background p-2" value={cutType} onChange={e=>setCutType(e.target.value as GemType | 'random')}><option value="random">Random · 8 ore / 150 gold</option>{GEM_TYPES.map(t=><option key={t} value={t}>{GEMS[t].name} · 24 ore / 450 gold / 1 essence</option>)}</select></label>
+          <p className="mb-3 text-xs text-muted-foreground">Cutting opens a window that shows exactly what the gem will do before you spend anything.</p>
           {owned.length === 0 && <p className="text-sm text-muted-foreground">No gems yet. Cut some from Ember Ore.</p>}
           <div className="space-y-1">
             {owned.map(([k, n]) => {
@@ -105,6 +107,15 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       </div>
+      {pick !== null && sel && (
+        <GemPicker hero={hero} socket={pick} onClose={() => setPick(null)}
+          onCut={() => { setPick(null); setCutOpen(true); }}
+          onPick={(key) => act((h) => { const e = insertGem(h, sel.id, pick, key); say(!e, e ?? "Gem socketed"); setPick(null); })} />
+      )}
+      {cutOpen && (
+        <GemCutWindow hero={hero} onClose={() => setCutOpen(false)}
+          onCut={(type) => act((h) => { const k = cutGem(h, Math.random, type); say(!!k && k.includes(':'), k && k.includes(':') ? `Cut a ${gemName(k)}!` : k ?? ''); setCutOpen(false); })} />
+      )}
     </Panel>
   );
 }
