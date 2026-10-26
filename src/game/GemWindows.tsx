@@ -97,7 +97,7 @@ export function GemCutWindow({ hero, onClose, onCut }: { hero: Hero; onClose: ()
             const one = gemKey(t, 1);
             return (
               <div key={t} className="slot flex items-start gap-3 p-3">
-                <span className="mt-0.5 h-6 w-6 shrink-0 rounded-full border border-border" style={{ background: g.color }} />
+                <span className="mt-0.5 shrink-0"><GemIcon type={t} size={32} /></span>
                 <div className="min-w-0 text-sm">
                   <div className="font-display text-gold">{gemName(one)}</div>
                   <div>+{gemValue(one)} {STAT_LABEL[g.stat]} per socketed gem</div>
