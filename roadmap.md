@@ -24,6 +24,7 @@
 - [x] Real gathering journey survived refresh; concurrent replay, ownership rejection and invalid request checks passed; 153 regression tests passed.
 
 ## Next phases — intentionally not implemented together
+- [~] World map foundation: the World Tree in the castle opens a pannable world map with six authored regions, 30 monster lairs, four tier world bosses, six gathering grounds, eight landmarks and real player castles; a castle relocates up to 3 times a day through `world_castle_move` (plot list, cap and UTC clock server-owned; first placement free). **Not yet verified**: no preview environment was available (no compose config, nothing served on port 3000) and `drizzle/migrations/0011_world_map.sql` has not been applied to the hosted project, so only a syntax check plus code review has run. Walkable 2.5D world with on-foot monster hunting, visiting another player's castle and castle attacks remain to be built.
 - [ ] Production crafting from gathered resources, profession quests/milestone claims and broad Codex/reputation. Depends on secure item-consumption design.
 - [ ] Mounts/pets/bonding and estate editor/visitors. Depends on collectible ownership and placement implementation.
 - [~] Atomic auction economy/trade. Verified end to end: list → buy → cancel, buyer debit, ore delivery, seller credit, self-buy blocked, sold listings can't be re-bought. Remaining: authoritative currency ownership so a seller's open preview can't overwrite credited gold with a stale client save (observed once in testing).

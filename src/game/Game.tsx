@@ -30,6 +30,7 @@ import { Arena, Campaign, Forge, HeroHall, Market, Oracle, Temple, XpBar, heroFi
 import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
 import { LongRoad } from "./LongRoad";
+import { WorldMap } from "./WorldMap";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
 import { Diamonds, Gold, ItemCard, Panel, fmt } from "./ui";
@@ -164,6 +165,7 @@ export function Game() {
           {open === "temple" && <Temple onClose={() => setOpen(null)} />}
           {open === "market" && <Market onClose={() => setOpen(null)} />}
           {open === "arena" && <Arena onClose={() => setOpen(null)} start={start} />}
+          {open === "worldtree" && <WorldMap onClose={() => setOpen(null)} />}
           {open === "oracle" && <Oracle onClose={() => setOpen(null)} start={start} />}
         </>
       )}
@@ -268,7 +270,7 @@ function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
             style={{ left: `${(i * 37) % 100}%`, animationDuration: `${6 + (i % 5)}s`, animationDelay: `${i * 0.7}s` }} />
         ))}
         {CASTLE_BUILDINGS.map((b) => (
-          <button key={b.id} className="hotspot" aria-label={b.name}
+          <button key={b.id} className={`hotspot ${b.id === "worldtree" ? "world-tree-hotspot" : ""}`} aria-label={b.name}
             style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.r * 2}%`, aspectRatio: "1" }}
             onMouseEnter={() => setHover(b.id)} onMouseLeave={() => setHover(null)} onClick={(e) => { if (e.detail === 0 || !moved.current) onOpen(b.id); }}>
             <span className={`hotspot-label ${b.soon ? "opacity-60" : ""} absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded px-2 py-0.5 text-xs transition md:text-sm ${hover === b.id ? "scale-110" : "opacity-90"}`}>
