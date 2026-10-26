@@ -142,6 +142,7 @@ export function Game() {
           {open === 'premium' && <PremiumShop onClose={()=>setOpen(null)} />}
           {open === 'auction' && <AuctionHouse onClose={()=>setOpen(null)} />}
           {open === 'sanctuary' && <Sanctuary onClose={()=>setOpen(null)} start={start} />}
+          {open === 'anctree' && <Sanctuary onClose={()=>setOpen(null)} start={start} />}
           {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
           {open === "friends" && (
             <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-background/70 p-4 pt-16" onClick={() => setOpen(null)}>
@@ -287,6 +288,7 @@ const SOON_TEXT: Record<string, string> = {
   dungeon: "Replayable dungeons with boss encounters, entry requirements and reward tables.",
   tower: "Collect Astrals, equip them into slots and upgrade them for stat bonuses.",
   sanctuary: "A multi-stage Ancestral questline unlocking the Ancestral skill tree and equipment.",
+  anctree: "Ancestral Tower — climb endless floors of 100k+ BR bosses for ancestral crafting materials.",
   gems: "Socket gems into gear, combine fragments and upgrade gems for real stat bonuses.",
   guild: "Create or join guilds, with roles, contribution, guild chat and co-op bosses.",
   friends: "Add friends, see who is online and send private messages.",

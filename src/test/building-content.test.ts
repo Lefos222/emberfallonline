@@ -7,9 +7,9 @@ import { eventEncounter, liveOccurrence } from '@/game/event-encounters';
 import { makeDrop } from '@/game/logic';
 
 describe('building content preserves existing progression', () => {
-  it('ancestral opening preserves the existing level 30 and cleared stage 30 gates',()=>{
-    const h=newHero('Test','warrior');h.level=29;h.stage=31;expect(advanceAncestral(h)).toBe(false);
-    h.level=30;h.stage=30;expect(advanceAncestral(h)).toBe(false);
+  it('ancestral opening preserves the existing level 80 and cleared stage 30 gates',()=>{
+    const h=newHero('Test','warrior');h.level=79;h.stage=31;expect(advanceAncestral(h)).toBe(false);
+    h.level=80;h.stage=30;expect(advanceAncestral(h)).toBe(false);
     h.stage=31;expect(advanceAncestral(h)).toBe(true);expect(h.anc?.step).toBe(1);
   });
   it('only eligible bosses drop relics and five relics unlock trials',()=>{

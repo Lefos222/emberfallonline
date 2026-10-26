@@ -45,15 +45,17 @@ export function spendBlitz(h: Hero, now = Date.now()) {
   h.conquest = { ...(h.conquest ?? {}), blitzDay: blitzDay(now), blitzUsed: blitzesUsed(h, now) + 1 };
 }
 
-/** Equipment materials the Conquest Gate sells for tokens. */
-export interface TokenOffer { id: string; mat: Mat; qty: number; cost: number }
+/** Equipment materials and items the Conquest Gate sells for tokens. */
+export interface TokenOffer { id: string; mat: Mat; qty: number; cost: number; gold?: number; name?: string }
 export const TOKEN_OFFERS: TokenOffer[] = [
+  { id: "goldchest", mat: "ore", qty: 0, cost: 30, gold: 5000, name: "Gold Chest" },
   { id: "ore", mat: "ore", qty: 10, cost: 20 },
   { id: "hide", mat: "hide", qty: 10, cost: 20 },
   { id: "bloom", mat: "bloom", qty: 5, cost: 25 },
   { id: "essence", mat: "essence", qty: 2, cost: 40 },
   { id: "fragment", mat: "fragment", qty: 2, cost: 50 },
   { id: "crystal", mat: "crystal", qty: 1, cost: 60 },
+  { id: "enchantstone", mat: "enchantStone", qty: 2, cost: 80 },
   { id: "sigil", mat: "sigil", qty: 1, cost: 120 },
   { id: "starshard", mat: "starshard", qty: 1, cost: 150 },
   { id: "bossCore", mat: "bossCore", qty: 1, cost: 300 },
@@ -65,6 +67,7 @@ export function buyTokenOffer(h: Hero, id: string): string | null {
   if (!o) return "Unknown offer";
   if (conquestTokens(h) < o.cost) return `Not enough Conquest Tokens — ${o.cost} needed`;
   addConquestTokens(h, -o.cost);
+  if (o.gold) { h.gold += o.gold; return null; }
   addMats(h, { [o.mat]: o.qty });
   return null;
 }

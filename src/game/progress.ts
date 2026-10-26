@@ -29,7 +29,7 @@ export function recordEnhance(h: ProgressState, newEnh: number) {
 }
 
 // ---------- Achievements ----------
-export type AchCategory = "Combat" | "Bosses" | "Progression" | "Crafting" | "Arena" | "Collection";
+export type AchCategory = "Combat" | "Bosses" | "Progression" | "Crafting" | "Arena" | "Collection" | "Conquest" | "Ancestral" | "Enchanting";
 export interface Achievement { id: string; cat: AchCategory; name: string; desc: string; goal: number; gold: number; title?: string; value: (h: ProgressState) => number }
 
 const rec = (h: ProgressState) => ({ ...emptyRecord(), ...(h.record ?? {}) });
@@ -47,6 +47,24 @@ export const ACHIEVEMENTS: Achievement[] = [
   ...tiers({ cat: "Crafting", desc: "Enhance one item to +N", value: (h) => rec(h).bestEnh }, "enhmax", ["Tempered", "Flawless"], [5, 10], [1000, 10000], [undefined, "Flawless"]),
   ...tiers({ cat: "Arena", desc: "Win arena fights", value: (h) => rec(h).arenaWins }, "arena", ["Gladiator", "Arena Champion"], [5, 50], [800, 12000], ["Gladiator", "Champion of Blood"]),
   ...tiers({ cat: "Collection", desc: "Wear a full 6-piece gear set", value: (h) => Math.max(0, ...activeSets(h.equipment).map((s) => s.count)) }, "set", ["Matched", "Fully Armored"], [2, 6], [500, 8000], [undefined, "Paragon of Steel"]),
+  // Conquest achievements
+  ...tiers({ cat: "Conquest", desc: "Climb Endless Conquest floors", value: (h) => h.spire - 1 }, "spire2", ["Daring Climber", "Tower Climber", "Unstoppable"], [25, 50, 200], [3000, 15000, 50000], [undefined, undefined, "Unstoppable"]),
+  ...tiers({ cat: "Conquest", desc: "Collect Conquest Tokens total", value: (h) => h.conquest?.tokens ?? 0 }, "ctokens", ["Token Hoarder", "Token Baron"], [200, 2000], [1000, 10000], [undefined, "Token Baron"]),
+  // Ancestral achievements
+  ...tiers({ cat: "Ancestral", desc: "Reach level 80 and unlock Ancestral", value: (h) => (h.anc?.done ? 1 : 0) }, "ancunlock", ["Heritage Awakened"], [1], [25000], ["Heritage Bearer"]),
+  ...tiers({ cat: "Ancestral", desc: "Clear Ancestral Tower floors", value: (h) => h.ancTower?.bestFloor ?? 0 }, "ancfloor", ["Ancestral Initiate", "Ancestral Adept", "Ancestral Master"], [1, 5, 20], [2000, 10000, 50000], [undefined, undefined, "Ancestral Master"]),
+  // Enchanting achievements
+  ...tiers({ cat: "Enchanting", desc: "Enhance one item to +N", value: (h) => rec(h).bestEnh }, "enh2", ["Refined", "Exquisite", "Transcendent"], [8, 12, 15], [3000, 15000, 40000], [undefined, undefined, "Transcendent"]),
+  // More crafting achievements
+  ...tiers({ cat: "Crafting", desc: "Craft items at the Forge", value: (h) => h.crafts ?? 0 }, "crafts", ["Forgehand", "Master Forgehand", "Legendary Forgehand"], [5, 25, 100], [500, 3000, 15000], [undefined, undefined, "Legendary Forgehand"]),
+  // More arena achievements
+  ...tiers({ cat: "Arena", desc: "Win arena fights", value: (h) => rec(h).arenaWins }, "arena2", ["Duelist", "Centurion", "Arena Legend"], [20, 100, 250], [2000, 10000, 30000], [undefined, undefined, "Arena Legend"]),
+  // More boss achievements
+  ...tiers({ cat: "Bosses", desc: "Defeat bosses", value: (h) => rec(h).bosses }, "boss2", ["Boss Hunter", "Scourge of Bosses", "World Ender"], [25, 100, 250], [2000, 10000, 50000], [undefined, "Scourge", "World Ender"]),
+  // Progression: Paragon levels
+  ...tiers({ cat: "Progression", desc: "Gain Ascension levels", value: (h) => h.paragon }, "asc2", ["Exalted", "Celestial"], [25, 50], [40000, 100000], ["Exalted", "Celestial"]),
+  // Collection: Astrals
+  ...tiers({ cat: "Collection", desc: "Own distinct Astral species", value: (h) => new Set((h.astrals ?? []).map((a) => a.base)).size }, "astral2", ["Star Tamer", "Astral Lord"], [5, 10], [2000, 10000], [undefined, "Astral Lord"]),
 ];
 
 export const achProgress = (h: ProgressState, a: Achievement) => Math.min(a.goal, Math.max(0, a.value(h)));

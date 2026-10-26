@@ -10,7 +10,7 @@ import { Gold, fmt } from "./ui";
 
 /**
  * The Conquest Gate's token side: blitz the floors you have already beaten and spend
- * Conquest Tokens on the materials that equipment recipes need.
+ * Conquest Tokens on materials, gold chests and enchantment stones.
  */
 export function ConquestTokens({ hero }: { hero: Hero }) {
   const cap = floorsCleared(hero);
@@ -21,7 +21,6 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
   const left = blitzesLeft(hero);
   const blocked = blitzBlocker(hero, usable);
   const preview = blocked ? null : blitzRewards(usable);
-  // The floor the player can blitz to is their own record, so the control never offers more.
   const jump = (n: number) => { setTarget(n); setMsg(null); };
 
   return (
@@ -61,16 +60,23 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
           <span>Conquest Tokens</span>
           <span>{fmt(tokens)}</span>
         </div>
-        <p className="text-xs text-muted-foreground">Every cleared floor pays tokens. Spend them on the materials equipment recipes need.</p>
+        <p className="text-xs text-muted-foreground">Every cleared floor pays tokens. Spend them on materials, gold chests and enchantment stones.</p>
         <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
-          {TOKEN_OFFERS.map((o) => (
-            <button key={o.id} className="slot flex items-center justify-between gap-2 p-2 text-left text-xs" disabled={tokens < o.cost}
-              title={`${MATS[o.mat].desc} (${MATS[o.mat].src})`}
-              onClick={() => update((h) => { const err = buyTokenOffer(h, o.id); setMsg(err ? { ok: false, t: err } : { ok: true, t: `Bought ${MATS[o.mat].name} ×${o.qty}` }); })}>
-              <span className="flex min-w-0 items-center gap-1.5"><MatIcon mat={o.mat} size={18} /><span className="truncate">{MATS[o.mat].name} ×{o.qty}</span></span>
-              <span className="shrink-0 font-bold text-gold">{fmt(o.cost)} t</span>
-            </button>
-          ))}
+          {TOKEN_OFFERS.map((o) => {
+            const isGold = !!o.gold;
+            const label = isGold ? (o.name ?? "Gold Chest") : `${MATS[o.mat].name} ×${o.qty}`;
+            return (
+              <button key={o.id} className="slot flex items-center justify-between gap-2 p-2 text-left text-xs" disabled={tokens < o.cost}
+                title={isGold ? `Open for ${o.gold} gold` : `${MATS[o.mat].desc} (${MATS[o.mat].src})`}
+                onClick={() => update((h) => { const err = buyTokenOffer(h, o.id); setMsg(err ? { ok: false, t: err } : { ok: true, t: isGold ? `Opened ${o.name} — +${fmt(o.gold!)} gold!` : `Bought ${MATS[o.mat].name} ×${o.qty}` }); })}>
+                <span className="flex min-w-0 items-center gap-1.5">
+                  {isGold ? <span className="text-gold">🪙</span> : <MatIcon mat={o.mat} size={18} />}
+                  <span className="truncate">{label}</span>
+                </span>
+                <span className="shrink-0 font-bold text-gold">{fmt(o.cost)} t</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
