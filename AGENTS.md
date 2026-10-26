@@ -24,3 +24,11 @@
 - Professions persist timers, XP, resource ownership and request history under protected save.srv.gathering through owner-checked SQL RPCs; browser services flush queued saves, validate replies and adopt without resaving to prevent forged discoveries or refresh duplication.
 - Optional saved skill loadouts filter the existing unlocked combat kit at battle entry and always preserve its basic attack; absent loadouts retain legacy kits so progression and old saves remain compatible.
 - Diamond prices, gold-pack rates and VIP costs live in both `src/game/economy.ts` and the `premium_diamonds_vip` SQL functions; keep them identical (same rule as Lucky Shot odds). The server is authoritative.
+
+## Base44 dev environment
+
+- Run with `docker compose -f docker-compose.base44.yml up -d`; the web service binds host port 3000. It is a Vite + TanStack Start SSR app using Bun (`bun.lock`, `bunfig.toml`). The compose service installs Bun inside `node:22-slim`, runs `bun install --frozen-lockfile`, then `bun run dev --host 0.0.0.0 --port 3000 --strictPort`. Source is bind-mounted, so edits hot-reload.
+- Supabase publishable keys (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`) already live in the committed `.env`; Vite loads them at dev time. They are publishable/anon keys, not user secrets — no secrets card is needed to boot.
+- The whole game (castle, world map, battles) is gated behind Supabase auth + character selection (`src/game/Game.tsx`). An anonymous preview shows the sign-in page; to exercise the World Tree → World Map you must be signed in with a character.
+- World Map (`src/game/worldmap.ts`, `src/game/WorldMap.tsx`, `src/game/WorldField.tsx`): castle positions are stored on the hero save (`hero.world`) and mirrored into the publicly-readable `heroes.stats` JSONB column as `wx`/`wy` by the save flow in `src/game/store.ts` (`performSave`), so every player sees every other castle's position with no schema migration. Relocation is capped at 3/day via `hero.worldMoves` (UTC date strings). The 2.5D field is a side-scroller driven by `requestAnimationFrame`; walking into a monster calls the existing `StartBattle` combat path.
+

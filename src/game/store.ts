@@ -41,7 +41,7 @@ async function performSave(): Promise<boolean> {
   const s = heroStats(h);
   const now = new Date().toISOString();
   const { error } = await supabase.from("heroes").update({
-    level: h.level, power: s.power, stats: { ...s, paragon: h.paragon } as never, save: h as never,
+    level: h.level, power: s.power, stats: { ...s, paragon: h.paragon, wx: h.world?.x, wy: h.world?.y } as never, save: h as never,
     updated_at: now, last_played: now,
   }).eq("id", id);
   lastSavedAt = now;
