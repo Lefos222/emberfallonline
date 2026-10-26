@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircle, Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2, BookOpen, Leaf, CalendarDays, Gem, Gavel } from "lucide-react";
+import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircle, Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2, BookOpen, CalendarDays, Gem, Gavel } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
 import { GuildHall } from "./GuildHall";
@@ -8,7 +8,6 @@ import { WorldChat } from "./WorldChat";
 import { FriendsPanel } from "./FriendsPanel";
 import { ScrollShop } from "./ScrollShop";
 import { Bestiary } from "./Bestiary";
-import { PassiveTree } from "./PassiveTree";
 import { EventCalendar } from "./EventCalendar";
 import { Sanctuary } from './Sanctuary';
 import { Expeditions } from './Expeditions';
@@ -120,7 +119,6 @@ export function Game() {
             <Button variant="ghost" size="icon" aria-label="Mailbox" title="Mailbox" onClick={() => setOpen("mailbox")}><Mail /></Button>
             <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><Crosshair /></Button>
             <Button variant="ghost" size="icon" aria-label="Battle Scrolls" title="Battle Scrolls" onClick={() => setOpen("scrolls")}><ScrollText /></Button>
-            <Button variant="ghost" size="icon" aria-label="Passive Tree" title="Passive Tree" onClick={() => setOpen("passives")}><Leaf /></Button>
             <Button variant="ghost" size="icon" aria-label="Bestiary" title="Bestiary" onClick={() => setOpen("bestiary")}><BookOpen /></Button>
             <Button variant="ghost" size="icon" aria-label="Profession Lodge" title="Profession Lodge" onClick={()=>setOpen('professions')}><Anvil/></Button>
             <Button variant="ghost" size="icon" aria-label="Premium Shop" title="Premium Shop" onClick={()=>setOpen('premium')}><Gem/></Button>
@@ -137,7 +135,6 @@ export function Game() {
           {open === "scrolls" && <ScrollShop onClose={() => setOpen(null)} />}
           {open === "hall" && <ThroneHall onClose={() => setOpen(null)} />}
           {open === "armory" && <HeroHall onClose={() => setOpen(null)} />}
-          {open === "passives" && <PassiveTree onClose={() => setOpen(null)} />}
           {open === "bestiary" && <Bestiary h={hero} onClose={() => setOpen(null)} />}
           {open === "road" && <LongRoad onClose={() => setOpen(null)} start={start} />}
           {open === "calendar" && <EventCalendar h={hero} onClose={() => setOpen(null)} start={start} />}
@@ -318,7 +315,7 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "passives" | "bestiary" | "road" | "calendar" | 'professions' | 'premium' | 'auction';
+type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "road" | "calendar" | 'professions' | 'premium' | 'auction';
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof Backpack }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", Icon: Backpack },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", Icon: Anvil },

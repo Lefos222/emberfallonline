@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { CLASSES } from "./data";
 import { update, useGame } from "./store";
-import { Panel, fmt } from "./ui";
+import { fmt } from "./ui";
 import { PASSIVES, PASSIVE_TIER_REQ, insightBank, learnPassive, passiveBlocker, passiveRank, spentInsight, totalInsight, type PassiveFx } from "./passives";
 
 const labels: Record<keyof PassiveFx, string> = { hpPct: "max HP", atkPct: "attack", defPct: "defense", crit: "critical chance", dodge: "dodge", critDmg: "critical damage", pen: "penetration", heal: "Healing Power", block: "Block", acc: "accuracy" };
 const effects = (fx: PassiveFx, rank: number) => (Object.keys(fx) as (keyof PassiveFx)[]).map(k => `+${Number(((fx[k] ?? 0) * rank).toFixed(2))}% ${labels[k]}`).join(" · ");
 
-export function PassiveTree({ onClose }: { onClose: () => void }) {
+/** Rendered as the Passives tab inside the Throne Hall's skill tree (no own Panel). */
+export function PassiveTreeContent() {
   const { hero } = useGame();
   const [selected, setSelected] = useState("field_medicine");
   const [hovered, setHovered] = useState<string | null>(null);
@@ -16,7 +17,7 @@ export function PassiveTree({ onClose }: { onClose: () => void }) {
   const rank = passiveRank(hero, detail.id);
   const reason = passiveBlocker(hero, detail.id);
   return (
-    <Panel title="Passive Tree" onClose={onClose} wide>
+    <>
       <div className="mb-4 font-display text-lg">Insight: <span className="text-gold">{fmt(insightBank(hero))}</span><span className="ml-3 text-sm text-muted-foreground">{fmt(spentInsight(hero))} spent · {fmt(totalInsight(hero))} earned</span></div>
       <p className="mb-4 text-sm text-muted-foreground">Earn Insight from victorious campaign stages, elites, bosses, dungeons, endless waves and achievement claims. Ranks are permanent. Block remains capped at 25%; Healing Power at 50%.</p>
       <div className="grid gap-4 md:grid-cols-2">
@@ -57,6 +58,6 @@ export function PassiveTree({ onClose }: { onClose: () => void }) {
           {reason ?? `Learn rank ${rank + 1} · ${detail.cost} Insight`}
         </button>
       </section>
-    </Panel>
+    </>
   );
 }

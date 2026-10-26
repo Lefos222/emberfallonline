@@ -8,10 +8,11 @@ import { SPEC_LEVEL, TIER_REQ, TREES, freePoints, learnBlocker, resetCost, spent
 import { Button } from "@/components/ui/button";
 import { SkillPreview } from "./SkillPreview";
 import { SkillLoadout } from './SkillLoadout';
+import { PassiveTreeContent } from "./PassiveTree";
 
 export function ThroneHall({ onClose }: { onClose: () => void }) {
   const { hero, gender } = useGame();
-  const [tab, setTab] = useState<"overview" | "skills" | "ach" | "history">("skills");
+  const [tab, setTab] = useState<"overview" | "skills" | "passives" | "ach" | "history">("skills");
   const [confirmReset, setConfirmReset] = useState(false);
   const [previewId, setPreviewId] = useState<string | null>(null);
   if (!hero) return null;
@@ -43,6 +44,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
     <Panel title="Throne Hall" onClose={onClose} wide>
       <GameTabs label="Throne Hall" value={tab} onChange={setTab} tabs={[
         { id: "skills", name: "Skill Tree" },
+        { id: "passives", name: "Passives" },
         { id: "overview", name: "Progression" },
         { id: "ach", name: "Achievements", badge: claimable },
         { id: "history", name: "Battle History" },
@@ -118,6 +120,8 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
             ))}
           </div>
         </div>
+      ) : tab === "passives" ? (
+        <PassiveTreeContent />
       ) : (
         <>
           <SkillLoadout />
