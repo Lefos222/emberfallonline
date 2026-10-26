@@ -3,7 +3,7 @@ import { Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MatIcon } from "./MatIcon";
 import { MATS } from "./crafting";
-import { blitz, blitzBlocker, blitzRewards, buyTokenOffer, conquestTokens, floorsCleared, TOKEN_OFFERS } from "./conquest";
+import { BLITZ_PER_DAY, blitz, blitzBlocker, blitzRewards, blitzesLeft, buyTokenOffer, conquestTokens, floorsCleared, TOKEN_OFFERS } from "./conquest";
 import type { Hero } from "./data";
 import { update } from "./store";
 import { Gold, fmt } from "./ui";
@@ -18,6 +18,7 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
   const tokens = conquestTokens(hero);
   const usable = Math.min(Math.max(1, target || 1), Math.max(1, cap));
+  const left = blitzesLeft(hero);
   const blocked = blitzBlocker(hero, usable);
   const preview = blocked ? null : blitzRewards(usable);
   // The floor the player can blitz to is their own record, so the control never offers more.
@@ -26,10 +27,14 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
   return (
     <div className="mt-5 grid gap-4 md:grid-cols-2">
       <div className="slot p-3">
-        <div className="mb-1 flex items-center gap-2 font-display text-gold"><Zap className="h-4 w-4" />Blitz</div>
+        <div className="mb-1 flex items-center justify-between gap-2 font-display text-gold">
+          <span className="flex items-center gap-2"><Zap className="h-4 w-4" />Blitz</span>
+          <span className="text-xs font-bold">Blitzes today {Math.min(left, BLITZ_PER_DAY)}/{BLITZ_PER_DAY}</span>
+        </div>
         <p className="text-xs text-muted-foreground">
           Instantly clear floors 1 to a floor you have already beaten. Your record is floor {cap};
           blitzing pays the same XP, gold and tokens as fighting those floors again.
+          The blitz is the only limit — the floors themselves never stop, and the allowance returns at Greek midnight.
         </p>
         <div className="mt-3 flex flex-wrap items-end gap-2">
           <label className="text-xs">Blitz to floor
@@ -37,7 +42,7 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
               onChange={(e) => jump(Math.max(1, Number(e.target.value) || 1))}
               className="mt-1 block w-24 rounded border border-border bg-background p-2" />
           </label>
-          <Button disabled={!!blocked} onClick={() => update((h) => {
+          <Button disabled={!!blocked || left < 1} onClick={() => update((h) => {
             const err = blitz(h, usable);
             setMsg(err ? { ok: false, t: err } : { ok: true, t: `Blitzed ${usable} floor${usable === 1 ? "" : "s"} — +${fmt(preview?.xp ?? 0)} XP, +${fmt(preview?.gold ?? 0)} gold, +${fmt(preview?.tokens ?? 0)} tokens` });
           })}>Blitz</Button>
