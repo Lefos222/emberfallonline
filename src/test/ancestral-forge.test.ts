@@ -9,7 +9,7 @@ function heir(): Hero {
   h.level = 80;
   h.gold = 20_000_000;
   h.anc = { step: 5, relics: 5, done: true };
-  h.mats = { ore: 99_999, essence: 99_999, bossCore: 99_999, fragment: 99_999, sigil: 99_999, crystal: 99_999, starshard: 99_999 };
+  h.mats = { ore: 99_999, essence: 99_999, bossCore: 99_999, fragment: 99_999, sigil: 99_999, crystal: 99_999, starshard: 99_999, ancientBone: 99_999, voidShard: 99_999, emberHeart: 99_999 };
   return h;
 }
 
@@ -20,15 +20,15 @@ describe("ancestral forge tab", () => {
     for (const r of ANCESTRAL_RECIPES) {
       expect(r.ancestral).toBe(true);
       expect(r.rarity).toBe(6);
-      expect(r.minLevel).toBe(60);
+      expect(r.minLevel).toBe(80);
     }
   });
 
-  it("costs millions of gold and a vault of materials", () => {
+  it("costs millions of gold and a vault of materials including ancestral-only ones", () => {
     for (const r of ANCESTRAL_RECIPES) {
       expect(recipeGold(r, 60)).toBeGreaterThan(2_000_000);
       expect(Object.keys(r.mats).length).toBeGreaterThanOrEqual(5);
-      expect(r.mats.ore ?? 0).toBeGreaterThanOrEqual(1000);
+      expect(r.mats.ancientBone ?? 0).toBeGreaterThan(0);
       for (const id of ["legend", "mythic", "voidforged"]) {
         const standard = RECIPES.find((x) => x.id === id);
         if (!standard) throw new Error(id);
@@ -63,6 +63,7 @@ describe("ancestral forge tab", () => {
     expect(typeof out).not.toBe("string");
     expect(h.gold).toBe(20_000_000 - recipeGold(r, 80));
     expect(h.mats!.ore).toBe(99_999 - (r.mats.ore ?? 0));
+    expect(h.mats!.ancientBone).toBe(99_999 - (r.mats.ancientBone ?? 0));
     const made = h.inventory[0];
     expect(made.rarity).toBe(6);
     expect(made.anc).toBe(true);

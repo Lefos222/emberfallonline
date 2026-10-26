@@ -8,6 +8,7 @@ import { returnedSave } from "./services-contract";
 import { Panel } from "./ui";
 import { RequestStatus, useRequest } from "./Rewards";
 import { GuildEvents } from './GuildEvents';
+import { GuildContribute, GuildShopPanel, GuildSkillTower } from './GuildShop';
 
 export function GuildHall({ onClose }: { onClose: () => void }) {
   const { heroId, hero } = useGame();
@@ -143,6 +144,11 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
         </div>)}
       </div>}
       <GuildEvents />
+      <div className="mt-5">
+        <GuildContribute />
+        <GuildShopPanel />
+        <GuildSkillTower />
+      </div>
       <div className="mt-5 grid gap-6 md:grid-cols-[1fr_1.4fr]">
         <div><h4 className="font-display text-xl">Members</h4>{members.map((m) => <div key={m.hero_id} className="flex justify-between gap-2 border-b border-border py-3 text-sm"><span>{names[m.hero_id] ?? "Member"}</span><span className="text-muted-foreground">{m.role}</span></div>)}
           {(role === "leader" || role === "officer") && <form className="mt-4 flex gap-2" onSubmit={(e) => { e.preventDefault(); void request.run(async () => { await mutate((id) => supabase.rpc("guild_invite", { _hero: id, _target_name: target.trim() })); setTarget(""); }); }}><input aria-label="Hero name to invite" className="slot min-w-0 flex-1 px-2" required value={target} onChange={(e) => setTarget(e.target.value)} /><Button size="icon" aria-label="Invite hero" disabled={request.busy}><UserPlus /></Button></form>}

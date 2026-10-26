@@ -2,7 +2,7 @@ import type { HeroClass, Item, Slot } from "./data";
 import { scaledGold } from "./gold";
 
 // ---------- Materials ----------
-export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal";
+export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone" | "ancientBone" | "voidShard" | "emberHeart";
 export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity: number }> = {
   ore: { name: "Ember Ore", desc: "Common ore used in crafting and gem cutting.", src: "Every won battle (more in higher regions)", rarity: 0 },
   essence: { name: "Soul Essence", desc: "Distilled souls used in crafting and gem fusion.", src: "Tougher fights, elites, bosses", rarity: 2 },
@@ -13,6 +13,10 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   hide: { name: "Beast Hide", desc: "Hide stripped from slain monsters. Refines into Armor Fragments.", src: "Every won battle (more in higher regions)", rarity: 1 },
   bloom: { name: "Emberbloom", desc: "Fire-touched herb. Refines into Soul Essence.", src: "Won battles, elites and gathering journeys", rarity: 1 },
   crystal: { name: "Arcane Crystal", desc: "Crystallised mana. Refines into Starshards.", src: "Elites and Dungeon Gate bosses", rarity: 2 },
+  enchantStone: { name: "Enchantment Stone", desc: "A resonant stone used to enchant gear at the Forge instead of gold. Higher success rate.", src: "Conquest Gate shop and Guild shop", rarity: 3 },
+  ancientBone: { name: "Ancient Relic Bone", desc: "Bone of a long-dead ancestor. Used only in Ancestral equipment crafting.", src: "Ancestral Tower boss floors", rarity: 4 },
+  voidShard: { name: "Void Crystal Shard", desc: "A shard of crystallised void. Used only in Ancestral equipment crafting.", src: "Ancestral Tower boss floors 2+", rarity: 4 },
+  emberHeart: { name: "Ember Heart Core", desc: "The still-beating heart of an ancestral titan. Used only in Ancestral equipment crafting.", src: "Ancestral Tower boss floors 3+", rarity: 5 },
 };
 type Mats = Partial<Record<Mat, number>>;
 
@@ -340,13 +344,13 @@ export const RECIPES: Recipe[] = [
  *  Every piece costs millions of gold once the hero's level is taken into account, plus a vault of
  *  materials — this is the long-term goal the whole forge feeds into. */
 export const ANCESTRAL_RECIPES: Recipe[] = [
-  { id: "ancestral_helmet", name: "Ancestral Helm", slot: "helmet", rarity: 6, ancestral: true, minLevel: 80, gold: 1200000, desc: "Ancestral headpiece. Three gem sockets and the highest bonus in the game.", mats: { ore: 1400, essence: 360, bossCore: 100, fragment: 600, sigil: 180, crystal: 240 } },
-  { id: "ancestral_armour", name: "Ancestral Plate", slot: "armour", rarity: 6, ancestral: true, minLevel: 80, gold: 1800000, desc: "Ancestral chestpiece, the heart of the set.", mats: { ore: 1800, essence: 460, bossCore: 140, fragment: 800, sigil: 240, crystal: 300 } },
-  { id: "ancestral_boots", name: "Ancestral Greaves", slot: "boots", rarity: 6, ancestral: true, minLevel: 80, gold: 1100000, desc: "Ancestral greaves, forged around a crystal core.", mats: { ore: 1300, essence: 340, bossCore: 90, fragment: 550, sigil: 170, crystal: 220 } },
-  { id: "ancestral_belt", name: "Ancestral Girdle", slot: "belt", rarity: 6, ancestral: true, minLevel: 80, gold: 1100000, desc: "Ancestral warbelt, bound with elite sigils.", mats: { ore: 1300, essence: 340, bossCore: 90, fragment: 550, sigil: 170, crystal: 220 } },
-  { id: "ancestral_weapon", name: "Ancestral Relic Weapon", slot: "weapon", rarity: 6, ancestral: true, minLevel: 80, gold: 1600000, desc: "Ancestral weapon, quenched in starshard light.", mats: { ore: 1700, essence: 440, bossCore: 130, fragment: 700, sigil: 230, starshard: 180 } },
-  { id: "ancestral_ring", name: "Ancestral Signet", slot: "ring", rarity: 6, ancestral: true, minLevel: 80, gold: 1000000, desc: "Ancestral ring set with a star-cut stone.", mats: { ore: 1000, essence: 400, bossCore: 80, fragment: 400, sigil: 150, starshard: 200, crystal: 320 } },
-  { id: "ancestral_talisman", name: "Ancestral Reliquary", slot: "talisman", rarity: 6, ancestral: true, minLevel: 80, gold: 1050000, desc: "Ancestral reliquary, holding the last of the old magic.", mats: { ore: 1050, essence: 420, bossCore: 85, fragment: 420, sigil: 155, starshard: 220, crystal: 340 } },
+  { id: "ancestral_helmet", name: "Ancestral Helm", slot: "helmet", rarity: 6, ancestral: true, minLevel: 80, gold: 1200000, desc: "Ancestral headpiece. Three gem sockets and the highest bonus in the game.", mats: { ore: 800, essence: 200, bossCore: 40, fragment: 300, sigil: 80, crystal: 100, ancientBone: 20, voidShard: 10, emberHeart: 5 } },
+  { id: "ancestral_armour", name: "Ancestral Plate", slot: "armour", rarity: 6, ancestral: true, minLevel: 80, gold: 1800000, desc: "Ancestral chestpiece, the heart of the set.", mats: { ore: 1000, essence: 250, bossCore: 60, fragment: 400, sigil: 100, crystal: 120, ancientBone: 30, voidShard: 15, emberHeart: 8 } },
+  { id: "ancestral_boots", name: "Ancestral Greaves", slot: "boots", rarity: 6, ancestral: true, minLevel: 80, gold: 1100000, desc: "Ancestral greaves, forged around a crystal core.", mats: { ore: 700, essence: 180, bossCore: 30, fragment: 250, sigil: 70, crystal: 90, ancientBone: 18, voidShard: 8, emberHeart: 4 } },
+  { id: "ancestral_belt", name: "Ancestral Girdle", slot: "belt", rarity: 6, ancestral: true, minLevel: 80, gold: 1100000, desc: "Ancestral warbelt, bound with elite sigils.", mats: { ore: 700, essence: 180, bossCore: 30, fragment: 250, sigil: 70, crystal: 90, ancientBone: 18, voidShard: 8, emberHeart: 4 } },
+  { id: "ancestral_weapon", name: "Ancestral Relic Weapon", slot: "weapon", rarity: 6, ancestral: true, minLevel: 80, gold: 1600000, desc: "Ancestral weapon, quenched in starshard light.", mats: { ore: 900, essence: 230, bossCore: 50, fragment: 350, sigil: 90, starshard: 80, ancientBone: 25, voidShard: 12, emberHeart: 6 } },
+  { id: "ancestral_ring", name: "Ancestral Signet", slot: "ring", rarity: 6, ancestral: true, minLevel: 80, gold: 1000000, desc: "Ancestral ring set with a star-cut stone.", mats: { ore: 600, essence: 220, bossCore: 25, fragment: 200, sigil: 60, starshard: 90, crystal: 120, ancientBone: 15, voidShard: 8, emberHeart: 4 } },
+  { id: "ancestral_talisman", name: "Ancestral Reliquary", slot: "talisman", rarity: 6, ancestral: true, minLevel: 80, gold: 1050000, desc: "Ancestral reliquary, holding the last of the old magic.", mats: { ore: 650, essence: 240, bossCore: 30, fragment: 220, sigil: 65, starshard: 100, crystal: 130, ancientBone: 16, voidShard: 10, emberHeart: 5 } },
 ];
 /** Armor slots: Rare and better armor exists only through crafting. */
 export const ARMOR_SLOTS: Slot[] = ["helmet", "armour", "boots", "belt"];

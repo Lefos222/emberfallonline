@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import { adviseStrategy } from "@/lib/quests.functions";
 import {
-  attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
+  attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceStoneChance, enchantStoneCost, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
   CONQUEST_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, type Attr, type EnemyType, type Hero, type HeroClass, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import { refreshMerchant } from "./logic";
@@ -323,6 +323,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
   const [armed, setArmed] = useState<string | null>(null);
   const [warn, setWarn] = useState<Item | null>(null);
+  const [useStone, setUseStone] = useState(false);
   if (!hero) return null;
   const equipped = WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean) as Item[];
   const bagged = hero.inventory;
@@ -355,16 +356,31 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   };
   const enhance = () => {
     if (!sel) return;
-    const cost = enhanceCost(sel, hero.level);
-    if (hero.gold < cost) return;
-    const ok = Math.random() < enhanceChance(sel);
-    update((h) => {
-      h.gold -= cost;
-      const pos = sel.eq ? posOf(h.equipment, sel.id) : undefined;
-      const target = pos ? h.equipment[pos] : h.inventory.find((i) => i.id === sel.id);
-      if (target && ok) { target.enh++; recordEnhance(h, target.enh); }
-    });
-    setMsg(ok ? { ok, t: `Success! +${sel.enh + 1}` } : { ok, t: "The metal cracked… failed" });
+    if (useStone) {
+      const stoneCost = enchantStoneCost(sel);
+      if (matCount(hero, "enchantStone") < stoneCost) return;
+      const ok = Math.random() < enhanceStoneChance(sel);
+      update((h) => {
+        const m = { ...(h.mats ?? {}) };
+        m.enchantStone = (m.enchantStone ?? 0) - stoneCost;
+        h.mats = m;
+        const pos = sel.eq ? posOf(h.equipment, sel.id) : undefined;
+        const target = pos ? h.equipment[pos] : h.inventory.find((i) => i.id === sel.id);
+        if (target && ok) { target.enh++; recordEnhance(h, target.enh); }
+      });
+      setMsg(ok ? { ok, t: `Success! +${sel.enh + 1} (Stone)` } : { ok, t: "The stone cracked… failed" });
+    } else {
+      const cost = enhanceCost(sel, hero.level);
+      if (hero.gold < cost) return;
+      const ok = Math.random() < enhanceChance(sel);
+      update((h) => {
+        h.gold -= cost;
+        const pos = sel.eq ? posOf(h.equipment, sel.id) : undefined;
+        const target = pos ? h.equipment[pos] : h.inventory.find((i) => i.id === sel.id);
+        if (target && ok) { target.enh++; recordEnhance(h, target.enh); }
+      });
+      setMsg(ok ? { ok, t: `Success! +${sel.enh + 1}` } : { ok, t: "The metal cracked… failed" });
+    }
   };
   return (
     <Panel title="Forge" onClose={onClose}>
@@ -397,11 +413,17 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
           {sel ? (
             <>
               <ItemCard item={sel} />
-              <div className="flex items-center justify-between text-sm">
-                <span>Chance <b className="text-gold">{Math.round(enhanceChance(sel) * 100)}%</b></span>
-                <Gold n={enhanceCost(sel, hero.level)} />
+              <div className="flex gap-1 text-sm">
+                <button className={`flex-1 py-1.5 text-xs ${!useStone ? "btn-gold" : "btn-ghost"}`} onClick={() => setUseStone(false)}>Gold</button>
+                <button className={`flex-1 py-1.5 text-xs ${useStone ? "btn-gold" : "btn-ghost"}`} onClick={() => setUseStone(true)}>Enchantment Stone</button>
               </div>
-              <button className="btn-gold w-full py-3 text-lg" disabled={hero.gold < enhanceCost(sel, hero.level)} onClick={enhance}>
+              <div className="flex items-center justify-between text-sm">
+                <span>Chance <b className="text-gold">{Math.round((useStone ? enhanceStoneChance(sel) : enhanceChance(sel)) * 100)}%</b>{useStone && <span className="ml-1 text-xs text-r1">+15% stone bonus</span>}</span>
+                {useStone
+                  ? <span className="flex items-center gap-1"><MatIcon mat="enchantStone" size={18} /> {matCount(hero, "enchantStone")}/{enchantStoneCost(sel)}</span>
+                  : <Gold n={enhanceCost(sel, hero.level)} />}
+              </div>
+              <button className="btn-gold w-full py-3 text-lg" disabled={useStone ? matCount(hero, "enchantStone") < enchantStoneCost(sel) : hero.gold < enhanceCost(sel, hero.level)} onClick={enhance}>
                 <Hammer className="mr-2 inline" />Enhance +{sel.enh + 1}
               </button>
 

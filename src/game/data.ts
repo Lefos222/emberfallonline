@@ -10,6 +10,7 @@ import { astralFx, gemFx, type Astral, type BonusFx, type Mat } from "./crafting
 import { setFx, type BattleEntry, type CombatRecord } from "./progress";
 import { scaledGold } from "./gold";
 import { drillFx } from "./drills";
+import { guildFx } from "./guild-tower";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -168,6 +169,10 @@ export function buyPrice(it: Item, level = 1) { return scaledGold(sellValue(it) 
 /** Enhancing at the Forge: the item's own level and the hero's level both raise the price. */
 export function enhanceCost(it: Item, level = 1) { return scaledGold(it.ilvl * 10 * Math.pow(it.enh + 1, 1.5), level); }
 export function enhanceChance(it: Item) { return Math.max(0.2, 1 - it.enh * 0.08); }
+/** Enchantment Stones needed to enhance: 1 per 3 enhancement levels. */
+export const enchantStoneCost = (it: Item) => 1 + Math.floor(it.enh / 3);
+/** Using enchantment stones boosts success chance by 15%. */
+export const enhanceStoneChance = (it: Item) => Math.min(1, enhanceChance(it) + 0.15);
 
 // ---------- Wearing gear ----------
 /** Which wear position a worn item occupies. */
@@ -270,6 +275,12 @@ export interface Hero {
   /** Bestiary entries the character has defeated, by bestiary id. */
   kills?: Record<string, number>;
   weekly?: { week: number; kills: number; claimed: boolean };
+  /** Guild coins earned by contributing gold; spent in the guild shop and skill tower. */
+  guildCoins?: number;
+  /** Guild skill tower ranks by skill id (see guild-tower.ts). */
+  guildSkills?: Record<string, number>;
+  /** Ancestral Tower progression: next fightable floor and deepest cleared (see ancestral-tower.ts). */
+  ancTower?: { floor: number; bestFloor: number };
 }
 
 export function newHero(name: string, cls: HeroClass): Hero {
@@ -316,17 +327,18 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   const xg = opts.gear ? gemFx(h.equipment) : null; const xa = opts.talents ? astralFx(h) : null;
   // Barracks drills are the hero's permanent training track beside the attribute points (see drills.ts).
   const dr = opts.talents ? drillFx(h) : null;
-  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xg?.[k] ?? 0) + (xa?.[k] ?? 0) + (dr?.[k] ?? 0);
+  const gf2 = opts.talents ? guildFx(h) : null;
+  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xg?.[k] ?? 0) + (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0);
   const sf0 = opts.gear ? setFx(h.equipment) : { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
   const gf = opts.gear ? gemFx(h.equipment) : null;
   const af = opts.talents ? astralFx(h) : null;
   const sf = {
-    atkPct: sf0.atkPct + (gf?.atkPct ?? 0) + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0),
-    defPct: sf0.defPct + (gf?.defPct ?? 0) + (af?.defPct ?? 0) + (dr?.defPct ?? 0),
-    hpPct: sf0.hpPct + (gf?.hpPct ?? 0) + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0),
-    crit: sf0.crit + (gf?.crit ?? 0) + (af?.crit ?? 0) + (dr?.crit ?? 0),
+    atkPct: sf0.atkPct + (gf?.atkPct ?? 0) + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0),
+    defPct: sf0.defPct + (gf?.defPct ?? 0) + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0),
+    hpPct: sf0.hpPct + (gf?.hpPct ?? 0) + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0),
+    crit: sf0.crit + (gf?.crit ?? 0) + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0),
   };
-  tf.dodge += (gf?.dodge ?? 0) + (af?.dodge ?? 0) + (dr?.dodge ?? 0); tf.critDmg += (gf?.critDmg ?? 0) + (af?.critDmg ?? 0);
+  tf.dodge += (gf?.dodge ?? 0) + (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0); tf.critDmg += (gf?.critDmg ?? 0) + (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0);
   const pa = 1 + (tf.atkPct + sf.atkPct) / 100, ph = 1 + (tf.hpPct + sf.hpPct) / 100, pd = 1 + (tf.defPct + sf.defPct) / 100;
   const c = CLASSES[h.cls];
   const items = opts.gear ? (Object.values(h.equipment).filter(Boolean) as Item[]) : [];
@@ -343,7 +355,7 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   const mdef = Math.round((pd + ex('mdefPct') / 100) * ((5 + L * 2.5 + at.vit * 1 + at.int * 1.5) * c.def + g.def * 0.8) * p);
   const crit = Math.min(60, +(5 + c.crit + at.agi * 0.2 + g.crit + tf.crit + sf.crit).toFixed(1));
   const critDmg = Math.min(300, Math.round(150 + at.agi * 0.3 + at.str * 0.15 + tf.critDmg));
-  const pen = Math.min(40, +(at.str * 0.08 + at.int * 0.08 + h.paragon * 0.1 + tf.pen + (MAGIC[h.cls] ? ex('mpen') : (gf?.pen ?? 0) + (af?.pen ?? 0))).toFixed(1));
+  const pen = Math.min(40, +(at.str * 0.08 + at.int * 0.08 + h.paragon * 0.1 + tf.pen + (MAGIC[h.cls] ? ex('mpen') : (gf?.pen ?? 0) + (af?.pen ?? 0) + (gf2?.pen ?? 0))).toFixed(1));
   const acc = Math.min(30, +(at.agi * 0.08 + L * 0.05 + ex('acc')).toFixed(1));
   const block = Math.min(25, +ex('block').toFixed(1));
   const heal = Math.min(50, +ex('heal').toFixed(1));
@@ -484,6 +496,7 @@ export const BUILDINGS = [
   { id: "dungeon", name: "Dungeon Gate", x: 24, y: 80, r: 4, desc: "Boss challenges & elites · Lv 20+", soon: false },
   { id: "tower", name: "Magic Tower", x: 66, y: 74, r: 4, desc: "Summon & upgrade Astrals", soon: false },
   { id: "sanctuary", name: "Ancestral Sanctuary", x: 87, y: 42, r: 5, desc: "Ancestral trials & heirloom crafting", soon: false , shortcut: true },
+  { id: "anctree", name: "Ancestral Tree", x: 80, y: 62, r: 5, desc: "Ancestral Tower · 100k BR · Lv 80+", soon: false },
   { id: "gems", name: "Gem Workshop", x: 54.5, y: 71, r: 4, desc: "Cut, socket & fuse gems", soon: false },
   { id: "guild", name: "Guild Hall", x: 35, y: 55, r: 4, desc: "Guilds & guild chat", soon: false },
   { id: "friends", name: "Friends", x: 0, y: 0, r: 0, desc: "Friends & messages", soon: false, shortcut: true },
