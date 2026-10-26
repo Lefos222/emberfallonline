@@ -9,9 +9,11 @@ import { recordEnhance } from "./progress";
 import { adviseStrategy } from "@/lib/quests.functions";
 import {
   attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
-  SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, type Attr, type EnemyType, type Hero, type HeroClass, type Item, type Slot, type Stats, type WearSlot,
+  CONQUEST_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, type Attr, type EnemyType, type Hero, type HeroClass, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import { refreshMerchant } from "./logic";
+import { addConquestTokens, floorTokens } from "./conquest";
+import { ConquestTokens } from "./ConquestGate";
 import { update, useGame } from "./store";
 import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { MatIcon } from "./MatIcon";
@@ -111,7 +113,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             {powerBreakdown(hero).map((p) => (
               <div key={p.label} className="flex justify-between"><span>{p.label}</span><span>+{fmt(p.power)}</span></div>
             ))}
-            <div className="mt-1 text-muted-foreground">{hero.level < 20 ? `Conquest unlocks at level 20` : hero.level < 80 ? `Ascension begins at level 80` : `Ascending — each level grants +2% to all stats`}</div>
+            <div className="mt-1 text-muted-foreground">{hero.level < CONQUEST_LEVEL ? `Conquest unlocks at level ${CONQUEST_LEVEL}` : hero.level < 80 ? `Ascension begins at level 80` : `Ascending — each level grants +2% to all stats`}</div>
           </div>
         </div>
         <div>
@@ -250,7 +252,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   const zone = zoneOf(stage);
 
   const fight = () => start({
-    title: spire ? `Endless Conquest · Stage ${stage}` : `${zone.name} · Stage ${stage}`,
+    title: spire ? `Endless Conquest · Floor ${stage}` : `${zone.name} · Stage ${stage}`,
     auto,
     right: { ...foe, name: foe.boss ? `${foe.name}` : foe.name },
     onResult: async (won, xpMultiplier = 1) => {
@@ -258,14 +260,17 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
       const { grant, rollLoot, addLoot } = await import("./logic");
       let lines: string[] = [];
       let loot: Item | null = null;
+      // Clearing a floor pays Conquest Tokens; deeper floors pay more.
+      const tokens = spire ? floorTokens(stage) : 0;
       update((h) => {
         const { levels } = grant(h, scrollXp(rw.xp, xpMultiplier), rw.gold);
         loot = rollLoot(h, stage, foe.boss || spire ? 1 : 0.45, spire ? 2 : foe.boss ? 2 : 0);
         if (loot) addLoot(h, loot);
+        if (tokens) addConquestTokens(h, tokens);
         if (spire && stage === h.spire) h.spire++;
         if (!spire && stage === h.stage) h.stage++;
         h.wins++;
-        lines = [`+${fmt(scrollXp(rw.xp, xpMultiplier))} XP`, `+${fmt(rw.gold)} gold`, ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+        lines = [`+${fmt(scrollXp(rw.xp, xpMultiplier))} XP`, `+${fmt(rw.gold)} gold`, ...(tokens ? [`+${tokens} Conquest Tokens`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
       });
       if (stage === max) setStage(stage + 1);
       return { lines, loot };
@@ -305,9 +310,8 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
           <button className="btn-gold w-full py-3 text-xl" onClick={fight}><Swords className="mr-2 inline" />FIGHT</button>
         </div>
       </div>
+      {spire && <ConquestTokens hero={hero} />}
       <Advisor hero={hero} stats={s} foe={foe} key={stage + (spire ? "s" : "c")} />
-      <div>
-      </div>
     </Panel>
   );
 }

@@ -27,7 +27,7 @@ export const wearOf = (s: Slot): WearSlot[] => (s === "ring" ? ["ring", "ring2"]
 export type GearRecord = Partial<Record<WearSlot, Item>>;
 
 export const MAX_LEVEL = 80;
-export const CONQUEST_LEVEL = 20;
+export const CONQUEST_LEVEL = 10;
 export const canEnterConquest = (level: number) => level >= CONQUEST_LEVEL;
 export const INVENTORY_CAP = 40;
 export const BAG_ROW = 8;
@@ -257,6 +257,8 @@ export interface Hero {
   insight?: number;
   /** Endless "Long Road" progression beyond the campaign (see longroad.ts). */
   road?: { stage: number; wave: number; best: number; cleared: number };
+  /** Endless Conquest: tokens earned from cleared floors and spent in the Conquest Gate (see conquest.ts). */
+  conquest?: { tokens?: number };
   /** Bestiary entries the character has defeated, by bestiary id. */
   kills?: Record<string, number>;
   weekly?: { week: number; kills: number; claimed: boolean };
@@ -434,7 +436,7 @@ export const BUILDINGS = [
   { id: "forge", name: "Blacksmith", x: 63.5, y: 44, r: 4.5, desc: "Enhance & salvage gear", soon: false },
   { id: "oracle", name: "Quest Board", x: 45.5, y: 47, r: 4, desc: "AI-generated quests", soon: false , shortcut: true },
   { id: "portal", name: "Campaign Gate", x: 72, y: 54, r: 5.5, desc: "Campaign stages", soon: false },
-  { id: "spire", name: "Conquest Gate", x: 17, y: 46, r: 5, desc: "Endless Conquest · Lv 20+", soon: false },
+  { id: "spire", name: "Conquest Gate", x: 17, y: 46, r: 5, desc: "Endless Conquest · Lv 10+", soon: false },
   { id: "arena", name: "Arena", x: 50, y: 31, r: 6.5, desc: "Fight real players", soon: false },
   { id: "market", name: "Royal Treasury", x: 44, y: 82, r: 5, desc: "Gold & merchant", soon: false },
   { id: "dungeon", name: "Dungeon Gate", x: 24, y: 80, r: 4, desc: "Boss challenges & elites · Lv 20+", soon: false },

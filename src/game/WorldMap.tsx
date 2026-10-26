@@ -5,7 +5,7 @@ import { useGame } from "./store";
 import { Gold, Panel } from "./ui";
 import type { StartBattle } from "./panels";
 import { completeWorldRaid, loadWorldMap } from "./worldmap-services";
-import { MAP_NODES, RAID_LIMITS, canRaid, mapFoe, nodeDone, raidsLeft, type MapNode, type WorldMapState } from "./worldmap";
+import { MAP_NODES, RAID_LIMITS, canRaid, mapFoe, nodeUses, raidsLeft, type MapNode, type WorldMapState } from "./worldmap";
 
 const KIND_STYLE = {
   gold: { ring: "ring-sky-400", dot: "bg-sky-400", label: "Gold mine", Icon: Gem },
@@ -72,14 +72,14 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
             <img src={mapImg} alt="World map" className="h-auto w-full select-none" draggable={false} loading="lazy" width={1536} height={1024} />
             {MAP_NODES.map((n) => {
               const { ring, dot, Icon } = KIND_STYLE[n.kind];
-              const done = nodeDone(state, n.id);
-              const locked = !done && !canRaid(state, n);
+              const uses = nodeUses(state, n.id);
+              const locked = !canRaid(state, n);
               return (
                 <button
                   key={n.id}
                   aria-label={`${n.name} (${KIND_STYLE[n.kind].label})`}
-                  disabled={done || locked}
-                  className={`absolute flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-background/60 bg-background/70 ring-2 backdrop-blur-sm transition hover:scale-125 ${ring} ${done || locked ? "opacity-40" : ""}`}
+                  disabled={locked}
+                  className={`absolute flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-background/60 bg-background/70 ring-2 backdrop-blur-sm transition hover:scale-125 ${ring} ${locked ? "opacity-40" : ""}`}
                   style={{ left: `${n.x}%`, top: `${n.y}%` }}
                   onMouseEnter={() => setHover(n.id)}
                   onMouseLeave={() => setHover(null)}
@@ -87,11 +87,12 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                 >
                   <Icon className="h-4 w-4" />
                   <span className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ${dot}`} />
+                  {uses > 0 && <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 rounded bg-background/85 px-1 text-[9px] font-bold leading-tight text-gold">×{uses}</span>}
                   {hover === n.id && (
                     <span role="tooltip" className="hotspot-label pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-44 -translate-x-1/2 whitespace-normal rounded px-2 py-1 text-left text-xs">
                       <b>{n.name}</b> · {KIND_STYLE[n.kind].label}
                       <span className="block text-[10px] text-foreground/80">{n.desc}</span>
-                      <span className="block text-[10px]">{done ? "Cleared today" : locked ? "Daily limit reached" : "Tap to raid"}</span>
+                      <span className="block text-[10px]">{locked ? "Daily allowance spent" : uses > 0 ? `Cleared ${uses}× today · tap to raid` : "Tap to raid"}</span>
                     </span>
                   )}
                 </button>
@@ -99,7 +100,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
             })}
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Win the fight to claim the node. Gold mines pay <Gold n={500} />+ scaling with level, ore dungeons drop ore and Soul Essence, and world bosses drop Boss Cores and Starshards. Rewards are granted by the server once per node per day.
+            Win the fight to claim the node. Gold mines pay <Gold n={500} />+ scaling with level, ore dungeons drop ore and Soul Essence, and world bosses drop Boss Cores and Starshards. Rewards are granted by the server on every win; each raid type has its own daily allowance and a node can be raided again while it lasts.
           </p>
         </>
       )}
