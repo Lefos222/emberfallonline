@@ -24,5 +24,5 @@ export async function completeWorldRaid(node: string): Promise<{ reward: Record<
     return object(data);
   });
   localStorage.removeItem(`ef-pending:${id}:${op}`);
-  return { reward: object(result.reward), repeat: result.repeat === true };
+  return { reward: object(result["reward"]), repeat: result["repeat"] === true };
 }
