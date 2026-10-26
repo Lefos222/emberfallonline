@@ -463,15 +463,24 @@ const ATTRS: { k: Attr; name: string; icon: React.ReactNode; d: string }[] = [
   { k: "str", name: "Strength", icon: <Swords className="h-8 w-8 text-gold" />, d: "+Phys attack, phys def, crit dmg, pen" },
   { k: "int", name: "Intelligence", icon: <Sparkles className="h-8 w-8 text-r3" />, d: "+Magic attack, magic def, pen" },
   { k: "agi", name: "Agility", icon: <Clover className="h-8 w-8 text-r1" />, d: "+Crit, dodge, accuracy, loot" },
-  { k: "vit", name: "Vitality", icon: <Heart className="h-8 w-8 text-hp" />, d: "+Health, both defenses" },
+  { k: "vit", name: "Vitality", icon: <Heart className="h-8 w-8 text-hp" />, d: "+Most health, both defenses" },
 ];
 export function Temple({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
   const [count,setCount]=useState(1);
   if (!hero) return null;
+  const s = heroStats(hero);
   return (
     <Panel title="Barracks — Attribute Training" onClose={onClose}>
       <BarracksUpgrade hero={hero} />
+      <div className="mb-4 grid grid-cols-3 gap-2 text-center">
+        {([["Health", fmt(s.hp), "text-hp"], ["Attack", fmt(s.atk), "text-gold"], ["Defense", fmt(s.def), ""]] as const).map(([label, v, cls]) => (
+          <div key={label} className="slot p-2">
+            <div className={`font-display text-lg ${cls}`}>{v}</div>
+            <div className="text-xs text-muted-foreground">{label}</div>
+          </div>
+        ))}
+      </div>
       <div className="mb-1 font-display text-sm text-gold">Attribute training</div>
       <div role="group" aria-label="Training batch" className="mb-4 flex flex-wrap gap-2">{batchSizes(hero).map(n=><Button key={n} size="sm" variant={count===n?'default':'outline'} aria-pressed={count===n} onClick={()=>setCount(n)}>+{n} points</Button>)}</div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
