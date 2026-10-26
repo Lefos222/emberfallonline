@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { canEnterConquest, heroStats, newHero, normalizeHero, powerBreakdown, type Hero } from "@/game/data";
 
 describe("game rules", () => {
-  it("level 19 cannot enter Conquest", () => expect(canEnterConquest(19)).toBe(false));
-  it("level 20 can enter Conquest", () => expect(canEnterConquest(20)).toBe(true));
+  it("level 9 cannot enter Conquest", () => expect(canEnterConquest(9)).toBe(false));
+  it("level 10 can enter Conquest", () => expect(canEnterConquest(10)).toBe(true));
 
   it("Battle Rating breakdown sums to the total", () => {
     const h = newHero("Tester", "mage");

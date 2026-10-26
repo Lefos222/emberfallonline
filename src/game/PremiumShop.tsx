@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Gem, Crown, Coins, ShoppingBag, History } from 'lucide-react';
-import { Panel, fmt } from './ui';
+import { Gem, Crown } from 'lucide-react';
+import { GameTabs, Panel, fmt } from './ui';
 import { useGame } from './store';
 import { DIAMOND_PACKS, DIAMOND_SHOP, GOLD_PACKS, VIP_LEVELS, premiumState } from './economy';
 import { activateVip, buyDiamondItem, buyGoldPack, claimVipDaily } from './economy-services';
 import { RequestStatus, useRequest } from './Rewards';
 
 const TABS = [
-  { id: 'diamonds', name: 'Get Diamonds', icon: Gem },
-  { id: 'gold', name: 'Gold Packs', icon: Coins },
-  { id: 'shop', name: 'Diamond Shop', icon: ShoppingBag },
-  { id: 'vip', name: 'VIP', icon: Crown },
-  { id: 'history', name: 'History', icon: History },
+  { id: 'diamonds', name: 'Get Diamonds' },
+  { id: 'gold', name: 'Gold Packs' },
+  { id: 'shop', name: 'Diamond Shop' },
+  { id: 'vip', name: 'VIP' },
+  { id: 'history', name: 'History' },
 ] as const;
 type Tab = typeof TABS[number]['id'];
 
@@ -31,13 +31,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
     <Panel title="Premium Shop" onClose={onClose} wide>
       <RequestStatus {...request} />
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap gap-1">
-          {TABS.map(t => (
-            <Button key={t.id} size="sm" variant={tab === t.id ? 'default' : 'outline'} onClick={() => { setTab(t.id); setNotice(''); }}>
-              <t.icon className="mr-1 h-4 w-4" />{t.name}
-            </Button>
-          ))}
-        </div>
+        <GameTabs label="Premium Shop" value={tab} onChange={(id) => { setTab(id); setNotice(''); }} tabs={TABS.map(t => ({ id: t.id, name: t.name }))} />
         <div className="slot flex items-center gap-1.5 px-3 py-1.5 font-display text-lg text-r4">
           <Gem className="h-5 w-5" />{fmt(p.balance)} Diamonds
         </div>

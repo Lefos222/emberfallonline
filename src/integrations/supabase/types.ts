@@ -110,6 +110,8 @@ export type Database = {
           closed_at: string | null
           created_at: string
           id: string
+          kind: string
+          payload: Json | null
           price: number
           quantity: number
           resource: string
@@ -122,6 +124,8 @@ export type Database = {
           closed_at?: string | null
           created_at?: string
           id?: string
+          kind?: string
+          payload?: Json | null
           price: number
           quantity: number
           resource: string
@@ -134,6 +138,8 @@ export type Database = {
           closed_at?: string | null
           created_at?: string
           id?: string
+          kind?: string
+          payload?: Json | null
           price?: number
           quantity?: number
           resource?: string
@@ -699,18 +705,21 @@ export type Database = {
           claimed_at: string
           day: string
           hero_id: string
+          id: number
           node: string
         }
         Insert: {
           claimed_at?: string
           day: string
           hero_id: string
+          id?: number
           node: string
         }
         Update: {
           claimed_at?: string
           day?: string
           hero_id?: string
+          id?: number
           node?: string
         }
         Relationships: [
@@ -807,6 +816,25 @@ export type Database = {
           _qty: number
           _req: string
           _resource: string
+        }
+        Returns: Json
+      }
+      auction_list_gem: {
+        Args: {
+          _gem: string
+          _hero: string
+          _price: number
+          _qty: number
+          _req: string
+        }
+        Returns: Json
+      }
+      auction_list_item: {
+        Args: {
+          _hero: string
+          _item: Json
+          _price: number
+          _req: string
         }
         Returns: Json
       }

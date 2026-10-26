@@ -3,7 +3,7 @@ import { Check, Gift, Lock, RotateCcw, Skull, Star, Eye } from "lucide-react";
 import { ACHIEVEMENTS, SET_BONUSES, achProgress, activeSets, emptyRecord, isClaimable } from "./progress";
 import { CLASSES, heroSkills, heroStats, powerBreakdown, xpToNext } from "./data";
 import { update, useGame } from "./store";
-import { Gold, Panel, fmt } from "./ui";
+import { GameTabs, Gold, Panel, fmt } from "./ui";
 import { SPEC_LEVEL, TIER_REQ, TREES, freePoints, learnBlocker, resetCost, spentIn, totalPoints } from "./talents";
 import { Button } from "@/components/ui/button";
 import { SkillPreview } from "./SkillPreview";
@@ -41,14 +41,12 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
 
   return (
     <Panel title="Throne Hall" onClose={onClose} wide>
-      <div className="mb-4 flex gap-2">
-        <button className={tab === "skills" ? "btn-gold px-4 py-1.5" : "btn-ghost px-4 py-1.5"} onClick={() => setTab("skills")}>Skill Tree</button>
-        <button className={tab === "overview" ? "btn-gold px-4 py-1.5" : "btn-ghost px-4 py-1.5"} onClick={() => setTab("overview")}>Progression</button>
-        <button className={`relative ${tab === "ach" ? "btn-gold px-4 py-1.5" : "btn-ghost px-4 py-1.5"}`} onClick={() => setTab("ach")}>
-          Achievements{claimable > 0 && <span className="ml-1 rounded-full bg-blood px-1.5 text-xs">{claimable}</span>}
-        </button>
-        <button className={tab === "history" ? "btn-gold px-4 py-1.5" : "btn-ghost px-4 py-1.5"} onClick={() => setTab("history")}>Battle History</button>
-      </div>
+      <GameTabs label="Throne Hall" value={tab} onChange={setTab} tabs={[
+        { id: "skills", name: "Skill Tree" },
+        { id: "overview", name: "Progression" },
+        { id: "ach", name: "Achievements", badge: claimable },
+        { id: "history", name: "Battle History" },
+      ]} />
 
       {tab === "ach" ? (
         <div className="grid gap-2 md:grid-cols-2">

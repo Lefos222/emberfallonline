@@ -2,8 +2,8 @@ import { z } from "zod";
 import { stageFoe, type Foe } from "./data";
 import { dungeonFoe, DUNGEONS, enemySprite } from "./world";
 
-/** World map raid kinds and their server-enforced daily limits (UTC day). */
-export const RAID_LIMITS = { gold: 7, ore: 5, boss: 3 } as const;
+/** World map raid kinds and their server-enforced daily allowances (UTC day). */
+export const RAID_LIMITS = { gold: 10, ore: 8, boss: 4 } as const;
 export type RaidKind = keyof typeof RAID_LIMITS;
 
 export interface MapNode {
@@ -17,7 +17,7 @@ export interface MapNode {
 }
 
 export const MAP_NODES: MapNode[] = [
-  // Blue — gold mines (7/7 daily)
+  // Blue — gold mines (10 raids a day, shared across the mines)
   { id: "gold-1", kind: "gold", name: "Sunken Treasury", x: 18, y: 62, desc: "Flooded vaults glittering with coin." },
   { id: "gold-2", kind: "gold", name: "Gilded Hollow", x: 30, y: 38, desc: "A forest cave veined with gold." },
   { id: "gold-3", kind: "gold", name: "Merchant's Folly", x: 44, y: 70, desc: "A lost caravan's buried fortune." },
@@ -25,13 +25,13 @@ export const MAP_NODES: MapNode[] = [
   { id: "gold-5", kind: "gold", name: "King's Cache", x: 68, y: 56, desc: "A royal hoard, long forgotten." },
   { id: "gold-6", kind: "gold", name: "Rivergilt Mine", x: 80, y: 40, desc: "Panners still whisper of nuggets." },
   { id: "gold-7", kind: "gold", name: "Embergilt Depths", x: 88, y: 68, desc: "Molten gold pools in the deep rock." },
-  // Green — ore dungeons (5/5 daily)
+  // Green — ore dungeons (8 raids a day, shared across the dungeons)
   { id: "ore-1", kind: "ore", name: "Verdant Warrens", x: 14, y: 30, desc: "Goblins hoard ore in the green deeps." },
   { id: "ore-2", kind: "ore", name: "Mossvein Cavern", x: 36, y: 55, desc: "Copper roots thread the stone." },
   { id: "ore-3", kind: "ore", name: "Thornpick Delve", x: 52, y: 48, desc: "Every thorn hides a vein." },
   { id: "ore-4", kind: "ore", name: "Greenfall Excavation", x: 63, y: 74, desc: "The quarry that never empties." },
   { id: "ore-5", kind: "ore", name: "Emerald Maw", x: 76, y: 22, desc: "A beast's jaw of jade and iron." },
-  // Red — bosses (3/3 daily)
+  // Red — bosses (4 raids a day, shared across the bosses)
   { id: "boss-1", kind: "boss", name: "Iron Overlord", x: 25, y: 80, desc: "The Aegis Vault's eternal warden." },
   { id: "boss-2", kind: "boss", name: "Gorefiend", x: 55, y: 14, desc: "It remembers every drop of blood." },
   { id: "boss-3", kind: "boss", name: "Ember Titan", x: 90, y: 50, desc: "The mountain that walks." },
@@ -48,9 +48,10 @@ export const worldMapStateSchema = z.object({
 });
 export type WorldMapState = z.infer<typeof worldMapStateSchema>;
 
-export const raidsLeft = (state: WorldMapState, kind: RaidKind) => RAID_LIMITS[kind] - state.used[kind];
-export const nodeDone = (state: WorldMapState, id: string) => state.nodes.includes(id);
-export const canRaid = (state: WorldMapState, node: MapNode) => !nodeDone(state, node.id) && raidsLeft(state, node.kind) > 0;
+export const raidsLeft = (state: WorldMapState, kind: RaidKind) => Math.max(0, RAID_LIMITS[kind] - state.used[kind]);
+/** How often a node was raided today: a node can be raided again while its kind's daily allowance lasts. */
+export const nodeUses = (state: WorldMapState, id: string) => state.nodes.filter((n) => n === id).length;
+export const canRaid = (state: WorldMapState, node: MapNode) => raidsLeft(state, node.kind) > 0;
 
 /** Encounter for a map node, scaled to the hero. Bosses reuse the dungeon wardens. */
 export function mapFoe(node: MapNode, heroLevel: number): Foe & { sprite?: ReturnType<typeof enemySprite> } {

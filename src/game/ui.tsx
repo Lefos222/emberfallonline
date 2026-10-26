@@ -41,6 +41,23 @@ export function Diamonds({ n, className = "" }: { n: number; className?: string 
 }
 
 
+/** Compact tab row shared by the castle's buildings: small, tight and wrapping on narrow screens. */
+export function GameTabs<T extends string>({ label, tabs, value, onChange }: {
+  label: string; tabs: { id: T; name: string; badge?: number }[]; value: T; onChange: (id: T) => void;
+}) {
+  return (
+    <div role="tablist" aria-label={label} className="mb-3 flex flex-wrap gap-1">
+      {tabs.map((t) => (
+        <button key={t.id} role="tab" aria-selected={t.id === value} onClick={() => onChange(t.id)}
+          className={`${t.id === value ? "btn-gold" : "btn-ghost"} relative px-2.5 py-1 text-xs`}>
+          {t.name}
+          {!!t.badge && <span className="ml-1 rounded-full bg-blood px-1.5 text-[10px]">{t.badge}</span>}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function fmt(n: number) {
   if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
   if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";

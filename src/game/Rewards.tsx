@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useGame } from "./store";
-import { Panel } from "./ui";
+import { GameTabs, Panel } from "./ui";
 import { activities, reward, rewardLines, takeLuckyShot } from "./services";
 import { object, type Activities, type Objective } from "./services-contract";
 import { ASTRAL_ODDS, ASTRAL_RARITY, astralLabel, astralStatText, type Astral } from "./crafting";
@@ -113,7 +113,7 @@ export function ActivityBoard({ onClose }: { onClose: () => void }) {
     <RequestStatus {...request} />
     {board && <>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-4"><div><h3 className="font-display text-xl text-gold">Login reward</h3><p className="text-sm text-muted-foreground">Streak: {board.login.streak} days · Total: {board.login.total}</p></div><Button disabled={request.busy || board.login.claimedToday} onClick={() => void request.run(async () => { const r = await reward("claim_login", {}); setReceipt(rewardLines(r)); await load(); })}><Gift />{board.login.claimedToday ? "Claimed today" : "Claim login reward"}</Button></div>
-      <div role="tablist" aria-label="Activity period" className="my-4 flex gap-2">{(["daily", "weekly"] as const).map((t) => <Button key={t} role="tab" aria-selected={t === tab} variant={t === tab ? "default" : "ghost"} onClick={() => setTab(t)}>{t === "daily" ? "Daily" : "Weekly"}</Button>)}</div>
+      <GameTabs label="Activity period" value={tab} onChange={setTab} tabs={[{ id: "daily", name: "Daily" }, { id: "weekly", name: "Weekly" }]} />
       <p className="text-xs text-muted-foreground">Resets {new Date(tab === "daily" ? board.dailyReset : board.weeklyReset).toLocaleString()}</p>
       {board[tab].map(row)}
       {tab === "daily" && <div className="flex flex-wrap items-center justify-between gap-3 py-4"><span className="font-display text-lg">Complete all daily objectives</span><Button disabled={request.busy || board.dailyBonusClaimed || !board.daily.length || !board.daily.every((o) => o.claimed)} onClick={() => void request.run(() => claim("all"))}><Gift />{board.dailyBonusClaimed ? "Claimed" : "Claim bonus"}</Button></div>}
