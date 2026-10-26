@@ -99,6 +99,13 @@
       "when": 1793200000000,
       "tag": "0013_auction_anything",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793300000000,
+      "tag": "0014_guild_applications",
+      "breakpoints": true
     }
   ]
 }
