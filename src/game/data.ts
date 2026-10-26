@@ -428,6 +428,9 @@ export function calcDamage(atk: number, def: number, mult: number, critChance: n
 }
 
 export const BUILDINGS = [
+  // The World Tree stands in the middle of the castle and opens the world map. It is
+  // drawn before the other buildings so a building it overlaps keeps its own taps.
+  { id: "worldtree", name: "World Tree", x: 50, y: 50, r: 3, desc: "Gateway to the world map", soon: false },
   { id: "hall", name: "Throne Hall", x: 29, y: 24, r: 7, desc: "Skill tree, stats & progression", soon: false },
   { id: "armory", name: "Armory", x: 40, y: 22, r: 4.5, desc: "Inventory & equipment", soon: false },
   { id: "temple", name: "Barracks", x: 54.5, y: 54, r: 5, desc: "Attribute training", soon: false },
