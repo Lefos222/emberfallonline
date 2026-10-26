@@ -4,7 +4,7 @@ export const BARRACKS_MAX = 30;
 type Levels = { buildings?: Record<string, number> };
 
 export function barracksLevel(h: Levels): number {
-  const l = Math.floor(h.buildings?.barracks ?? 1);
+  const l = Math.floor(h.buildings?.['barracks'] ?? 1);
   return Math.max(1, Math.min(BARRACKS_MAX, l));
 }
 /** Gold to go from `level` to `level + 1`. */
