@@ -1,13 +1,14 @@
-import { MatIcon, GemIcon } from "./MatIcon";
+import { AstralIcon, MatIcon, GemIcon } from "./MatIcon";
+import { CharacterModel } from "./CharacterModel";
 import { useState } from "react";
 import { Button } from '@/components/ui/button';
-import { ArrowUp, Gem, Hammer, Sparkles, X } from "lucide-react";
+import { ArrowUp, Gem, Hammer, Lock, Plus, Sparkles, X } from "lucide-react";
 import { invCap, SLOTS, WEAR_SLOTS, wornCompare, makeItem, type Item, type Slot } from "./data";
 import { update, useGame } from "./store";
 import { GemCutWindow, GemPicker } from "./GemWindows";
 import { Gold, ItemCard, Panel, fmt } from "./ui";
 import {
-  ASTRAL_BASES, ASTRAL_MAX_LVL, ASTRAL_MILESTONES, ASTRAL_RARITY, ASTRAL_SLOTS, FUSE_COUNT, GEMS, GEM_MAX_TIER, MATS, RECIPES, SUMMON_COST,
+  ASTRAL_BASES, ASTRAL_MAX_LVL, ASTRAL_MILESTONES, ASTRAL_RARITY, ASTRAL_SLOT_LEVELS, ASTRAL_SLOTS, FUSE_COUNT, GEMS, GEM_MAX_TIER, MATS, RECIPES, SUMMON_COST,
   astralUpgradeCost, astralValue, craft, craftBlocker, cutGem, equipAstral, fuseCost, fuseGem, gemName, gemValue, insertGem, matCount, parseGem, removeGem,
   socketCount, sockets, STAT_LABEL, recipeMats, summonAstral, upgradeAstral, absorbAstral, type Mat,
 } from "./crafting";
@@ -122,12 +123,15 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
 
 // ---------------- Magic Tower (Astrals) ----------------
 export function MagicTower({ onClose }: { onClose: () => void }) {
-  const { hero } = useGame();
+  const { hero, gender } = useGame();
   const [toast, say] = useToast();
+  const [picking, setPicking] = useState<number | null>(null);
   if (!hero) return null;
   const list = hero.astrals ?? [];
   const slots = Array.from({ length: ASTRAL_SLOTS }, (_, i) => hero.astralSlots?.[i] ?? null);
+  const equipped = slots.filter(Boolean).length;
   const species = new Set(list.map((a) => a.base)).size;
+  const seat = (id: string, slot: number) => update((h) => { const e = equipAstral(h, id, slot); say(!e, e ?? "Astral seated"); });
   const label = (a: { base: string; rarity: number; lvl: number }) => `${ASTRAL_RARITY[a.rarity]} ${ASTRAL_BASES[a.base].name} Lv${a.lvl}`;
   const fx = (a: Parameters<typeof astralValue>[0]) => `+${astralValue(a)} ${STAT_LABEL[ASTRAL_BASES[a.base].stat]}`;
 
@@ -135,18 +139,42 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
     <Panel title="Magic Tower" onClose={onClose} wide>
       <MatsBar />
       {toast}
-      <div className="mb-4 grid gap-2 md:grid-cols-3">
-        {slots.map((id, i) => {
-          const a = list.find((x) => x.id === id);
-          return (
-            <div key={i} className="slot p-3 text-center text-sm">
-              <div className="text-xs text-muted-foreground">Astral slot {i + 1}</div>
-              {a ? <><div className="font-display text-gold">{label(a)}</div><div className="text-xs">{fx(a)}</div>
-                <button className="btn-ghost mt-1 px-2 py-0.5 text-xs" onClick={() => update((h) => { equipAstral(h, null, i); })}>Unequip</button></> : <div className="py-3 text-muted-foreground">Empty</div>}
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <div className="font-display">Seated: {equipped}/{ASTRAL_SLOTS}</div>
+        <div className="text-sm text-muted-foreground">Level {hero.level} · 3 slots open from the start, the rest wake every 10 levels</div>
+      </div>
+      <div className="relative mx-auto mb-1 h-[300px] w-[300px] sm:h-[340px] sm:w-[340px]">
+        <div className="absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2">
+          <CharacterModel cls={hero.cls} gender={gender} className="h-full w-full" />
+        </div>
+        {ASTRAL_SLOT_LEVELS.map((lv, i) => {
+          const ang = (i / ASTRAL_SLOTS) * Math.PI * 2 - Math.PI / 2;
+          const style = { left: `calc(50% + ${Math.round(Math.cos(ang) * 118)}px)`, top: `calc(50% + ${Math.round(Math.sin(ang) * 118)}px)` };
+          const a = slots[i] ? list.find((x) => x.id === slots[i]) : undefined;
+          if (hero.level < lv) return (
+            <div key={i} style={style} title={`Wakes at level ${lv}`}
+              className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-border/60 bg-background/70 text-center">
+              <Lock className="h-4 w-4 text-muted-foreground" />
+              <span className="text-[9px] leading-tight text-muted-foreground">Lv {lv}</span>
             </div>
+          );
+          if (a) return (
+            <button key={i} style={style} title={`${label(a)} · ${fx(a)} · click to unseat`}
+              onClick={() => update((h) => { equipAstral(h, null, i); })}
+              className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-0.5 rounded-full border border-border bg-background/80 p-1 hover:scale-105">
+              <AstralIcon base={a.base} rarity={a.rarity} size={34} />
+              <span className="max-w-full truncate text-[8px] leading-none">{ASTRAL_BASES[a.base].name}</span>
+            </button>
+          );
+          return (
+            <button key={i} style={style} title={`Astral slot ${i + 1}`} onClick={() => setPicking(i)}
+              className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-dashed border-border bg-background/40 text-muted-foreground hover:border-gold hover:text-gold">
+              <Plus className="h-5 w-5" />
+            </button>
           );
         })}
       </div>
+      <p className="mb-4 text-center text-xs text-muted-foreground">Click an open slot to seat an Astral beside your hero. Click a seated Astral to send it back.</p>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <button className="btn-gold flex items-center gap-1 px-4 py-2" disabled={matCount(hero, "starshard") < SUMMON_COST}
           onClick={() => update((h) => { const r = summonAstral(h); say(typeof r !== "string", typeof r === "string" ? r : `Summoned ${label(r)}!`); })}>
@@ -166,16 +194,46 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
       <div className="grid gap-2 md:grid-cols-2">
         {list.map((a) => (
           <div key={a.id} className="slot flex items-center justify-between gap-2 p-2 text-sm">
-            <span className="min-w-0"><b>{label(a)}</b> <span className="text-xs text-muted-foreground">· {ASTRAL_BASES[a.base].kind}</span><span className="block text-xs">{fx(a)}</span></span>
+            <span className="flex min-w-0 items-center gap-2">
+              <AstralIcon base={a.base} rarity={a.rarity} size={36} />
+              <span className="min-w-0"><b>{label(a)}</b> <span className="text-xs text-muted-foreground">· {ASTRAL_BASES[a.base].kind}</span>
+                <span className="block text-xs">{fx(a)}</span>
+                <span className="block text-xs text-muted-foreground">{ASTRAL_BASES[a.base].power}</span></span>
+            </span>
             <span className="flex flex-wrap gap-1">
+              {!slots.includes(a.id) && <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => { const free = slots.findIndex((x, i) => !x && hero.level >= ASTRAL_SLOT_LEVELS[i]); if (free < 0) { say(false, "No open slot - level up to wake more"); return; } seat(a.id, free); }}>Seat</button>}
               {list.some(f=>f.id !== a.id && f.base === a.base) && <Button size="sm" variant="outline" disabled={a.lvl >= ASTRAL_MAX_LVL || !list.some(f=>f.id !== a.id && f.base === a.base && !slots.includes(f.id))} onClick={()=>update(h=>{const food=h.astrals?.find(f=>f.id!==a.id && f.base===a.base && !(h.astralSlots??[]).includes(f.id));if(!food)return;const err=absorbAstral(h,a.id,food.id);say(!err,err??'Duplicate absorbed');})}><Sparkles className="h-3 w-3" />Absorb duplicate</Button>}
-              {slots.map((_, i) => <button key={i} className="btn-ghost px-2 py-0.5 text-xs" disabled={slots[i] === a.id} onClick={() => update((h) => { equipAstral(h, a.id, i); })}>Slot {i + 1}</button>)}
               <button className="btn-ghost px-2 py-0.5 text-xs" disabled={a.lvl >= ASTRAL_MAX_LVL || matCount(hero, "starshard") < astralUpgradeCost(a)} title={`Upgrade: ${astralUpgradeCost(a)} Starshards`}
                 onClick={() => update((h) => { const e = upgradeAstral(h, a.id); say(!e, e ?? "Astral upgraded"); })}><ArrowUp className="inline h-3 w-3" />{astralUpgradeCost(a)}</button>
             </span>
           </div>
         ))}
       </div>
+      {picking !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" onClick={() => setPicking(null)}>
+          <div className="game-panel anim-pop max-h-[80vh] w-full max-w-md overflow-y-auto p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <div className="font-display text-lg text-gold">Seat an Astral · slot {picking + 1}</div>
+              <button className="btn-ghost px-2 py-1" onClick={() => setPicking(null)} aria-label="Close"><X className="h-4 w-4" /></button>
+            </div>
+            {list.filter((x) => !slots.includes(x.id)).length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">Every Astral you own is already seated. Unseat one or summon more.</p>
+            ) : (
+              <div className="space-y-1.5">
+                {list.filter((x) => !slots.includes(x.id)).map((x) => (
+                  <button key={x.id} className="slot flex w-full items-center gap-3 px-3 py-2 text-left text-sm" onClick={() => { seat(x.id, picking); setPicking(null); }}>
+                    <AstralIcon base={x.base} rarity={x.rarity} size={36} />
+                    <span className="min-w-0">
+                      {label(x)}
+                      <span className="block text-xs text-muted-foreground">{fx(x)} · {ASTRAL_BASES[x.base].power}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </Panel>
   );
 }
