@@ -320,6 +320,7 @@ type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" |
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof Backpack }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", Icon: Backpack },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", Icon: Anvil },
+  { id: "gems", label: "Gem Workshop", tip: "Cut, socket & fuse gems", Icon: Gem },
   { id: "daily", label: "Daily Rewards", tip: "7-day reward board", Icon: Gift },
   { id: "road", label: "Long Road", tip: "Endless regions past the campaign", Icon: Sparkles },
   { id: "calendar", label: "Events", tip: "World event calendar & reminders", Icon: CalendarDays },

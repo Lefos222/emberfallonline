@@ -51,12 +51,19 @@ export const SKILL_EFFECT: Record<string, string> = {
 };
 
 /** The move an actor performs. Unknown skills fall back to that class's signature move. */
-export function moveFor(actor: { cls?: string | null }, skillId?: string | null): Move {
+export function moveFor(actor: { cls?: string | null; name?: string | null }, skillId?: string | null): Move {
   const known = skillId ? SKILL_MOVE[skillId] : undefined;
   if (known) return known;
   if (actor.cls === "mage") return "cast";
   if (actor.cls === "archer") return "draw";
   if (actor.cls === "warrior") return "swing";
+  const n = (actor.name ?? "").toLowerCase();
+  if (/dragon|wyrm|demon|fiend|brute|golem|titan/.test(n)) return "slam";
+  if (/skeleton|bone|wraith|spirit|ghost|lich|undead/.test(n)) return "thrust";
+  if (/goblin|imp|rat|hound|wolf|bat/.test(n)) return "dash";
+  if (/shaman|witch|seer|priest|cultist|warlock/.test(n)) return "cast";
+  if (/hunter|sniper|marksman|ranger/.test(n)) return "draw";
+  if (/guard|captain|lord|king|queen|knight|champion|warden/.test(n)) return "overhead";
   return "swing";
 }
 
