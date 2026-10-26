@@ -8,12 +8,14 @@ import ruby from "@/assets/gem-ruby.png";
 import sapphire from "@/assets/gem-sapphire.png";
 import emerald from "@/assets/gem-emerald.png";
 import topaz from "@/assets/gem-topaz.png";
+import gemSheet from "@/assets/gem-sprites.png.asset.json";
+import astralSheet from "@/assets/astral-sprites.png.asset.json";
 import type { ReactNode } from "react";
 import type { GemType, Mat } from "./crafting";
 
 const MAT_IMG: Partial<Record<Mat, string>> = { ore, essence, starshard, bossCore, fragment, sigil };
 const GEM_IMG: Partial<Record<GemType, string>> = { ruby, sapphire, emerald, topaz };
-import { GEMS, MATS } from "./crafting";
+import { ASTRAL_BASES, ASTRAL_COLORS, GEMS, MATS } from "./crafting";
 
 /** Drawn shapes for materials that have no painted sheet art. */
 const MAT_SHAPE: Partial<Record<Mat, ReactNode>> = {
@@ -36,19 +38,53 @@ const CUTS: Partial<Record<GemType, string>> = {
   peridot: "M10 1l8 9-8 9-8-9z", opal: "M10 2c5 0 8 3.5 8 8s-3 8-8 8-8-3.5-8-8 3-8 8-8z", onyx: "M3 3h14v14H3z",
   obsidian: "M10 1l3 6 6 1-4 5 1 6-6-3-6 3 1-6-4-5 6-1z", moonstone: "M13 2a8 8 0 1 0 5 13A7 7 0 0 1 13 2z", pearl: "M10 3a7 7 0 1 1 0 14a7 7 0 1 1 0-14z",
 };
-export const GemIcon = ({ type, size = 18 }: { type: GemType; size?: number }) => !GEM_IMG[type] ? (
-  <svg width={size} height={size} viewBox="0 0 20 20" className="mr-1 inline-block align-middle" aria-label={GEMS[type].name} role="img">
-    <defs>
-      <radialGradient id={`g-${type}`} cx="35%" cy="30%" r="75%">
-        <stop offset="0%" stopColor="#fff" stopOpacity="0.95" />
-        <stop offset="35%" stopColor={GEMS[type].color} />
-        <stop offset="100%" stopColor="#000" stopOpacity="0.85" />
-      </radialGradient>
-    </defs>
-    <path d={CUTS[type] ?? "M5 3h10l4 5-9 10L1 8z"} fill={`url(#g-${type})`} stroke="#111" strokeWidth="0.8" />
-    <path d={CUTS[type] ?? "M5 3h10l4 5-9 10L1 8z"} fill="none" stroke="#fff8" strokeWidth="0.4" transform="translate(10 10) scale(0.55) translate(-10 -10)" />
-    <circle cx="7" cy="6" r="1.2" fill="#fff" opacity="0.8" />
-  </svg>
-) : (
-  <img src={GEM_IMG[type]} alt={GEMS[type].name} width={size} height={size} loading="lazy" className="mr-1 inline-block align-middle" style={{ width: size, height: size }} />
-);
+const GEM_SHEET: GemType[] = ["amethyst", "aquamarine", "garnet", "peridot", "opal", "onyx", "obsidian", "moonstone", "pearl"];
+const GEM_SHEET_COLS = 3;
+export const GemIcon = ({ type, size = 18 }: { type: GemType; size?: number }) => {
+  const cell = GEM_SHEET.indexOf(type);
+  if (GEM_IMG[type]) return (
+    <img src={GEM_IMG[type]} alt={GEMS[type].name} width={size} height={size} loading="lazy" className="mr-1 inline-block align-middle" style={{ width: size, height: size }} />
+  );
+  if (cell >= 0) {
+    const col = cell % GEM_SHEET_COLS;
+    const row = Math.floor(cell / GEM_SHEET_COLS);
+    return (
+      <span role="img" aria-label={GEMS[type].name} title={GEMS[type].name} className="mr-1 inline-block shrink-0 align-middle"
+        style={{ width: size, height: size, borderRadius: Math.max(2, size / 8), overflow: "hidden",
+          backgroundImage: `url(${gemSheet.url})`,
+          backgroundSize: `${size * GEM_SHEET_COLS}px ${size * GEM_SHEET_COLS}px`,
+          backgroundPosition: `-${col * size}px -${row * size}px` }} />
+    );
+  }
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" className="mr-1 inline-block align-middle" aria-label={GEMS[type].name} role="img">
+      <defs>
+        <radialGradient id={`g-${type}`} cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="#fff" stopOpacity="0.95" />
+          <stop offset="35%" stopColor={GEMS[type].color} />
+          <stop offset="100%" stopColor="#000" stopOpacity="0.85" />
+        </radialGradient>
+      </defs>
+      <path d={CUTS[type] ?? "M5 3h10l4 5-9 10L1 8z"} fill={`url(#g-${type})`} stroke="#111" strokeWidth="0.8" />
+      <path d={CUTS[type] ?? "M5 3h10l4 5-9 10L1 8z"} fill="none" stroke="#fff8" strokeWidth="0.4" transform="translate(10 10) scale(0.55) translate(-10 -10)" />
+      <circle cx="7" cy="6" r="1.2" fill="#fff" opacity="0.8" />
+    </svg>
+  );
+};
+/** Painted portrait for every Astral species, sliced from one 4x4 sprite sheet. */
+const ASTRAL_KEYS = Object.keys(ASTRAL_BASES);
+const ASTRAL_SHEET_COLS = 4;
+export const AstralIcon = ({ base, rarity = 0, size = 48 }: { base: string; rarity?: number; size?: number }) => {
+  const cell = Math.max(0, ASTRAL_KEYS.indexOf(base));
+  const col = cell % ASTRAL_SHEET_COLS;
+  const row = Math.floor(cell / ASTRAL_SHEET_COLS);
+  const glow = ASTRAL_COLORS[rarity] ?? "#9a9a9a";
+  return (
+    <span role="img" aria-label={ASTRAL_BASES[base]?.name ?? "Astral"} title={ASTRAL_BASES[base]?.name ?? "Astral"}
+      className="inline-block shrink-0 rounded-lg" style={{ width: size, height: size, overflow: "hidden",
+        boxShadow: `0 0 0 2px ${glow}, 0 0 10px ${glow}66`,
+        backgroundImage: `url(${astralSheet.url})`,
+        backgroundSize: `${size * ASTRAL_SHEET_COLS}px ${size * ASTRAL_SHEET_COLS}px`,
+        backgroundPosition: `-${col * size}px -${row * size}px` }} />
+  );
+};
