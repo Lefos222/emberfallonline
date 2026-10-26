@@ -116,7 +116,7 @@ export function Game() {
         <>
           <CastleMap onOpen={setOpen} />
           <ShortcutBar open={open} onOpen={setOpen} />
-          <nav aria-label="Rewards" className="game-panel bottom-nav rewards-nav absolute bottom-3 left-3 z-20 flex gap-1 p-1.5">
+          <nav aria-label="Rewards" className="game-panel bottom-nav rewards-nav absolute bottom-3 left-3 z-20 flex gap-0.5 p-1">
             <Button variant="ghost" size="icon" aria-label="Mailbox" title="Mailbox" onClick={() => setOpen("mailbox")}><Mail /></Button>
             <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><Crosshair /></Button>
             <Button variant="ghost" size="icon" aria-label="Battle Scrolls" title="Battle Scrolls" onClick={() => setOpen("scrolls")}><ScrollText /></Button>
@@ -334,11 +334,11 @@ const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof 
 
 function ShortcutBar({ open, onOpen }: { open: ShortcutTarget | null; onOpen: (t: ShortcutTarget) => void }) {
   return (
-    <nav aria-label="Shortcuts" className="game-panel bottom-nav shortcut-nav pointer-events-auto absolute bottom-3 right-3 z-20 flex gap-1.5 p-1.5">
+    <nav aria-label="Shortcuts" className="game-panel bottom-nav shortcut-nav pointer-events-auto absolute bottom-3 right-3 z-20 flex gap-0.5 p-1">
       {SHORTCUTS.map(({ id, label, tip, Icon }) => (
         <button key={id} onClick={() => onOpen(id)} aria-label={label} aria-pressed={open === id}
-          className={`slot group relative flex h-11 w-11 items-center justify-center transition hover:scale-110 ${open === id ? "ring-2 ring-gold" : ""}`}>
-          <Icon className={`h-5 w-5 ${open === id ? "text-gold" : ""}`} />
+          className={`slot group relative flex h-9 w-9 items-center justify-center transition hover:scale-110 ${open === id ? "ring-2 ring-gold" : ""}`}>
+          <Icon className={`h-4 w-4 ${open === id ? "text-gold" : ""}`} />
           <span role="tooltip" className="hotspot-label pointer-events-none absolute bottom-full right-0 mb-2 hidden whitespace-nowrap rounded px-2 py-1 text-left text-xs group-hover:block group-focus-visible:block">
             {label}<span className="block text-[10px] text-foreground/80">{tip}</span>
           </span>

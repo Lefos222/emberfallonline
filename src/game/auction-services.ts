@@ -1,16 +1,18 @@
 import { supabase } from "@/integrations/supabase/client";
 import { adoptServerSave, getState, withServerHero } from "./store";
 import { object, requestKey, returnedSave } from "./services-contract";
+import type { Item } from "./data";
 
 export interface Listing {
   id: string; seller_hero: string; seller_name: string; resource: string;
   quantity: number; price: number; status: string; created_at: string;
+  item_data: Item | null;
 }
 
 export async function fetchListings(): Promise<Listing[]> {
   const { data, error } = await supabase
     .from("auction_listings")
-    .select("id, seller_hero, seller_name, resource, quantity, price, status, created_at")
+    .select("id, seller_hero, seller_name, resource, quantity, price, status, created_at, item_data")
     .eq("status", "open")
     .order("created_at", { ascending: false })
     .limit(100);
@@ -32,6 +34,10 @@ async function auctionCall(op: string, rpc: "auction_list" | "auction_buy" | "au
 
 export const listResource = (resource: string, qty: number, price: number) =>
   auctionCall(`auction-list:${resource}`, "auction_list", { _resource: resource, _qty: qty, _price: price });
+export const listItem = (item: Item, price: number) =>
+  auctionCall(`auction-list:${item.id}`, "auction_list", { _resource: `item:${item.rarity}:${item.slot}`, _qty: 1, _price: price, _item_data: item });
+export const listGem = (gemKey: string, qty: number, price: number) =>
+  auctionCall(`auction-list:gem:${gemKey}`, "auction_list", { _resource: `gem:${gemKey}`, _qty: qty, _price: price });
 export const buyListing = (listing: string) => auctionCall(`auction-buy:${listing}`, "auction_buy", { _listing: listing });
 export const cancelListing = (listing: string) => auctionCall(`auction-cancel:${listing}`, "auction_cancel", { _listing: listing });
 

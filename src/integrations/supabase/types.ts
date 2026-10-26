@@ -110,6 +110,7 @@ export type Database = {
           closed_at: string | null
           created_at: string
           id: string
+          item_data: unknown | null
           price: number
           quantity: number
           resource: string
@@ -122,6 +123,7 @@ export type Database = {
           closed_at?: string | null
           created_at?: string
           id?: string
+          item_data?: unknown | null
           price: number
           quantity: number
           resource: string
@@ -134,6 +136,7 @@ export type Database = {
           closed_at?: string | null
           created_at?: string
           id?: string
+          item_data?: unknown | null
           price?: number
           quantity?: number
           resource?: string
@@ -803,6 +806,7 @@ export type Database = {
       auction_list: {
         Args: {
           _hero: string
+          _item_data?: unknown
           _price: number
           _qty: number
           _req: string
