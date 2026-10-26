@@ -1,4 +1,4 @@
-import { Crosshair, Eye, Heart, Lock, Shield, Swords, Trophy, Wind, type LucideIcon } from "lucide-react";
+import { Crosshair, Eye, Heart, HeartPulse, Lock, Shield, ShieldCheck, Sparkles, Swords, Trophy, Wind, type LucideIcon } from "lucide-react";
 import type { Hero } from "./data";
 import { BARRACKS_MAX, BARRACKS_UNLOCKS, barracksCost, barracksLevel, trainingDiscount, upgradeBarracks } from "./barracks";
 import { DRILLS, drillBlocker, drillCost, drillRank, drillText, trainDrill } from "./drills";
@@ -36,7 +36,8 @@ export function BarracksUpgrade({ hero }: { hero: Hero }) {
 }
 
 const DRILL_ICONS: Record<string, LucideIcon> = {
-  weapons: Swords, shields: Shield, endurance: Heart, focus: Crosshair, marksman: Eye, footwork: Wind,
+  vitality: HeartPulse, weapons: Swords, shields: Shield, endurance: Heart, recovery: Sparkles,
+  focus: Crosshair, toughness: Heart, marksman: Eye, guardwork: ShieldCheck, footwork: Wind,
 };
 
 /**

@@ -7,7 +7,7 @@ import type { BonusFx } from "./crafting";
  * Each rank is bought with gold, so the building keeps being worth upgrading long after the
  * attribute training is done. The bonuses feed straight into the shared stat computation.
  */
-export type DrillStat = "atkPct" | "defPct" | "hpPct" | "crit" | "acc" | "dodge";
+export type DrillStat = "atkPct" | "defPct" | "hpPct" | "crit" | "acc" | "dodge" | "block" | "heal";
 
 export interface Drill {
   id: string;
@@ -25,14 +25,20 @@ export interface Drill {
 
 export const DRILL_STAT_LABEL: Record<DrillStat, string> = {
   atkPct: "attack", defPct: "defense", hpPct: "health", crit: "crit chance", acc: "accuracy", dodge: "dodge",
+  block: "block", heal: "healing power",
 };
 
+/** Health is the drill yard's first lesson and its deepest one, so every hero can always buy more life. */
 export const DRILLS: Drill[] = [
+  { id: "vitality", name: "Vital Reserves", stat: "hpPct", per: 2, max: 10, base: 800, barracks: 1, desc: "Deep-breathing drills that widen your well of life." },
   { id: "weapons", name: "Weapon Drill", stat: "atkPct", per: 1, max: 10, base: 900, barracks: 1, desc: "Drill every swing until the arm never tires." },
   { id: "shields", name: "Shield Wall Drill", stat: "defPct", per: 1, max: 10, base: 900, barracks: 3, desc: "Locking shields, rank after rank." },
   { id: "endurance", name: "Endurance Runs", stat: "hpPct", per: 1.5, max: 10, base: 1100, barracks: 6, desc: "Long marches that harden the body." },
+  { id: "recovery", name: "Battlefield Recovery", stat: "heal", per: 1, max: 10, base: 1400, barracks: 8, desc: "Field dressings that make every restoration count." },
   { id: "focus", name: "Focus Drills", stat: "crit", per: 0.5, max: 10, base: 1300, barracks: 10, desc: "Reading the opening in a guard." },
+  { id: "toughness", name: "Body Tempering", stat: "hpPct", per: 3, max: 10, base: 4500, barracks: 12, desc: "Strike the body until it stops yielding." },
   { id: "marksman", name: "Marksman Drill", stat: "acc", per: 0.5, max: 8, base: 1000, barracks: 14, desc: "Nothing but the mark and the breath." },
+  { id: "guardwork", name: "Guard Drill", stat: "block", per: 0.5, max: 10, base: 1600, barracks: 16, desc: "Turn the blade aside instead of taking it." },
   { id: "footwork", name: "Footwork Drill", stat: "dodge", per: 0.5, max: 8, base: 1000, barracks: 18, desc: "Steps that leave a blade cutting air." },
 ];
 

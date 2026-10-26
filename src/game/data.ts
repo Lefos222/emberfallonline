@@ -325,11 +325,13 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   const at = opts.attrs ? h.attrs : { str: 0, int: 0, agi: 0, vit: 0 };
   const p = opts.asc ? 1 + h.paragon * 0.02 : 1;
   const L = h.level;
-  const hp = Math.round(ph * ((100 + L * 25 + at.vit * 14 + at.str * 3) * c.hp + g.hp) * p);
-  const patk = Math.round(pa * ((10 + L * 4 + at.str * 3 + at.agi * 1.5) * c.atk + (MAGIC[h.cls] ? g.atk * 0.3 : g.atk)) * p);
-  const matk = Math.round((pa + ex('matkPct') / 100) * ((10 + L * 4 + at.int * 3.2) * c.atk + (MAGIC[h.cls] ? g.atk : g.atk * 0.3)) * p);
-  const pdef = Math.round(pd * ((5 + L * 2 + at.vit * 1.5 + at.str * 1) * c.def + g.def) * p);
-  const mdef = Math.round((pd + ex('mdefPct') / 100) * ((5 + L * 2 + at.vit * 1 + at.int * 1.5) * c.def + g.def * 0.8) * p);
+  // Per level every stat keeps growing so the campaign never outruns the hero; Vitality is the
+  // strongest health lever, and Strength adds a little health on the side.
+  const hp = Math.round(ph * ((100 + L * 40 + at.vit * 22 + at.str * 4) * c.hp + g.hp) * p);
+  const patk = Math.round(pa * ((10 + L * 5 + at.str * 3 + at.agi * 1.5) * c.atk + (MAGIC[h.cls] ? g.atk * 0.3 : g.atk)) * p);
+  const matk = Math.round((pa + ex('matkPct') / 100) * ((10 + L * 5 + at.int * 3.2) * c.atk + (MAGIC[h.cls] ? g.atk : g.atk * 0.3)) * p);
+  const pdef = Math.round(pd * ((5 + L * 2.5 + at.vit * 1.5 + at.str * 1) * c.def + g.def) * p);
+  const mdef = Math.round((pd + ex('mdefPct') / 100) * ((5 + L * 2.5 + at.vit * 1 + at.int * 1.5) * c.def + g.def * 0.8) * p);
   const crit = Math.min(60, +(5 + c.crit + at.agi * 0.2 + g.crit + tf.crit + sf.crit).toFixed(1));
   const critDmg = Math.min(300, Math.round(150 + at.agi * 0.3 + at.str * 0.15 + tf.critDmg));
   const pen = Math.min(40, +(at.str * 0.08 + at.int * 0.08 + h.paragon * 0.1 + tf.pen + (MAGIC[h.cls] ? ex('mpen') : (gf?.pen ?? 0) + (af?.pen ?? 0))).toFixed(1));
@@ -383,28 +385,39 @@ export function zoneOf(stage: number) {
   return { type: ZONES[z], name: ZONE_NAMES[z], cycle: Math.floor((stage - 1) / 30) + 1 };
 }
 
-/** Enemy power grows exponentially — gear & levels grow linearly, so it gets brutally hard over time. */
+/** Past the campaign the Road and Conquest keep stretching with a gentle rift bonus. */
+export const RIFT_STAGE = 50;
+export const riftFactor = (stage: number) => 1 + Math.max(0, stage - RIFT_STAGE) * 0.02;
+
+/**
+ * Enemy stats follow the hero's own growth instead of an exponential wall: health and damage
+ * climb with the stage at a steady pace, so a hero whose gear keeps up clears the campaign
+ * comfortably while bosses stay meaningfully harder.
+ */
 export function stageFoe(stage: number, mult = 1, type?: EnemyType, name?: string): Foe {
   const boss = stage % 10 === 0;
   const t: EnemyType = type ?? (boss ? "dragon" : zoneOf(stage).type);
-  const g = Math.pow(1.105, stage - 1);
+  const rift = riftFactor(stage);
   const b = boss ? 1 : 0;
   return {
     name: name ?? (boss ? `${ENEMIES.dragon.name}` : ENEMIES[t].name),
     img: ENEMIES[t].img,
     level: stage,
     boss,
-    hp: Math.round((90 + stage * 28) * g * (1 + b * 1.8) * mult),
-    atk: Math.round((9 + stage * 2.6) * g * (1 + b * 0.35) * mult),
-    def: Math.round((4 + stage * 1.2) * g * mult),
+    hp: Math.round((150 + stage * 150) * (1 + b * 0.8) * mult * rift),
+    atk: Math.round((12 + stage * 8 + stage * stage * 0.2) * (1 + b * 0.25) * mult * rift),
+    def: Math.round((5 + stage * 1.4) * mult * Math.sqrt(rift)),
     crit: Math.min(40, 5 + stage * 0.15),
     dodge: Math.min(20, 2 + stage * 0.05),
   };
 }
 
+/** Rewards rise on the same polynomial curve as the experience a level needs (see xpToNext). */
 export function stageRewards(stage: number, mult = 1) {
-  const g = Math.pow(1.09, stage - 1);
-  return { xp: Math.round((25 + stage * 8) * g * mult), gold: Math.round((12 + stage * 4) * g * mult) };
+  return {
+    xp: Math.round(40 * Math.pow(stage, 1.6) * mult),
+    gold: Math.round((12 + 10 * Math.pow(stage, 1.85)) * mult),
+  };
 }
 
 // ---------- Skills ----------
@@ -430,12 +443,16 @@ export const SKILLS: Record<HeroClass, Skill[]> = {
 /** Battle abilities for a hero, including skill-tree upgrades. */
 export const heroSkills = (h: Hero): Skill[] => talentSkills(SKILLS[h.cls], h);
 
+/** Armor can never reduce a hit below this share of its raw damage, so stacked defense stays
+ *  useful without ever making a fight unloseable (or an enemy unkillable). */
+export const MITIGATION_FLOOR = 0.3;
+
 export function calcDamage(atk: number, def: number, mult: number, critChance: number, dodge: number, forceCrit = false, critDmg = 200, pen = 0, acc = 0) {
   if (!forceCrit && Math.random() * 100 < Math.max(0, dodge - acc)) return { dmg: 0, crit: false, miss: true };
   const crit = forceCrit || Math.random() * 100 < critChance;
   const raw = atk * mult * (0.9 + Math.random() * 0.2) * (crit ? critDmg / 100 : 1);
   const effDef = def * (1 - Math.min(40, pen) / 100);
-  const dmg = Math.max(1, Math.round(raw * (100 / (100 + effDef * 0.9))));
+  const dmg = Math.max(1, Math.round(raw * Math.max(MITIGATION_FLOOR, 100 / (100 + effDef * 0.9))));
   return { dmg, crit, miss: false };
 }
 
