@@ -13,6 +13,8 @@ export function grant(h: Hero, xp: number, gold: number): { levels: number } {
     if (h.level < MAX_LEVEL) h.level++;
     else h.paragon++;
     levels++;
+    // Every level-up pays one skill point (see talents.totalPoints) and one passive point.
+    h.insight = (h.insight ?? 0) + 1;
   }
   return { levels };
 }

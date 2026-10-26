@@ -98,7 +98,7 @@ export function recordRoadClear(hero: Hero, clear: RoadClear): Hero {
   const h: Hero = { ...hero, inventory: [...hero.inventory], overflow, mats, road: { ...s } };
   h.gold += rw.gold;
   h.xp += Math.round(rw.xp * (clear.xpMultiplier === 1.2 ? 1.2 : 1));
-  while (h.xp >= xpToNext(h)) { h.xp -= xpToNext(h); if (h.level < MAX_LEVEL) h.level++; else h.paragon++; }
+  while (h.xp >= xpToNext(h)) { h.xp -= xpToNext(h); if (h.level < MAX_LEVEL) h.level++; else h.paragon++; h.insight = (h.insight ?? 0) + 1; }
   for (const [mat, count] of Object.entries(rw.materials) as [Mat, number][]) mats[mat] = (mats[mat] ?? 0) + count;
   if (road) h.road = { ...s, stage: clear.value + 1, cleared: clear.value };
   else h.road = { ...s, wave: clear.value + 1, best: clear.value };

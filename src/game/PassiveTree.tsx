@@ -19,7 +19,7 @@ export function PassiveTreeContent() {
   return (
     <>
       <div className="mb-4 font-display text-lg">Insight: <span className="text-gold">{fmt(insightBank(hero))}</span><span className="ml-3 text-sm text-muted-foreground">{fmt(spentInsight(hero))} spent · {fmt(totalInsight(hero))} earned</span></div>
-      <p className="mb-4 text-sm text-muted-foreground">Earn Insight from victorious campaign stages, elites, bosses, dungeons, endless waves and achievement claims. Ranks are permanent. Block remains capped at 25%; Healing Power at 50%.</p>
+      <p className="mb-4 text-sm text-muted-foreground">Earn Insight from level-ups, victorious campaign stages, elites, bosses, dungeons, endless waves, quest and achievement claims. Ranks are permanent. Block remains capped at 25%; Healing Power at 50%.</p>
       <div className="grid gap-4 md:grid-cols-2">
         {(["general", hero.cls] as const).map(group => (
           <section key={group} className={`slot p-3 ${group === hero.cls ? "spec-mine" : ""}`}>
