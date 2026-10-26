@@ -281,8 +281,15 @@ export function newHero(name: string, cls: HeroClass): Hero {
 }
 
 export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
-  if (h.level < MAX_LEVEL) return Math.round(60 * Math.pow(h.level, 1.6));
-  return Math.round(60 * Math.pow(MAX_LEVEL, 1.6) * Math.pow(1.05, h.paragon));
+  if (h.level < MAX_LEVEL) return Math.round(60 * Math.pow(h.level, 1.6) * lateLevelFactor(h.level));
+  return Math.round(60 * Math.pow(MAX_LEVEL, 1.6) * lateLevelFactor(MAX_LEVEL) * Math.pow(1.05, h.paragon));
+}
+
+/** Levels past this point get steadily slower so reaching the cap takes weeks, not days. */
+export const LATE_LEVEL = 40;
+/** Extra XP multiplier per level: 1x up to Lv 40, then +7% compounding each level (~15x by Lv 80). */
+export function lateLevelFactor(level: number) {
+  return Math.pow(1.07, Math.max(0, level - LATE_LEVEL));
 }
 
 export interface Stats {
@@ -399,24 +406,30 @@ export function stageFoe(stage: number, mult = 1, type?: EnemyType, name?: strin
   const t: EnemyType = type ?? (boss ? "dragon" : zoneOf(stage).type);
   const rift = riftFactor(stage);
   const b = boss ? 1 : 0;
+  const tough = boss ? 1 + (foeToughness(stage) - 1) * 0.4 : foeToughness(stage);
   return {
     name: name ?? (boss ? `${ENEMIES.dragon.name}` : ENEMIES[t].name),
     img: ENEMIES[t].img,
     level: stage,
     boss,
-    hp: Math.round((150 + stage * 150) * (1 + b * 0.8) * mult * rift),
-    atk: Math.round((12 + stage * 8 + stage * stage * 0.2) * (1 + b * 0.25) * mult * rift),
+    hp: Math.round((150 + stage * 150) * (1 + b * 0.8) * mult * rift * tough),
+    atk: Math.round((12 + stage * 8 + stage * stage * 0.2) * (1 + b * 0.25) * mult * rift * tough),
     def: Math.round((5 + stage * 1.4) * mult * Math.sqrt(rift)),
     crit: Math.min(40, 5 + stage * 0.15),
     dodge: Math.min(20, 2 + stage * 0.05),
   };
 }
 
+/** Monsters get tougher as you progress: +0.6% health/damage per stage after stage 5 (bosses get 40% of that, they already spike). */
+export function foeToughness(stage: number) {
+  return 1 + Math.max(0, stage - 5) * 0.006;
+}
+
 /** Rewards rise on the same polynomial curve as the experience a level needs (see xpToNext). */
 export function stageRewards(stage: number, mult = 1) {
   return {
     xp: Math.round(40 * Math.pow(stage, 1.6) * mult),
-    gold: Math.round((12 + 10 * Math.pow(stage, 1.85)) * mult),
+    gold: Math.round((8 + 6 * Math.pow(stage, 1.75)) * mult),
   };
 }
 
