@@ -4,6 +4,7 @@ import {
   calcDamage,
   heroStats,
   makeItem,
+  riftFactor,
   newHero,
   stageFoe,
   stageRewards,
@@ -104,6 +105,22 @@ function seeded(seed: number) {
   return () => (x = (x * 1664525 + 1013904223) % 4294967296) / 4294967296;
 }
 
+describe("slower late-game progression", () => {
+  it("levels up to 40 cost the same as before", () => {
+    expect(xpToNext({ level: 40, paragon: 0 })).toBe(Math.round(60 * Math.pow(40, 1.6)));
+  });
+  it("levels past 40 cost far more XP (about 15x by level 79)", () => {
+    const base = Math.round(60 * Math.pow(79, 1.6));
+    expect(xpToNext({ level: 79, paragon: 0 }) / base).toBeGreaterThan(13);
+  });
+  it("gold rewards are nerfed versus the old formula", () => {
+    for (const st of [10, 40, 80]) expect(stageRewards(st).gold).toBeLessThan((12 + 10 * Math.pow(st, 1.85)) * 0.7);
+  });
+  it("monsters get tougher with stage", () => {
+    expect(stageFoe(79).hp).toBeGreaterThan(Math.round((150 + 79 * 150) * riftFactor(79) * 1.4));
+  });
+});
+
 describe("campaign balance", () => {
   beforeEach(() => {
     vi.spyOn(Math, "random").mockImplementation(seeded(42));
@@ -137,8 +154,8 @@ describe("campaign balance", () => {
     for (const stage of [5, 20, 40, 60, 80]) {
       const rw = stageRewards(stage);
       const need = xpToNext({ level: stage, paragon: 0 });
-      expect(rw.xp).toBeGreaterThan(need * 0.15);
       expect(rw.xp).toBeLessThan(need);
+      if (stage <= 40) expect(rw.xp).toBeGreaterThan(need * 0.15);
     }
     expect(stageRewards(51).xp).toBeGreaterThan(stageRewards(50).xp);
     expect(stageRewards(51).gold).toBeGreaterThan(stageRewards(50).gold);
