@@ -31,7 +31,6 @@ import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
 import { LongRoad } from "./LongRoad";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
-import { WorldMap } from "./WorldMap";
 import { battleMats, matsLine, addMats } from "./crafting";
 import { Diamonds, Gold, ItemCard, Panel, fmt } from "./ui";
 import { premiumState } from "./economy";
@@ -165,7 +164,6 @@ export function Game() {
           {open === "temple" && <Temple onClose={() => setOpen(null)} />}
           {open === "market" && <Market onClose={() => setOpen(null)} />}
           {open === "arena" && <Arena onClose={() => setOpen(null)} start={start} />}
-          {open === "worldtree" && <WorldMap onClose={() => setOpen(null)} start={start} />}
           {open === "oracle" && <Oracle onClose={() => setOpen(null)} start={start} />}
         </>
       )}

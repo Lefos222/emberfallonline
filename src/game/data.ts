@@ -260,12 +260,6 @@ export interface Hero {
   /** Bestiary entries the character has defeated, by bestiary id. */
   kills?: Record<string, number>;
   weekly?: { week: number; kills: number; claimed: boolean };
-  /** Persistent world-map castle position (percent grid). Mirrored into stats.wx/wy by the save flow. */
-  world?: { x: number; y: number };
-  /** UTC date strings of castle relocations used today (3/day max, see worldmap.ts). */
-  worldMoves?: string[];
-  /** "castleId:UTCdate" entries recording castle raids today (1 per castle/day, see worldmap.ts). */
-  worldAttacks?: string[];
 }
 
 export function newHero(name: string, cls: HeroClass): Hero {
@@ -450,7 +444,6 @@ export const BUILDINGS = [
   { id: "guild", name: "Guild Hall", x: 35, y: 55, r: 4, desc: "Guilds & guild chat", soon: false },
   { id: "friends", name: "Friends", x: 0, y: 0, r: 0, desc: "Friends & messages", soon: false, shortcut: true },
   { id: "daily", name: "Daily Rewards", x: 46, y: 66, r: 3.5, desc: "Login rewards & activities", soon: false , shortcut: true },
-  { id: "worldtree", name: "World Tree", x: 50, y: 50, r: 6, desc: "Enter the persistent world map", soon: false },
 ] as const;
 /** Buildings physically placed in the castle (shortcut-only screens excluded). */
 export const CASTLE_BUILDINGS = BUILDINGS.filter((b) => !("shortcut" in b && b.shortcut));
