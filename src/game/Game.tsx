@@ -15,6 +15,7 @@ import { Expeditions } from './Expeditions';
 import { Professions } from './Professions';
 import { PremiumShop } from './PremiumShop';
 import { AuctionHouse } from './AuctionHouse';
+import { WorldMap } from './WorldMap';
 import { awardAncestralRelic } from './building-content';
 import { beginScrollBattle } from "./services";
 import { scrollFighter } from "./scrolls";
@@ -164,6 +165,7 @@ export function Game() {
           {open === "temple" && <Temple onClose={() => setOpen(null)} />}
           {open === "market" && <Market onClose={() => setOpen(null)} />}
           {open === "arena" && <Arena onClose={() => setOpen(null)} start={start} />}
+          {open === "worldmap" && <WorldMap onClose={() => setOpen(null)} start={start} />}
           {open === "oracle" && <Oracle onClose={() => setOpen(null)} start={start} />}
         </>
       )}
