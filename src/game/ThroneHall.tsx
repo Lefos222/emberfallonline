@@ -130,7 +130,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
           <SkillLoadout />
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="font-display text-lg">Skill points: <span className="text-gold">{free}</span> / {totalPoints(hero)}</div>
-            <div className="text-xs text-muted-foreground">Earn 1 point per level, plus a bonus point every 5 levels — quests and achievements can add more.</div>
+            <div className="text-xs text-muted-foreground">Earn 1 point per level, plus a bonus point every 5 levels — every level-up also grants 1 Insight, and quests and achievements can add more.</div>
             {!confirmReset ? (
               <button className="btn-ghost flex items-center gap-1 px-3 py-1.5 text-sm" disabled={spentIn(hero) === 0 && !hero.spec} onClick={() => setConfirmReset(true)}>
                 <RotateCcw className="h-4 w-4" /> Reset tree
