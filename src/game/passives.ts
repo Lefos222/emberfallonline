@@ -10,7 +10,7 @@ export interface Passive {
 }
 export const PASSIVE_TIER_REQ = { 1: 0, 2: 3, 3: 7 } as const;
 const node = (group: Passive["group"], id: string, name: string, desc: string, tier: Passive["tier"], fx: PassiveFx, prereq?: string): Passive => ({
-  group, id, name, desc, tier, fx, max: tier === 3 ? 2 : 3, cost: tier,
+  group, id, name, desc, tier, fx, max: 4, cost: tier,
   ...(prereq ? { prereq: { id: prereq, rank: 2 } } : {}),
 });
 export const PASSIVES: readonly Passive[] = [

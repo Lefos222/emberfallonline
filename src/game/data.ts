@@ -240,6 +240,8 @@ export interface Hero {
   dungeons?: Record<string, number>;
   /** Skill tree ranks by talent id. */
   talents?: Record<string, number>;
+  /** Extra skill points earned from quests and achievements (see talents.ts totalPoints). */
+  bonusPts?: number;
   /** Optional chosen combat abilities; absent keeps the legacy full kit. */
   skillLoadout?: string[];
   /** Chosen class specialization id. */

@@ -48,9 +48,12 @@ describe("passive tree", () => {
     const h = newHero("Tester", "mage"); h.insight = 4; h.passives = { field_medicine: 2, anatomy: 1 };
     expect(totalInsight(h)).toBe(8);
   });
+  it("every passive offers exactly four upgrades", () => {
+    expect(PASSIVES.every((p) => p.max === 4)).toBe(true);
+  });
   it("saved over-max ranks cannot inflate effects", () => {
     const h = newHero("Tester", "mage"); h.passives = { field_medicine: 99 };
-    expect(passiveRank(h, "field_medicine")).toBe(3);
+    expect(passiveRank(h, "field_medicine")).toBe(4);
   });
   it("the stat adapter adds existing talent bonuses", () => {
     const h = newHero("Tester", "warrior"); h.passives = { w_reprisal: 2 };
