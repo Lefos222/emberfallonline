@@ -118,7 +118,7 @@ export function dungeonFoe(d: Dungeon, heroLevel: number, extra = 1): Foe & { sp
 
 // ---------- Ancestral questline ----------
 export const RELICS_NEEDED = 5;
-export const ANC_LEVEL = 30;
+export const ANC_LEVEL = 80;
 export interface AncStep { title: string; desc: string; kind: "unlock" | "relics" | "boss"; boss?: TierBossId; mult?: number }
 export const ANC_STEPS: AncStep[] = [
   { title: "Whispers of the Ancestors", desc: `Reach level ${ANC_LEVEL} and clear Molten Peaks (stage 30) to hear the Sanctuary's call.`, kind: "unlock" },

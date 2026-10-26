@@ -23,6 +23,10 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
   const [description, setDescription] = useState("");
   const [target, setTarget] = useState("");
   const [body, setBody] = useState("");
+  const [allGuilds, setAllGuilds] = useState<Tables<"guilds">[]>([]);
+  const [myApps, setMyApps] = useState<Tables<"guild_applications">[]>([]);
+  const [applications, setApplications] = useState<Tables<"guild_applications">[]>([]);
+  const [applyMsg, setApplyMsg] = useState<Record<string, string>>({});
   const load = async () => {
     if (!heroId) return;
     const [membership, invitation] = await Promise.all([
@@ -37,7 +41,16 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
       if (error) throw new Error(error.message);
       setInviteNames(Object.fromEntries((data ?? []).map((g) => [g.id, g.name])));
     }
-    if (!membership.data) { setGuild(null); setMembers([]); setMessages([]); setLoaded(true); return; }
+    // Own pending applications (for withdrawing)
+    const { data: apps } = await supabase.from("guild_applications").select("*").eq("hero_id", heroId).eq("status", "pending");
+    setMyApps(apps ?? []);
+    if (!membership.data) {
+      setGuild(null); setMembers([]); setMessages([]); setApplications([]);
+      // Browse available guilds
+      const { data: guilds } = await supabase.from("guilds").select("*").order("name");
+      setAllGuilds(guilds ?? []);
+      setLoaded(true); return;
+    }
     const id = membership.data.guild_id;
     const [g, roster, chat] = await Promise.all([
       supabase.from("guilds").select("*").eq("id", id).single(),
@@ -51,7 +64,16 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
       if (error) throw new Error(error.message);
       setNames(Object.fromEntries((data ?? []).map((h) => [h.id, h.name])));
     }
-    setGuild(g.data); setMembers(roster.data ?? []); setMessages((chat.data ?? []).reverse()); setLoaded(true);
+    setGuild(g.data); setMembers(roster.data ?? []); setMessages((chat.data ?? []).reverse());
+    // Load pending applications if leader/officer
+    const myRole = (roster.data ?? []).find((m) => m.hero_id === heroId)?.role;
+    if (myRole === "leader" || myRole === "officer") {
+      const { data: pending } = await supabase.from("guild_applications").select("*").eq("guild_id", id).eq("status", "pending").order("created_at", { ascending: false });
+      setApplications(pending ?? []);
+    } else {
+      setApplications([]);
+    }
+    setLoaded(true);
   };
   useEffect(() => { void request.run(load); }, [heroId]);
   useEffect(() => {
@@ -75,6 +97,30 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
       <h3 className="mb-4 font-display text-2xl text-gold">Guild invitations</h3>
       {invites.length === 0 && <p className="mb-6 text-sm text-muted-foreground">No pending invitations.</p>}
       {invites.map((i) => <div key={i.id} className="mb-3 flex items-center justify-between gap-2 border-b border-border py-3"><span>{inviteNames[i.guild_id] ?? "Guild invitation"}</span><span className="flex gap-2">{[true, false].map((accept) => <Button key={String(accept)} variant="outline" size="icon" aria-label={accept ? "Accept invitation" : "Decline invitation"} disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("respond_invite", { _hero: id, _invite: i.id, _accept: accept })))}>{accept ? <Check /> : <X />}</Button>)}</span></div>)}
+      {/* My pending applications */}
+      {myApps.length > 0 && <div className="mb-6">
+        <h4 className="mb-2 font-display text-lg">Your applications</h4>
+        {myApps.map((a) => <div key={a.id} className="flex items-center justify-between gap-2 border-b border-border py-2 text-sm"><div><span className="text-gold">{allGuilds.find((g) => g.id === a.guild_id)?.name ?? "Guild"}</span>{a.message && <span className="ml-2 text-muted-foreground">"{a.message}"</span>}</div><Button variant="ghost" size="sm" disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("withdraw_application", { _hero: id, _application: a.id })))}>Withdraw</Button></div>)}
+      </div>}
+      {/* Browse and apply to guilds */}
+      <div className="mb-6 border-t border-border pt-5">
+        <h4 className="mb-3 font-display text-2xl">Available guilds</h4>
+        {allGuilds.length === 0 && <p className="text-sm text-muted-foreground">No guilds have been founded yet.</p>}
+        <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
+          {allGuilds.map((g) => <div key={g.id} className="slot p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div><span className="font-display text-lg text-gold">{g.name}</span><span className="ml-2 text-xs text-muted-foreground">Lv {g.level}</span></div>
+              {myApps.some((a) => a.guild_id === g.id)
+                ? <span className="text-xs text-muted-foreground">Applied</span>
+                : <div className="flex items-center gap-1">
+                    <input className="slot w-40 px-2 py-1 text-sm" placeholder="Message (optional)" maxLength={200} value={applyMsg[g.id] ?? ""} onChange={(e) => setApplyMsg((m) => ({ ...m, [g.id]: e.target.value }))} />
+                    <Button variant="outline" size="sm" disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("apply_guild", { _hero: id, _guild: g.id, _message: applyMsg[g.id] ?? "" })))}><UserPlus className="h-4 w-4" />Apply</Button>
+                  </div>}
+            </div>
+            {g.description && <p className="mt-1 text-sm text-muted-foreground">{g.description}</p>}
+          </div>)}
+        </div>
+      </div>
       <form className="max-w-md space-y-3 border-t border-border pt-5" onSubmit={(e) => { e.preventDefault(); void request.run(() => mutate((id) => supabase.rpc("create_guild", { _hero: id, _name: name.trim(), _description: description, _emblem: "shield" }))); }}>
         <h3 className="font-display text-2xl">Found a guild</h3>
         <label className="block text-sm">Guild name<input className="slot mt-1 w-full px-3 py-2" required minLength={3} maxLength={20} value={name} onChange={(e) => setName(e.target.value)} /></label>
@@ -85,6 +131,17 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
     {guild && <>
       <h3 className="font-display text-3xl text-gold">{guild.name}</h3><p className="text-xs text-muted-foreground">Level {guild.level} · {members.length} members · {role}</p><p className="mt-3 break-words text-sm">{guild.description}</p>
       {guild.announcement && <p className="my-4 border-l-2 border-primary pl-3 text-sm">{guild.announcement}</p>}
+      {/* Applications moderation for leaders/officers */}
+      {(role === "leader" || role === "officer") && applications.length > 0 && <div className="mb-4 border-y border-border py-4">
+        <h4 className="mb-3 font-display text-xl text-gold">Applications ({applications.length})</h4>
+        {applications.map((a) => <div key={a.id} className="flex items-center justify-between gap-2 border-b border-border py-3">
+          <div><span className="font-display text-base">{a.hero_name}</span>{a.message && <p className="text-sm text-muted-foreground">"{a.message}"</p>}</div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="icon" aria-label="Accept application" disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("moderate_application", { _hero: id, _application: a.id, _accept: true })))}><Check /></Button>
+            <Button variant="outline" size="icon" aria-label="Reject application" disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("moderate_application", { _hero: id, _application: a.id, _accept: false })))}><X /></Button>
+          </div>
+        </div>)}
+      </div>}
       <GuildEvents />
       <div className="mt-5 grid gap-6 md:grid-cols-[1fr_1.4fr]">
         <div><h4 className="font-display text-xl">Members</h4>{members.map((m) => <div key={m.hero_id} className="flex justify-between gap-2 border-b border-border py-3 text-sm"><span>{names[m.hero_id] ?? "Member"}</span><span className="text-muted-foreground">{m.role}</span></div>)}
