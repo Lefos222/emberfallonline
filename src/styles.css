@@ -383,3 +383,9 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
 }
 
 @keyframes hint-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+
+/* 2.5D World field locomotion */
+@keyframes walk-bob { 0%,100% { translate: 0 0; rotate: 0; } 25% { translate: 0 -5px; rotate: -2deg; } 50% { translate: 0 0; rotate: 0; } 75% { translate: 0 -3px; rotate: 2deg; } }
+@keyframes run-bob { 0%,100% { translate: 0 0; rotate: 0; } 50% { translate: 0 -12px; rotate: -3deg; } }
+@utility anim-walk { animation: walk-bob 0.5s ease-in-out infinite; }
+@utility anim-run { animation: run-bob 0.34s ease-in-out infinite; }

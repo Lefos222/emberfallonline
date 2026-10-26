@@ -1,0 +1,9 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    { "name": "VITE_SUPABASE_URL", "description": "Supabase project URL (publishable). Already in repo .env — used by the client at build/dev time.", "requiredAtBoot": true },
+    { "name": "VITE_SUPABASE_PUBLISHABLE_KEY", "description": "Supabase publishable/anon key. Already in repo .env — not a user secret.", "requiredAtBoot": true }
+  ]
+}
