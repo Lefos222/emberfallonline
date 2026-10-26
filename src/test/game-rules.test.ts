@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canEnterConquest, heroStats, newHero, normalizeHero, powerBreakdown, type Hero } from "@/game/data";
+import { CASTLE_BUILDINGS, canEnterConquest, heroStats, newHero, normalizeHero, powerBreakdown, type Hero } from "@/game/data";
 
 describe("game rules", () => {
   it("level 9 cannot enter Conquest", () => expect(canEnterConquest(9)).toBe(false));
@@ -24,5 +24,17 @@ describe("game rules", () => {
     (h as unknown as { attrs: object }).attrs = { str: 2, vit: 3, armor: 4, luck: 5 };
     normalizeHero(h);
     expect(h.attrs).toEqual({ str: 2, int: 0, agi: 5, vit: 7 });
+  });
+});
+
+describe("castle layout", () => {
+  it("building hotspots never overlap, so taps hit the right building", () => {
+    for (let i = 0; i < CASTLE_BUILDINGS.length; i++) {
+      for (let j = i + 1; j < CASTLE_BUILDINGS.length; j++) {
+        const a = CASTLE_BUILDINGS[i], b = CASTLE_BUILDINGS[j];
+        const dist = Math.hypot(a.x - b.x, a.y - b.y);
+        expect(dist, `${a.name} overlaps ${b.name}`).toBeGreaterThanOrEqual(a.r + b.r);
+      }
+    }
   });
 });
