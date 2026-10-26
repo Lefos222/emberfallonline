@@ -23,7 +23,7 @@ import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
 import { CharacterModel } from "./CharacterModel";
 import { QuestBoard } from "./QuestBoard";
-import { BarracksUpgrade } from "./Barracks";
+import { BarracksUpgrade, DrillTracks } from "./Barracks";
 import { batchSizes } from "./barracks";
 import { CharacterPose } from "./CharacterPose";
 import { DiscoveryArt } from "./Professions";
@@ -355,7 +355,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   };
   const enhance = () => {
     if (!sel) return;
-    const cost = enhanceCost(sel);
+    const cost = enhanceCost(sel, hero.level);
     if (hero.gold < cost) return;
     const ok = Math.random() < enhanceChance(sel);
     update((h) => {
@@ -368,7 +368,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   };
   return (
     <Panel title="Forge" onClose={onClose}>
-      {onCraft && <button className="btn-gold mb-4 w-full py-2" onClick={onCraft}><Hammer className="mr-2 inline h-4 w-4" />Open crafting recipes</button>}
+      {onCraft && <button className="btn-gold mb-4 w-full py-2" onClick={onCraft}><Hammer className="mr-2 inline h-4 w-4" />Open crafting recipes · Standard &amp; Ancestral</button>}
       <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
         <div className="space-y-4">
           <div>
@@ -399,9 +399,9 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
               <ItemCard item={sel} />
               <div className="flex items-center justify-between text-sm">
                 <span>Chance <b className="text-gold">{Math.round(enhanceChance(sel) * 100)}%</b></span>
-                <Gold n={enhanceCost(sel)} />
+                <Gold n={enhanceCost(sel, hero.level)} />
               </div>
-              <button className="btn-gold w-full py-3 text-lg" disabled={hero.gold < enhanceCost(sel)} onClick={enhance}>
+              <button className="btn-gold w-full py-3 text-lg" disabled={hero.gold < enhanceCost(sel, hero.level)} onClick={enhance}>
                 <Hammer className="mr-2 inline" />Enhance +{sel.enh + 1}
               </button>
 
@@ -472,6 +472,7 @@ export function Temple({ onClose }: { onClose: () => void }) {
   return (
     <Panel title="Barracks — Attribute Training" onClose={onClose}>
       <BarracksUpgrade hero={hero} />
+      <div className="mb-1 font-display text-sm text-gold">Attribute training</div>
       <div role="group" aria-label="Training batch" className="mb-4 flex flex-wrap gap-2">{batchSizes(hero).map(n=><Button key={n} size="sm" variant={count===n?'default':'outline'} aria-pressed={count===n} onClick={()=>setCount(n)}>+{n} points</Button>)}</div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {ATTRS.map((a) => {
@@ -489,6 +490,7 @@ export function Temple({ onClose }: { onClose: () => void }) {
           );
         })}
       </div>
+      <DrillTracks hero={hero} />
     </Panel>
   );
 }
@@ -509,7 +511,7 @@ export function Market({ onClose }: { onClose: () => void }) {
             {hero.merchant.map((it) => (
               <div key={it.id} className="flex flex-col items-center gap-1">
                 <ItemSlot item={it} size={64} selected={sel === it.id} onClick={() => setSel(it.id)} />
-                <Gold n={buyPrice(it)} className="text-xs" />
+                <Gold n={buyPrice(it, hero.level)} className="text-xs" />
               </div>
             ))}
           </div>
@@ -520,9 +522,9 @@ export function Market({ onClose }: { onClose: () => void }) {
         <div>
           {item ? (
             <ItemCard item={item} compare={wornCompare(hero, item)} actions={
-              <button className="btn-gold px-4 py-1.5" disabled={hero.gold < buyPrice(item) || hero.inventory.length >= invCap(hero)}
-                onClick={() => { update((h) => { h.gold -= buyPrice(item); h.merchant = h.merchant.filter((m) => m.id !== item.id); h.inventory.unshift(item); }); setSel(null); }}>
-                Buy <Gold n={buyPrice(item)} className="text-primary-foreground" />
+              <button className="btn-gold px-4 py-1.5" disabled={hero.gold < buyPrice(item, hero.level) || hero.inventory.length >= invCap(hero)}
+                onClick={() => { update((h) => { h.gold -= buyPrice(item, h.level); h.merchant = h.merchant.filter((m) => m.id !== item.id); h.inventory.unshift(item); }); setSel(null); }}>
+                Buy <Gold n={buyPrice(item, hero.level)} className="text-primary-foreground" />
               </button>
             } />
           ) : <div className="py-16 text-center text-muted-foreground">Pick a ware</div>}
