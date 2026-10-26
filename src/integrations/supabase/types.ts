@@ -694,6 +694,35 @@ export type Database = {
         }
         Relationships: []
       }
+      world_raid_claims: {
+        Row: {
+          claimed_at: string
+          day: string
+          hero_id: string
+          node: string
+        }
+        Insert: {
+          claimed_at?: string
+          day: string
+          hero_id: string
+          node: string
+        }
+        Update: {
+          claimed_at?: string
+          day?: string
+          hero_id?: string
+          node?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "world_raid_claims_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -953,6 +982,11 @@ export type Database = {
         Returns: undefined
       }
       unlock_cosmetic: { Args: { _hero: string; _id: string }; Returns: Json }
+      world_map_state: { Args: { _hero: string }; Returns: Json }
+      world_raid_complete: {
+        Args: { _hero: string; _node: string; _req: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

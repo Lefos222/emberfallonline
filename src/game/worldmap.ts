@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { Foe } from "./data";
-import { stageFoe, dungeonFoe, DUNGEONS, enemySprite } from "./world";
+import { stageFoe, type Foe } from "./data";
+import { dungeonFoe, DUNGEONS, enemySprite } from "./world";
 
 /** World map raid kinds and their server-enforced daily limits (UTC day). */
 export const RAID_LIMITS = { gold: 7, ore: 5, boss: 3 } as const;
