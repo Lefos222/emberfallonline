@@ -99,7 +99,9 @@ export const TREES: Record<HeroClass, Spec[]> = {
 export interface TalentState { level: number; paragon: number; cls: HeroClass; gold?: number; talents?: Record<string, number>; spec?: string; road?: { cleared: number; best: number } }
 
 /** One skill point per level after 1, plus one per Ascension level. */
-export const totalPoints = (h: Pick<TalentState, "level" | "paragon">) => Math.max(0, h.level - 1) + h.paragon;
+/** Skill points: 1 per level, +1 bonus every 5 levels, +1 per ascension. */
+export const totalPoints = (h: Pick<TalentState, "level" | "paragon">) =>
+  Math.max(0, h.level - 1) + Math.floor(h.level / 5) + h.paragon;
 
 export function findTalent(cls: HeroClass, id: string): { spec: Spec; talent: Talent } | null {
   for (const spec of TREES[cls]) { const talent = spec.talents.find((x) => x.id === id); if (talent) return { spec, talent }; }
