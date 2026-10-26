@@ -106,12 +106,17 @@ function seeded(seed: number) {
 }
 
 describe("slower late-game progression", () => {
-  it("levels up to 40 cost the same as before", () => {
-    expect(xpToNext({ level: 40, paragon: 0 })).toBe(Math.round(60 * Math.pow(40, 1.6)));
+  it("every level costs more XP than the old curve (about 2x by level 40)", () => {
+    for (const lv of [1, 10, 25, 40]) {
+      const old = Math.round(60 * Math.pow(lv, 1.6));
+      expect(xpToNext({ level: lv, paragon: 0 })).toBe(Math.round(75 * Math.pow(lv, 1.75)));
+      expect(xpToNext({ level: lv, paragon: 0 })).toBeGreaterThan(old);
+    }
+    expect(xpToNext({ level: 40, paragon: 0 }) / Math.round(60 * Math.pow(40, 1.6))).toBeGreaterThan(1.9);
   });
-  it("levels past 40 cost far more XP (about 15x by level 79)", () => {
-    const base = Math.round(60 * Math.pow(79, 1.6));
-    expect(xpToNext({ level: 79, paragon: 0 }) / base).toBeGreaterThan(13);
+  it("levels past 40 compound extra XP on top (about 15x by level 79)", () => {
+    const noLate = Math.round(75 * Math.pow(79, 1.75));
+    expect(xpToNext({ level: 79, paragon: 0 }) / noLate).toBeGreaterThan(13);
   });
   it("gold rewards are nerfed versus the old formula", () => {
     for (const st of [10, 40, 80]) expect(stageRewards(st).gold).toBeLessThan((12 + 10 * Math.pow(st, 1.85)) * 0.7);
