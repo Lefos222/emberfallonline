@@ -281,8 +281,8 @@ export function newHero(name: string, cls: HeroClass): Hero {
 }
 
 export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
-  if (h.level < MAX_LEVEL) return Math.round(75 * Math.pow(h.level, 1.75) * lateLevelFactor(h.level));
-  return Math.round(75 * Math.pow(MAX_LEVEL, 1.75) * lateLevelFactor(MAX_LEVEL) * Math.pow(1.05, h.paragon));
+  if (h.level < MAX_LEVEL) return Math.round(60 * Math.pow(h.level, 1.6) * lateLevelFactor(h.level));
+  return Math.round(60 * Math.pow(MAX_LEVEL, 1.6) * lateLevelFactor(MAX_LEVEL) * Math.pow(1.05, h.paragon));
 }
 
 /** Levels past this point get steadily slower so reaching the cap takes weeks, not days. */
@@ -471,10 +471,10 @@ export function calcDamage(atk: number, def: number, mult: number, critChance: n
 
 export const BUILDINGS = [
   { id: "hall", name: "Throne Hall", x: 29, y: 24, r: 7, desc: "Skill tree, stats & progression", soon: false },
-  { id: "armory", name: "Armory", x: 40, y: 22, r: 4.5, desc: "Inventory & equipment", soon: false },
-  { id: "temple", name: "Barracks", x: 54.5, y: 54, r: 5, desc: "Attribute training", soon: false },
+  { id: "armory", name: "Armory", x: 41, y: 22, r: 4.5, desc: "Inventory & equipment", soon: false },
+  { id: "temple", name: "Barracks", x: 58, y: 57, r: 4.5, desc: "Attribute training", soon: false },
   { id: "forge", name: "Blacksmith", x: 63.5, y: 44, r: 4.5, desc: "Enhance & salvage gear", soon: false },
-  { id: "oracle", name: "Quest Board", x: 45.5, y: 47, r: 4, desc: "AI-generated quests", soon: false , shortcut: true },
+  { id: "oracle", name: "Quest Board", x: 42, y: 52, r: 3.5, desc: "AI-generated quests", soon: false , shortcut: true },
   { id: "portal", name: "Campaign Gate", x: 72, y: 54, r: 5.5, desc: "Campaign stages", soon: false },
   { id: "spire", name: "Conquest Gate", x: 17, y: 46, r: 5, desc: "Endless Conquest · Lv 10+", soon: false },
   { id: "arena", name: "Arena", x: 50, y: 31, r: 6.5, desc: "Fight real players", soon: false },
@@ -486,7 +486,7 @@ export const BUILDINGS = [
   { id: "guild", name: "Guild Hall", x: 35, y: 55, r: 4, desc: "Guilds & guild chat", soon: false },
   { id: "friends", name: "Friends", x: 0, y: 0, r: 0, desc: "Friends & messages", soon: false, shortcut: true },
   { id: "daily", name: "Daily Rewards", x: 46, y: 66, r: 3.5, desc: "Login rewards & activities", soon: false , shortcut: true },
-  { id: "worldmap", name: "World Tree", x: 50, y: 49, r: 5, desc: "Explore the world map · raids & bosses", soon: false },
+  { id: "worldmap", name: "World Tree", x: 50, y: 49, r: 4.5, desc: "Explore the world map · raids & bosses", soon: false },
 ] as const;
 /** Buildings physically placed in the castle (shortcut-only screens excluded). */
 export const CASTLE_BUILDINGS = BUILDINGS.filter((b) => !("shortcut" in b && b.shortcut));
