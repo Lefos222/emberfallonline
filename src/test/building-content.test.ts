@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { attrCost, newHero, makeItem, INVENTORY_CAP } from '@/game/data';
 import { EXPEDITIONS, expeditionFoe, trainingCost, trainAttribute, advanceAncestral, awardAncestralRelic, completeAncestralTrial } from '@/game/building-content';
-import { RECIPES, craft, recipeMats, cutGem, absorbAstral } from '@/game/crafting';
+import { ANCESTRAL_RECIPES, RECIPES, craft, recipeGold, recipeMats, cutGem, absorbAstral } from '@/game/crafting';
 import { WORLD_EVENTS, H } from '@/game/events';
 import { eventEncounter, liveOccurrence } from '@/game/event-encounters';
 import { makeDrop } from '@/game/logic';
@@ -48,20 +48,23 @@ describe('building content preserves existing progression', () => {
     expect(expeditionFoe(h,0).rosterId).not.toBe(old);
   });
   it('new armor recipes still require armor fragments', () => {
-    for (const id of ['sentinel','starweave','voidforged','ancestral']) {
+    for (const id of ['sentinel','starweave','voidforged']) {
       const r = RECIPES.find(r => r.id === id); if (!r) throw new Error(id);
       expect(recipeMats(r,'armour').fragment).toBeGreaterThan(0);
     }
+    for (const r of ANCESTRAL_RECIPES) expect(recipeMats(r, r.slot!).fragment ?? 0).toBeGreaterThan(0);
   });
   it('ancestral crafting is locked until the Sanctuary is complete', () => {
-    const h = newHero('Test','warrior'); h.level=80; h.gold=1000000;
-    const r = RECIPES.find(r=>r.id==='ancestral'); if(!r) throw new Error('Recipe missing');
-    h.mats={ore:500,essence:100,bossCore:20,fragment:80,sigil:20};
-    expect(craft(h,r,INVENTORY_CAP,()=>makeItem(h.cls,80,6))).toBe('Complete the Ancestral Sanctuary trials');
-    expect(h.gold).toBe(1000000);
+    const h = newHero('Test','warrior'); h.level=80; h.gold=5000000;
+    const r = ANCESTRAL_RECIPES.find(x=>x.id==='ancestral_armour'); if(!r) throw new Error('Recipe missing');
+    h.mats={...r.mats};
+    expect(craft(h,r,INVENTORY_CAP,()=>makeItem(h.cls,80,6),r.slot!)).toBe('Complete the Ancestral Sanctuary trials');
+    expect(h.gold).toBe(5000000);
     h.anc={step:5,relics:5,done:true};
-    const result=craft(h,r,INVENTORY_CAP,()=>makeItem(h.cls,80,6));
+    const spent=recipeGold(r,h.level);
+    const result=craft(h,r,INVENTORY_CAP,()=>makeItem(h.cls,80,6),r.slot!);
     expect(typeof result).toBe('object'); expect(h.inventory[0].crafted).toBe(true); expect(h.mats.ore).toBe(0);
+    expect(h.gold).toBe(5000000-spent);
   });
   it('targeted gem cuts spend the existing targeted cost once', () => {
     const h=newHero('Test','mage'); h.gold=450; h.mats={ore:24,essence:1};

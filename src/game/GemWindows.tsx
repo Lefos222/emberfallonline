@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Gem, X } from "lucide-react";
 import { GemIcon, MatIcon } from "./MatIcon";
 import {
-  FUSE_COUNT, GEMS, GEM_CUT_COST, GEM_MAX_TIER, GEM_TARGET_COST, GEM_TIER_NAMES, GEM_TYPES, STAT_LABEL,
+  FUSE_COUNT, GEMS, GEM_MAX_TIER, GEM_TIER_NAMES, GEM_TYPES, STAT_LABEL, gemCutCost,
   gemKey, gemName, gemValue, matCount, parseGem, type GemType,
 } from "./crafting";
 import type { Hero } from "./data";
@@ -64,7 +64,7 @@ export function GemPicker({ hero, socket, onPick, onCut, onClose }: { hero: Hero
 export function GemCutWindow({ hero, onClose, onCut }: { hero: Hero; onClose: () => void; onCut: (type?: GemType) => void }) {
   const [choice, setChoice] = useState<GemType | "random">("random");
   const target = choice === "random" ? undefined : choice;
-  const cost = target ? GEM_TARGET_COST : { ore: GEM_CUT_COST.ore, gold: GEM_CUT_COST.gold, essence: 0 };
+  const cost = gemCutCost(hero.level, target);
   const afford = matCount(hero, "ore") >= cost.ore && hero.gold >= cost.gold && matCount(hero, "essence") >= cost.essence;
   const shown: GemType[] = target ? [target] : GEM_TYPES;
   return (

@@ -1,4 +1,5 @@
 import type { HeroClass, Item, Slot } from "./data";
+import { scaledGold } from "./gold";
 
 // ---------- Materials ----------
 export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal";
@@ -138,7 +139,8 @@ export const socketCount = (it: Pick<Item, "rarity">) => (it.rarity >= 5 ? 3 : i
 export const sockets = (it: Item & { gems?: (string | null)[] }) => Array.from({ length: socketCount(it) }, (_, i) => it.gems?.[i] ?? null);
 
 export const FUSE_COUNT = 3;
-export const fuseCost = (tier: number) => ({ gold: 200 * tier * tier, essence: tier });
+/** Fusing costs gold (scaled to the hero's level) and one Soul Essence per tier. */
+export const fuseCost = (tier: number, level = 1) => ({ gold: scaledGold(200 * tier * tier, level), essence: tier });
 
 function findOwned(h: CraftState, itemId: string): (Item & { gems?: (string | null)[] }) | undefined {
   return (Object.values(h.equipment).find((i) => i?.id === itemId) ?? h.inventory.find((i) => i.id === itemId)) as (Item & { gems?: (string | null)[] }) | undefined;
@@ -179,7 +181,7 @@ export function fuseGem(h: CraftState, key: string): string | null {
   if (!g) return "Invalid gem";
   if (g.tier >= GEM_MAX_TIER) return "Already max tier";
   if ((h.gems?.[key] ?? 0) < FUSE_COUNT) return `Needs ${FUSE_COUNT} of this gem`;
-  const c = fuseCost(g.tier);
+  const c = fuseCost(g.tier, h.level);
   if (h.gold < c.gold) return "Not enough gold";
   if (matCount(h, "essence") < c.essence) return "Not enough Soul Essence";
   h.gold -= c.gold; spendMats(h, { essence: c.essence });
@@ -190,9 +192,14 @@ export function fuseGem(h: CraftState, key: string): string | null {
 export const GEM_CUT_COST = { ore: 8, gold: 150 };
 /** Targeted cut: choose the gem type for triple cost. */
 export const GEM_TARGET_COST = { ore: 24, gold: 450, essence: 1 };
+/** What a cut costs right now: the gold part rises with the hero's level. */
+export const gemCutCost = (level = 1, type?: GemType): { ore: number; gold: number; essence: number } => {
+  const c = type ? GEM_TARGET_COST : { ...GEM_CUT_COST, essence: 0 };
+  return { ore: c.ore, gold: scaledGold(c.gold, level), essence: c.essence };
+};
 /** Cut a tier-1 gem from ore: random type, or a chosen type at GEM_TARGET_COST. */
 export function cutGem(h: CraftState, rand = Math.random, type?: GemType): string | null {
-  const c = type ? GEM_TARGET_COST : { ...GEM_CUT_COST, essence: 0 };
+  const c = gemCutCost(h.level, type);
   if (matCount(h, "ore") < c.ore) return "Not enough Ember Ore";
   if (h.gold < c.gold) return "Not enough gold";
   if (matCount(h, "essence") < c.essence) return "Not enough Soul Essence";
@@ -308,22 +315,44 @@ export function astralFx(h: Pick<CraftState, "astrals" | "astralSlots">): BonusF
 export const ASTRAL_MILESTONES = [{ n: 3, gold: 1000 }, { n: 6, gold: 5000 }, { n: 13, gold: 25000 }];
 
 // ---------- Recipes ----------
-export interface Recipe { id: string; name: string; rarity: number; mats: Mats; gold: number; minLevel: number; desc: string }
+export interface Recipe {
+  id: string; name: string; rarity: number; mats: Mats; gold: number; minLevel: number; desc: string;
+  /** Ancestral heirlooms are forged in their own Forge tab, one recipe per slot. */
+  ancestral?: true;
+  /** Slot an ancestral recipe produces (standard recipes take the slot the player picked). */
+  slot?: Slot;
+}
+
+/** What a recipe's gold cost comes to for a hero of this level. */
+export const recipeGold = (r: Recipe, level = 1) => scaledGold(r.gold, level);
+
 export const RECIPES: Recipe[] = [
   { id: "rare", name: "Forged Rare piece", rarity: 2, mats: { ore: 20, essence: 2 }, gold: 500, minLevel: 1, desc: "A guaranteed Rare item for the chosen slot." },
-  { id: "epic", name: "Forged Epic piece", rarity: 3, mats: { ore: 50, essence: 8 }, gold: 2500, minLevel: 15, desc: "A guaranteed Epic item with 2 sockets." },
-  { id: "legend", name: "Boss-forged Legendary", rarity: 4, mats: { ore: 120, essence: 20, bossCore: 3 }, gold: 12000, minLevel: 35, desc: "Legendary gear forged from boss cores." },
-  { id: "mythic", name: "Mythic Masterwork", rarity: 5, mats: { ore: 300, essence: 60, bossCore: 10 }, gold: 60000, minLevel: 60, desc: "Mythic gear with 3 sockets." },
-  { id: "sentinel", name: "Iron Sentinel", rarity: 3, mats: { ore: 65, essence: 6, fragment: 8, sigil: 2 }, gold: 3200, minLevel: 20, desc: "An Epic sentinel piece forged from elite trophies. Two gem sockets." },
-  { id: "starweave", name: "Starweave Relic", rarity: 4, mats: { ore: 100, essence: 25, starshard: 20, bossCore: 3 }, gold: 15000, minLevel: 40, desc: "A Legendary Starweave piece for your chosen slot. Two gem sockets." },
-  { id: "voidforged", name: "Voidforged Sovereign", rarity: 5, mats: { ore: 350, essence: 80, starshard: 40, bossCore: 12, sigil: 15 }, gold: 80000, minLevel: 80, desc: "A Mythic sovereign piece for Ascension builds. Three gem sockets." },
-  { id: "ancestral", name: "Ancestral Heirloom", rarity: 6, mats: { ore: 500, essence: 100, bossCore: 20, fragment: 80, sigil: 20 }, gold: 120000, minLevel: 60, desc: "Ancestral gear. Complete the Sanctuary trials to unlock this recipe." },
+  { id: "epic", name: "Forged Epic piece", rarity: 3, mats: { ore: 90, essence: 16 }, gold: 2500, minLevel: 15, desc: "A guaranteed Epic item with 2 sockets." },
+  { id: "legend", name: "Boss-forged Legendary", rarity: 4, mats: { ore: 220, essence: 40, bossCore: 6 }, gold: 12000, minLevel: 35, desc: "Legendary gear forged from boss cores." },
+  { id: "mythic", name: "Mythic Masterwork", rarity: 5, mats: { ore: 520, essence: 110, bossCore: 20 }, gold: 60000, minLevel: 60, desc: "Mythic gear with 3 sockets." },
+  { id: "sentinel", name: "Iron Sentinel", rarity: 3, mats: { ore: 120, essence: 12, fragment: 18, sigil: 5 }, gold: 3200, minLevel: 20, desc: "An Epic sentinel piece forged from elite trophies. Two gem sockets." },
+  { id: "starweave", name: "Starweave Relic", rarity: 4, mats: { ore: 190, essence: 50, starshard: 40, bossCore: 6 }, gold: 15000, minLevel: 40, desc: "A Legendary Starweave piece for your chosen slot. Two gem sockets." },
+  { id: "voidforged", name: "Voidforged Sovereign", rarity: 5, mats: { ore: 620, essence: 150, starshard: 80, bossCore: 24, sigil: 30 }, gold: 80000, minLevel: 80, desc: "A Mythic sovereign piece for Ascension builds. Three gem sockets." },
+];
+
+/** The Ancestral tier: one heirloom per slot, forged only after the Sanctuary trials are complete.
+ *  Every piece costs millions of gold once the hero's level is taken into account, plus a vault of
+ *  materials — this is the long-term goal the whole forge feeds into. */
+export const ANCESTRAL_RECIPES: Recipe[] = [
+  { id: "ancestral_helmet", name: "Ancestral Helm", slot: "helmet", rarity: 6, ancestral: true, minLevel: 60, gold: 1200000, desc: "Ancestral headpiece. Three gem sockets and the highest bonus in the game.", mats: { ore: 1400, essence: 360, bossCore: 100, fragment: 600, sigil: 180, crystal: 240 } },
+  { id: "ancestral_armour", name: "Ancestral Plate", slot: "armour", rarity: 6, ancestral: true, minLevel: 60, gold: 1800000, desc: "Ancestral chestpiece, the heart of the set.", mats: { ore: 1800, essence: 460, bossCore: 140, fragment: 800, sigil: 240, crystal: 300 } },
+  { id: "ancestral_boots", name: "Ancestral Greaves", slot: "boots", rarity: 6, ancestral: true, minLevel: 60, gold: 1100000, desc: "Ancestral greaves, forged around a crystal core.", mats: { ore: 1300, essence: 340, bossCore: 90, fragment: 550, sigil: 170, crystal: 220 } },
+  { id: "ancestral_belt", name: "Ancestral Girdle", slot: "belt", rarity: 6, ancestral: true, minLevel: 60, gold: 1100000, desc: "Ancestral warbelt, bound with elite sigils.", mats: { ore: 1300, essence: 340, bossCore: 90, fragment: 550, sigil: 170, crystal: 220 } },
+  { id: "ancestral_weapon", name: "Ancestral Relic Weapon", slot: "weapon", rarity: 6, ancestral: true, minLevel: 60, gold: 1600000, desc: "Ancestral weapon, quenched in starshard light.", mats: { ore: 1700, essence: 440, bossCore: 130, fragment: 700, sigil: 230, starshard: 180 } },
+  { id: "ancestral_ring", name: "Ancestral Signet", slot: "ring", rarity: 6, ancestral: true, minLevel: 60, gold: 1000000, desc: "Ancestral ring set with a star-cut stone.", mats: { ore: 1000, essence: 400, bossCore: 80, fragment: 400, sigil: 150, starshard: 200, crystal: 320 } },
+  { id: "ancestral_talisman", name: "Ancestral Reliquary", slot: "talisman", rarity: 6, ancestral: true, minLevel: 60, gold: 1050000, desc: "Ancestral reliquary, holding the last of the old magic.", mats: { ore: 1050, essence: 420, bossCore: 85, fragment: 420, sigil: 155, starshard: 220, crystal: 340 } },
 ];
 /** Armor slots: Rare and better armor exists only through crafting. */
 export const ARMOR_SLOTS: Slot[] = ["helmet", "armour", "boots", "belt"];
 export const isArmor = (s: Slot) => ARMOR_SLOTS.includes(s);
 /** Extra ingredients armor recipes need on top of the base recipe. */
-export const ARMOR_EXTRA: Record<string, Mats> = { rare: { fragment: 5 }, epic: { fragment: 12, sigil: 2 }, legend: { fragment: 25, sigil: 5 }, mythic: { fragment: 60, sigil: 12 }, sentinel: { fragment: 12, sigil: 2 }, starweave: { fragment: 25, sigil: 5 }, voidforged: { fragment: 60, sigil: 12 } };
+export const ARMOR_EXTRA: Record<string, Mats> = { rare: { fragment: 5 }, epic: { fragment: 22, sigil: 4 }, legend: { fragment: 45, sigil: 10 }, mythic: { fragment: 110, sigil: 24 }, sentinel: { fragment: 22, sigil: 4 }, starweave: { fragment: 45, sigil: 10 }, voidforged: { fragment: 110, sigil: 24 } };
 export const recipeMats = (r: Recipe, slot: Slot): Mats => {
   if (!isArmor(slot)) return r.mats;
   const out: Mats = { ...r.mats };
@@ -331,9 +360,9 @@ export const recipeMats = (r: Recipe, slot: Slot): Mats => {
   return out;
 };
 export function craftBlocker(h: CraftState, r: Recipe, invCap: number, slot: Slot = "weapon"): string | null {
-  if (r.id === "ancestral" && !h.anc?.done) return "Complete the Ancestral Sanctuary trials";
+  if (r.ancestral && !h.anc?.done) return "Complete the Ancestral Sanctuary trials";
   if (h.level + h.paragon < r.minLevel) return `Requires level ${r.minLevel}`;
-  if (h.gold < r.gold) return "Not enough gold";
+  if (h.gold < recipeGold(r, h.level)) return "Not enough gold";
   if (!hasMats(h, recipeMats(r, slot))) return "Missing materials";
   if (h.inventory.length >= invCap) return "Bag is full";
   return null;
@@ -342,7 +371,7 @@ export function craftBlocker(h: CraftState, r: Recipe, invCap: number, slot: Slo
 export function craft(h: CraftState, r: Recipe, invCap: number, make: () => Item, slot: Slot = "weapon"): Item | string {
   const b = craftBlocker(h, r, invCap, slot);
   if (b) return b;
-  h.gold -= r.gold; spendMats(h, recipeMats(r, slot));
+  h.gold -= recipeGold(r, h.level); spendMats(h, recipeMats(r, slot));
   const it = { ...make(), crafted: true } as Item;
   h.inventory.unshift(it);
   h.crafts = (h.crafts ?? 0) + 1;

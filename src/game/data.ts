@@ -6,8 +6,10 @@ import goblinImg from "@/assets/enemy-goblin.png";
 import demonImg from "@/assets/enemy-demon.png";
 import dragonImg from "@/assets/enemy-dragon.png";
 import { talentFx, talentSkills } from "./talents";
-import { astralFx, gemFx, type Astral, type Mat } from "./crafting";
+import { astralFx, gemFx, type Astral, type BonusFx, type Mat } from "./crafting";
 import { setFx, type BattleEntry, type CombatRecord } from "./progress";
+import { scaledGold } from "./gold";
+import { drillFx } from "./drills";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -34,8 +36,8 @@ export const BAG_ROW = 8;
 export const MAX_BAG_ROWS = 10;
 /** Bag size for a hero including purchased rows. */
 export const invCap = (h: { bagRows?: number }) => INVENTORY_CAP + BAG_ROW * (h.bagRows ?? 0);
-/** Gold cost of the next bag row: 5,000 doubling each row. */
-export const bagRowCost = (h: { bagRows?: number }) => 5000 * 2 ** (h.bagRows ?? 0);
+/** Gold cost of the next bag row: 5,000 doubling each row, scaled by the hero's level. */
+export const bagRowCost = (h: { bagRows?: number; level?: number }) => scaledGold(5000 * 2 ** (h.bagRows ?? 0), h.level ?? 1);
 
 export const CLASSES: Record<
   HeroClass,
@@ -161,8 +163,10 @@ export function itemScore(it: Item) {
 }
 
 export function sellValue(it: Item) { return Math.round(it.ilvl * 3 * RARITIES[it.rarity].mult * (1 + it.enh * 0.3)); }
-export function buyPrice(it: Item) { return sellValue(it) * 4; }
-export function enhanceCost(it: Item) { return Math.round(it.ilvl * 10 * Math.pow(it.enh + 1, 1.5)); }
+/** What the Night Market charges for a piece, rising with the buyer's level. */
+export function buyPrice(it: Item, level = 1) { return scaledGold(sellValue(it) * 4, level); }
+/** Enhancing at the Forge: the item's own level and the hero's level both raise the price. */
+export function enhanceCost(it: Item, level = 1) { return scaledGold(it.ilvl * 10 * Math.pow(it.enh + 1, 1.5), level); }
 export function enhanceChance(it: Item) { return Math.max(0.2, 1 - it.enh * 0.08); }
 
 // ---------- Wearing gear ----------
@@ -258,7 +262,9 @@ export interface Hero {
   /** Endless "Long Road" progression beyond the campaign (see longroad.ts). */
   road?: { stage: number; wave: number; best: number; cleared: number };
   /** Endless Conquest: tokens earned from cleared floors and spent in the Conquest Gate (see conquest.ts). */
-  conquest?: { tokens?: number };
+  conquest?: { tokens?: number; blitzDay?: string; blitzUsed?: number };
+  /** Barracks drill ranks by drill id (see drills.ts). */
+  drills?: Record<string, number>;
   /** Bestiary entries the character has defeated, by bestiary id. */
   kills?: Record<string, number>;
   weekly?: { week: number; kills: number; claimed: boolean };
@@ -299,15 +305,19 @@ const MAGIC: Record<HeroClass, boolean> = { warrior: false, mage: true, archer: 
 function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boolean; talents?: boolean }): Stats {
   const tf = opts.talents ? talentFx(h) : { hpPct: 0, atkPct: 0, defPct: 0, crit: 0, dodge: 0, critDmg: 0, pen: 0 };
   const xg = opts.gear ? gemFx(h.equipment) : null; const xa = opts.talents ? astralFx(h) : null;
-  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xg?.[k] ?? 0) + (xa?.[k] ?? 0);
+  // Barracks drills are the hero's permanent training track beside the attribute points (see drills.ts).
+  const dr = opts.talents ? drillFx(h) : null;
+  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xg?.[k] ?? 0) + (xa?.[k] ?? 0) + (dr?.[k] ?? 0);
   const sf0 = opts.gear ? setFx(h.equipment) : { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
   const gf = opts.gear ? gemFx(h.equipment) : null;
   const af = opts.talents ? astralFx(h) : null;
   const sf = {
-    atkPct: sf0.atkPct + (gf?.atkPct ?? 0) + (af?.atkPct ?? 0), defPct: sf0.defPct + (gf?.defPct ?? 0) + (af?.defPct ?? 0),
-    hpPct: sf0.hpPct + (gf?.hpPct ?? 0) + (af?.hpPct ?? 0), crit: sf0.crit + (gf?.crit ?? 0) + (af?.crit ?? 0),
+    atkPct: sf0.atkPct + (gf?.atkPct ?? 0) + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0),
+    defPct: sf0.defPct + (gf?.defPct ?? 0) + (af?.defPct ?? 0) + (dr?.defPct ?? 0),
+    hpPct: sf0.hpPct + (gf?.hpPct ?? 0) + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0),
+    crit: sf0.crit + (gf?.crit ?? 0) + (af?.crit ?? 0) + (dr?.crit ?? 0),
   };
-  tf.dodge += (gf?.dodge ?? 0) + (af?.dodge ?? 0); tf.critDmg += (gf?.critDmg ?? 0) + (af?.critDmg ?? 0);
+  tf.dodge += (gf?.dodge ?? 0) + (af?.dodge ?? 0) + (dr?.dodge ?? 0); tf.critDmg += (gf?.critDmg ?? 0) + (af?.critDmg ?? 0);
   const pa = 1 + (tf.atkPct + sf.atkPct) / 100, ph = 1 + (tf.hpPct + sf.hpPct) / 100, pd = 1 + (tf.defPct + sf.defPct) / 100;
   const c = CLASSES[h.cls];
   const items = opts.gear ? (Object.values(h.equipment).filter(Boolean) as Item[]) : [];
@@ -347,7 +357,7 @@ export function powerBreakdown(h: Hero): PowerSource[] {
     { label: "Attributes", power: withAttrs - base },
     { label: "Equipment", power: withGear - withAttrs },
     { label: `Ascension ${h.paragon}`, power: withAsc - withGear },
-    { label: "Skill tree & Astrals", power: total - withAsc },
+    { label: "Skill tree, drills & Astrals", power: total - withAsc },
   ];
 }
 export const powerOf = (s: { hp: number; atk: number; def: number; crit: number }) => Math.round(s.atk * 2 + s.def * 1.5 + s.hp * 0.2 + s.crit * 10);

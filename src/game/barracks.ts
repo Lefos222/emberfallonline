@@ -1,14 +1,15 @@
 import type { Hero } from "./data";
+import { scaledGold } from "./gold";
 
 export const BARRACKS_MAX = 30;
 type Levels = { buildings?: Record<string, number> };
 
 export function barracksLevel(h: Levels): number {
-  const l = Math.floor(h.buildings?.barracks ?? 1);
+  const l = Math.floor(h.buildings?.["barracks"] ?? 1);
   return Math.max(1, Math.min(BARRACKS_MAX, l));
 }
-/** Gold to go from `level` to `level + 1`. */
-export const barracksCost = (level: number) => Math.round(600 * Math.pow(level, 1.55));
+/** Gold to go from `level` to `level + 1`, scaled by the hero's own level like every other gold price. */
+export const barracksCost = (level: number, heroLevel = 1) => scaledGold(600 * Math.pow(level, 1.55), heroLevel);
 /** Every level drills the troops harder: 2% cheaper training per level, with extra instructor grades at 20, 25 and 30. */
 export function trainingDiscount(h: Levels): number {
   const l = barracksLevel(h);
@@ -40,7 +41,7 @@ export const BARRACKS_UNLOCKS: { level: number; name: string; desc: string }[] =
 export function upgradeBarracks(h: Hero): string | null {
   const level = barracksLevel(h);
   if (level >= BARRACKS_MAX) return "The barracks is at its final level";
-  const cost = barracksCost(level);
+  const cost = barracksCost(level, h.level);
   if (h.gold < cost) return "Not enough gold";
   h.gold -= cost;
   h.buildings = { ...(h.buildings ?? {}), barracks: level + 1 };
