@@ -222,20 +222,20 @@ export const GEM_BUILDS: Record<HeroClass, { name: string; gems: GemType[] }[]> 
 export type AstralKind = "offense" | "defense" | "utility";
 export interface Astral { id: string; base: string; rarity: number; lvl: number }
 /** Keep keys in sync with the bases array in the lucky_shot database function. */
-export const ASTRAL_BASES: Record<string, { name: string; kind: AstralKind; stat: StatKey; per: number }> = {
-  ember: { name: "Ember Wyrm", kind: "offense", stat: "atkPct", per: 1.5 },
-  arcana: { name: "Arcane Moth", kind: "offense", stat: "matkPct", per: 1.5 },
-  aegis: { name: "Aegis Turtle", kind: "defense", stat: "defPct", per: 1.5 },
-  ward: { name: "Ward Serpent", kind: "defense", stat: "mdefPct", per: 1.5 },
-  oak: { name: "Elder Oak", kind: "defense", stat: "hpPct", per: 2 },
-  owl: { name: "Star Owl", kind: "utility", stat: "crit", per: 0.5 },
-  fang: { name: "Night Fang", kind: "offense", stat: "critDmg", per: 4 },
-  hawk: { name: "Sky Hawk", kind: "utility", stat: "acc", per: 0.4 },
-  wisp: { name: "Wind Wisp", kind: "utility", stat: "dodge", per: 0.4 },
-  turtle: { name: "Stone Tortoise", kind: "defense", stat: "block", per: 0.4 },
-  spear: { name: "Spear Mantis", kind: "offense", stat: "pen", per: 0.4 },
-  rune: { name: "Rune Fox", kind: "offense", stat: "mpen", per: 0.4 },
-  lotus: { name: "Moon Lotus", kind: "utility", stat: "heal", per: 1.5 },
+export const ASTRAL_BASES: Record<string, { name: string; kind: AstralKind; stat: StatKey; per: number; power: string }> = {
+  ember: { name: "Ember Wyrm", kind: "offense", stat: "atkPct", per: 1.5, power: "Firebrand: stokes your weapons with living flame" },
+  arcana: { name: "Arcane Moth", kind: "offense", stat: "matkPct", per: 1.5, power: "Spellweave: threads raw arcana through your spells" },
+  aegis: { name: "Aegis Turtle", kind: "defense", stat: "defPct", per: 1.5, power: "Bulwark: raises a shield of solid stone around you" },
+  ward: { name: "Ward Serpent", kind: "defense", stat: "mdefPct", per: 1.5, power: "Warding Coil: coils mystic wards against hostile magic" },
+  oak: { name: "Elder Oak", kind: "defense", stat: "hpPct", per: 2, power: "Deep Roots: roots you in life and thickens your hide" },
+  owl: { name: "Star Owl", kind: "utility", stat: "crit", per: 0.5, power: "Keen Gaze: marks the weak points on every foe" },
+  fang: { name: "Night Fang", kind: "offense", stat: "critDmg", per: 4, power: "Night Strike: makes every killing blow land deeper" },
+  hawk: { name: "Sky Hawk", kind: "utility", stat: "acc", per: 0.4, power: "Hunter's Eye: guides your strikes true" },
+  wisp: { name: "Wind Wisp", kind: "utility", stat: "dodge", per: 0.4, power: "Slipstream: wraps you in a gust that turns blows aside" },
+  turtle: { name: "Stone Tortoise", kind: "defense", stat: "block", per: 0.4, power: "Shellguard: braces you to shrug off the heaviest hits" },
+  spear: { name: "Spear Mantis", kind: "offense", stat: "pen", per: 0.4, power: "Piercing Strike: punches clean through enemy armour" },
+  rune: { name: "Rune Fox", kind: "offense", stat: "mpen", per: 0.4, power: "Runebind: carves through magical defences" },
+  lotus: { name: "Moon Lotus", kind: "utility", stat: "heal", per: 1.5, power: "Moonbloom: petals that mend wounds and deepen heals" },
 };
 /** Six rarities: Grey, Green, Blue, Purple, Orange, Gold. */
 export const ASTRAL_RARITY = ["Grey", "Green", "Blue", "Purple", "Orange", "Gold"];
@@ -243,7 +243,9 @@ export const ASTRAL_TIER = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "
 export const ASTRAL_COLORS = ["#9a9a9a", "#3fbf5a", "#3b82f6", "#a855f7", "#f97316", "#facc15"];
 /** Lucky Shot / summon odds in % per rarity (index = rarity). Must match the lucky_shot database function. */
 export const ASTRAL_ODDS = [40, 30, 17, 9, 3.5, 0.5];
-export const ASTRAL_SLOTS = 3;
+export const ASTRAL_SLOTS = 8;
+/** Slots 1-3 are open from the start; every further slot wakes every 10 levels. */
+export const ASTRAL_SLOT_LEVELS = [1, 1, 1, 10, 20, 30, 40, 50];
 export const ASTRAL_MAX_LVL = 20;
 export const SUMMON_COST = 10; // starshards
 export const astralUpgradeCost = (a: Astral) => 2 + a.lvl * (a.rarity + 1);
@@ -288,6 +290,7 @@ export function absorbAstral(h: CraftState, targetId: string, foodId: string): s
 }
 export function equipAstral(h: CraftState, id: string | null, slot: number): string | null {
   if (slot < 0 || slot >= ASTRAL_SLOTS) return "No such slot";
+  if (h.level < ASTRAL_SLOT_LEVELS[slot]) return `Slot ${slot + 1} wakes at level ${ASTRAL_SLOT_LEVELS[slot]}`;
   if (id && !h.astrals?.some((a) => a.id === id)) return "Astral not found";
   const s = Array.from({ length: ASTRAL_SLOTS }, (_, i) => h.astralSlots?.[i] ?? null).map((x) => (x === id ? null : x));
   s[slot] = id; h.astralSlots = s;
