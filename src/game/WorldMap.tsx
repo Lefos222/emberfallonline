@@ -1,5 +1,5 @@
 import { useEffect, useState, type MouseEvent } from "react";
-import { Compass, Loader2, MapPin, Trophy } from "lucide-react";
+import { Compass, Loader2, MapPin, Swords, Trophy } from "lucide-react";
 import worldMap from "@/assets/world-map.jpg";
 import { CLASSES, type HeroClass } from "./data";
 import { REGIONS } from "./world";
@@ -7,9 +7,11 @@ import { useGame } from "./store";
 import { fmt, Panel } from "./ui";
 import { Portrait } from "./CharacterSelect";
 import { CastleMarker } from "./CastleMarker";
+import { CastleWarLog } from "./CastleWarLog";
+import type { StartBattle } from "./panels";
 import {
-  WORLD_MARGIN, WORLD_UNITS, loadWorld, relocateCastle, resetLabel, spotClear,
-  type WorldCastle, type WorldState,
+  WORLD_MARGIN, WORLD_UNITS, loadAttackTarget, loadWorld, relocateCastle, reportAssault, resetLabel, spotClear,
+  type AttackTarget, type WorldCastle, type WorldState,
 } from "./worldcastles";
 
 /** 10 world units per percent of the map. */
@@ -18,7 +20,7 @@ const clsName = (cls: HeroClass) => CLASSES[cls].name;
 const away = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.round(Math.hypot(a.x - b.x, a.y - b.y) / 10);
 
 /** The giant tree in the castle opens the world: every lord's real castle stands here. */
-export function WorldMap({ onClose }: { onClose: () => void }) {
+export function WorldMap({ onClose, start }: { onClose: () => void; start: StartBattle }) {
   const { heroId } = useGame();
   const [world, setWorld] = useState<WorldState | null>(null);
   const [error, setError] = useState("");
@@ -27,6 +29,9 @@ export function WorldMap({ onClose }: { onClose: () => void }) {
   const [spot, setSpot] = useState<{ x: number; y: number } | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [assault, setAssault] = useState<AttackTarget | null>(null);
+  const [assaultError, setAssaultError] = useState("");
+  const [logKey, setLogKey] = useState(0);
 
   const open = () => {
     if (!heroId) return;
@@ -72,6 +77,52 @@ export function WorldMap({ onClose }: { onClose: () => void }) {
     } finally { setBusy(false); }
   };
 
+  const openAssault = async (target: WorldCastle) => {
+    if (!heroId) return;
+    setAssaultError(""); setAssault(null);
+    try {
+      const t = await loadAttackTarget(heroId, target.hero_id);
+      if (t.blocked) {
+        setAssaultError(t.blocked === "no-assaults"
+          ? `No assaults left today — your warband rides again at ${world ? resetLabel(world) : ""} your time.`
+          : `You have already assaulted ${t.name}'s castle today.`);
+        return;
+      }
+      setAssault(t);
+    } catch (e) {
+      setAssaultError(e instanceof Error ? e.message : "That castle cannot be challenged right now.");
+    }
+  };
+
+  const rideOut = (target: AttackTarget) => {
+    setAssault(null); setAssaultError("");
+    start({
+      title: `Castle Assault · ${target.name}`,
+      right: {
+        name: target.name, img: CLASSES[target.cls].img, gender: target.gender,
+        hp: target.stats.hp, atk: target.stats.atk, def: target.stats.def, crit: target.stats.crit,
+        dodge: target.stats.dodge, critDmg: target.stats.critDmg, pen: target.stats.pen, acc: target.stats.acc,
+        level: target.level, cls: target.cls, mirror: true,
+      },
+      onResult: async (won: boolean) => {
+        try {
+          const r = await reportAssault(target.hero_id, won);
+          setWorld((w) => (w ? { ...w, assaultsLeft: r.assaultsLeft, assaultsPerDay: r.assaultsPerDay } : w));
+          setLogKey((n) => n + 1);
+          return {
+            lines: [
+              won ? `${target.name}'s castle has fallen!` : `Your assault on ${target.name} was repelled.`,
+              r.gold > 0 ? `+${fmt(r.gold)} gold taken from their coffers` : r.gold < 0 ? `${fmt(-r.gold)} gold paid in repairs` : "No gold changed hands.",
+              `${r.assaultsLeft} of ${r.assaultsPerDay} assaults left today`,
+            ],
+          };
+        } catch (e) {
+          return { lines: [e instanceof Error ? e.message : "The assault could not be recorded."] };
+        }
+      },
+    });
+  };
+
   return (
     <Panel title="The World Tree" onClose={onClose} wide>
       {error ? (
@@ -107,7 +158,7 @@ export function WorldMap({ onClose }: { onClose: () => void }) {
                   castle={c}
                   mine={c.hero_id === mine.hero_id}
                   selected={c.hero_id === selected}
-                  onSelect={() => { setSelected(c.hero_id); setMoving(false); setSpot(null); setNote(""); }}
+                  onSelect={() => { setSelected(c.hero_id); setMoving(false); setSpot(null); setNote(""); setAssault(null); setAssaultError(""); }}
                 />
               ))}
               {moving && spot && (
@@ -133,6 +184,16 @@ export function WorldMap({ onClose }: { onClose: () => void }) {
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 A castle may travel three times a day; the next move unlocks at {resetLabel(world)} your time.
+              </p>
+            </div>
+
+            <div className="game-panel p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Assaults today</span>
+                <span className="font-display text-lg text-blood">{world.assaultsLeft} / {world.assaultsPerDay}</span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Ride against another lord's castle for their gold — one assault per castle per day.
               </p>
             </div>
 
@@ -178,15 +239,40 @@ export function WorldMap({ onClose }: { onClose: () => void }) {
                       )}
                     </div>
                   )
+                ) : assault && assault.hero_id === chosen.hero_id ? (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      Their coffers hold {fmt(assault.coffers)} gold. A victory takes a tenth of it, up to 5,000; a repelled assault pays them a repair fee of up to 300 gold.
+                    </p>
+                    <div className="flex gap-2">
+                      <button className="btn-blood flex-1 py-2" onClick={() => rideOut(assault)}>
+                        <Swords className="mr-1 inline h-4 w-4" />Ride out
+                      </button>
+                      <button className="btn-gold px-3 py-2" onClick={() => setAssault(null)}>Cancel</button>
+                    </div>
+                  </div>
                 ) : (
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    This castle belongs to {chosen.name}. Challenging another lord for gold and fame arrives with the next world update.
-                  </p>
+                  <div className="mt-3 space-y-1">
+                    <button
+                      className="btn-blood w-full py-2"
+                      disabled={world.assaultsLeft === 0}
+                      onClick={() => void openAssault(chosen)}
+                    >
+                      <Swords className="mr-1 inline h-4 w-4" />Assault castle
+                    </button>
+                    {assaultError && <p className="text-xs text-hp">{assaultError}</p>}
+                    {world.assaultsLeft === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        No assaults left today — your warband rests until {resetLabel(world)} your time.
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             )}
 
             {note && <p className="text-sm text-gold" role="status">{note}</p>}
+            <CastleWarLog heroId={heroId} refreshKey={logKey} />
             {world.castles.length === 0 && <p className="text-xs text-muted-foreground">Yours is the first castle standing in the world.</p>}
             <p className="text-xs text-muted-foreground">
               <Compass className="mr-1 inline h-3.5 w-3.5" />Every castle on this map belongs to a real player, and its ground is kept on the server.

@@ -144,7 +144,7 @@ export function Game() {
           {open === 'professions' && <Professions onClose={()=>setOpen(null)} />}
           {open === 'premium' && <PremiumShop onClose={()=>setOpen(null)} />}
           {open === 'auction' && <AuctionHouse onClose={()=>setOpen(null)} />}
-          {open === "world" && <WorldMap onClose={() => setOpen(null)} />}
+          {open === "world" && <WorldMap onClose={() => setOpen(null)} start={start} />}
           {open === 'sanctuary' && <Sanctuary onClose={()=>setOpen(null)} start={start} />}
           {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
           {open === "friends" && (
