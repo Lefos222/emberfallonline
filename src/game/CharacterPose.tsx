@@ -9,7 +9,7 @@ import type { HeroClass } from './data';
 export function CharacterPose({ cls, gender, className = '' }: { cls: HeroClass; gender: 'male' | 'female'; className?: string }) {
   const [replay, setReplay] = useState(0);
   const move = moveFor({ cls });
-  return <div className={`battle-unit relative ${className}`}>
+  return <div className={`pose-unit relative ${className}`}>
     <div key={replay} className={`relative h-full w-full ${replay ? `anim-${move}` : 'anim-idle'}`}>
       <CharacterModel cls={cls} gender={gender} className="h-full w-full" />
       {replay > 0 && <WeaponArc move={move} />}

@@ -123,7 +123,7 @@ function CreateCharacter({ canCancel, onCancel }: { canCancel: boolean; onCancel
   if (step === "confirm") {
     return (
       <div className="game-panel anim-pop flex w-full max-w-md flex-col items-center p-6">
-        <Portrait cls={cls} gender={gender} className="w-48 rounded" />
+        <Portrait cls={cls} gender={gender} className="w-64 rounded" />
         <div className="mt-3 font-display text-3xl">{name.trim()}</div>
         <div className="text-muted-foreground">{gender === "male" ? "Male" : "Female"} {CLASSES[cls].name}</div>
         <p className="mt-2 text-center text-sm">{DESC[cls].text}</p>

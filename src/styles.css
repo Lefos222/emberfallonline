@@ -214,9 +214,9 @@
 .inventory-character.battle-unit { width: 100%; max-width: none; }
 .battle-foes .battle-unit { width: 220px; max-width: 32%; }
 .battle-figure { max-height: 46vh; }
-.battle-screen .battle-unit { width: 200px; max-width: 28%; }
-.battle-screen .battle-foes .battle-unit { width: 150px; max-width: 30%; }
-.battle-screen .battle-figure { max-height: 30vh; }
+.battle-screen .battle-unit { width: 172px; max-width: 26%; }
+.battle-screen .battle-foes .battle-unit { width: 128px; max-width: 26%; }
+.battle-screen .battle-figure { max-height: 26vh; }
 .battle-character { transform-origin: center bottom; filter: drop-shadow(0 12px 12px var(--background)); }
 /* Monsters stand in the arena, not in a flat picture: feather the sheet
    crop edges into the scene and ground the figure with a soft shadow. */
@@ -246,6 +246,7 @@
    Every skill plays its own move. --dx flips the direction so the same move
    reads correctly for the hero (facing right) and for foes (facing left). */
 .battle-unit { --dx: 1; }
+.pose-unit { --dx: 1; }
 .battle-foes .battle-unit { --dx: -1; }
 
 @keyframes mv-swing { 0%,100% { transform: translateX(0) rotate(0); } 26% { transform: translateX(calc(26px * var(--dx))) rotate(calc(-10deg * var(--dx))); } 48% { transform: translateX(calc(64px * var(--dx))) rotate(calc(16deg * var(--dx))); } 72% { transform: translateX(calc(30px * var(--dx))) rotate(calc(5deg * var(--dx))); } }
