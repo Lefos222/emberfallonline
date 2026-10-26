@@ -78,6 +78,34 @@
       "when": 1793015417814,
       "tag": "0010_greek_daily_quests",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793100000000,
+      "tag": "0011_world_castles",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793100001000,
+      "tag": "0012_castle_attacks",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793100002000,
+      "tag": "0013_world_pve",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793100003000,
+      "tag": "0014_castle_protection",
+      "breakpoints": true
     }
   ]
 }

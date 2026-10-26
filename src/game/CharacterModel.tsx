@@ -6,7 +6,8 @@ import mageMale from '@/assets/model-mage-male.png';
 import mageFemale from '@/assets/model-mage-female.png';
 import type { HeroClass } from './data';
 
-const MODELS: Record<HeroClass, Record<'male' | 'female', string>> = {
+/** The shared standalone class/gender art, one source for every screen that draws a character. */
+export const MODELS: Record<HeroClass, Record<'male' | 'female', string>> = {
   warrior: { male: warriorMale, female: warriorFemale },
   archer: { male: archerMale, female: archerFemale },
   mage: { male: mageMale, female: mageFemale },

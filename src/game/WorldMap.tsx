@@ -1,36 +1,44 @@
-import { useEffect, useState, type MouseEvent } from "react";
-import { Compass, Loader2, MapPin, Swords, Trophy } from "lucide-react";
-import worldMap from "@/assets/world-map.jpg";
-import { CLASSES, type HeroClass } from "./data";
-import { REGIONS } from "./world";
+import { useEffect, useState } from "react";
+import { Compass, Flame, Loader2, MapPin, Move, Shield, Sparkles, Swords, Trophy } from "lucide-react";
+import { CLASSES, stageFoe } from "./data";
+import { gemName } from "./crafting";
+import { matsLine } from "./crafting";
 import { useGame } from "./store";
 import { fmt, Panel } from "./ui";
 import { Portrait } from "./CharacterSelect";
-import { CastleMarker } from "./CastleMarker";
 import { CastleWarLog } from "./CastleWarLog";
+import { WorldScene } from "./WorldScene";
 import type { StartBattle } from "./panels";
+import { areaAt, type Monster, type Node } from "./worldscene";
 import {
-  WORLD_MARGIN, WORLD_UNITS, loadAttackTarget, loadWorld, relocateCastle, reportAssault, resetLabel, spotClear,
-  type AttackTarget, type WorldCastle, type WorldState,
+  CASTLE_GUARD_SHARE, WORLD_MARGIN, WORLD_UNITS, blockReasonText, harvestNode, loadAttackTarget, loadWorld, openEncounter,
+  relocateCastle, reportAssault, resetLabel, settleEncounter, spotClear,
+  type AttackTarget, type Encounter, type WorldCastle, type WorldState,
 } from "./worldcastles";
 
-/** 10 world units per percent of the map. */
-const pct = (unit: number) => `${(unit / WORLD_UNITS) * 100}%`;
-const clsName = (cls: HeroClass) => CLASSES[cls].name;
-const away = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.round(Math.hypot(a.x - b.x, a.y - b.y) / 10);
+const clsName = (cls: WorldCastle["cls"]) => CLASSES[cls].name;
+const away = (a: { x: number; y: number }) => Math.round(Math.hypot(a.x, a.y) / 10);
 
-/** The giant tree in the castle opens the world: every lord's real castle stands here. */
+/** How strong a monster of each kind stands in the world. Mirrors the server's kind weights. */
+const KIND_MULT: Record<Monster["kind"], number> = { normal: 1, elite: 1.25, rare: 1.5, boss: 2 };
+
+/**
+ * The World Tree. The giant tree at the centre of the castle opens the world: the
+ * player walks a real 2.5D world (WorldScene), every other lord's castle stands on
+ * it, monsters and nodes are fought and gathered there, and every reward is
+ * decided by the server (worldcastles.ts -> drizzle/migrations/0013, 0014).
+ */
 export function WorldMap({ onClose, start }: { onClose: () => void; start: StartBattle }) {
-  const { heroId } = useGame();
+  const { heroId, hero, gender } = useGame();
   const [world, setWorld] = useState<WorldState | null>(null);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState("");
   const [moving, setMoving] = useState(false);
-  const [spot, setSpot] = useState<{ x: number; y: number } | null>(null);
-  const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState("");
   const [assault, setAssault] = useState<AttackTarget | null>(null);
   const [assaultError, setAssaultError] = useState("");
+  const [guardBroken, setGuardBroken] = useState(false);
   const [logKey, setLogKey] = useState(0);
 
   const open = () => {
@@ -41,86 +49,150 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
       .catch((e: unknown) => setError(e instanceof Error ? e.message : "The world map could not be opened."));
   };
 
-  useEffect(() => {
-    let live = true;
-    setError("");
-    if (!heroId) { setError("Choose a character before opening the World Tree."); return; }
-    loadWorld(heroId)
-      .then((s) => { if (live) { setWorld(s); setSelected(s.mine.hero_id); } })
-      .catch((e: unknown) => { if (live) setError(e instanceof Error ? e.message : "The world map could not be opened."); });
-    return () => { live = false; };
-  }, [heroId]);
+  useEffect(open, [heroId]);
 
   const mine = world?.mine ?? null;
   const chosen: WorldCastle | null = world && mine ? [mine, ...world.castles].find((c) => c.hero_id === selected) ?? mine : null;
-  const outside = !!spot && (spot.x < WORLD_MARGIN || spot.x > WORLD_UNITS - WORLD_MARGIN || spot.y < WORLD_MARGIN || spot.y > WORLD_UNITS - WORLD_MARGIN);
-  const free = !!(world && spot && spotClear(world, spot.x, spot.y));
-  const reason = !spot ? "" : outside ? "Outside the world — choose ground inside the map." : free ? "This ground is free." : "Too close to another castle — leave about 4% of the map between them.";
 
-  const pick = (e: MouseEvent<HTMLDivElement>) => {
-    if (!moving) return;
-    const box = e.currentTarget.getBoundingClientRect();
-    const x = Math.max(0, Math.min(WORLD_UNITS, Math.round(((e.clientX - box.left) / box.width) * WORLD_UNITS)));
-    const y = Math.max(0, Math.min(WORLD_UNITS, Math.round(((e.clientY - box.top) / box.height) * WORLD_UNITS)));
-    setSpot({ x, y });
-  };
-
-  const move = async () => {
-    if (!heroId || !spot || !free || busy) return;
+  const move = async (x: number, y: number) => {
+    if (!heroId || busy) return;
     setBusy(true); setNote("");
     try {
-      const next = await relocateCastle(heroId, spot.x, spot.y);
-      setWorld(next); setSelected(next.mine.hero_id); setMoving(false); setSpot(null);
+      const next = await relocateCastle(heroId, x, y);
+      setWorld(next); setSelected(next.mine.hero_id); setMoving(false);
       setNote(`Castle moved — ${next.movesLeft} of ${next.movesPerDay} moves left today.`);
     } catch (e) {
       setNote(e instanceof Error ? e.message : "The move was refused. Please try again.");
     } finally { setBusy(false); }
   };
 
-  const openAssault = async (target: WorldCastle) => {
-    if (!heroId) return;
-    setAssaultError(""); setAssault(null);
+  /** Inspect a castle before riding out: the server answers with who may be attacked. */
+  const inspect = async (target: WorldCastle) => {
+    setSelected(target.hero_id); setMoving(false); setNote(""); setGuardBroken(false);
+    setAssault(null); setAssaultError("");
+    if (!heroId || target.hero_id === heroId) return;
     try {
       const t = await loadAttackTarget(heroId, target.hero_id);
-      if (t.blocked) {
-        setAssaultError(t.blocked === "no-assaults"
-          ? `No assaults left today — your warband rides again at ${world ? resetLabel(world) : ""} your time.`
-          : `You have already assaulted ${t.name}'s castle today.`);
-        return;
-      }
+      if (t.blocked) { setAssaultError(blockReasonText(t)); return; }
       setAssault(t);
     } catch (e) {
       setAssaultError(e instanceof Error ? e.message : "That castle cannot be challenged right now.");
     }
   };
 
-  const rideOut = (target: AttackTarget) => {
-    setAssault(null); setAssaultError("");
+  /** Stage one of an assault: the castle guard. */
+  const breakGuard = (target: AttackTarget) => {
+    start({
+      title: `Castle Assault · ${target.name}'s guard`,
+      serverRewards: true,
+      right: {
+        name: target.guard.name, img: CLASSES[target.cls].img, gender: target.gender,
+        hp: target.guard.hp, atk: target.guard.atk, def: target.guard.def, crit: target.guard.crit,
+        dodge: target.guard.dodge, critDmg: target.guard.critDmg, pen: target.guard.pen, acc: target.guard.acc,
+        level: target.guard.level, mirror: true,
+      },
+      onResult: async (won) => {
+        if (won) {
+          setGuardBroken(true);
+          return { lines: [`${target.guard.name} is broken — ${Math.round(CASTLE_GUARD_SHARE * 100)}% of their defences lie scattered.`, `${target.name} himself now stands before you.`] };
+        }
+        setGuardBroken(false);
+        const r = await settle(target, false);
+        return { lines: [`${target.guard.name} holds the gate — your warband is driven back.`, ...r.lines] };
+      },
+    });
+  };
+
+  /** Stage two: the lord. Only the outcome of this fight is recorded against the castle. */
+  const strikeLord = (target: AttackTarget) => {
     start({
       title: `Castle Assault · ${target.name}`,
+      serverRewards: true,
       right: {
         name: target.name, img: CLASSES[target.cls].img, gender: target.gender,
         hp: target.stats.hp, atk: target.stats.atk, def: target.stats.def, crit: target.stats.crit,
         dodge: target.stats.dodge, critDmg: target.stats.critDmg, pen: target.stats.pen, acc: target.stats.acc,
         level: target.level, cls: target.cls, mirror: true,
       },
-      onResult: async (won: boolean) => {
+      onResult: async (won) => settle(target, won),
+    });
+  };
+
+  /** The server records the assault once, moves the gold and pays the fame. */
+  const settle = async (target: AttackTarget, won: boolean) => {
+    try {
+      const r = await reportAssault(target.hero_id, won);
+      setWorld((w) => (w ? { ...w, assaultsLeft: r.assaultsLeft, assaultsPerDay: r.assaultsPerDay, fame: r.fameTotal } : w));
+      if (r.won) setLogKey((n) => n + 1);
+      setAssault(null); setGuardBroken(false);
+      return {
+        lines: [
+          won ? `${target.name}'s castle has fallen!` : `Your assault on ${target.name} was repelled.`,
+          r.gold > 0 ? `+${fmt(r.gold)} gold taken from their coffers` : r.gold < 0 ? `${fmt(-r.gold)} gold paid in repairs` : "No gold changed hands.",
+          r.fame > 0 ? `+${r.fame} fame` : "No fame earned",
+          `${r.assaultsLeft} of ${r.assaultsPerDay} assaults left today`,
+        ],
+      };
+    } catch (e) {
+      return { lines: [e instanceof Error ? e.message : "The assault could not be recorded."] };
+    }
+  };
+
+  /** A monster standing in the world: the server opens the encounter and prices it. */
+  const fight = async (monster: Monster) => {
+    if (!heroId || busy) return;
+    setBusy(true); setNote("");
+    let encounter: Encounter;
+    try {
+      encounter = await openEncounter(heroId, monster.area, monster.name, monster.kind);
+    } catch (e) {
+      setNote(e instanceof Error ? e.message : "That monster cannot be fought right now.");
+      setBusy(false);
+      return;
+    }
+    setWorld((w) => (w ? { ...w, encountersLeft: encounter.encountersLeft, encountersPerDay: encounter.encountersPerDay } : w));
+    setBusy(false);
+    const base = stageFoe(encounter.level, KIND_MULT[monster.kind]);
+    start({
+      title: `World · ${encounter.monster}`,
+      serverRewards: true,
+      right: {
+        ...base,
+        name: encounter.monster,
+        level: encounter.level,
+        sprite: monster.sprite,
+        boss: monster.kind === "boss",
+        elite: monster.kind === "elite",
+      },
+      onResult: async (won) => {
         try {
-          const r = await reportAssault(target.hero_id, won);
-          setWorld((w) => (w ? { ...w, assaultsLeft: r.assaultsLeft, assaultsPerDay: r.assaultsPerDay } : w));
-          setLogKey((n) => n + 1);
+          const r = await settleEncounter(encounter, won);
+          setWorld((w) => (w ? { ...w, encountersLeft: r.encountersLeft, encountersPerDay: r.encountersPerDay, fame: r.fameTotal } : w));
+          const loot = [...matsLine(r.loot.mats ?? {}), ...Object.entries(r.loot.gems ?? {}).map(([k, v]) => `+${v} ${gemName(k)}`)];
           return {
-            lines: [
-              won ? `${target.name}'s castle has fallen!` : `Your assault on ${target.name} was repelled.`,
-              r.gold > 0 ? `+${fmt(r.gold)} gold taken from their coffers` : r.gold < 0 ? `${fmt(-r.gold)} gold paid in repairs` : "No gold changed hands.",
-              `${r.assaultsLeft} of ${r.assaultsPerDay} assaults left today`,
-            ],
+            lines: won
+              ? [`${r.monster} falls.`, `+${fmt(r.xp)} XP · +${fmt(r.gold)} gold`, r.fame > 0 ? `+${r.fame} fame` : "No fame earned", ...loot,
+                 `${r.encountersLeft} of ${r.encountersPerDay} encounters left today`]
+              : [`${r.monster} drives you back — no reward is paid for a lost fight.`, `${r.encountersLeft} of ${r.encountersPerDay} encounters left today`],
           };
         } catch (e) {
-          return { lines: [e instanceof Error ? e.message : "The assault could not be recorded."] };
+          return { lines: [e instanceof Error ? e.message : "The encounter could not be settled."] };
         }
       },
     });
+  };
+
+  /** A resource node: the server decides what it yields. */
+  const harvest = async (node: Node) => {
+    if (busy) return;
+    setBusy(true); setNote("");
+    try {
+      const r = await harvestNode(node.area, node.kind);
+      setWorld((w) => (w ? { ...w, harvestsLeft: r.harvestsLeft, harvestsPerDay: r.harvestsPerDay } : w));
+      setNote(`Gathered ${matsLine(r.mats as never).join(", ")} — ${r.harvestsLeft} of ${r.harvestsPerDay} left today.`);
+    } catch (e) {
+      setNote(e instanceof Error ? e.message : "That node could not be gathered.");
+    } finally { setBusy(false); }
   };
 
   return (
@@ -130,71 +202,45 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
           <p className="text-hp" role="alert">{error}</p>
           <button className="btn-blood mx-auto mt-4 px-4 py-2" onClick={open}>Retry</button>
         </div>
-      ) : !world || !mine ? (
+      ) : !world || !mine || !hero ? (
         <div className="flex items-center justify-center gap-2 py-16 font-display text-lg">
           <Loader2 className="h-5 w-5 animate-spin" />Opening the World Tree…
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-[1fr_19rem]">
-          <div>
-            <div className="relative overflow-hidden rounded-lg border border-border" style={{ aspectRatio: "16 / 9" }} onClick={pick}>
-              <img src={worldMap} alt="The world of Ember Fall" className="absolute inset-0 h-full w-full select-none object-cover" draggable={false} />
-              <div className="pointer-events-none absolute inset-0 bg-background/20" aria-hidden="true" />
-              {REGIONS.map((r) => {
-                const at = r.path[Math.floor(r.path.length / 2)] ?? r.path[0]!;
-                return (
-                  <span
-                    key={r.id}
-                    className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded bg-background/65 px-1.5 py-0.5 font-display text-[10px] uppercase tracking-widest text-foreground/75"
-                    style={{ left: `${at[0]}%`, top: `${at[1]}%` }}
-                  >
-                    {r.name} · Lv {r.level}+
-                  </span>
-                );
-              })}
-              {[mine, ...world.castles].map((c) => (
-                <CastleMarker
-                  key={c.hero_id}
-                  castle={c}
-                  mine={c.hero_id === mine.hero_id}
-                  selected={c.hero_id === selected}
-                  onSelect={() => { setSelected(c.hero_id); setMoving(false); setSpot(null); setNote(""); setAssault(null); setAssaultError(""); }}
-                />
-              ))}
-              {moving && spot && (
-                <span className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2" style={{ left: pct(spot.x), top: pct(spot.y) }}>
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-dashed ${free ? "border-r1 bg-r1/25" : "border-hp bg-hp/25"}`}>
-                    <MapPin className={`h-4 w-4 ${free ? "text-r1" : "text-hp"}`} />
-                  </span>
-                </span>
-              )}
+          <div className="flex flex-col gap-2">
+            <div className="h-[46vh] min-h-[300px] lg:h-[58vh]">
+              <WorldScene
+                hero={hero}
+                gender={gender}
+                mine={mine}
+                castles={[mine, ...world.castles]}
+                selected={selected}
+                moving={moving}
+                busy={busy}
+                canPlace={(x, y) => spotClear(world, x, y)}
+                onPlace={(x, y) => void move(x, y)}
+                onSelectCastle={(c) => { if (c.hero_id === mine.hero_id) { setSelected(c.hero_id); setMoving(false); setNote(""); setAssault(null); } else void inspect(c); }}
+                onFight={(m) => void fight(m)}
+                onHarvest={(n) => void harvest(n)}
+              />
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
+              <Compass className="mr-1 inline h-3.5 w-3.5" />
               {moving
-                ? "Click the map to choose the new ground for your castle."
-                : `${world.castles.length} other castle${world.castles.length === 1 ? "" : "s"} standing in the world — click a marker to inspect it.`}
+                ? "Tap the ground to choose where your castle travels. Green ground is free, red is too close to another castle."
+                : "Walk the world: fight the monsters that roam it, gather the nodes that grow there, and walk up to a castle to inspect it."}
             </p>
           </div>
 
           <aside className="space-y-3">
-            <div className="game-panel p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Castle moves today</span>
-                <span className="font-display text-lg text-gold">{world.movesLeft} / {world.movesPerDay}</span>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                A castle may travel three times a day; the next move unlocks at {resetLabel(world)} your time.
-              </p>
-            </div>
-
-            <div className="game-panel p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Assaults today</span>
-                <span className="font-display text-lg text-blood">{world.assaultsLeft} / {world.assaultsPerDay}</span>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Ride against another lord's castle for their gold — one assault per castle per day.
-              </p>
+            <div className="game-panel grid grid-cols-2 gap-2 p-3 text-sm">
+              <Stat label="Fame" value={fmt(world.fame)} tone="text-r4" />
+              <Stat label="Area" value={areaAt(mine.x, mine.y).name} />
+              <Stat label="Castle moves" value={`${world.movesLeft} / ${world.movesPerDay}`} tone="text-gold" />
+              <Stat label="Assaults" value={`${world.assaultsLeft} / ${world.assaultsPerDay}`} tone="text-blood" />
+              <Stat label="Encounters" value={`${world.encountersLeft} / ${world.encountersPerDay}`} />
+              <Stat label="Harvests" value={`${world.harvestsLeft} / ${world.harvestsPerDay}`} />
             </div>
 
             {chosen && (
@@ -211,53 +257,42 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                 <div className="mt-2 flex items-center justify-between text-sm">
                   <span><Trophy className="mr-1 inline h-4 w-4 text-r4" />{fmt(chosen.power)}</span>
                   <span className="text-muted-foreground">
-                    {chosen.hero_id === mine.hero_id ? "Your castle" : `${away(chosen, mine)} map units away`}
+                    {chosen.hero_id === mine.hero_id ? "Your castle" : `${away({ x: chosen.x - mine.x, y: chosen.y - mine.y })} map units away`}
                   </span>
                 </div>
+
                 {chosen.hero_id === mine.hero_id ? (
-                  moving ? (
-                    <div className="mt-3 space-y-2">
-                      <p className={`text-xs ${spot ? (free ? "text-r1" : "text-hp") : "text-muted-foreground"}`}>
-                        {spot ? reason : "Click the map to choose a spot."}
+                  <div className="mt-3 space-y-1">
+                    <button className="btn-gold w-full py-2" disabled={world.movesLeft === 0 || moving} onClick={() => { setMoving(true); setNote(""); }}>
+                      <Move className="mr-1 inline h-4 w-4" />Move castle
+                    </button>
+                    {moving && <p className="text-xs text-gold">Choose the new ground in the world.</p>}
+                    {world.movesLeft === 0 ? (
+                      <p className="text-xs text-muted-foreground">
+                        No moves left today — the World Tree opens your road again at {resetLabel(world)} your time.
                       </p>
-                      <div className="flex gap-2">
-                        <button className="btn-gold flex-1 py-2" disabled={!free || busy} onClick={() => void move()}>
-                          {busy ? "Moving…" : "Move castle here"}
-                        </button>
-                        <button className="btn-blood px-3 py-2" onClick={() => { setMoving(false); setSpot(null); }}>Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mt-3 space-y-1">
-                      <button className="btn-gold w-full py-2" disabled={world.movesLeft === 0} onClick={() => { setMoving(true); setSpot(null); setNote(""); }}>
-                        Move castle
-                      </button>
-                      {world.movesLeft === 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          No moves left today — the World Tree opens your road again at {resetLabel(world)} your time.
-                        </p>
-                      )}
-                    </div>
-                  )
+                    ) : (
+                      <p className="text-xs text-muted-foreground">A castle may travel {world.movesPerDay} times a day; the new ground is kept on the server for every other lord.</p>
+                    )}
+                  </div>
                 ) : assault && assault.hero_id === chosen.hero_id ? (
                   <div className="mt-3 space-y-2">
                     <p className="text-xs text-muted-foreground">
-                      Their coffers hold {fmt(assault.coffers)} gold. A victory takes a tenth of it, up to 5,000; a repelled assault pays them a repair fee of up to 300 gold.
+                      Their coffers hold {fmt(assault.coffers)} gold. Break the guard (their defences fight at {Math.round(CASTLE_GUARD_SHARE * 100)}% of their strength), then face the lord. A victory takes a tenth of their gold, up to 5,000, and {assault.fameReward} fame; a repelled assault pays them up to 300 gold in repairs.
                     </p>
                     <div className="flex gap-2">
-                      <button className="btn-blood flex-1 py-2" onClick={() => rideOut(assault)}>
-                        <Swords className="mr-1 inline h-4 w-4" />Ride out
+                      <button className="btn-blood flex-1 py-2" onClick={() => breakGuard(assault)}>
+                        <Shield className="mr-1 inline h-4 w-4" />{guardBroken ? "Guard broken" : "Break the guard"}
                       </button>
-                      <button className="btn-gold px-3 py-2" onClick={() => setAssault(null)}>Cancel</button>
                     </div>
+                    <button className="btn-gold w-full py-2" disabled={!guardBroken} onClick={() => strikeLord(assault)}>
+                      <Swords className="mr-1 inline h-4 w-4" />Strike {assault.name}
+                    </button>
+                    {!guardBroken && <p className="text-xs text-muted-foreground">The lord will not face you until his guard is broken.</p>}
                   </div>
                 ) : (
                   <div className="mt-3 space-y-1">
-                    <button
-                      className="btn-blood w-full py-2"
-                      disabled={world.assaultsLeft === 0}
-                      onClick={() => void openAssault(chosen)}
-                    >
+                    <button className="btn-blood w-full py-2" disabled={world.assaultsLeft === 0} onClick={() => void inspect(chosen)}>
                       <Swords className="mr-1 inline h-4 w-4" />Assault castle
                     </button>
                     {assaultError && <p className="text-xs text-hp">{assaultError}</p>}
@@ -271,15 +306,37 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
               </div>
             )}
 
+            {chosen && chosen.hero_id === mine.hero_id && moving && (
+              <p className="text-xs text-muted-foreground">
+                <MapPin className="mr-1 inline h-3.5 w-3.5" />
+                The world spans {WORLD_UNITS / 10} × {WORLD_UNITS / 10} map units; castles stay {WORLD_MARGIN / 10} units from the edge.
+              </p>
+            )}
+
+            <div className="game-panel p-3 text-xs text-muted-foreground">
+              <div className="mb-1 flex items-center gap-1 font-display text-sm text-gold"><Flame className="h-4 w-4" />The world is alive</div>
+              Monsters roam by area — elites everywhere, rare beasts from the Haunted Barrows on, and an area boss at each lair from the Demon Wastes. Every kill, node and assault is settled by the server: XP, gold, fame and loot are written into your character there, never here.
+            </div>
+
             {note && <p className="text-sm text-gold" role="status">{note}</p>}
             <CastleWarLog heroId={heroId} refreshKey={logKey} />
-            {world.castles.length === 0 && <p className="text-xs text-muted-foreground">Yours is the first castle standing in the world.</p>}
-            <p className="text-xs text-muted-foreground">
-              <Compass className="mr-1 inline h-3.5 w-3.5" />Every castle on this map belongs to a real player, and its ground is kept on the server.
-            </p>
+            {world.castles.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                <Sparkles className="mr-1 inline h-3.5 w-3.5" />Yours is the first castle standing in the world.
+              </p>
+            )}
           </aside>
         </div>
       )}
     </Panel>
+  );
+}
+
+function Stat({ label, value, tone = "" }: { label: string; value: string; tone?: string }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className={`truncate font-display ${tone}`}>{value}</div>
+    </div>
   );
 }

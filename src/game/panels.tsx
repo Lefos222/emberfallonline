@@ -29,6 +29,9 @@ import { DISCOVERY_NAMES, DISCOVERY_RARITIES, GATHERING_AREAS, gatheringState, t
 
 export type StartBattle = (opts: {
   right: Fighter; auto?: boolean; title: string;
+  /** True when the server settles this fight (world encounters, castle assaults): the
+   *  client must not add its own materials or relics on top of what the server paid. */
+  serverRewards?: boolean;
   onResult: (won: boolean, xpMultiplier?: number) => { lines: string[]; loot?: Item | null } | Promise<{ lines: string[]; loot?: Item | null }>;
 }) => void;
 

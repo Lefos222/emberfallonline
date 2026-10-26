@@ -43,7 +43,7 @@ export function Game() {
   const { hero, heroId, userId, cloud, authReady } = useGame();
   const nav = useNavigate();
   const [open, setOpen] = useState<ShortcutTarget | null>(null);
-  const [battle, setBattle] = useState<null | { right: Fighter; left: Fighter; auto?: boolean; title: string; onResult: Parameters<StartBattle>[0]["onResult"] }>(null);
+  const [battle, setBattle] = useState<null | { right: Fighter; left: Fighter; auto?: boolean; title: string; serverRewards?: boolean; onResult: Parameters<StartBattle>[0]["onResult"] }>(null);
   const [result, setResult] = useState<null | { won: boolean; lines: string[]; loot?: Item | null }>(null);
   const [crafting, setCrafting] = useState(false);
   const [expeditions, setExpeditions] = useState(false);
@@ -98,7 +98,9 @@ export function Game() {
     const r0 = await battle.onResult(won, battle.left.scrolls?.includes("xp") ? 1.2 : 1);
     const r = { ...r0, lines: [...r0.lines] };
     if (useGameOverflow() > before && !r.lines.some((l) => /Overflow/.test(l))) r.lines.push("Bag full — loot placed in your Overflow Chest (Armory)");
-    if (won) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m));
+    // A fight the server settles (world encounters, castle assaults) already paid its own
+    // loot, so it adds no client-side materials or relics on top of the server's save.
+    if (won && !battle.serverRewards) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m));
       if (awardAncestralRelic(h, !!battle.right.boss)) r.lines.push('+1 Ancestral Relic');
     });
     update((h) => recordBattle(h, { title: battle.title, won, boss: !!battle.right.boss, arena: /arena/i.test(battle.title), rewards: [...r.lines, ...(r.loot ? [r.loot.name] : [])] }));
