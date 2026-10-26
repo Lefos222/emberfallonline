@@ -4,7 +4,8 @@ import { ACHIEVEMENTS, SET_BONUSES, achProgress, activeSets, emptyRecord, isClai
 import { CLASSES, heroSkills, heroStats, powerBreakdown, xpToNext } from "./data";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
-import { SPEC_LEVEL, TIER_REQ, TREES, freePoints, learnBlocker, resetCost, spentIn, totalPoints } from "./talents";
+import { SPEC_LEVEL, TIER_REQ, TREES, freePoints, learnBlocker, rankCost, resetCost, spentIn, totalPoints } from "./talents";
+import { QUEST_POINT_CHANCE } from "./quest-board";
 import { Button } from "@/components/ui/button";
 import { SkillPreview } from "./SkillPreview";
 import { SkillLoadout } from './SkillLoadout';
@@ -27,6 +28,8 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
     if (!a || !isClaimable(h, a)) return; // one-time: re-checked against latest save
     h.achClaimed = [...(h.achClaimed ?? []), a.id];
     h.gold += a.gold;
+    // Achievements occasionally pay a bonus skill point alongside their Insight reward.
+    if (Math.random() < QUEST_POINT_CHANCE) h.bonusPts = (h.bonusPts ?? 0) + 1;
   });
 
   const learn = (id: string) => update((h) => {
@@ -127,7 +130,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
           <SkillLoadout />
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="font-display text-lg">Skill points: <span className="text-gold">{free}</span> / {totalPoints(hero)}</div>
-            <div className="text-xs text-muted-foreground">Earn 1 point per level, plus a bonus point every 5 levels.</div>
+            <div className="text-xs text-muted-foreground">Earn 1 point per level, plus a bonus point every 5 levels — quests and achievements can add more.</div>
             {!confirmReset ? (
               <button className="btn-ghost flex items-center gap-1 px-3 py-1.5 text-sm" disabled={spentIn(hero) === 0 && !hero.spec} onClick={() => setConfirmReset(true)}>
                 <RotateCcw className="h-4 w-4" /> Reset tree
@@ -178,7 +181,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
                             </div>
                             <div className="text-xs text-muted-foreground">{t.desc}</div>
                             <div className="mt-0.5 text-[10px] text-muted-foreground">
-                              Tier {t.tier}{TIER_REQ[t.tier] ? ` · needs ${TIER_REQ[t.tier]} pts here` : ""} · {t.cost} pt/rank
+                              Tier {t.tier}{TIER_REQ[t.tier] ? ` · needs ${TIER_REQ[t.tier]} pts here` : ""} · {rankCost(t, rank)} pt/rank
                               {block && block !== "Maxed" && <span className="ml-1 text-blood"><Lock className="inline h-3 w-3" /> {block}</span>}
                             </div>
                           </Button>

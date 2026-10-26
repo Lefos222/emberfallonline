@@ -1,11 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { MatIcon } from "./MatIcon";
 import { MATS, matCount } from "./crafting";
 import { countdown } from "./events";
 import { grant } from "./logic";
 import { update, useGame } from "./store";
 import { Gold, Panel, fmt } from "./ui";
-import { DAILY_QUESTS, boardResetAt, boardRows, rollBoard } from "./quest-board";
+import { DAILY_QUESTS, boardResetAt, boardRows, questPointBonus, questPointHint, rollBoard } from "./quest-board";
 
 /** Six fixed commissions a day. No AI, nothing random: every quest tracks real progress on your save. */
 export function QuestBoard({ onClose }: { onClose: () => void }) {
@@ -16,22 +16,31 @@ export function QuestBoard({ onClose }: { onClose: () => void }) {
   const rows = boardRows(hero, now);
   const claimed = rows.filter((r) => r.claimed).length;
 
-  const claim = (id: string) => update((h) => {
-    const state = rollBoard(h);
-    const row = boardRows(h).find((r) => r.quest.id === id);
-    if (!row || row.claimed || !row.done) return;
-    state.claimed.push(id);
-    grant(h, row.quest.xp, row.quest.gold);
-    h.mats = { ...(h.mats ?? {}), [row.quest.mat]: matCount(h, row.quest.mat) + row.quest.mats };
-  });
+  const [bonusNote, setBonusNote] = useState<string | null>(null);
+  const claim = (id: string) => {
+    let note = "";
+    update((h) => {
+      const state = rollBoard(h);
+      const row = boardRows(h).find((r) => r.quest.id === id);
+      if (!row || row.claimed || !row.done) return;
+      state.claimed.push(id);
+      grant(h, row.quest.xp, row.quest.gold);
+      h.mats = { ...(h.mats ?? {}), [row.quest.mat]: matCount(h, row.quest.mat) + row.quest.mats };
+      const bonus = questPointBonus();
+      if (bonus.skill) { h.bonusPts = (h.bonusPts ?? 0) + 1; note = "+1 skill point! "; }
+      if (bonus.insight) { h.insight = (h.insight ?? 0) + 1; note += "+1 Insight!"; }
+    });
+    if (note) setBonusNote(note);
+  };
 
   return (
     <Panel title="Quest Board" onClose={onClose} wide>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
           {DAILY_QUESTS.length} commissions, {claimed} claimed · every one pays gold, XP and materials ·
-          resets in <b className="text-gold">{countdown(boardResetAt(now) - now)}</b> (Greek midnight)
+          {questPointHint} · resets in <b className="text-gold">{countdown(boardResetAt(now) - now)}</b> (Greek midnight)
         </p>
+        {bonusNote && <p className="text-sm font-bold text-gold" aria-live="polite">{bonusNote}</p>}
       </div>
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {rows.map(({ quest, progress, claimed: done, done: complete }) => (

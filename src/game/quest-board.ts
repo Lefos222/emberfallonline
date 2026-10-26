@@ -22,6 +22,16 @@ export const DAILY_QUESTS: DailyQuest[] = [
   { id: "enhance", name: "Temper the Steel", desc: "Succeed at 3 enhancements", target: 3, mat: "essence", mats: 2, gold: 400, xp: 300, count: (h) => h.record?.enhances ?? 0 },
 ];
 
+/** Quests occasionally pay bonus progression: a skill-tree point or an Insight point. */
+export const QUEST_POINT_CHANCE = 0.25;
+export interface QuestPointBonus { skill: boolean; insight: boolean }
+/** Deterministic given a roll source; each payout is an independent roll. */
+export function questPointBonus(rand: () => number = Math.random): QuestPointBonus {
+  return { skill: rand() < QUEST_POINT_CHANCE, insight: rand() < QUEST_POINT_CHANCE };
+}
+/** Human label for a quest's bonus payout chance, shown on the board. */
+export const questPointHint = "25% chance of a bonus skill point and 25% of bonus Insight";
+
 export type BoardState = { day: string; base: Record<string, number>; claimed: string[] };
 
 /** Snapshot of every counter at the start of the day. */
