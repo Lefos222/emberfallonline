@@ -5,14 +5,14 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Shield, Heart, Swords, Clover, Lock, Sparkles, Trophy, Hammer, RefreshCw, Trash2, Skull, Backpack } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { recordEnhance } from "./progress";
 import { adviseStrategy } from "@/lib/quests.functions";
 import {
-  attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceStoneChance, enchantStoneCost, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
-  CONQUEST_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, type Attr, type EnemyType, type Hero, type HeroClass, type Item, type Slot, type Stats, type WearSlot,
+  attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
+  CONQUEST_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, type Attr, type EnemyType, type Hero, type HeroClass, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import { refreshMerchant } from "./logic";
 import { addConquestTokens, floorTokens } from "./conquest";
+import { ENH_STONE_BONUS, ENH_STONE_KEYS, ENH_STONE_TIERS, enhStoneBlocker, enhStoneName, enhanceItem, enhanceStoneChance, enhanceStoneCost, stoneTierFor, type EnhStoneTier, type EnhanceOutcome } from "./enhance-stones";
 import { ConquestTokens } from "./ConquestGate";
 import { update, useGame } from "./store";
 import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
@@ -323,7 +323,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
   const [armed, setArmed] = useState<string | null>(null);
   const [warn, setWarn] = useState<Item | null>(null);
-  const [useStone, setUseStone] = useState(false);
+  const [stone, setStone] = useState<EnhStoneTier | null>(null);
   if (!hero) return null;
   const equipped = WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean) as Item[];
   const bagged = hero.inventory;
@@ -354,33 +354,15 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
     setSelId(null);
     setMsg({ ok: true, t: "Unequipped and salvaged " + it.name + ": " + gain });
   };
+  // Stone level chosen for the next attempt; null pays gold instead.
+  const stoneCost = sel ? enhanceStoneCost(sel) : 0;
+  const stoneBlock = sel && stone !== null ? enhStoneBlocker(hero, sel, stone) : null;
+  const chance = sel ? (stone === null ? enhanceChance(sel) : enhanceStoneChance(sel, stone)) : 0;
   const enhance = () => {
     if (!sel) return;
-    if (useStone) {
-      const stoneCost = enchantStoneCost(sel);
-      if (matCount(hero, "enchantStone") < stoneCost) return;
-      const ok = Math.random() < enhanceStoneChance(sel);
-      update((h) => {
-        const m = { ...(h.mats ?? {}) };
-        m.enchantStone = (m.enchantStone ?? 0) - stoneCost;
-        h.mats = m;
-        const pos = sel.eq ? posOf(h.equipment, sel.id) : undefined;
-        const target = pos ? h.equipment[pos] : h.inventory.find((i) => i.id === sel.id);
-        if (target && ok) { target.enh++; recordEnhance(h, target.enh); }
-      });
-      setMsg(ok ? { ok, t: `Success! +${sel.enh + 1} (Stone)` } : { ok, t: "The stone cracked… failed" });
-    } else {
-      const cost = enhanceCost(sel, hero.level);
-      if (hero.gold < cost) return;
-      const ok = Math.random() < enhanceChance(sel);
-      update((h) => {
-        h.gold -= cost;
-        const pos = sel.eq ? posOf(h.equipment, sel.id) : undefined;
-        const target = pos ? h.equipment[pos] : h.inventory.find((i) => i.id === sel.id);
-        if (target && ok) { target.enh++; recordEnhance(h, target.enh); }
-      });
-      setMsg(ok ? { ok, t: `Success! +${sel.enh + 1}` } : { ok, t: "The metal cracked… failed" });
-    }
+    const out: { r: EnhanceOutcome | null } = { r: null };
+    update((h) => { out.r = enhanceItem(h, sel.id, stone); });
+    if (out.r) setMsg({ ok: out.r.ok, t: out.r.text });
   };
   return (
     <Panel title="Forge" onClose={onClose}>
@@ -393,7 +375,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
               <div className="grid grid-cols-3 content-start gap-1.5 md:grid-cols-6">
                 {equipped.map((it) => (
                   <span key={it.id} className="relative inline-flex">
-                    <ItemSlot item={it} size={40} selected={it.id === selId} onClick={() => { setSelId(it.id); setArmed(null); setMsg(null); }} />
+                    <ItemSlot item={it} size={40} selected={it.id === selId} onClick={() => { setSelId(it.id); setArmed(null); setMsg(null); setStone(null); }} />
                     <span className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded bg-gold px-1 text-[9px] font-bold uppercase text-background">Worn</span>
                   </span>
                 ))}
@@ -404,7 +386,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
             <div className="mb-1.5 flex items-center gap-2 font-display text-sm text-gold"><Backpack className="h-4 w-4" />In your bag <span className="text-xs text-muted-foreground">({bagged.length})</span></div>
             {bagged.length ? (
               <div className="grid grid-cols-3 content-start gap-1.5 md:grid-cols-6">
-                {bagged.map((it) => <ItemSlot key={it.id} item={it} size={40} selected={it.id === selId} onClick={() => { setSelId(it.id); setArmed(null); setMsg(null); }} />)}
+                {bagged.map((it) => <ItemSlot key={it.id} item={it} size={40} selected={it.id === selId} onClick={() => { setSelId(it.id); setArmed(null); setMsg(null); setStone(null); }} />)}
               </div>
             ) : <p className="text-xs text-muted-foreground">Your bag is empty.</p>}
           </div>
@@ -413,17 +395,32 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
           {sel ? (
             <>
               <ItemCard item={sel} />
-              <div className="flex gap-1 text-sm">
-                <button className={`flex-1 py-1.5 text-xs ${!useStone ? "btn-gold" : "btn-ghost"}`} onClick={() => setUseStone(false)}>Gold</button>
-                <button className={`flex-1 py-1.5 text-xs ${useStone ? "btn-gold" : "btn-ghost"}`} onClick={() => setUseStone(true)}>Enchantment Stone</button>
+              <div className="flex flex-wrap gap-1 text-sm">
+                <button className={`min-w-16 flex-1 py-1.5 text-xs ${stone === null ? "btn-gold" : "btn-ghost"}`} onClick={() => setStone(null)}>Gold</button>
+                {ENH_STONE_TIERS.map((tier) => {
+                  const need = stoneTierFor(sel.enh);
+                  const held = matCount(hero, ENH_STONE_KEYS[tier]);
+                  return (
+                    <button key={tier} disabled={tier < need} aria-pressed={stone === tier}
+                      title={tier < need
+                        ? `${enhStoneName(tier)} is too weak for +${sel.enh + 1} — use Lv ${need} stones or stronger`
+                        : `${MATS[ENH_STONE_KEYS[tier]].desc} (${MATS[ENH_STONE_KEYS[tier]].src})`}
+                      className={`min-w-16 flex-1 py-1 text-xs ${stone === tier ? "btn-gold" : "btn-ghost"} ${tier < need ? "opacity-40" : ""}`}
+                      onClick={() => setStone(tier)}>
+                      <MatIcon mat={ENH_STONE_KEYS[tier]} size={16} /> Lv {tier}
+                      <span className={`ml-1 font-bold ${held >= stoneCost ? "text-r1" : "text-hp"}`}>{held}</span>
+                    </button>
+                  );
+                })}
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span>Chance <b className="text-gold">{Math.round((useStone ? enhanceStoneChance(sel) : enhanceChance(sel)) * 100)}%</b>{useStone && <span className="ml-1 text-xs text-r1">+15% stone bonus</span>}</span>
-                {useStone
-                  ? <span className="flex items-center gap-1"><MatIcon mat="enchantStone" size={18} /> {matCount(hero, "enchantStone")}/{enchantStoneCost(sel)}</span>
-                  : <Gold n={enhanceCost(sel, hero.level)} />}
+                <span>Chance <b className="text-gold">{Math.round(chance * 100)}%</b>{stone !== null && <span className="ml-1 text-xs text-r1">+{ENH_STONE_BONUS[stone]}% {enhStoneName(stone)} bonus</span>}</span>
+                {stone === null
+                  ? <Gold n={enhanceCost(sel, hero.level)} />
+                  : <span className="flex items-center gap-1"><MatIcon mat={ENH_STONE_KEYS[stone]} size={18} /> {matCount(hero, ENH_STONE_KEYS[stone])}/{fmt(stoneCost)}</span>}
               </div>
-              <button className="btn-gold w-full py-3 text-lg" disabled={useStone ? matCount(hero, "enchantStone") < enchantStoneCost(sel) : hero.gold < enhanceCost(sel, hero.level)} onClick={enhance}>
+              {stoneBlock && <p className="text-xs text-blood">{stoneBlock}</p>}
+              <button className="btn-gold w-full py-3 text-lg" disabled={stone === null ? hero.gold < enhanceCost(sel, hero.level) : !!stoneBlock} onClick={enhance}>
                 <Hammer className="mr-2 inline" />Enhance +{sel.enh + 1}
               </button>
 

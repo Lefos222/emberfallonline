@@ -2,7 +2,8 @@ import type { HeroClass, Item, Slot } from "./data";
 import { scaledGold } from "./gold";
 
 // ---------- Materials ----------
-export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone" | "ancientBone" | "voidShard" | "emberHeart";
+export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal"
+  | "enhStone1" | "enhStone2" | "enhStone3" | "enhStone4" | "ancientBone" | "voidShard" | "emberHeart";
 export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity: number }> = {
   ore: { name: "Ember Ore", desc: "Common ore used in crafting and gem cutting.", src: "Every won battle (more in higher regions)", rarity: 0 },
   essence: { name: "Soul Essence", desc: "Distilled souls used in crafting and gem fusion.", src: "Tougher fights, elites, bosses", rarity: 2 },
@@ -13,7 +14,10 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   hide: { name: "Beast Hide", desc: "Hide stripped from slain monsters. Refines into Armor Fragments.", src: "Every won battle (more in higher regions)", rarity: 1 },
   bloom: { name: "Emberbloom", desc: "Fire-touched herb. Refines into Soul Essence.", src: "Won battles, elites and gathering journeys", rarity: 1 },
   crystal: { name: "Arcane Crystal", desc: "Crystallised mana. Refines into Starshards.", src: "Elites and Dungeon Gate bosses", rarity: 2 },
-  enchantStone: { name: "Enchantment Stone", desc: "A resonant stone used to enchant gear at the Forge instead of gold. Higher success rate.", src: "Conquest Gate shop and Guild shop", rarity: 3 },
+  enhStone1: { name: "Enhancement Stone Lv 1", desc: "A flawed resonant stone. Empowers gear up to +4 at the Forge instead of gold, with a +10% success rate.", src: "Conquest Gate shop, Guild shop, Profession Lodge", rarity: 2 },
+  enhStone2: { name: "Enhancement Stone Lv 2", desc: "A tempered stone for gear up to +8. Stronger than Lv 1 and worth +15% success.", src: "Conquest Gate shop, Guild shop, Profession Lodge", rarity: 3 },
+  enhStone3: { name: "Enhancement Stone Lv 3", desc: "A rune-cut stone for gear up to +12. Worth +20% success.", src: "Conquest Gate shop, Guild shop, Profession Lodge", rarity: 3 },
+  enhStone4: { name: "Enhancement Stone Lv 4", desc: "An ascendant stone, the only one that carries gear past +12. Worth +25% success.", src: "Conquest Gate shop, Guild shop, deep Profession Lodge discoveries", rarity: 4 },
   ancientBone: { name: "Ancient Relic Bone", desc: "Bone of a long-dead ancestor. Used only in Ancestral equipment crafting.", src: "Ancestral Tower boss floors", rarity: 4 },
   voidShard: { name: "Void Crystal Shard", desc: "A shard of crystallised void. Used only in Ancestral equipment crafting.", src: "Ancestral Tower boss floors 2+", rarity: 4 },
   emberHeart: { name: "Ember Heart Core", desc: "The still-beating heart of an ancestral titan. Used only in Ancestral equipment crafting.", src: "Ancestral Tower boss floors 3+", rarity: 5 },

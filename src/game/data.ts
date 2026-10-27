@@ -169,10 +169,7 @@ export function buyPrice(it: Item, level = 1) { return scaledGold(sellValue(it) 
 /** Enhancing at the Forge: the item's own level and the hero's level both raise the price. */
 export function enhanceCost(it: Item, level = 1) { return scaledGold(it.ilvl * 10 * Math.pow(it.enh + 1, 1.5), level); }
 export function enhanceChance(it: Item) { return Math.max(0.2, 1 - it.enh * 0.08); }
-/** Enchantment Stones needed to enhance: 1 per 3 enhancement levels. */
-export const enchantStoneCost = (it: Item) => 1 + Math.floor(it.enh / 3);
-/** Using enchantment stones boosts success chance by 15%. */
-export const enhanceStoneChance = (it: Item) => Math.min(1, enhanceChance(it) + 0.15);
+// Enhancement Stones (levels 1-4) live in enhance-stones.ts.
 
 // ---------- Wearing gear ----------
 /** Which wear position a worn item occupies. */
@@ -275,6 +272,8 @@ export interface Hero {
   /** Bestiary entries the character has defeated, by bestiary id. */
   kills?: Record<string, number>;
   weekly?: { week: number; kills: number; claimed: boolean };
+  /** Profession Lodge refinery: the stock keys already refined, a running count and the recent ledger (see lodge.ts). */
+  lodge?: { claimed?: Record<string, number>; refined?: number; ledger?: { at: string; lines: string[] }[] };
   /** Guild coins earned by contributing gold; spent in the guild shop and skill tower. */
   guildCoins?: number;
   /** Guild skill tower ranks by skill id (see guild-tower.ts). */
@@ -316,6 +315,12 @@ export function normalizeHero(h: Hero): Hero {
   const a = h.attrs as unknown as { str?: number; int?: number; agi?: number; vit?: number; armor?: number; luck?: number };
   if (a.int === undefined || a.agi === undefined) {
     h.attrs = { str: a.str ?? 0, int: 0, agi: a.luck ?? 0, vit: (a.vit ?? 0) + (a.armor ?? 0) };
+  }
+  // The single "Enchantment Stone" material became Enhancement Stone Lv 1 — old stock is that level.
+  const legacy = (h.mats ?? {}) as Record<string, number | undefined>;
+  if (legacy['enchantStone']) {
+    h.mats = { ...(h.mats ?? {}), enhStone1: (legacy['enhStone1'] ?? 0) + legacy['enchantStone'] };
+    delete (h.mats as Record<string, number | undefined>)['enchantStone'];
   }
   return h;
 }

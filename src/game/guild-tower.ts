@@ -91,8 +91,10 @@ export const GUILD_SHOP: GuildShopItem[] = [
   { id: "g_sigil", name: "Elite Sigil ×5", desc: "For Epic+ gear", cost: 2500, mat: "sigil", qty: 5 },
   { id: "g_bossCore", name: "Boss Core ×3", desc: "For Legendary+ gear", cost: 3000, mat: "bossCore", qty: 3 },
   { id: "g_crystal", name: "Arcane Crystal ×5", desc: "Refines into Starshards", cost: 2000, mat: "crystal", qty: 5 },
-  { id: "g_enchant3", name: "Enchantment Stone ×3", desc: "Enchant gear at the Forge (higher success)", cost: 1500, mat: "enchantStone", qty: 3 },
-  { id: "g_enchant10", name: "Enchantment Stone ×10", desc: "Bulk enchantment stones", cost: 4000, mat: "enchantStone", qty: 10 },
+  { id: "g_enh1", name: "Enhancement Stone Lv 1 ×5", desc: "Empowers gear up to +4 at the Forge, +10% success", cost: 1500, mat: "enhStone1", qty: 5 },
+  { id: "g_enh2", name: "Enhancement Stone Lv 2 ×3", desc: "For gear up to +8, +15% success", cost: 4000, mat: "enhStone2", qty: 3 },
+  { id: "g_enh3", name: "Enhancement Stone Lv 3 ×2", desc: "For gear up to +12, +20% success", cost: 9000, mat: "enhStone3", qty: 2 },
+  { id: "g_enh4", name: "Enhancement Stone Lv 4 ×1", desc: "The only stone that carries gear past +12, +25% success", cost: 18000, mat: "enhStone4", qty: 1 },
 ];
 
 export function buyGuildShopItem(h: Hero, id: string): string | null {

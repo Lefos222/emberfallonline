@@ -45,7 +45,10 @@ export function spendBlitz(h: Hero, now = Date.now()) {
   h.conquest = { ...(h.conquest ?? {}), blitzDay: blitzDay(now), blitzUsed: blitzesUsed(h, now) + 1 };
 }
 
-/** Equipment materials and items the Conquest Gate sells for tokens. */
+/**
+ * Equipment materials and items the Conquest Gate sells for tokens. All four levels of
+ * Enhancement Stone are on offer, priced by level so the deepest floors fund the deepest stones.
+ */
 export interface TokenOffer { id: string; mat: Mat; qty: number; cost: number; gold?: number; name?: string }
 export const TOKEN_OFFERS: TokenOffer[] = [
   { id: "goldchest", mat: "ore", qty: 0, cost: 30, gold: 5000, name: "Gold Chest" },
@@ -55,7 +58,10 @@ export const TOKEN_OFFERS: TokenOffer[] = [
   { id: "essence", mat: "essence", qty: 2, cost: 40 },
   { id: "fragment", mat: "fragment", qty: 2, cost: 50 },
   { id: "crystal", mat: "crystal", qty: 1, cost: 60 },
-  { id: "enchantstone", mat: "enchantStone", qty: 2, cost: 80 },
+  { id: "enhstone1", mat: "enhStone1", qty: 3, cost: 80 },
+  { id: "enhstone2", mat: "enhStone2", qty: 2, cost: 220 },
+  { id: "enhstone3", mat: "enhStone3", qty: 1, cost: 520 },
+  { id: "enhstone4", mat: "enhStone4", qty: 1, cost: 1100 },
   { id: "sigil", mat: "sigil", qty: 1, cost: 120 },
   { id: "starshard", mat: "starshard", qty: 1, cost: 150 },
   { id: "bossCore", mat: "bossCore", qty: 1, cost: 300 },
