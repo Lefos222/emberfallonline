@@ -11,6 +11,9 @@ import { setFx, type BattleEntry, type CombatRecord } from "./progress";
 import { scaledGold } from "./gold";
 import { drillFx } from "./drills";
 import { guildFx } from "./guild-tower";
+import { mountFx } from "./mounts";
+import { wingFx } from "./wings";
+import { runeFx } from "./runes";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -281,6 +284,18 @@ export interface Hero {
   guildSkills?: Record<string, number>;
   /** Ancestral Tower progression: next fightable floor and deepest cleared (see ancestral-tower.ts). */
   ancTower?: { floor: number; bestFloor: number };
+  /** Active mount id (see mounts.ts). */
+  mount?: string;
+  /** Owned mount levels by mount id (see mounts.ts). */
+  mounts?: Record<string, number>;
+  /** Active wing id (see wings.ts). */
+  wing?: string;
+  /** Owned wing levels by wing id (see wings.ts). */
+  wings?: Record<string, number>;
+  /** Rune pouch: rune key → count (see runes.ts). */
+  runes?: Record<string, number>;
+  /** Equipped rune keys by rune board slot (see runes.ts). */
+  runeBoard?: (string | null)[];
 }
 
 export function newHero(name: string, cls: HeroClass): Hero {
@@ -328,17 +343,21 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   // Barracks drills are the hero's permanent training track beside the attribute points (see drills.ts).
   const dr = opts.talents ? drillFx(h) : null;
   const gf2 = opts.talents ? guildFx(h) : null;
-  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xg?.[k] ?? 0) + (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0);
+  // Mounts, wings and runes are permanent enhancement layers like drills (see mounts.ts, wings.ts, runes.ts).
+  const mt = opts.talents ? mountFx(h) : null;
+  const wg = opts.talents ? wingFx(h) : null;
+  const rn = opts.talents ? runeFx(h) : null;
+  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xg?.[k] ?? 0) + (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + (mt?.[k] ?? 0) + (wg?.[k] ?? 0) + (rn?.[k] ?? 0);
   const sf0 = opts.gear ? setFx(h.equipment) : { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
   const gf = opts.gear ? gemFx(h.equipment) : null;
   const af = opts.talents ? astralFx(h) : null;
   const sf = {
-    atkPct: sf0.atkPct + (gf?.atkPct ?? 0) + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0),
-    defPct: sf0.defPct + (gf?.defPct ?? 0) + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0),
-    hpPct: sf0.hpPct + (gf?.hpPct ?? 0) + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0),
-    crit: sf0.crit + (gf?.crit ?? 0) + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0),
+    atkPct: sf0.atkPct + (gf?.atkPct ?? 0) + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + (mt?.atkPct ?? 0) + (wg?.atkPct ?? 0) + (rn?.atkPct ?? 0),
+    defPct: sf0.defPct + (gf?.defPct ?? 0) + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + (mt?.defPct ?? 0) + (wg?.defPct ?? 0) + (rn?.defPct ?? 0),
+    hpPct: sf0.hpPct + (gf?.hpPct ?? 0) + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + (mt?.hpPct ?? 0) + (wg?.hpPct ?? 0) + (rn?.hpPct ?? 0),
+    crit: sf0.crit + (gf?.crit ?? 0) + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + (mt?.crit ?? 0) + (wg?.crit ?? 0) + (rn?.crit ?? 0),
   };
-  tf.dodge += (gf?.dodge ?? 0) + (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0); tf.critDmg += (gf?.critDmg ?? 0) + (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0);
+  tf.dodge += (gf?.dodge ?? 0) + (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + (mt?.dodge ?? 0) + (wg?.dodge ?? 0) + (rn?.dodge ?? 0); tf.critDmg += (gf?.critDmg ?? 0) + (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + (mt?.critDmg ?? 0) + (wg?.critDmg ?? 0) + (rn?.critDmg ?? 0);
   const pa = 1 + (tf.atkPct + sf.atkPct) / 100, ph = 1 + (tf.hpPct + sf.hpPct) / 100, pd = 1 + (tf.defPct + sf.defPct) / 100;
   const c = CLASSES[h.cls];
   const items = opts.gear ? (Object.values(h.equipment).filter(Boolean) as Item[]) : [];
@@ -355,7 +374,7 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   const mdef = Math.round((pd + ex('mdefPct') / 100) * ((5 + L * 2.5 + at.vit * 1 + at.int * 1.5) * c.def + g.def * 0.8) * p);
   const crit = Math.min(60, +(5 + c.crit + at.agi * 0.2 + g.crit + tf.crit + sf.crit).toFixed(1));
   const critDmg = Math.min(300, Math.round(150 + at.agi * 0.3 + at.str * 0.15 + tf.critDmg));
-  const pen = Math.min(40, +(at.str * 0.08 + at.int * 0.08 + h.paragon * 0.1 + tf.pen + (MAGIC[h.cls] ? ex('mpen') : (gf?.pen ?? 0) + (af?.pen ?? 0) + (gf2?.pen ?? 0))).toFixed(1));
+  const pen = Math.min(40, +(at.str * 0.08 + at.int * 0.08 + h.paragon * 0.1 + tf.pen + (MAGIC[h.cls] ? ex('mpen') : (gf?.pen ?? 0) + (af?.pen ?? 0) + (gf2?.pen ?? 0) + (mt?.pen ?? 0) + (wg?.pen ?? 0) + (rn?.pen ?? 0))).toFixed(1));
   const acc = Math.min(30, +(at.agi * 0.08 + L * 0.05 + ex('acc')).toFixed(1));
   const block = Math.min(25, +ex('block').toFixed(1));
   const heal = Math.min(50, +ex('heal').toFixed(1));
@@ -502,6 +521,9 @@ export const BUILDINGS = [
   { id: "friends", name: "Friends", x: 0, y: 0, r: 0, desc: "Friends & messages", soon: false, shortcut: true },
   { id: "daily", name: "Daily Rewards", x: 46, y: 66, r: 3.5, desc: "Login rewards & activities", soon: false , shortcut: true },
   { id: "worldmap", name: "World Tree", x: 50, y: 49, r: 4.5, desc: "Explore the world map · raids & bosses", soon: false },
+  { id: "stable", name: "Stable", x: 30, y: 72, r: 4, desc: "Mounts · permanent stat bonuses", soon: false },
+  { id: "skyaltar", name: "Sky Altar", x: 88, y: 65, r: 4, desc: "Wings · upgradeable flight bonuses", soon: false },
+  { id: "runeforge", name: "Rune Forge", x: 71, y: 64, r: 3.5, desc: "Craft, fuse & socket runes", soon: false },
 ] as const;
 /** Buildings physically placed in the castle (shortcut-only screens excluded). */
 export const CASTLE_BUILDINGS = BUILDINGS.filter((b) => !("shortcut" in b && b.shortcut));
