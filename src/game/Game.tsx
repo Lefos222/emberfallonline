@@ -15,6 +15,9 @@ import { Professions } from './Professions';
 import { PremiumShop } from './PremiumShop';
 import { AuctionHouse } from './AuctionHouse';
 import { WorldMap } from './WorldMap';
+import { MountStable } from './MountStable';
+import { WingShrine } from './WingShrine';
+import { RuneForge } from './RuneForge';
 import { awardAncestralRelic } from './building-content';
 import { beginScrollBattle } from "./services";
 import { scrollFighter } from "./scrolls";
@@ -165,6 +168,9 @@ export function Game() {
           {open === "arena" && <Arena onClose={() => setOpen(null)} start={start} />}
           {open === "worldmap" && <WorldMap onClose={() => setOpen(null)} start={start} />}
           {open === "oracle" && <Oracle onClose={() => setOpen(null)} start={start} />}
+          {open === "stable" && <MountStable onClose={() => setOpen(null)} />}
+          {open === "skyaltar" && <WingShrine onClose={() => setOpen(null)} />}
+          {open === "runeforge" && <RuneForge onClose={() => setOpen(null)} />}
         </>
       )}
       {battle && <Battle key={battle.title + battle.right.name} left={battle.left} right={battle.right} auto={battle.auto} title={battle.title} onEnd={onEnd} />}
