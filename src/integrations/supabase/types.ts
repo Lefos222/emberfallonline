@@ -110,6 +110,8 @@ export type Database = {
           closed_at: string | null
           created_at: string
           id: string
+          kind: string
+          payload: Json | null
           price: number
           quantity: number
           resource: string
@@ -122,6 +124,8 @@ export type Database = {
           closed_at?: string | null
           created_at?: string
           id?: string
+          kind?: string
+          payload?: Json | null
           price: number
           quantity: number
           resource: string
@@ -134,6 +138,8 @@ export type Database = {
           closed_at?: string | null
           created_at?: string
           id?: string
+          kind?: string
+          payload?: Json | null
           price?: number
           quantity?: number
           resource?: string
@@ -325,6 +331,57 @@ export type Database = {
           {
             foreignKeyName: "friendships_owner_hero_fkey"
             columns: ["owner_hero"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_applications: {
+        Row: {
+          created_at: string
+          guild_id: string
+          hero_id: string
+          hero_name: string
+          id: string
+          message: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          guild_id: string
+          hero_id: string
+          hero_name: string
+          id?: string
+          message?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          guild_id?: string
+          hero_id?: string
+          hero_name?: string
+          id?: string
+          message?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_applications_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_applications_hero_id_fkey"
+            columns: ["hero_id"]
             isOneToOne: false
             referencedRelation: "heroes"
             referencedColumns: ["id"]
@@ -699,18 +756,21 @@ export type Database = {
           claimed_at: string
           day: string
           hero_id: string
+          id: number
           node: string
         }
         Insert: {
           claimed_at?: string
           day: string
           hero_id: string
+          id?: number
           node: string
         }
         Update: {
           claimed_at?: string
           day?: string
           hero_id?: string
+          id?: number
           node?: string
         }
         Relationships: [
@@ -792,6 +852,10 @@ export type Database = {
         Returns: Json
       }
       add_friend: { Args: { _hero: string; _name: string }; Returns: string }
+      apply_guild: {
+        Args: { _guild: string; _hero: string; _message: string }
+        Returns: undefined
+      }
       auction_buy: {
         Args: { _hero: string; _listing: string; _req: string }
         Returns: Json
@@ -808,6 +872,20 @@ export type Database = {
           _req: string
           _resource: string
         }
+        Returns: Json
+      }
+      auction_list_gem: {
+        Args: {
+          _gem: string
+          _hero: string
+          _price: number
+          _qty: number
+          _req: string
+        }
+        Returns: Json
+      }
+      auction_list_item: {
+        Args: { _hero: string; _item: Json; _price: number; _req: string }
         Returns: Json
       }
       begin_battle: { Args: { _hero: string }; Returns: Json }
@@ -952,6 +1030,10 @@ export type Database = {
         }[]
       }
       lucky_shot: { Args: { _hero: string; _req: string }; Returns: Json }
+      moderate_application: {
+        Args: { _accept: boolean; _application: string; _hero: string }
+        Returns: undefined
+      }
       my_guild_ids: { Args: never; Returns: string[] }
       my_hero_ids: { Args: never; Returns: string[] }
       premium_state: { Args: { _hero: string }; Returns: Json }
@@ -982,6 +1064,10 @@ export type Database = {
         Returns: undefined
       }
       unlock_cosmetic: { Args: { _hero: string; _id: string }; Returns: Json }
+      withdraw_application: {
+        Args: { _application: string; _hero: string }
+        Returns: undefined
+      }
       world_map_state: { Args: { _hero: string }; Returns: Json }
       world_raid_complete: {
         Args: { _hero: string; _node: string; _req: string }
