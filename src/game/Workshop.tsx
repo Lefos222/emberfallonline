@@ -145,7 +145,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
       </div>
       <div className="relative mx-auto mb-1 h-[300px] w-[300px] sm:h-[340px] sm:w-[340px]">
         <div className="absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2">
-          <CharacterModel cls={hero.cls} gender={gender} className="h-full w-full" />
+          <CharacterModel cls={hero.cls} gender={gender} className="h-full w-full" equipment={hero.equipment} />
         </div>
         {ASTRAL_SLOT_LEVELS.map((lv, i) => {
           const ang = (i / ASTRAL_SLOTS) * Math.PI * 2 - Math.PI / 2;

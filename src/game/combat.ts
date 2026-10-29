@@ -2,7 +2,7 @@
  * Tactical turn-based combat engine (pure, no React).
  * One authoritative set of stats per unit is used both for the UI and for damage resolution.
  */
-import { calcDamage, SKILLS, type HeroClass, type Skill } from "./data";
+import { calcDamage, SKILLS, type GearRecord, type HeroClass, type Skill } from "./data";
 import type { SpriteRect } from "./world";
 
 export type StatusKind = "guard" | "barrier" | "mark" | "evade" | "slow" | "stun" | "burn" | "weaken" | "counter";
@@ -24,12 +24,16 @@ export interface FighterInput {
   sprite?: SpriteRect; mirror?: boolean; boss?: boolean; elite?: boolean;
   gender?: 'male' | 'female'; scrolls?: ('dmg' | 'def' | 'xp')[];
   skillLoadout?: string[];
+  /** Worn gear, used only to draw the hero's current look (presentation only). */
+  equipment?: GearRecord;
 }
 
 export interface Unit {
   id: string; side: "hero" | "foe"; name: string; img: string; sprite?: SpriteRect; mirror?: boolean;
   cls?: HeroClass; boss?: boolean; elite?: boolean; level: number;
   gender?: 'male' | 'female'; scrolls?: ('dmg' | 'def' | 'xp')[];
+  /** Worn gear, used only to draw the hero's current look (presentation only). */
+  equipment?: GearRecord;
   maxHp: number; hp: number; atk: number; def: number; crit: number; critDmg: number; dodge: number;
   pen: number; acc: number; block: number; heal: number; speed: number;
   mana: number; maxMana: number; statuses: Status[]; cds: Record<string, number>;
@@ -116,7 +120,7 @@ function toUnit(f: FighterInput, side: Unit["side"], id: string): Unit {
   const maxMana = 100;
   return {
     id, side, name: f.name, img: f.img, sprite: f.sprite, mirror: f.mirror, cls: f.cls, boss: f.boss, elite: f.elite, level: f.level,
-    gender: f.gender, scrolls: f.scrolls,
+    gender: f.gender, scrolls: f.scrolls, equipment: f.equipment,
     maxHp: Math.max(1, Math.round(f.hp)), hp: Math.max(1, Math.round(f.hp)), atk: f.atk, def: f.def, crit: f.crit,
     critDmg: f.critDmg ?? 200, dodge: f.dodge, pen: f.pen ?? 0, acc: f.acc ?? 0,
     block: Math.min(BLOCK_CAP, f.block ?? (f.boss ? 5 : 0)), heal: Math.min(HEAL_CAP, f.heal ?? 0),
