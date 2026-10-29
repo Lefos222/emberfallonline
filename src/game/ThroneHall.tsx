@@ -1,26 +1,21 @@
 import { useState } from "react";
-import { Check, Gift, Lock, RotateCcw, Skull, Star, Eye } from "lucide-react";
+import { Check, Gift, Skull } from "lucide-react";
 import { ACHIEVEMENTS, SET_BONUSES, achProgress, activeSets, emptyRecord, isClaimable } from "./progress";
 import { CLASSES, heroSkills, heroStats, powerBreakdown, xpToNext } from "./data";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
-import { SPEC_LEVEL, TIER_REQ, TREES, freePoints, learnBlocker, rankCost, resetCost, spentIn, totalPoints } from "./talents";
 import { QUEST_POINT_CHANCE } from "./quest-board";
-import { Button } from "@/components/ui/button";
-import { SkillPreview } from "./SkillPreview";
+import { TREES } from "./talents";
 import { SkillLoadout } from './SkillLoadout';
+import { SkillTreeContent } from "./SkillTree";
 import { PassiveTreeContent } from "./PassiveTree";
 
 export function ThroneHall({ onClose }: { onClose: () => void }) {
-  const { hero, gender } = useGame();
+  const { hero } = useGame();
   const [tab, setTab] = useState<"overview" | "skills" | "passives" | "ach" | "history">("skills");
-  const [confirmReset, setConfirmReset] = useState(false);
-  const [previewId, setPreviewId] = useState<string | null>(null);
   if (!hero) return null;
   const s = heroStats(hero);
-  const free = freePoints(hero);
   const trees = TREES[hero.cls];
-  const preview = trees.flatMap(s => s.talents).find(t => t.id === previewId);
   const claimable = ACHIEVEMENTS.filter((a) => isClaimable(hero, a)).length;
   const rec = { ...emptyRecord(), ...(hero.record ?? {}) };
   const claim = (id: string) => update((h) => {
@@ -30,17 +25,6 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
     h.gold += a.gold;
     // Achievements occasionally pay a bonus skill point alongside their Insight reward.
     if (Math.random() < QUEST_POINT_CHANCE) h.bonusPts = (h.bonusPts ?? 0) + 1;
-  });
-
-  const learn = (id: string) => update((h) => {
-    if (learnBlocker(h, id)) return; // re-validated against the latest state
-    h.talents = { ...(h.talents ?? {}), [id]: (h.talents?.[id] ?? 0) + 1 };
-  });
-  const chooseSpec = (id: string) => update((h) => { if (h.level >= SPEC_LEVEL && !h.spec) h.spec = id; });
-  const reset = () => update((h) => {
-    const cost = resetCost(h);
-    if (h.gold < cost || (spentIn(h) === 0 && !h.spec)) return;
-    h.gold -= cost; h.talents = {}; h.spec = undefined;
   });
 
   return (
@@ -128,73 +112,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
       ) : (
         <>
           <SkillLoadout />
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <div className="font-display text-lg">Skill points: <span className="text-gold">{free}</span> / {totalPoints(hero)}</div>
-            <div className="text-xs text-muted-foreground">Earn 1 point per level, plus a bonus point every 5 levels — every level-up also grants 1 Insight, and quests and achievements can add more.</div>
-            {!confirmReset ? (
-              <button className="btn-ghost flex items-center gap-1 px-3 py-1.5 text-sm" disabled={spentIn(hero) === 0 && !hero.spec} onClick={() => setConfirmReset(true)}>
-                <RotateCcw className="h-4 w-4" /> Reset tree
-              </button>
-            ) : (
-              <div className="flex items-center gap-2 text-sm">
-                Reset all skills and specialization for <Gold n={resetCost(hero)} />?
-                <button className="btn-gold px-3 py-1" disabled={hero.gold < resetCost(hero)} onClick={() => { reset(); setConfirmReset(false); }}>Confirm</button>
-                <button className="btn-ghost px-3 py-1" onClick={() => setConfirmReset(false)}>Cancel</button>
-              </div>
-            )}
-          </div>
-          {hero.level >= SPEC_LEVEL && !hero.spec && (
-            <p className="mb-3 text-sm text-gold">Choose a specialization to unlock its tier 3 ability and capstone. You can change it later with a reset.</p>
-          )}
-          <div className="grid gap-4 md:grid-cols-3">
-            {trees.map((spec) => {
-              const spent = spentIn(hero, spec.id);
-              const mine = hero.spec === spec.id;
-              return (
-                <div key={spec.id} className={`slot p-3 ${mine ? "ring-2 ring-gold spec-mine" : ""}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-display text-lg">{spec.name}{mine && <Star className="ml-1 inline h-4 w-4 text-gold" />}</div>
-                      <div className="text-xs text-muted-foreground">{spec.blurb} · {spent} pts</div>
-                    </div>
-                    {!hero.spec && (
-                      <button className="btn-ghost px-2 py-1 text-xs" disabled={hero.level < SPEC_LEVEL} title={hero.level < SPEC_LEVEL ? `Requires level ${SPEC_LEVEL}` : `Specialize in ${spec.name}`}
-                        onClick={() => chooseSpec(spec.id)}>{hero.level < SPEC_LEVEL ? `Lv ${SPEC_LEVEL}` : "Specialize"}</button>
-                    )}
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    {spec.talents.map((t, i) => {
-                      const rank = hero.talents?.[t.id] ?? 0;
-                      const block = learnBlocker(hero, t.id);
-                      const prevRank = i > 0 ? hero.talents?.[spec.talents[i - 1].id] ?? 0 : 1;
-                      return (
-                        <div key={t.id}>
-                          {i > 0 && <div className={`talent-link ${prevRank > 0 ? "talent-link-on" : ""}`} aria-hidden="true" />}
-                          <Button variant="ghost" disabled={!!block} onClick={() => learn(t.id)} title={block ?? `Learn rank ${rank + 1} (${t.cost} pt)`}
-                            className={`talent-node block h-auto w-full whitespace-normal rounded border border-border p-2 text-left ${rank > 0 ? "talent-filled bg-primary/15" : ""} ${block ? "opacity-70" : "hover:border-gold"}`}>
-                            <span key={rank} className={rank > 0 ? "talent-burst" : "hidden"} aria-hidden="true" />
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="font-bold">{t.ability ? "◆ " : ""}{t.name}</span>
-                              <span className="flex items-center gap-1" aria-label={`${rank} of ${t.max} ranks learned`}>
-                                {Array.from({ length: t.max }, (_, p) => <i key={p} className={`talent-pip ${p < rank ? "talent-pip-on" : ""}`} />)}
-                              </span>
-                            </div>
-                            <div className="text-xs text-muted-foreground">{t.desc}</div>
-                            <div className="mt-0.5 text-[10px] text-muted-foreground">
-                              Tier {t.tier}{TIER_REQ[t.tier] ? ` · needs ${TIER_REQ[t.tier]} pts here` : ""} · {rankCost(t, rank)} pt/rank
-                              {block && block !== "Maxed" && <span className="ml-1 text-blood"><Lock className="inline h-3 w-3" /> {block}</span>}
-                            </div>
-                          </Button>
-                          {t.ability && <Button variant="ghost" size="sm" className="mt-1 w-full text-xs text-gold" onClick={() => setPreviewId(t.id)}><Eye className="h-3 w-3" />Preview {t.name}</Button>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          {preview && <SkillPreview talent={preview} cls={hero.cls} gender={gender} locked={learnBlocker(hero, preview.id)} />}
+          <SkillTreeContent />
         </>
       )}
     </Panel>
