@@ -5,7 +5,7 @@ import type { Move } from './skillAnim';
 
 export function BattleCharacter({ u }: { u: Unit }) {
   if (u.cls) return <div className={`battle-character flex h-full w-full items-end justify-center ${u.side === 'foe' ? 'battle-mirror' : ''}`}>
-    <CharacterModel cls={u.cls} gender={u.gender === 'female' ? 'female' : 'male'} className="h-full w-full" />
+    <CharacterModel cls={u.cls} gender={u.gender === 'female' ? 'female' : 'male'} className="h-full w-full" equipment={u.equipment} />
   </div>;
   const identity = `${u.name} ${u.img}`;
   const col = /dragon|wyrm/i.test(identity) ? 3 : /goblin|brute grunt/i.test(identity) ? 1 : /skeleton|bone/i.test(identity) ? 0 : 2;

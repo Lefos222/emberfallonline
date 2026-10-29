@@ -4,15 +4,15 @@ import { CharacterModel } from './CharacterModel';
 import { CharacterPose } from './CharacterPose';
 import castle from "@/assets/castle.jpg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
-import { CLASSES, type HeroClass } from "./data";
+import { CLASSES, type GearRecord, type HeroClass } from "./data";
 import {
   createCharacter, deleteCharacter, lastCharacterId, loadCharacters, selectCharacter, updateProfile, useGame, type CharacterRow, type Gender,
 } from "./store";
 import { Panel, fmt } from "./ui";
 import { earnedTitles } from "./progress";
 
-export function Portrait({ cls, gender, className = "" }: { cls: HeroClass; gender: Gender; className?: string }) {
-  return <CharacterModel cls={cls} gender={gender} className={className} />;
+export function Portrait({ cls, gender, className = "", equipment }: { cls: HeroClass; gender: Gender; className?: string; equipment?: GearRecord }) {
+  return <CharacterModel cls={cls} gender={gender} className={className} equipment={equipment} />;
 }
 
 const DESC: Record<HeroClass, { style: string; text: string }> = {
@@ -199,7 +199,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
   return (
     <Panel title="Profile" onClose={onClose}>
       <div className="flex flex-col gap-4 md:flex-row">
-        <div className={`slot w-40 shrink-0 self-center p-1 ${frameClass(frame)}`}><Portrait cls={hero.cls} gender={gender} className="w-full" /></div>
+        <div className={`slot w-40 shrink-0 self-center p-1 ${frameClass(frame)}`}><Portrait cls={hero.cls} gender={gender} className="w-full" equipment={hero.equipment} /></div>
         <div className="flex-1 space-y-3">
           <div><div className="font-display text-2xl">{hero.name}</div>{title && <div className="text-gold">{title}</div>}</div>
           <label className="block text-sm">Biography

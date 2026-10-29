@@ -37,7 +37,7 @@ export type StartBattle = (opts: {
 export const heroFighter = (h: Hero, s: Stats): Fighter => ({
   name: h.name, img: CLASSES[h.cls].img, hp: s.hp, atk: s.atk, def: s.def, crit: s.crit, dodge: s.dodge,
   critDmg: s.critDmg, pen: s.pen, acc: s.acc, block: s.block, heal: s.heal,
-  level: h.level + h.paragon, cls: h.cls, skills: heroSkills(h), skillLoadout: h.skillLoadout,
+  level: h.level + h.paragon, cls: h.cls, skills: heroSkills(h), skillLoadout: h.skillLoadout, equipment: h.equipment,
 });
 
 const SLOT_LABEL: Record<Slot, string> = { helmet: "Head", armour: "Chest", boots: "Feet", belt: "Waist", weapon: "Weapon", ring: "Ring", talisman: "Amulet" };
@@ -78,7 +78,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               ))}
             </div>
             <div className="relative mx-auto h-[320px] w-full max-w-[320px] self-center">
-              <CharacterPose cls={hero.cls} gender={gender} className="inventory-character h-full w-full" />
+              <CharacterPose cls={hero.cls} gender={gender} className="inventory-character h-full w-full" equipment={hero.equipment} />
             </div>
             <div className="flex flex-col gap-2">
               {RIGHT_DOLL.map((sl) => (
