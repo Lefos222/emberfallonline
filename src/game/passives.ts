@@ -70,8 +70,9 @@ export function passiveBlocker(h: Hero, id: string): string | null {
   if (!p) return "Unknown passive";
   if (!available(h, p)) return `Requires ${p.group} class`;
   if (passiveRank(h, id) >= p.max) return "Maxed";
-  if (p.prereq && passiveRank(h, p.prereq.id) < p.prereq.rank) return `Requires ${PASSIVES.find(x => x.id === p.prereq!.id)!.name} rank ${p.prereq.rank}`;
-  if (spentInsight(h, p.group) < PASSIVE_TIER_REQ[p.tier]) return `Spend ${PASSIVE_TIER_REQ[p.tier]} Insight in ${p.group}`;
+  // Every passive is upgradeable under any circumstance — prerequisites and tier
+  // spending thresholds are removed; only the class gate, rank cap and Insight
+  // cost remain.
   if (insightBank(h) < p.cost) return `Needs ${p.cost} Insight`;
   return null;
 }

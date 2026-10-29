@@ -19,16 +19,16 @@ describe("passive tree", () => {
   it("an achievement claim awards 5 Insight", () => {
     expect(insightFrom({ kind: "achievement", claimed: true })).toBe(5);
   });
-  it("Measured Footwork requires Impact Brace rank 2", () => {
+  it("Measured Footwork can be learned without Impact Brace (no prerequisites)", () => {
     const h = newHero("Tester", "warrior"); h.insight = 20;
-    expect(passiveBlocker(h, "footwork")).toBe("Requires Impact Brace rank 2");
+    expect(passiveBlocker(h, "footwork")).toBeNull();
   });
   it("Field Medicine requires one banked Insight", () => {
     expect(passiveBlocker(newHero("Tester", "mage"), "field_medicine")).toBe("Needs 1 Insight");
   });
-  it("a met prerequisite does not bypass branch tier spending", () => {
+  it("higher-tier passives need no tier spending threshold", () => {
     const h = newHero("Tester", "mage"); h.insight = 20; h.passives = { brace: 2 };
-    expect(passiveBlocker(h, "footwork")).toBe("Spend 3 Insight in general");
+    expect(passiveBlocker(h, "footwork")).toBeNull();
   });
   it("class passives cannot be purchased by another class", () => {
     const h = newHero("Tester", "mage"); h.insight = 20;

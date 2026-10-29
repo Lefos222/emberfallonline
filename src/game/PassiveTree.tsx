@@ -2,7 +2,7 @@ import { useState, useRef, useMemo } from "react";
 import { CLASSES } from "./data";
 import { update, useGame } from "./store";
 import { fmt } from "./ui";
-import { PASSIVES, PASSIVE_TIER_REQ, insightBank, learnPassive, passiveBlocker, passiveRank, spentInsight, totalInsight, type PassiveFx } from "./passives";
+import { PASSIVES, insightBank, learnPassive, passiveBlocker, passiveRank, spentInsight, totalInsight, type PassiveFx } from "./passives";
 
 const labels: Record<keyof PassiveFx, string> = { hpPct: "Max HP", atkPct: "Attack", defPct: "Defense", crit: "Crit Chance", dodge: "Dodge", critDmg: "Crit Damage", pen: "Penetration", heal: "Healing Power", block: "Block", acc: "Accuracy" };
 const effects = (fx: PassiveFx, rank: number) => (Object.keys(fx) as (keyof PassiveFx)[]).map(k => `+${Number(((fx[k] ?? 0) * rank).toFixed(2))}% ${labels[k]}`).join(" · ");
@@ -101,7 +101,7 @@ export function PassiveTreeContent() {
             <span className="absolute right-2 top-0 font-display text-sm text-gold/80">{CLASSES[hero.cls].name}</span>
             {([1, 2, 3] as const).map(tier => (
               <span key={tier} className="absolute left-2 text-[10px] text-muted-foreground" style={{ top: tier === 1 ? 55 : tier === 2 ? 195 : 335 }}>
-                T{tier} · {PASSIVE_TIER_REQ[tier]} pts
+                T{tier}
               </span>
             ))}
 
@@ -169,7 +169,6 @@ export function PassiveTreeContent() {
           </div>
           <div className="mt-2 text-xs text-muted-foreground">
             Rank {rank}/{detail.max} · {detail.cost} Insight/rank
-            {detail.prereq && ` · Requires ${PASSIVES.find(p => p.id === detail.prereq!.id)?.name} rank ${detail.prereq.rank}`}
           </div>
           <div className="mt-auto pt-4">
             <button type="button" className="btn-gold w-full px-4 py-2" disabled={!!reason}

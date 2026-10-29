@@ -124,21 +124,16 @@ export function spentIn(h: TalentState, specId?: string) {
 }
 export const freePoints = (h: TalentState) => totalPoints(h) - spentIn(h);
 
-/** Why a rank can't be learned, or null when allowed. */
+/** Why a rank can't be learned, or null when allowed.
+ *  Every skill is upgradeable under any circumstance — the only requirements are
+ *  being under the rank cap and having enough skill points. Prerequisites, tier
+ *  spending thresholds, specialization, level and milestone gates are all removed. */
 export function learnBlocker(h: TalentState, id: string): string | null {
   const f = findTalent(h.cls, id);
   if (!f) return "Unknown skill";
-  const { spec, talent } = f;
+  const { talent } = f;
   const rank = h.talents?.[id] ?? 0;
   if (rank >= talent.max) return "Maxed";
-  if (talent.milestone?.road && (h.road?.cleared ?? 90) < talent.milestone.road) return `Clear Road stage ${talent.milestone.road}`;
-  if (talent.milestone?.spire && (h.road?.best ?? 0) < talent.milestone.spire) return `Clear Spire wave ${talent.milestone.spire}`;
-  if (talent.tier >= 3) {
-    if (h.level < SPEC_LEVEL) return `Requires level ${SPEC_LEVEL}`;
-    if (h.spec !== spec.id) return `Requires ${spec.name} specialization`;
-  }
-  const need = TIER_REQ[talent.tier];
-  if (spentIn(h, spec.id) < need) return `Spend ${need} points in ${spec.name}`;
   const cost = rankCost(talent, rank);
   if (freePoints(h) < cost) return `Needs ${cost} skill point${cost > 1 ? "s" : ""}`;
   return null;

@@ -3,7 +3,7 @@ import { Eye, Lock, RotateCcw, Star } from "lucide-react";
 import { CLASSES } from "./data";
 import { update, useGame } from "./store";
 import { fmt, Gold } from "./ui";
-import { SPEC_LEVEL, TIER_REQ, TREES, freePoints, learnBlocker, rankCost, resetCost, spentIn, totalPoints, type Talent, type TalentFx } from "./talents";
+import { SPEC_LEVEL, TREES, freePoints, learnBlocker, rankCost, resetCost, spentIn, totalPoints, type Talent, type TalentFx } from "./talents";
 import { SkillPreview } from "./SkillPreview";
 
 const fxLabels: Record<keyof TalentFx, string> = {
@@ -143,7 +143,7 @@ export function SkillTreeContent() {
             {/* Tier labels */}
             {([1, 2, 3, 4, 5] as const).map(tier => (
               <span key={tier} className="absolute left-2 text-[10px] text-muted-foreground" style={{ top: ROW_Y[tier - 1] - 5 }}>
-                T{tier}{TIER_REQ[tier] ? ` · ${TIER_REQ[tier]}pts` : ""}
+                T{tier}
               </span>
             ))}
 
@@ -214,8 +214,6 @@ export function SkillTreeContent() {
           </div>
           <div className="mt-2 text-xs text-muted-foreground">
             Rank {rank}/{detail.max} · {rankCost(detail, rank)} pt/rank
-            {detail.milestone?.road && ` · Clear Road stage ${detail.milestone.road}`}
-            {detail.milestone?.spire && ` · Clear Spire wave ${detail.milestone.spire}`}
           </div>
           {blocker && blocker !== "Maxed" && (
             <div className="mt-1 text-xs text-blood"><Lock className="inline h-3 w-3" /> {blocker}</div>
