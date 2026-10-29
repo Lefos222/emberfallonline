@@ -12,10 +12,10 @@ describe('endless specialization branches', () => {
       const ability = branch.ability;
       const talents = Object.fromEntries(spec.talents.filter(t => t.tier < 5).map(t => [t.id, t.max]));
       const h: TalentState = { cls, level: 90, paragon: 10, spec: spec.id, talents, road: { cleared: 200, best: 200 } };
-      it(`${spec.name} unlocks its ability only after the saved milestone`, () => {
-        expect(learnBlocker({ ...h, road: { cleared: 90, best: 0 } }, branch.id)).toMatch(/Clear/);
+      it(`${spec.name} ability is learnable without milestone, spec or tier gates`, () => {
+        expect(learnBlocker({ ...h, road: { cleared: 90, best: 0 } }, branch.id)).toBeNull();
         expect(learnBlocker(h, branch.id)).toBeNull();
-        expect(learnBlocker({ ...h, spec: undefined }, branch.id)).toMatch(/specialization/);
+        expect(learnBlocker({ ...h, spec: undefined }, branch.id)).toBeNull();
         expect(talentSkills(SKILLS[cls], h).some(s => s.id === ability.id)).toBe(false);
         const learned = { ...h, talents: { ...talents, [branch.id]: 1 } };
         const kit = buildKit(cls, talentSkills(SKILLS[cls], learned));

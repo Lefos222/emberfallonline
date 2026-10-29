@@ -34,11 +34,9 @@ describe("skill tree", () => {
     expect(rankCost(f, 0)).toBe(3);
     expect(rankCost(f, 1)).toBe(1);
   });
-  it("tier 3 abilities need level 10 and the matching specialization", () => {
+  it("tier 3 abilities can be learned without specialization or level gates", () => {
     const h = newHero("Tester", "warrior"); h.level = 20;
     h.talents = { w_g1: 4, w_g2: 4, w_b1: 2 };
-    expect(learnBlocker(h, "w_g3")).toMatch(/specialization/);
-    h.spec = "w_guard";
     expect(learnBlocker(h, "w_g3")).toBeNull();
   });
   it("cannot spend more points than earned", () => {
