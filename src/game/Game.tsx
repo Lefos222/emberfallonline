@@ -15,6 +15,7 @@ import { Professions } from './Professions';
 import { PremiumShop } from './PremiumShop';
 import { AuctionHouse } from './AuctionHouse';
 import { WorldMap } from './WorldMap';
+import { CloudCity } from './CloudCity';
 import { awardAncestralRelic } from './building-content';
 import { beginScrollBattle } from "./services";
 import { scrollFighter } from "./scrolls";
@@ -165,6 +166,7 @@ export function Game() {
           {open === "arena" && <Arena onClose={() => setOpen(null)} start={start} />}
           {open === "worldmap" && <WorldMap onClose={() => setOpen(null)} start={start} />}
           {open === "oracle" && <Oracle onClose={() => setOpen(null)} start={start} />}
+          {open === "cloudcity" && <CloudCity onClose={() => setOpen(null)} />}
         </>
       )}
       {battle && <Battle key={battle.title + battle.right.name} left={battle.left} right={battle.right} auto={battle.auto} title={battle.title} onEnd={onEnd} />}
@@ -268,9 +270,12 @@ function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
             style={{ left: `${(i * 37) % 100}%`, animationDuration: `${6 + (i % 5)}s`, animationDelay: `${i * 0.7}s` }} />
         ))}
         {CASTLE_BUILDINGS.map((b) => (
-          <button key={b.id} className="hotspot" aria-label={b.name}
+          <button key={b.id} className={`hotspot ${b.id === "cloudcity" ? "hotspot-sky" : ""}`} aria-label={b.name}
             style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.r * 2}%`, aspectRatio: "1" }}
             onMouseEnter={() => setHover(b.id)} onMouseLeave={() => setHover(null)} onClick={(e) => { if (e.detail === 0 || !moved.current) onOpen(b.id); }}>
+            {b.id === "cloudcity" && (
+              <span className="cloud-portal" aria-hidden="true"><Cloud className="h-5 w-5 lg:h-7 lg:w-7" /></span>
+            )}
             <span className={`hotspot-label ${b.soon ? "opacity-60" : ""} absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded px-2 py-0.5 text-xs transition md:text-sm ${hover === b.id ? "scale-110" : "opacity-90"}`}>
               {b.name}{b.soon ? " · soon" : ""}
               {hover === b.id && <span className="block text-[10px] text-foreground/80">{b.desc}</span>}
@@ -319,6 +324,7 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
 
 type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "road" | "calendar" | 'professions' | 'premium' | 'auction';
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof Backpack }[] = [
+  { id: "cloudcity", label: "Cloud City", tip: "Sky realm · walk, talk, ascend", Icon: Cloud },
   { id: "armory", label: "Inventory", tip: "Bag & equipment", Icon: Backpack },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", Icon: Anvil },
   { id: "gems", label: "Gem Workshop", tip: "Cut, socket & fuse gems", Icon: Gem },

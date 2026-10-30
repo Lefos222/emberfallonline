@@ -11,6 +11,7 @@ import { setFx, type BattleEntry, type CombatRecord } from "./progress";
 import { scaledGold } from "./gold";
 import { drillFx } from "./drills";
 import { guildFx } from "./guild-tower";
+import { cloudFx, type CloudState } from "./cloudcity";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -281,6 +282,8 @@ export interface Hero {
   guildSkills?: Record<string, number>;
   /** Ancestral Tower progression: next fightable floor and deepest cleared (see ancestral-tower.ts). */
   ancTower?: { floor: number; bestFloor: number };
+  /** Cloud City: daily shard economy, commissions and permanent Aether Ascension ranks (see cloudcity.ts). */
+  cloud?: CloudState;
 
 }
 
@@ -329,17 +332,19 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   // Barracks drills are the hero's permanent training track beside the attribute points (see drills.ts).
   const dr = opts.talents ? drillFx(h) : null;
   const gf2 = opts.talents ? guildFx(h) : null;
-  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xg?.[k] ?? 0) + (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0);
+  // Aether Ascension ranks bought in Cloud City (see cloudcity.ts) ride the same pipeline.
+  const cl = opts.talents ? cloudFx(h) : null;
+  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xg?.[k] ?? 0) + (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + (cl?.[k] ?? 0);
   const sf0 = opts.gear ? setFx(h.equipment) : { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
   const gf = opts.gear ? gemFx(h.equipment) : null;
   const af = opts.talents ? astralFx(h) : null;
   const sf = {
-    atkPct: sf0.atkPct + (gf?.atkPct ?? 0) + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0),
-    defPct: sf0.defPct + (gf?.defPct ?? 0) + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0),
-    hpPct: sf0.hpPct + (gf?.hpPct ?? 0) + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0),
-    crit: sf0.crit + (gf?.crit ?? 0) + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0),
+    atkPct: sf0.atkPct + (gf?.atkPct ?? 0) + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + (cl?.atkPct ?? 0),
+    defPct: sf0.defPct + (gf?.defPct ?? 0) + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + (cl?.defPct ?? 0),
+    hpPct: sf0.hpPct + (gf?.hpPct ?? 0) + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + (cl?.hpPct ?? 0),
+    crit: sf0.crit + (gf?.crit ?? 0) + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + (cl?.crit ?? 0),
   };
-  tf.dodge += (gf?.dodge ?? 0) + (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0); tf.critDmg += (gf?.critDmg ?? 0) + (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0);
+  tf.dodge += (gf?.dodge ?? 0) + (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + (cl?.dodge ?? 0); tf.critDmg += (gf?.critDmg ?? 0) + (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0);
   const pa = 1 + (tf.atkPct + sf.atkPct) / 100, ph = 1 + (tf.hpPct + sf.hpPct) / 100, pd = 1 + (tf.defPct + sf.defPct) / 100;
   const c = CLASSES[h.cls];
   const items = opts.gear ? (Object.values(h.equipment).filter(Boolean) as Item[]) : [];
@@ -503,6 +508,7 @@ export const BUILDINGS = [
   { id: "friends", name: "Friends", x: 0, y: 0, r: 0, desc: "Friends & messages", soon: false, shortcut: true },
   { id: "daily", name: "Daily Rewards", x: 46, y: 66, r: 3.5, desc: "Login rewards & activities", soon: false , shortcut: true },
   { id: "worldmap", name: "World Tree", x: 50, y: 49, r: 4.5, desc: "Explore the world map · raids & bosses", soon: false },
+  { id: "cloudcity", name: "Cloud City", x: 90, y: 17, r: 5.5, desc: "Floating sky realm · citizens, daily missions & Aether Ascension", soon: false },
 ] as const;
 /** Buildings physically placed in the castle (shortcut-only screens excluded). */
 export const CASTLE_BUILDINGS = BUILDINGS.filter((b) => !("shortcut" in b && b.shortcut));
