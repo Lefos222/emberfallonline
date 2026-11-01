@@ -15,7 +15,6 @@ import { Professions } from './Professions';
 import { PremiumShop } from './PremiumShop';
 import { AuctionHouse } from './AuctionHouse';
 import { WorldMap } from './WorldMap';
-import { CloudCity } from './CloudCity';
 import { awardAncestralRelic } from './building-content';
 import { beginScrollBattle } from "./services";
 import { scrollFighter } from "./scrolls";
@@ -166,7 +165,6 @@ export function Game() {
           {open === "arena" && <Arena onClose={() => setOpen(null)} start={start} />}
           {open === "worldmap" && <WorldMap onClose={() => setOpen(null)} start={start} />}
           {open === "oracle" && <Oracle onClose={() => setOpen(null)} start={start} />}
-          {open === "cloudcity" && <CloudCity onClose={() => setOpen(null)} />}
         </>
       )}
       {battle && <Battle key={battle.title + battle.right.name} left={battle.left} right={battle.right} auto={battle.auto} title={battle.title} onEnd={onEnd} />}
@@ -194,7 +192,7 @@ function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: 
     <div className="hud-top pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2">
       <div className="game-panel pointer-events-auto flex items-center gap-3 p-2 pr-4">
         <button className={`slot h-11 w-11 shrink-0 overflow-hidden lg:h-14 lg:w-14 ${frameClass(frame)}`} onClick={onProfile} aria-label="Profile">
-          <Portrait cls={hero.cls} gender={gender} className="w-full" equipment={hero.equipment} />
+          <Portrait cls={hero.cls} gender={gender} className="w-full" />
         </button>
         <div className="w-24 lg:w-40">
           <div className="truncate font-display">{hero.name}</div>
@@ -270,12 +268,9 @@ function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
             style={{ left: `${(i * 37) % 100}%`, animationDuration: `${6 + (i % 5)}s`, animationDelay: `${i * 0.7}s` }} />
         ))}
         {CASTLE_BUILDINGS.map((b) => (
-          <button key={b.id} className={`hotspot ${b.id === "cloudcity" ? "hotspot-sky" : ""}`} aria-label={b.name}
+          <button key={b.id} className="hotspot" aria-label={b.name}
             style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.r * 2}%`, aspectRatio: "1" }}
             onMouseEnter={() => setHover(b.id)} onMouseLeave={() => setHover(null)} onClick={(e) => { if (e.detail === 0 || !moved.current) onOpen(b.id); }}>
-            {b.id === "cloudcity" && (
-              <span className="cloud-portal" aria-hidden="true"><Cloud className="h-5 w-5 lg:h-7 lg:w-7" /></span>
-            )}
             <span className={`hotspot-label ${b.soon ? "opacity-60" : ""} absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded px-2 py-0.5 text-xs transition md:text-sm ${hover === b.id ? "scale-110" : "opacity-90"}`}>
               {b.name}{b.soon ? " · soon" : ""}
               {hover === b.id && <span className="block text-[10px] text-foreground/80">{b.desc}</span>}
@@ -324,7 +319,6 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
 
 type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "road" | "calendar" | 'professions' | 'premium' | 'auction';
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof Backpack }[] = [
-  { id: "cloudcity", label: "Cloud City", tip: "Sky realm · walk, talk, ascend", Icon: Cloud },
   { id: "armory", label: "Inventory", tip: "Bag & equipment", Icon: Backpack },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", Icon: Anvil },
   { id: "gems", label: "Gem Workshop", tip: "Cut, socket & fuse gems", Icon: Gem },
