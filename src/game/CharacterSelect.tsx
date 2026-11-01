@@ -1,24 +1,36 @@
 import { useState } from "react";
-import { Loader2, Plus, Trash2, Play, ArrowLeft, LogOut, RefreshCw } from "lucide-react";
+import { Loader2, Plus, Trash2, Play, ArrowLeft, LogOut, RefreshCw, Shield, Swords } from "lucide-react";
 import { CharacterModel } from './CharacterModel';
 import { CharacterPose } from './CharacterPose';
+import { lookName } from './hero/looks';
+import { METAL, tierOf } from './hero/palette';
 import castle from "@/assets/castle.jpg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
-import { CLASSES, type HeroClass } from "./data";
+import { CLASSES, type HeroClass, type Item } from "./data";
 import {
   createCharacter, deleteCharacter, lastCharacterId, loadCharacters, selectCharacter, updateProfile, useGame, type CharacterRow, type Gender,
 } from "./store";
 import { Panel, fmt } from "./ui";
 import { earnedTitles } from "./progress";
 
-export function Portrait({ cls, gender, className = "" }: { cls: HeroClass; gender: Gender; className?: string }) {
-  return <CharacterModel cls={cls} gender={gender} className={className} />;
+export function Portrait({ cls, gender, className = "", chest, weapon }: {
+  cls: HeroClass; gender: Gender; className?: string; chest?: Item | null; weapon?: Item | null;
+}) {
+  return <CharacterModel cls={cls} gender={gender} chest={chest} weapon={weapon} className={className} />;
 }
 
 const DESC: Record<HeroClass, { style: string; text: string }> = {
   warrior: { style: "Melee · Tank", text: "Durable frontline fighter. Heavy physical blows, high armor and health." },
   mage: { style: "Ranged · Spells", text: "Elemental spellcaster. Devastating magic damage, fragile defenses." },
   archer: { style: "Ranged · Crits", text: "Agile marksman. High critical chance and dodge, precise arrows." },
+};
+
+const CLASS_ORDER: HeroClass[] = ["warrior", "mage", "archer"];
+const LOOK_NAMES = ["Iron", "Ember", "Moon", "Ancestral"];
+const STAT_BARS: Record<HeroClass, [string, number][]> = {
+  warrior: [["Health", 0.95], ["Attack", 0.62], ["Defense", 0.95], ["Crit", 0.3], ["Dodge", 0.25]],
+  mage: [["Health", 0.6], ["Attack", 1], ["Defense", 0.58], ["Crit", 0.5], ["Dodge", 0.4]],
+  archer: [["Health", 0.72], ["Attack", 0.8], ["Defense", 0.68], ["Crit", 0.95], ["Dodge", 0.9]],
 };
 
 export function CharacterSelect() {
@@ -114,11 +126,13 @@ export function CharacterSelect() {
 function CreateCharacter({ canCancel, onCancel }: { canCancel: boolean; onCancel: () => void }) {
   const [cls, setCls] = useState<HeroClass>("warrior");
   const [gender, setGender] = useState<Gender>("male");
+  const [look, setLook] = useState(0);
   const [name, setName] = useState("");
   const [step, setStep] = useState<"pick" | "confirm">("pick");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const valid = /^[A-Za-z0-9 _-]{3,18}$/.test(name.trim());
+  const metal = METAL[tierOf(look)];
 
   if (step === "confirm") {
     return (
@@ -143,22 +157,67 @@ function CreateCharacter({ canCancel, onCancel }: { canCancel: boolean; onCancel
 
   return (
     <div className="flex w-full flex-col items-center">
-      <div className="grid w-full max-w-4xl grid-cols-3 gap-3 md:gap-6">
-        {(Object.keys(CLASSES) as HeroClass[]).map((c) => (
-          <button key={c} onClick={() => setCls(c)}
-            className={`game-panel flex flex-col items-center p-2 transition md:p-4 ${cls === c ? "scale-105 shadow-[var(--shadow-glow)]" : "opacity-60 hover:opacity-90"}`}>
-            <Portrait cls={c} gender={gender} className={`w-full rounded ${cls === c ? "anim-idle" : ""}`} />
-            <span className="mt-1 font-display text-lg md:text-2xl">{CLASSES[c].name}</span>
-            <span className="text-xs text-gold">{DESC[c].style}</span>
-            <span className="hidden text-xs text-muted-foreground md:block">{DESC[c].text}</span>
-          </button>
-        ))}
+      <div className="grid w-full max-w-5xl items-stretch gap-3 md:grid-cols-[200px_minmax(0,1fr)_240px]">
+        {/* class rail */}
+        <div className="flex gap-2 md:flex-col">
+          {CLASS_ORDER.map((c) => {
+            const on = cls === c;
+            return (
+              <button key={c} onClick={() => setCls(c)} aria-pressed={on}
+                className={`game-panel flex flex-1 items-center gap-2 p-2 text-left transition md:flex-none ${on ? "shadow-[var(--shadow-glow)]" : "opacity-60 hover:opacity-90"}`}>
+                <span className="h-12 w-12 shrink-0 md:h-14 md:w-14"><Portrait cls={c} gender={gender} className="h-full w-full" /></span>
+                <span className="min-w-0">
+                  <span className="block truncate font-display text-base md:text-lg">{CLASSES[c].name}</span>
+                  <span className="block truncate text-[11px] text-gold">{DESC[c].style}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* showcase */}
+        <div className="game-panel relative flex min-h-[340px] flex-col items-center justify-end overflow-hidden p-3 pb-0">
+          <div className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(circle at 50% 66%, ${metal.glow}22, transparent 62%)` }} />
+          <div className="relative z-10 mb-1 text-center">
+            <div className="font-display text-xl text-gold">{CLASSES[cls].name} · {gender === "male" ? "Male" : "Female"}</div>
+            <div className="text-[11px] text-muted-foreground">
+              <Shield className="mr-0.5 inline h-3 w-3" />{lookName(cls, "chest", look)} · <Swords className="mr-0.5 inline h-3 w-3" />{lookName(cls, "weapon", look)}
+            </div>
+          </div>
+          <div className="relative h-[280px] w-full max-w-[260px] anim-idle">
+            <CharacterModel cls={cls} gender={gender} look={{ chest: look, weapon: look }} className="h-full w-full" />
+          </div>
+          <div className="pointer-events-none absolute bottom-0 left-1/2 h-6 w-40 -translate-x-1/2 rounded-[50%]" style={{ background: `radial-gradient(ellipse at center, ${metal.glow}55, transparent 70%)` }} />
+        </div>
+
+        {/* details */}
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-1">
+            {(["male", "female"] as Gender[]).map((g) => (
+              <button key={g} className={`flex-1 py-2 text-sm ${gender === g ? "btn-gold" : "slot"}`} onClick={() => setGender(g)}>{g === "male" ? "Male" : "Female"}</button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">{DESC[cls].text}</p>
+          <div className="space-y-1">
+            {STAT_BARS[cls].map(([label, v]) => (
+              <div key={label} className="flex items-center gap-2 text-[11px]">
+                <span className="w-14 shrink-0 text-muted-foreground">{label}</span>
+                <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                  <span className="block h-full rounded-full" style={{ width: `${Math.round(v * 100)}%`, background: "var(--gold-gradient)" }} />
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-1 text-[11px] text-muted-foreground">Gear set preview</div>
+          <div className="grid grid-cols-4 gap-1">
+            {LOOK_NAMES.map((n, i) => (
+              <button key={n} onClick={() => setLook(i)} aria-pressed={look === i}
+                className={`py-1 text-[10px] ${look === i ? "btn-gold" : "slot"}`} title={lookName(cls, "chest", i)}>{n}</button>
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="mt-4 flex gap-2">
-        {(["male", "female"] as Gender[]).map((g) => (
-          <button key={g} className={`px-5 py-2 ${gender === g ? "btn-gold" : "slot"}`} onClick={() => setGender(g)}>{g === "male" ? "Male" : "Female"}</button>
-        ))}
-      </div>
+
       <div className="mt-4 flex w-full max-w-md gap-2">
         <input value={name} onChange={(e) => setName(e.target.value.slice(0, 18))} placeholder="Character name (3–18)"
           className="slot flex-1 px-4 py-3 font-display text-lg outline-none" />
@@ -199,7 +258,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
   return (
     <Panel title="Profile" onClose={onClose}>
       <div className="flex flex-col gap-4 md:flex-row">
-        <div className={`slot w-40 shrink-0 self-center p-1 ${frameClass(frame)}`}><Portrait cls={hero.cls} gender={gender} className="w-full" /></div>
+        <div className={`slot w-40 shrink-0 self-center p-1 ${frameClass(frame)}`}><Portrait cls={hero.cls} gender={gender} chest={hero.equipment.armour} weapon={hero.equipment.weapon} className="w-full" /></div>
         <div className="flex-1 space-y-3">
           <div><div className="font-display text-2xl">{hero.name}</div>{title && <div className="text-gold">{title}</div>}</div>
           <label className="block text-sm">Biography
