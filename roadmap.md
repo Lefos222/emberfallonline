@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Current request
+- [ ] Add four chestpiece and four class-weapon appearances per class, driven by equipped items in inventory and battle; preserve selection and saves.
 - [ ] Make phone navigation, inventory, battles, chat, quests and trading usable; preserve character-selection artwork.
 - Netlify work paused at the user's request; leave existing hosting configuration untouched.
 - [ ] Replace AI quest rewards with exactly six server-validated daily profession quests and daily rewards.
