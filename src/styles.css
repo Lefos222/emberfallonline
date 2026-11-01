@@ -182,6 +182,102 @@
     text-shadow: 0 1px 3px oklch(0 0 0);
   }
   .vignette { background: radial-gradient(ellipse at center, transparent 55%, oklch(0.05 0.02 20 / 0.85)); }
+
+  /* ---------- hero selection: blood moon sky and gothic portrait frames ---------- */
+  .blood-sky {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 16%, oklch(0.32 0.12 25 / 0.85), transparent 70%),
+      radial-gradient(ellipse at 50% 100%, oklch(0.22 0.09 30 / 0.9), transparent 65%),
+      linear-gradient(180deg, #1a0a1c 0%, #120712 40%, #08050a 100%);
+  }
+  .blood-moon-glow {
+    background: radial-gradient(circle, oklch(0.55 0.22 27 / 0.5) 0%, oklch(0.45 0.2 25 / 0.22) 45%, transparent 70%);
+    filter: blur(26px);
+  }
+  .blood-moon {
+    background: radial-gradient(circle at 38% 30%, #e05a3f 0%, #b62a22 26%, #7d1512 55%, #480a0d 82%, #2a0507 100%);
+    box-shadow: 0 0 70px 18px oklch(0.5 0.21 27 / 0.5), inset 0 0 60px oklch(0.15 0.08 25 / 0.9);
+    opacity: 0.95;
+  }
+  .blood-fog {
+    background: radial-gradient(ellipse 70% 100% at 50% 100%, oklch(0.45 0.18 27 / 0.5), transparent 70%);
+    filter: blur(10px);
+  }
+  .select-title {
+    font-family: var(--font-display);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #fff1cf 0%, #e7c377 30%, #b8443a 62%, #5a1512 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 0 oklch(0.1 0.02 20 / 0.9)) drop-shadow(0 6px 26px oklch(0.55 0.22 27 / 0.55));
+  }
+  .hero-frame {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 12px 10px;
+    border-radius: 10px;
+    border: 2px solid oklch(0.6 0.08 70);
+    background: linear-gradient(165deg, #5b4a33 0%, #2a2118 22%, #17110e 55%, #2b2219 82%, #4a3b28 100%);
+    box-shadow: inset 0 0 0 1px oklch(0.1 0.02 20 / 0.8), 0 14px 30px oklch(0 0 0 / 0.55);
+    transition: border-color 0.18s, box-shadow 0.22s;
+  }
+  .hero-frame-art {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 4px;
+    border: 1px solid oklch(0.42 0.06 60);
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 28%, oklch(0.32 0.09 25 / 0.85), transparent 72%),
+      linear-gradient(180deg, #241a22 0%, #150f14 60%, #0d0a0d 100%);
+    box-shadow: inset 0 0 22px oklch(0 0 0 / 0.85);
+    overflow: hidden;
+  }
+  .hero-frame-name {
+    margin-top: 6px;
+    font-family: var(--font-display);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .hero-frame-gem {
+    position: absolute;
+    left: 50%;
+    width: 9px;
+    height: 9px;
+    transform: translateX(-50%) rotate(45deg);
+    background: radial-gradient(circle at 35% 30%, #ffb9a4, #c0221c 55%, #3d0608 100%);
+    border: 1px solid #2a0708;
+    box-shadow: 0 0 10px oklch(0.6 0.24 27 / 0.9);
+    pointer-events: none;
+  }
+  .hero-frame-gem-t { top: -5px; }
+  .hero-frame-gem-b { bottom: -5px; }
+  .hero-frame-hit {
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    cursor: pointer;
+    background: transparent;
+  }
+  .hero-frame-hit:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .hero-frame:hover {
+    border-color: oklch(0.78 0.13 80);
+    box-shadow: inset 0 0 0 1px oklch(0.1 0.02 20 / 0.8), 0 0 26px oklch(0.6 0.14 60 / 0.45);
+  }
+  .hero-frame-on {
+    border-color: oklch(0.85 0.15 78);
+    box-shadow: inset 0 0 0 1px oklch(0.85 0.15 78 / 0.5), 0 0 30px oklch(0.55 0.21 27 / 0.7);
+  }
+  .hero-frame-on .hero-frame-art { box-shadow: inset 0 0 26px oklch(0.5 0.2 27 / 0.5); }
+  .hero-frame-compact { padding: 10px 8px 6px; }
+  .hero-frame-empty { align-items: center; justify-content: center; gap: 0.5rem; opacity: 0.8; background-image: linear-gradient(165deg, #4a3b28, #1a140f); }
+  .hero-frame-empty:hover { opacity: 1; }
 }
 
 @keyframes mythic-pulse { 50% { box-shadow: 0 0 28px var(--r5); } }
