@@ -11,6 +11,7 @@ import mageMaleAction from '@/assets/heroes/mage-male-action.png';
 import mageFemale from '@/assets/heroes/mage-female-idle.png';
 import mageFemaleAction from '@/assets/heroes/mage-female-action.png';
 import { synthArt, tierName } from './synthesis';
+import { armourArt } from './appearance';
 import type { HeroClass } from './data';
 
 const MODELS: Record<HeroClass, Record<'male' | 'female', [string, string]>> = {
@@ -21,11 +22,18 @@ const MODELS: Record<HeroClass, Record<'male' | 'female', [string, string]>> = {
 export type HeroPose = 'auto' | 'idle' | 'action';
 
 /**
- * The hero's body. With `synth` set, the worn synthesis set's painted armour replaces the
- * default class look — the appearance always follows the equipment, never the level.
+ * The hero's body. With `look` set, the painted armour variant of the worn chest piece is
+ * shown instead of the default class look. `synth` keeps the synthesis panel able to
+ * preview its sets. The appearance always follows the equipment, never the level.
  */
-export function CharacterModel({ cls, gender, className = '', pose = 'auto', synth }: { cls: HeroClass; gender: 'male' | 'female'; className?: string; pose?: HeroPose; synth?: number | null }) {
+export function CharacterModel({ cls, gender, className = '', pose = 'auto', synth, look }: { cls: HeroClass; gender: 'male' | 'female'; className?: string; pose?: HeroPose; synth?: number | null; look?: number | null }) {
   const label = `${gender === 'female' ? 'Female' : 'Male'} ${cls === 'warrior' ? 'Knight' : cls === 'mage' ? 'Mage' : 'Archer'}`;
+  const gearArt = look !== null && look !== undefined ? armourArt(cls, gender, look) : undefined;
+  if (gearArt) {
+    return <div className={`hero-model ${className}`} data-character-model={`${cls}-${gender}`} data-armour-look={look}>
+      <img src={gearArt} alt={`${label} in armour`} draggable={false} className="hero-model-idle" />
+    </div>;
+  }
   const art = synth ? synthArt(cls, gender, synth) : undefined;
   if (art) {
     return <div className={`hero-model synth-card ${className}`} data-character-model={`${cls}-${gender}-synthesis`} data-synthesis-tier={synth}>
