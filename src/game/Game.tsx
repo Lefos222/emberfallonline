@@ -52,6 +52,8 @@ export function Game() {
   const [expeditions, setExpeditions] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem("bm-muted") === "1");
   const audio = useRef<HTMLAudioElement>(null);
+  const mapAudio = useRef<HTMLAudioElement>(null);
+  const mapOpen = open === "worldmap";
   const starting = useRef(false);
   const [entryError, setEntryError] = useState("");
 
@@ -71,17 +73,28 @@ export function Game() {
     return () => clearTimeout(t);
   }, [authReady, userId, nav]);
 
+  // The world map has its own theme: it takes over while the map is open, and the
+  // castle theme resumes when it closes.
   useEffect(() => {
-    const a = audio.current;
-    if (!a) return;
-    a.volume = 0.35;
+    const main = audio.current;
+    const map = mapAudio.current;
+    if (!main || !map) return;
+    main.volume = 0.35;
+    map.volume = 0.45;
     localStorage.setItem("bm-muted", muted ? "1" : "0");
-    if (muted) { a.pause(); return; }
-    const play = () => { if (!muted) void a.play().catch(() => {}); };
+    if (muted) { main.pause(); map.pause(); return; }
+    if (mapOpen) {
+      main.pause();
+      map.currentTime = 0;
+      void map.play().catch(() => {});
+      return;
+    }
+    map.pause();
+    const play = () => { if (!muted) void main.play().catch(() => {}); };
     play();
     window.addEventListener("pointerdown", play, { once: true });
     return () => window.removeEventListener("pointerdown", play);
-  }, [muted]);
+  }, [muted, mapOpen]);
 
   const start: StartBattle = (o) => {
     if (!hero || starting.current || battle) return;
@@ -115,6 +128,7 @@ export function Game() {
   return (
     <div className="fixed inset-0 overflow-hidden bg-background">
       <audio ref={audio} src={theme.url} loop preload="auto" />
+      <audio ref={mapAudio} src="/world-map-theme.mp3" preload="auto" />
       {!authReady || !userId ? (
         <div className="flex h-full items-center justify-center gap-2 font-display text-lg"><Loader2 className="h-5 w-5 animate-spin" />Loading…</div>
       ) : !hero ? (
