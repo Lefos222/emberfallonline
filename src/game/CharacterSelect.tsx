@@ -14,8 +14,8 @@ import {
 import { Panel, fmt } from "./ui";
 import { earnedTitles } from "./progress";
 
-export function Portrait({ cls, gender, className = "" }: { cls: HeroClass; gender: Gender; className?: string }) {
-  return <CharacterModel cls={cls} gender={gender} className={className} />;
+export function Portrait({ cls, gender, className = "", synth }: { cls: HeroClass; gender: Gender; className?: string; synth?: number | null }) {
+  return <CharacterModel cls={cls} gender={gender} className={className} synth={synth} />;
 }
 
 const DESC: Record<HeroClass, { style: string; text: string }> = {

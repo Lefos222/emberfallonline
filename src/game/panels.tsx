@@ -26,6 +26,7 @@ import { QuestBoard } from "./QuestBoard";
 import { BarracksUpgrade, DrillTracks } from "./Barracks";
 import { batchSizes } from "./barracks";
 import { CharacterPose } from "./CharacterPose";
+import { appearanceTier } from "./synthesis";
 import { DiscoveryArt } from "./Professions";
 import { DISCOVERY_NAMES, DISCOVERY_RARITIES, GATHERING_AREAS, gatheringState, type ProfessionId } from "./professions";
 
@@ -78,7 +79,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               ))}
             </div>
             <div className="relative mx-auto h-[320px] w-full max-w-[320px] self-center">
-              <CharacterPose cls={hero.cls} gender={gender} className="inventory-character h-full w-full" />
+              <CharacterPose cls={hero.cls} gender={gender} className="inventory-character h-full w-full" synth={appearanceTier(hero)} />
             </div>
             <div className="flex flex-col gap-2">
               {RIGHT_DOLL.map((sl) => (
@@ -384,7 +385,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   };
   return (
     <Panel title="Forge" onClose={onClose}>
-      {onCraft && <button className="btn-gold mb-4 w-full py-2" onClick={onCraft}><Hammer className="mr-2 inline h-4 w-4" />Open crafting recipes · Standard &amp; Ancestral</button>}
+      {onCraft && <button className="btn-gold mb-4 w-full py-2" onClick={onCraft}><Hammer className="mr-2 inline h-4 w-4" />Open crafting recipes · Standard, Ancestral &amp; Synthesis</button>}
       <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
         <div className="space-y-4">
           <div>

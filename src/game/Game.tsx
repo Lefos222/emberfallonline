@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } from "./data";
 import { authHandoffPending, getState, leaveCharacter, update, useGame } from "./store";
 import { recordBattle } from "./progress";
+import { appearanceTier } from "./synthesis";
 import { CharacterSelect, Portrait, ProfilePanel, frameClass } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
 import { Arena, Campaign, Forge, HeroHall, Market, Oracle, Temple, XpBar, heroFighter, type StartBattle } from "./panels";
@@ -194,7 +195,7 @@ function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: 
     <div className="hud-top pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2">
       <div className="game-panel pointer-events-auto flex items-center gap-3 p-2 pr-4">
         <button className={`slot h-11 w-11 shrink-0 overflow-hidden lg:h-14 lg:w-14 ${frameClass(frame)}`} onClick={onProfile} aria-label="Profile">
-          {hero.avatar !== undefined ? <AvatarIcon index={hero.avatar} size={40} /> : <Portrait cls={hero.cls} gender={gender} className="w-full" />}
+          {hero.avatar !== undefined ? <AvatarIcon index={hero.avatar} size={40} /> : <Portrait cls={hero.cls} gender={gender} className="w-full" synth={appearanceTier(hero)} />}
         </button>
         <div className="w-24 lg:w-40">
           <div className="truncate font-display">{hero.name}</div>
