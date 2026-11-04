@@ -8,6 +8,20 @@ export interface ProgressState {
   cls: HeroClass; level: number; paragon: number; stage: number; spire: number;
   record?: CombatRecord; history?: BattleEntry[]; achClaimed?: string[];
   equipment: Partial<Record<Slot, Item>>;
+  /** Counters other achievement families read from the saved hero. */
+  crafts?: number;
+  astrals?: { base: string }[];
+  conquest?: { tokens?: number };
+  anc?: { done: boolean };
+  ancTower?: { bestFloor: number };
+  kills?: Record<string, number>;
+  quests?: string[];
+  road?: { best: number };
+  drills?: Record<string, number>;
+  talents?: Record<string, number>;
+  passives?: Record<string, number>;
+  guildSkills?: Record<string, number>;
+  challenges?: Record<string, number>;
 }
 
 export const emptyRecord = (): CombatRecord => ({ battles: 0, wins: 0, losses: 0, bosses: 0, arenaWins: 0, enhances: 0, bestEnh: 0 });
@@ -29,10 +43,12 @@ export function recordEnhance(h: ProgressState, newEnh: number) {
 }
 
 // ---------- Achievements ----------
-export type AchCategory = "Combat" | "Bosses" | "Progression" | "Crafting" | "Arena" | "Collection" | "Conquest" | "Ancestral" | "Enchanting";
+export type AchCategory = "Combat" | "Bosses" | "Progression" | "Crafting" | "Arena" | "Collection" | "Conquest" | "Ancestral" | "Enchanting" | "Bestiary" | "Exploration" | "Guild" | "Training";
 export interface Achievement { id: string; cat: AchCategory; name: string; desc: string; goal: number; gold: number; title?: string; value: (h: ProgressState) => number }
 
 const rec = (h: ProgressState) => ({ ...emptyRecord(), ...(h.record ?? {}) });
+/** Total of a saved rank/counter map (kills, drill ranks, tree ranks, …). */
+const sum = (map: Record<string, number> | undefined) => Object.values(map ?? {}).reduce((a, n) => a + n, 0);
 const tiers = (base: Omit<Achievement, "id" | "goal" | "gold" | "name" | "title">, id: string, names: string[], goals: number[], golds: number[], titles: (string | undefined)[]) =>
   goals.map((goal, i): Achievement => ({ ...base, id: `${id}_${i + 1}`, name: names[i], goal, gold: golds[i], title: titles[i] }));
 
@@ -65,6 +81,22 @@ export const ACHIEVEMENTS: Achievement[] = [
   ...tiers({ cat: "Progression", desc: "Gain Ascension levels", value: (h) => h.paragon }, "asc2", ["Exalted", "Celestial"], [25, 50], [40000, 100000], ["Exalted", "Celestial"]),
   // Collection: Astrals
   ...tiers({ cat: "Collection", desc: "Own distinct Astral species", value: (h) => new Set((h.astrals ?? []).map((a) => a.base)).size }, "astral2", ["Star Tamer", "Astral Lord"], [5, 10], [2000, 10000], [undefined, "Astral Lord"]),
+  // Bestiary: total monster defeats across every species
+  ...tiers({ cat: "Bestiary", desc: "Defeat monsters", value: (h) => sum(h.kills) }, "kills", ["Beast Hunter", "Naturalist", "Bestiary Master"], [25, 250, 1000], [600, 4000, 20000], [undefined, undefined, "Beastbane"]),
+  // Exploration: Long Road distance
+  ...tiers({ cat: "Exploration", desc: "Reach Long Road stages", value: (h) => h.road?.best ?? 0 }, "road", ["Roadwarden", "Horizon Walker"], [25, 100], [2500, 20000], [undefined, "Horizon Walker"]),
+  // Exploration: region quests claimed
+  ...tiers({ cat: "Exploration", desc: "Claim region quests", value: (h) => (h.quests ?? []).length }, "quests", ["Contract Taker", "Realm Completionist"], [4, 10], [800, 8000], [undefined, "Realm Completionist"]),
+  // Bosses: named challenge bosses cleared at any difficulty
+  ...tiers({ cat: "Bosses", desc: "Clear challenge bosses", value: (h) => Object.values(h.challenges ?? {}).filter((d) => d > 0).length }, "chal", ["Challenger", "Titan Slayer"], [1, 4], [2000, 25000], [undefined, "Titan Slayer"]),
+  // Guild: guild skill tower ranks
+  ...tiers({ cat: "Guild", desc: "Learn guild skill ranks", value: (h) => sum(h.guildSkills) }, "guild", ["Guild Initiate", "Tower Veteran", "Guild Paragon"], [5, 20, 50], [1500, 12000, 40000], [undefined, "Tower Veteran", "Guild Paragon"]),
+  // Training: barracks drill ranks
+  ...tiers({ cat: "Training", desc: "Learn barracks drill ranks", value: (h) => sum(h.drills) }, "drills", ["Drill Recruit", "Drill Sergeant", "Warlord"], [3, 15, 40], [500, 9000, 30000], [undefined, undefined, "Warlord"]),
+  // Progression: skill tree ranks
+  ...tiers({ cat: "Progression", desc: "Spend points in the skill tree", value: (h) => sum(h.talents) }, "talentranks", ["Student of War", "Grandmaster"], [15, 50], [1500, 15000], [undefined, "Grandmaster"]),
+  // Progression: passive tree ranks
+  ...tiers({ cat: "Progression", desc: "Spend Insight in the passive tree", value: (h) => sum(h.passives) }, "passiveranks", ["Awakened", "Enlightened"], [10, 40], [2000, 20000], [undefined, "Enlightened"]),
 ];
 
 export const achProgress = (h: ProgressState, a: Achievement) => Math.min(a.goal, Math.max(0, a.value(h)));
