@@ -1,4 +1,5 @@
-import type { GearRecord, HeroClass, Item } from "./data";
+import type { GearRecord, HeroClass, Hero, Item } from "./data";
+import { appearanceTier } from "./synthesis";
 
 /**
  * Looted armour appearance.
@@ -24,6 +25,15 @@ export function lookOf(item: Pick<Item, "id"> | null | undefined): number | null
 /** The look the hero shows: the worn chest piece's own variant. */
 export function gearLook(h: { equipment?: GearRecord }): number | null {
   return lookOf(h.equipment?.armour);
+}
+
+/**
+ * What the hero's body shows. A worn synthesis set keeps its own painted set art; only
+ * looted or forged chest pieces roll a look, so the two never fight over the hero.
+ */
+export function heroAppearance(h: Pick<Hero, "equipment" | "synth">): { synth: number | null; look: number | null } {
+  const synth = appearanceTier(h);
+  return synth ? { synth, look: null } : { synth: null, look: gearLook(h) };
 }
 
 /**
