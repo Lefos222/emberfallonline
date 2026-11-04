@@ -54,6 +54,7 @@ export function Game() {
   const audio = useRef<HTMLAudioElement>(null);
   const mapAudio = useRef<HTMLAudioElement>(null);
   const mapOpen = open === "worldmap";
+  const fighting = battle !== null;
   const starting = useRef(false);
   const [entryError, setEntryError] = useState("");
 
@@ -74,7 +75,7 @@ export function Game() {
   }, [authReady, userId, nav]);
 
   // The world map has its own theme: it takes over while the map is open, and the
-  // castle theme resumes when it closes.
+  // castle theme resumes when it closes or when a fight on the map takes the screen.
   useEffect(() => {
     const main = audio.current;
     const map = mapAudio.current;
@@ -83,7 +84,7 @@ export function Game() {
     map.volume = 0.45;
     localStorage.setItem("bm-muted", muted ? "1" : "0");
     if (muted) { main.pause(); map.pause(); return; }
-    if (mapOpen) {
+    if (mapOpen && !fighting) {
       main.pause();
       map.currentTime = 0;
       void map.play().catch(() => {});
@@ -94,19 +95,24 @@ export function Game() {
     play();
     window.addEventListener("pointerdown", play, { once: true });
     return () => window.removeEventListener("pointerdown", play);
-  }, [muted, mapOpen]);
+  }, [muted, mapOpen, fighting]);
 
   const start: StartBattle = (o) => {
     if (!hero || starting.current || battle) return;
     starting.current = true; setEntryError("");
+    // A chosen fight takes the music straight away: the map theme must never play under it.
+    const map = mapAudio.current;
+    const mapWasPlaying = !!map && !map.paused;
+    map?.pause();
+    const backToMap = () => { if (mapWasPlaying && mapOpen && !muted) void map?.play().catch(() => {}); };
     void (async () => {
       try {
         const active = await beginScrollBattle();
         const current = getState();
-        if (!current.hero) return;
+        if (!current.hero) { backToMap(); return; }
         setOpen(null);
         setBattle({ ...o, left: scrollFighter({ ...heroFighter(current.hero, heroStats(current.hero)), gender: current.gender }, active) });
-      } catch (e) { setEntryError(e instanceof Error ? e.message : "Battle entry failed."); }
+      } catch (e) { backToMap(); setEntryError(e instanceof Error ? e.message : "Battle entry failed."); }
       finally { starting.current = false; }
     })();
   };
