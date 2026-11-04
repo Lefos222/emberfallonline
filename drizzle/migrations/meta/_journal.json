@@ -120,6 +120,13 @@
       "when": 1793300000002,
       "tag": "0016_auction_resource_merge_and_withdraw_owner",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793300000003,
+      "tag": "0017_friend_requests",
+      "breakpoints": true
     }
   ]
 }
