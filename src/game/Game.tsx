@@ -52,9 +52,6 @@ export function Game() {
   const [expeditions, setExpeditions] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem("bm-muted") === "1");
   const audio = useRef<HTMLAudioElement>(null);
-  const mapAudio = useRef<HTMLAudioElement>(null);
-  const mapOpen = open === "worldmap";
-  const fighting = battle !== null;
   const starting = useRef(false);
   const [entryError, setEntryError] = useState("");
 
@@ -74,45 +71,32 @@ export function Game() {
     return () => clearTimeout(t);
   }, [authReady, userId, nav]);
 
-  // The world map has its own theme: it takes over while the map is open, and the
-  // castle theme resumes when it closes or when a fight on the map takes the screen.
+  // One soundtrack for the whole game: it starts on the first gesture and only
+  // pauses while the player has the game muted. Opening the world map or entering
+  // a battle never swaps it for another track.
   useEffect(() => {
     const main = audio.current;
-    const map = mapAudio.current;
-    if (!main || !map) return;
+    if (!main) return;
     main.volume = 0.35;
-    map.volume = 0.45;
     localStorage.setItem("bm-muted", muted ? "1" : "0");
-    if (muted) { main.pause(); map.pause(); return; }
-    if (mapOpen && !fighting) {
-      main.pause();
-      map.currentTime = 0;
-      void map.play().catch(() => {});
-      return;
-    }
-    map.pause();
+    if (muted) { main.pause(); return; }
     const play = () => { if (!muted) void main.play().catch(() => {}); };
     play();
     window.addEventListener("pointerdown", play, { once: true });
     return () => window.removeEventListener("pointerdown", play);
-  }, [muted, mapOpen, fighting]);
+  }, [muted]);
 
   const start: StartBattle = (o) => {
     if (!hero || starting.current || battle) return;
     starting.current = true; setEntryError("");
-    // A chosen fight takes the music straight away: the map theme must never play under it.
-    const map = mapAudio.current;
-    const mapWasPlaying = !!map && !map.paused;
-    map?.pause();
-    const backToMap = () => { if (mapWasPlaying && mapOpen && !muted) void map?.play().catch(() => {}); };
     void (async () => {
       try {
         const active = await beginScrollBattle();
         const current = getState();
-        if (!current.hero) { backToMap(); return; }
+        if (!current.hero) return;
         setOpen(null);
         setBattle({ ...o, left: scrollFighter({ ...heroFighter(current.hero, heroStats(current.hero)), gender: current.gender }, active) });
-      } catch (e) { backToMap(); setEntryError(e instanceof Error ? e.message : "Battle entry failed."); }
+      } catch (e) { setEntryError(e instanceof Error ? e.message : "Battle entry failed."); }
       finally { starting.current = false; }
     })();
   };
@@ -134,7 +118,6 @@ export function Game() {
   return (
     <div className="fixed inset-0 overflow-hidden bg-background">
       <audio ref={audio} src={theme.url} loop preload="auto" />
-      <audio ref={mapAudio} src="/world-map-theme.mp3" loop preload="auto" />
       {!authReady || !userId ? (
         <div className="flex h-full items-center justify-center gap-2 font-display text-lg"><Loader2 className="h-5 w-5 animate-spin" />Loading…</div>
       ) : !hero ? (

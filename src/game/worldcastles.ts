@@ -1,15 +1,15 @@
 import { supabase } from "@/integrations/supabase/client";
+import { flushSave, getState, update } from "./store";
 import { CASTLE_RAIDS_PER_DAY, WORLD_H, WORLD_W, type WorldSite } from "./worldmap";
 
 /**
  * The player's castle, and everyone else's, on the bounded world map.
  *
- * Every hero may plant one banner anywhere in the realm, so the map has to hold
- * thousands of them: placements live in the `world_castles` table (one row per
- * hero) and are read back through the `world_castles` RPC. The device keeps a
- * copy of the hero's own banner so the map still shows it — and still lets the
- * hero move it — while the registry is unreachable or before the migration that
- * adds the table has been applied.
+ * Every hero may plant one banner anywhere in the realm. The banner lives in the
+ * hero's own save row (`heroes.save->worldCastle`), so the realm registry works on
+ * the backend the game already runs on — no extra table or migration — and every
+ * signed-in player can read where the public heroes planted theirs. The device
+ * keeps a copy too, so the map still shows the hero's own banner while offline.
  */
 export interface MyCastle {
   x: number;
@@ -59,6 +59,12 @@ export const inWorld = (x: number, y: number) =>
 
 export function loadMyCastle(heroId: string | null): MyCastle | null {
   if (!heroId) return null;
+  // The save is the shared truth: another device may have moved this banner.
+  const state = getState();
+  const live = state.heroId === heroId ? state.hero?.worldCastle : undefined;
+  if (live && inWorld(live.x, live.y)) {
+    return { x: live.x, y: live.y, name: state.hero?.name ?? "Your castle", placedAt: live.at };
+  }
   const c = readJson<MyCastle>(castleKey(heroId));
   if (!c || !inWorld(c.x, c.y)) return null;
   return c;
@@ -69,34 +75,36 @@ function remember(heroId: string, castle: MyCastle) {
   return castle;
 }
 
-/** One row of the realm registry, as the RPC returns it. */
+/** One public hero row, carrying only the banner part of its save. */
 interface BannerRow {
-  hero?: unknown;
-  x?: unknown;
-  y?: unknown;
-  name?: unknown;
-  level?: unknown;
+  id: string;
+  name: string;
+  level: number;
+  castle: unknown;
 }
 
-/** Read every banner planted in the realm. */
+/** Read every banner planted in the realm by another lord. */
 export async function loadWorldBanners(): Promise<WorldBanner[]> {
-  const { data, error } = await supabase.rpc("world_castle_map");
+  // Only the banner field of the save is transferred; inventories stay private.
+  const { data, error } = await supabase
+    .from("heroes")
+    .select<string, BannerRow>("id,name,level,castle:save->worldCastle")
+    .eq("is_public", true)
+    .limit(1000);
   if (error) throw new Error(error.message);
-  const rows = ((data as { castles?: BannerRow[] } | null)?.castles ?? []).filter(
-    (r): r is BannerRow => !!r && typeof r === "object",
-  );
-  return rows.flatMap((r) => {
-    const x = Number(r.x);
-    const y = Number(r.y);
-    if (!inWorld(x, y) || typeof r.hero !== "string") return [];
+  return (data ?? []).flatMap((r) => {
+    const banner = (r.castle ?? null) as { x?: unknown; y?: unknown } | null;
+    const x = Number(banner?.x);
+    const y = Number(banner?.y);
+    if (!banner || !inWorld(x, y) || typeof r.id !== "string") return [];
     const name = typeof r.name === "string" ? r.name.trim() : "";
-    return [{ heroId: r.hero, name: name || "A nameless banner", x, y, level: Number(r.level) || 1 }];
+    return [{ heroId: r.id, name: name || "A nameless banner", x, y, level: Number(r.level) || 1 }];
   });
 }
 
 /**
- * Plant (or move) this hero's banner. The registry is authoritative; the device
- * keeps the banner either way, and `synced` says whether the realm knows of it.
+ * Plant (or move) this hero's banner. The save is authoritative; the device keeps
+ * the banner either way, and `synced` says whether the realm knows of it.
  */
 export async function plantBanner(
   heroId: string | null,
@@ -114,13 +122,16 @@ export async function plantBanner(
     return { castle, synced: false, error: "That ground lies beyond the realm." };
   }
   remember(heroId, castle);
-  const { error } = await supabase.rpc("world_castle_place", {
-    _hero: heroId,
-    _x: castle.x,
-    _y: castle.y,
-    _name: castle.name,
+  if (getState().heroId !== heroId || !getState().hero) {
+    return { castle, synced: false, error: "Select a character first." };
+  }
+  update((h) => {
+    h.worldCastle = { x: castle.x, y: castle.y, at: castle.placedAt };
   });
-  return error ? { castle, synced: false, error: error.message } : { castle, synced: true };
+  const saved = await flushSave();
+  return saved
+    ? { castle, synced: true }
+    : { castle, synced: false, error: "The realm registry did not answer." };
 }
 
 /** Castle assaults left today (UTC day, the same clock as the world raids). */

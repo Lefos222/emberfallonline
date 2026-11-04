@@ -229,6 +229,8 @@ export interface Hero {
   bagRows?: number;
   /** Upgrade levels of castle buildings, by building id (see barracks.ts). */
   buildings?: Record<string, number>;
+  /** The banner this hero planted on the world map; every lord can read it (see worldcastles.ts). */
+  worldCastle?: { x: number; y: number; at: string };
   /** Daily commission board: day snapshot plus claimed quest ids (see quest-board.ts). */
   daily?: { day: string; base: Record<string, number>; claimed: string[] };
   stage: number;
