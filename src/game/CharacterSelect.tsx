@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Loader2, Plus, Trash2, Play, ArrowLeft, LogOut, RefreshCw } from "lucide-react";
 import { CharacterModel } from './CharacterModel';
 import { CharacterPose } from './CharacterPose';
-import castle from "@/assets/castle.jpg.asset.json";
+import selectionBackground from "@/assets/heroes/selection-bloodmoon.jpg";
+import { Button } from "@/components/ui/button";
+import { RefreshCw as PoseIcon, Sword, Sparkles, Crosshair } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CLASSES, type HeroClass } from "./data";
 import {
@@ -40,14 +42,14 @@ export function CharacterSelect() {
 
   return (
     <div className="absolute inset-0 overflow-y-auto">
-      <div className="fixed inset-0 bg-cover bg-center opacity-50" style={{ backgroundImage: `url(${castle.url})` }} />
+      <img src={selectionBackground} alt="" aria-hidden="true" className="hero-selection-backdrop" />
       <div className="vignette fixed inset-0" />
-      <div className="relative mx-auto flex min-h-full max-w-5xl flex-col items-center p-4 pt-8">
+      <div className="relative mx-auto flex min-h-full max-w-6xl flex-col items-center p-4 pt-8">
         <div className="mb-2 flex w-full items-center justify-between text-xs text-muted-foreground">
           <span>{email}</span>
           <button className="flex items-center gap-1 hover:text-gold" onClick={() => supabase.auth.signOut()}><LogOut className="h-4 w-4" />Sign out</button>
         </div>
-        <h1 className="panel-title mb-6 text-center text-4xl font-black md:text-6xl">EMBER FALL</h1>
+        <div className="mb-6 text-center"><p className="mb-2 font-display text-sm text-gold">EMBER FALL</p><h1 className="hero-selection-title font-display text-3xl font-black text-foreground md:text-5xl">Select Your Hero</h1></div>
 
         {chars === null && <div className="flex items-center gap-2 py-20 font-display text-lg"><Loader2 className="h-5 w-5 animate-spin" />Loading your characters…</div>}
         {charsError && (
@@ -114,6 +116,7 @@ export function CharacterSelect() {
 function CreateCharacter({ canCancel, onCancel }: { canCancel: boolean; onCancel: () => void }) {
   const [cls, setCls] = useState<HeroClass>("warrior");
   const [gender, setGender] = useState<Gender>("male");
+  const [pose, setPose] = useState<"idle" | "action">("idle");
   const [name, setName] = useState("");
   const [step, setStep] = useState<"pick" | "confirm">("pick");
   const [busy, setBusy] = useState(false);
@@ -123,7 +126,7 @@ function CreateCharacter({ canCancel, onCancel }: { canCancel: boolean; onCancel
   if (step === "confirm") {
     return (
       <div className="game-panel anim-pop flex w-full max-w-md flex-col items-center p-6">
-        <Portrait cls={cls} gender={gender} className="w-64 rounded" />
+        <CharacterPose cls={cls} gender={gender} className="h-80 w-64" />
         <div className="mt-3 font-display text-3xl">{name.trim()}</div>
         <div className="text-muted-foreground">{gender === "male" ? "Male" : "Female"} {CLASSES[cls].name}</div>
         <p className="mt-2 text-center text-sm">{DESC[cls].text}</p>
@@ -143,26 +146,30 @@ function CreateCharacter({ canCancel, onCancel }: { canCancel: boolean; onCancel
 
   return (
     <div className="flex w-full flex-col items-center">
-      <div className="grid w-full max-w-4xl grid-cols-3 gap-3 md:gap-6">
-        {(Object.keys(CLASSES) as HeroClass[]).map((c) => (
-          <button key={c} onClick={() => setCls(c)}
-            className={`game-panel flex flex-col items-center p-2 transition md:p-4 ${cls === c ? "scale-105 shadow-[var(--shadow-glow)]" : "opacity-60 hover:opacity-90"}`}>
-            <Portrait cls={c} gender={gender} className={`w-full rounded ${cls === c ? "anim-idle" : ""}`} />
-            <span className="mt-1 font-display text-lg md:text-2xl">{CLASSES[c].name}</span>
-            <span className="text-xs text-gold">{DESC[c].style}</span>
-            <span className="hidden text-xs text-muted-foreground md:block">{DESC[c].text}</span>
-          </button>
-        ))}
+      <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-3">
+        {(["warrior", "mage", "archer"] as HeroClass[]).map((c) => {
+          const Icon = c === "warrior" ? Sword : c === "mage" ? Sparkles : Crosshair;
+          return <section key={c} className={`hero-class-group hero-class-${c}`} aria-label={CLASSES[c].name}>
+            <h2 className="hero-class-heading flex items-center justify-center gap-2 py-3 font-display text-2xl"><Icon className="h-6 w-6" />{CLASSES[c].name}</h2>
+            <div className="grid grid-cols-2">
+              {(["female", "male"] as Gender[]).map(g => <Button key={g} variant="ghost" className="hero-choice" aria-label={`Select ${g} ${CLASSES[c].name}`} aria-pressed={cls === c && gender === g} onClick={() => { setCls(c); setGender(g); }}>
+                <CharacterModel cls={c} gender={g} pose={pose} />
+                <span className="hero-choice-label font-display text-xs text-foreground">{g === "male" ? "Male" : "Female"}</span>
+              </Button>)}
+            </div>
+            <p className="hero-class-heading pb-3 text-center text-xs">{DESC[c].style}</p>
+          </section>;
+        })}
       </div>
-      <div className="mt-4 flex gap-2">
-        {(["male", "female"] as Gender[]).map((g) => (
-          <button key={g} className={`px-5 py-2 ${gender === g ? "btn-gold" : "slot"}`} onClick={() => setGender(g)}>{g === "male" ? "Male" : "Female"}</button>
-        ))}
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+        <span className="font-display text-gold">{gender === "female" ? "Female" : "Male"} {CLASSES[cls].name}</span>
+        <Button variant="outline" size="icon" title="Change hero poses" aria-label="Change hero poses" aria-pressed={pose === "action"} onClick={() => setPose(p => p === "idle" ? "action" : "idle")}><PoseIcon className="h-4 w-4" /></Button>
       </div>
+      <p className="mt-2 text-center text-sm text-foreground">{DESC[cls].text}</p>
       <div className="mt-4 flex w-full max-w-md gap-2">
         <input value={name} onChange={(e) => setName(e.target.value.slice(0, 18))} placeholder="Character name (3–18)"
-          className="slot flex-1 px-4 py-3 font-display text-lg outline-none" />
-        <button className="btn-gold px-6 text-lg" disabled={!valid} onClick={() => setStep("confirm")}>Next</button>
+          aria-label="Character name" className="hero-selection-input slot flex-1 px-4 py-3 font-display text-lg outline-none" />
+        <Button className="btn-gold h-auto px-6 text-lg" disabled={!valid} onClick={() => setStep("confirm")}>Next</Button>
       </div>
       {name && !valid && <p className="mt-2 text-xs text-hp">Use 3–18 letters, numbers, spaces, - or _</p>}
       {canCancel && <button className="mt-3 text-sm text-muted-foreground hover:text-gold" onClick={onCancel}>Back to my characters</button>}
