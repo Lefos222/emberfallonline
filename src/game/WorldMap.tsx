@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Castle, Crown, Gem, Hammer, Landmark, Minus, Plus, Skull, X } from "lucide-react";
+import { Castle, Compass, Crown, Flag, Gem, Hammer, Landmark, Minus, Plus, Skull, X } from "lucide-react";
 import mapImg from "@/assets/world-map.jpg";
 import { useGame } from "./store";
 import type { StartBattle } from "./panels";
@@ -7,46 +7,45 @@ import { completeWorldRaid, loadWorldMap } from "./worldmap-services";
 import {
   CASTLE_RAIDS_PER_DAY,
   RAID_LIMITS,
+  WORLD_H,
+  WORLD_SITES,
+  WORLD_W,
+  clampCamera,
+  clusterMarkers,
+  fitZoom,
   nearestRuin,
   raidsLeft,
-  sitesInView,
+  regionAt,
   siteFoe,
-  terrainName,
+  sitesInView,
+  zoomCamera,
+  type Camera,
   type RaidKind,
   type SiteKind,
+  type StageSize,
   type WorldMapState,
   type WorldSite,
 } from "./worldmap";
 import {
   castleRaidNode,
   castleRaidsLeft,
+  inWorld,
   loadMyCastle,
-  placeCastle,
+  loadWorldBanners,
+  plantBanner,
   spendCastleRaid,
+  type MyCastle,
+  type WorldBanner,
 } from "./worldcastles";
 
-const MIN_ZOOM = 0.2;
-const MAX_ZOOM = 2.5;
-
-/** One pass of the painted map art, in world units (the art is 2048×1143). */
-const MAP_W = 4096;
-const MAP_H = Math.round((MAP_W * 1143) / 2048);
-
-const KIND_STYLE: Record<SiteKind, { ring: string; dot: string; label: string; Icon: typeof Gem }> =
-  {
-    gold: { ring: "ring-sky-400", dot: "bg-sky-400", label: "Gold mine", Icon: Gem },
-    ore: { ring: "ring-emerald-400", dot: "bg-emerald-400", label: "Ore dungeon", Icon: Hammer },
-    boss: { ring: "ring-blood", dot: "bg-blood", label: "World boss", Icon: Skull },
-    keep: { ring: "ring-gold", dot: "bg-gold", label: "Rival castle", Icon: Castle },
-    ruin: {
-      ring: "ring-muted-foreground",
-      dot: "bg-muted-foreground",
-      label: "Abandoned castle",
-      Icon: Landmark,
-    },
-  };
-
-const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
+const KIND_STYLE: Record<SiteKind, { ring: string; dot: string; label: string; Icon: typeof Gem }> = {
+  gold: { ring: "ring-sky-400", dot: "bg-sky-400", label: "Gold mine", Icon: Gem },
+  ore: { ring: "ring-emerald-400", dot: "bg-emerald-400", label: "Ore dungeon", Icon: Hammer },
+  boss: { ring: "ring-blood", dot: "bg-blood", label: "World boss", Icon: Skull },
+  keep: { ring: "ring-gold", dot: "bg-gold", label: "Rival castle", Icon: Castle },
+  ruin: { ring: "ring-muted-foreground", dot: "bg-muted-foreground", label: "Abandoned castle", Icon: Landmark },
+  landmark: { ring: "ring-amber-300", dot: "bg-amber-300", label: "Landmark", Icon: Compass },
+};
 
 const rewardLines = (reward: Record<string, unknown>) =>
   Object.entries(reward).flatMap(([k, v]) =>
@@ -58,29 +57,33 @@ const rewardLines = (reward: Record<string, unknown>) =>
   );
 
 /**
- * The World Map — the realm as EmberFall paints it, with no edge.
+ * The World Tree's map: one painted realm with an edge.
  *
- * The parchment map repeats as the ground, so the world keeps going in every
- * direction: drag to travel and scroll to zoom. Mines, ore dungeons, world bosses,
- * rival keeps and abandoned castles are generated from the world coordinates
- * (worldmap.ts), the player's own castle is remembered on this device
- * (worldcastles.ts) and every raid still settles on the server.
+ * The art is the whole world — mines, ore dungeons, world bosses, rival keeps,
+ * ruins and painted landmarks all stand on it, and nothing exists past the frame.
+ * Drag to travel, scroll to zoom out to the whole realm or in to a single banner.
+ * Every hero plants one castle on it, so banners are read from the realm registry
+ * and clustered by zoom so thousands of them stay readable.
  */
 export function WorldMap({ onClose, start }: { onClose: () => void; start: StartBattle }) {
   const { hero, heroId } = useGame();
   const stageRef = useRef<HTMLDivElement>(null);
   const drag = useRef<null | { x: number; y: number; cx: number; cy: number; z: number }>(null);
   const moved = useRef(false);
-  const centered = useRef(false);
+  const seeded = useRef(false);
 
-  const [size, setSize] = useState({ w: 0, h: 0 });
-  const [cam, setCam] = useState({ x: 0, y: 0, z: 0.5 });
+  const [size, setSize] = useState<StageSize>({ w: 0, h: 0 });
+  const [cam, setCam] = useState<Camera>({ x: WORLD_W / 2, y: WORLD_H / 2, z: 0.2 });
   const [state, setState] = useState<WorldMapState | null>(null);
   const [error, setError] = useState("");
+  const [note, setNote] = useState("");
   const [hover, setHover] = useState<string | null>(null);
   const [selected, setSelected] = useState<WorldSite | null>(null);
+  const [picked, setPicked] = useState<WorldBanner | null>(null);
+  const [planting, setPlanting] = useState(false);
   const [castle, setCastle] = useState(() => loadMyCastle(heroId));
   const [castleRaids, setCastleRaids] = useState(() => castleRaidsLeft(heroId));
+  const [banners, setBanners] = useState<WorldBanner[]>([]);
 
   // The character can arrive a beat after the map opens; read its castle again then.
   useEffect(() => {
@@ -91,13 +94,18 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
   const refresh = useCallback(() => {
     loadWorldMap()
       .then(setState)
-      .catch((e) =>
-        setError(e instanceof Error ? e.message : "The raid ledger could not be read."),
-      );
+      .catch((e) => setError(e instanceof Error ? e.message : "The raid ledger could not be read."));
   }, []);
   useEffect(refresh, [refresh]);
 
-  // The stage fills the panel; the camera needs its pixel size to centre the world.
+  const refreshBanners = useCallback(() => {
+    loadWorldBanners()
+      .then(setBanners)
+      .catch(() => setBanners([]));
+  }, []);
+  useEffect(refreshBanners, [refreshBanners]);
+
+  // The stage fills the panel; the camera needs its pixel size to frame the realm.
   useEffect(() => {
     const el = stageRef.current;
     if (!el) return;
@@ -109,12 +117,18 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
     return () => observer.disconnect();
   }, []);
 
-  // Open on the player's own castle when one stands on the map; otherwise on the home region.
+  // Open on the whole realm, or on the player's own castle when it already stands.
   useEffect(() => {
-    if (centered.current || size.w === 0 || !castle) return;
-    centered.current = true;
-    setCam({ x: castle.x, y: castle.y, z: 0.5 });
-  }, [size.w, castle]);
+    if (seeded.current || size.w === 0 || size.h === 0) return;
+    seeded.current = true;
+    const fit = fitZoom(size);
+    setCam(
+      clampCamera(
+        castle ? { x: castle.x, y: castle.y, z: fit * 2.6 } : { x: WORLD_W / 2, y: WORLD_H / 2, z: fit },
+        size,
+      ),
+    );
+  }, [size, castle]);
 
   const view = useMemo(
     () => ({
@@ -126,11 +140,6 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
     [cam, size],
   );
 
-  const sites = useMemo(
-    () => (size.w > 0 ? sitesInView(view.left, view.top, view.right, view.bottom) : []),
-    [view, size.w],
-  );
-
   const screen = useCallback(
     (x: number, y: number) => ({
       left: (x - cam.x) * cam.z + size.w / 2,
@@ -139,15 +148,33 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
     [cam, size],
   );
 
+  const onStage = ({ left, top }: { left: number; top: number }) =>
+    left > -70 && top > -70 && left < size.w + 70 && top < size.h + 70;
+
+  const visibleSites = useMemo(
+    () => (size.w > 0 ? sitesInView(view.left, view.top, view.right, view.bottom) : []),
+    [view, size.w],
+  );
+
+  // Markers that would share a few pixels collapse into one badge; zooming in splits them.
+  const siteClusters = useMemo(() => {
+    const cell = cam.z < 0.4 ? 60 : cam.z < 0.8 ? 42 : cam.z < 1.4 ? 26 : 0;
+    return clusterMarkers(visibleSites, screen, cell);
+  }, [visibleSites, screen, cam.z]);
+
+  const bannerClusters = useMemo(() => {
+    // Zoomed out to the whole realm the badges would bury the art; the header keeps the count.
+    if (cam.z < 0.5) return [];
+    const cell = cam.z < 0.9 ? 34 : 0;
+    const shown = banners
+      .filter((b) => b.heroId !== heroId)
+      .filter((b) => b.x >= view.left && b.x <= view.right && b.y >= view.top && b.y <= view.bottom)
+      .map((b) => ({ id: b.heroId, x: b.x, y: b.y, banner: b }));
+    return clusterMarkers(shown, screen, cell);
+  }, [banners, heroId, screen, view, cam.z]);
+
   const zoomAt = useCallback(
-    (factor: number, px: number, py: number) => {
-      setCam((c) => {
-        const z = clampZoom(c.z * factor);
-        const wx = c.x + (px - size.w / 2) / c.z;
-        const wy = c.y + (py - size.h / 2) / c.z;
-        return { x: wx - (px - size.w / 2) / z, y: wy - (py - size.h / 2) / z, z };
-      });
-    },
+    (factor: number, px: number, py: number) => setCam((c) => zoomCamera(c, size, factor, px, py)),
     [size],
   );
 
@@ -168,18 +195,36 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
   const heroLevel = hero.level + hero.paragon;
   const goldLeft = state ? raidsLeft(state, "gold") : 0;
 
-  const claim = (site: WorldSite) => {
-    const placed = placeCastle(heroId, site);
-    if (!placed) return;
-    setCastle(placed);
+  const focus = (x: number, y: number, z = cam.z) =>
+    setCam((c) => clampCamera({ x, y, z }, size));
+
+  const worldPoint = (px: number, py: number) => ({
+    x: cam.x + (px - size.w / 2) / cam.z,
+    y: cam.y + (py - size.h / 2) / cam.z,
+  });
+
+  const plant = async (x: number, y: number) => {
+    if (!inWorld(x, y)) {
+      setError("That ground lies beyond the realm.");
+      return;
+    }
+    const done = await plantBanner(heroId, x, y, `${hero.name}'s Hold`);
+    setCastle(done.castle);
+    setPlanting(false);
     setSelected(null);
-    setCam((c) => ({ ...c, x: site.x, y: site.y }));
+    focus(done.castle.x, done.castle.y, Math.max(cam.z, 1));
+    setNote(
+      done.synced
+        ? "Your banner flies over the realm — every traveller can see it."
+        : `Planted on this device. The realm registry did not answer (${done.error ?? "offline"}).`,
+    );
+    if (done.synced) refreshBanners();
   };
 
   const showRuin = () => {
     const ruin = nearestRuin(cam.x, cam.y);
     if (!ruin) return;
-    setCam((c) => ({ ...c, x: ruin.x, y: ruin.y }));
+    focus(ruin.x, ruin.y, Math.max(cam.z, 0.9));
     setSelected(ruin);
   };
 
@@ -227,15 +272,14 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
     });
   };
 
-  const footerHint = castle
-    ? "Drag to travel the realm — it never ends. Scroll to zoom, and win the fight to claim a node's reward."
-    : "Drag to travel the realm — it never ends. Find an abandoned castle and teleport your own castle there.";
+  const worldLeft = (0 - cam.x) * cam.z + size.w / 2;
+  const worldTop = (0 - cam.y) * cam.z + size.h / 2;
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-background/70 p-2 backdrop-blur-sm md:p-4">
       <div className="game-panel anim-pop relative flex h-full w-full flex-col overflow-hidden">
         <header className="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border px-3 py-2 md:px-6 md:py-3">
-          <h2 className="panel-title min-w-0 truncate text-xl font-bold md:text-3xl">World Map</h2>
+          <h2 className="panel-title min-w-0 truncate text-xl font-bold md:text-3xl">The World Tree</h2>
 
           <div className="ml-auto flex flex-wrap items-center gap-1.5 text-[11px] md:gap-2 md:text-xs">
             {(Object.keys(RAID_LIMITS) as RaidKind[]).map((kind) => (
@@ -249,10 +293,10 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
             ))}
             <span className="slot flex items-center gap-1.5 px-2 py-1">
               <span className="h-2.5 w-2.5 rounded-full bg-gold" />
-              Castle raids:{" "}
-              <b>
-                {castleRaids}/{CASTLE_RAIDS_PER_DAY}
-              </b>
+              Castle raids: <b>{castleRaids}/{CASTLE_RAIDS_PER_DAY}</b>
+            </span>
+            <span className="slot flex items-center gap-1.5 px-2 py-1" title="Banners planted by players">
+              <Flag className="h-3 w-3 text-gold" /> Banners: <b>{banners.length}</b>
             </span>
           </div>
 
@@ -272,6 +316,20 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
               <Plus className="h-4 w-4" />
             </button>
             <button
+              onClick={() => setCam(clampCamera({ x: WORLD_W / 2, y: WORLD_H / 2, z: fitZoom(size) }, size))}
+              className="slot flex h-8 items-center gap-1 px-2 text-[11px]"
+              aria-label="Show the whole realm"
+            >
+              <Compass className="h-4 w-4" /> Realm
+            </button>
+            <button
+              onClick={() => setPlanting((p) => !p)}
+              className={`flex h-8 items-center gap-1 px-2 text-[11px] ${planting ? "btn-gold" : "btn-ghost"}`}
+              aria-pressed={planting}
+            >
+              <Flag className="h-4 w-4" /> {castle ? "Move banner" : "Plant banner"}
+            </button>
+            <button
               onClick={onClose}
               className="btn-blood ml-1 flex h-9 w-9 items-center justify-center"
               aria-label="Close world map"
@@ -281,24 +339,32 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
           </div>
         </header>
 
-        {error && (
+        {(error || note) && (
           <p
             role="alert"
-            className="absolute left-1/2 top-16 z-30 -translate-x-1/2 rounded bg-background/90 px-3 py-1.5 text-xs text-blood shadow"
+            className="absolute left-1/2 top-20 z-30 max-w-[92%] -translate-x-1/2 rounded bg-background/90 px-3 py-1.5 text-center text-xs text-gold shadow"
           >
-            {error}
+            {error || note}
+            <button
+              className="ml-2 text-muted-foreground underline"
+              onClick={() => {
+                setError("");
+                setNote("");
+              }}
+            >
+              dismiss
+            </button>
           </p>
         )}
 
         <div
           ref={stageRef}
-          className="relative flex-1 touch-none select-none overflow-hidden"
+          className={`relative flex-1 touch-none select-none overflow-hidden ${
+            planting ? "cursor-crosshair" : drag.current ? "cursor-grabbing" : "cursor-grab"
+          }`}
           style={{
-            cursor: drag.current ? "grabbing" : "grab",
-            backgroundImage: `url(${mapImg})`,
-            backgroundRepeat: "repeat",
-            backgroundSize: `${MAP_W * cam.z}px ${MAP_H * cam.z}px`,
-            backgroundPosition: `${size.w / 2 - cam.x * cam.z}px ${size.h / 2 - cam.y * cam.z}px`,
+            background:
+              "radial-gradient(circle at 50% 40%, hsl(var(--muted) / 0.55), hsl(var(--background)) 72%)",
           }}
           onPointerDown={(e) => {
             if (e.pointerType === "mouse" && e.button !== 0) return;
@@ -319,7 +385,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                 /* pointer capture is best effort */
               }
             }
-            setCam((c) => ({ ...c, x: d.cx - dx / d.z, y: d.cy - dy / d.z }));
+            setCam(clampCamera({ x: d.cx - dx / d.z, y: d.cy - dy / d.z, z: d.z }, size));
           }}
           onPointerUp={() => {
             drag.current = null;
@@ -327,74 +393,184 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
           onPointerCancel={() => {
             drag.current = null;
           }}
-          onClick={() => {
-            if (!moved.current) setSelected(null);
+          onClick={(e) => {
+            if (moved.current) return;
+            if (planting) {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const p = worldPoint(e.clientX - rect.left, e.clientY - rect.top);
+              void plant(p.x, p.y);
+              return;
+            }
+            setSelected(null);
+            setPicked(null);
           }}
         >
-          {sites
-            .filter((s) => s.id !== castle?.siteId)
-            .map((site) => {
-              const { ring, dot, Icon, label } = KIND_STYLE[site.kind];
-              const p = screen(site.x, site.y);
-              if (p.left < -60 || p.top < -60 || p.left > size.w + 60 || p.top > size.h + 60)
-                return null;
+          <div
+            aria-hidden
+            className="absolute bg-cover bg-center shadow-[0_0_0_2px_rgba(0,0,0,0.55),0_18px_60px_rgba(0,0,0,0.5)]"
+            style={{
+              left: worldLeft,
+              top: worldTop,
+              width: WORLD_W * cam.z,
+              height: WORLD_H * cam.z,
+              backgroundImage: `url(${mapImg})`,
+            }}
+          />
+
+          {siteClusters.map((cluster) => {
+            const p = screen(cluster.x, cluster.y);
+            if (!onStage(p)) return null;
+            const lead = cluster.items.length === 1 ? cluster.items[0]! : null;
+            const kinds = new Set(cluster.items.map((s) => s.kind));
+            if (cluster.items.length > 1) {
+              const primary = cluster.items.find((s) => s.kind === "gold") ?? cluster.items[0]!;
+              const { ring, Icon } = KIND_STYLE[primary.kind];
               return (
                 <button
-                  key={site.id}
-                  aria-label={`${site.name} (${label})`}
-                  className={`absolute flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-background/60 bg-background/70 ring-2 backdrop-blur-sm transition hover:scale-125 ${
-                    ring
-                  } ${selected?.id === site.id ? "scale-125" : ""}`}
+                  key={cluster.key}
+                  aria-label={`${cluster.items.length} places of interest`}
+                  className={`absolute z-10 flex h-9 min-w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-1 rounded-full border border-background/60 bg-background/80 px-2 ring-2 backdrop-blur-sm transition hover:scale-110 ${ring}`}
                   style={{ left: p.left, top: p.top }}
-                  onMouseEnter={() => setHover(site.id)}
-                  onMouseLeave={() => setHover(null)}
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (!moved.current) setSelected(site);
+                    if (moved.current) return;
+                    zoomAt(2.2, p.left, p.top);
                   }}
                 >
                   <Icon className="h-4 w-4" />
-                  <span
-                    className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ${dot}`}
-                  />
-                  {hover === site.id && (
-                    <span
-                      role="tooltip"
-                      className="hotspot-label pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-44 -translate-x-1/2 whitespace-normal rounded px-2 py-1 text-left text-xs"
-                    >
-                      <b>{site.name}</b> · {label}
-                      <span className="block text-[10px] text-foreground/80">{site.desc}</span>
-                    </span>
-                  )}
+                  <b className="text-[11px]">{cluster.items.length}</b>
                 </button>
               );
-            })}
+            }
+            if (!lead) return null;
+            const { ring, dot, Icon, label } = KIND_STYLE[lead.kind];
+            const multi = kinds.size > 1;
+            return (
+              <button
+                key={cluster.key}
+                aria-label={`${lead.name} (${label})`}
+                className={`absolute z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-background/60 bg-background/70 ring-2 backdrop-blur-sm transition hover:scale-125 ${ring} ${
+                  selected?.id === lead.id ? "scale-125" : ""
+                }`}
+                style={{ left: p.left, top: p.top }}
+                onMouseEnter={() => setHover(lead.id)}
+                onMouseLeave={() => setHover(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (moved.current) return;
+                  setPicked(null);
+                  setSelected(lead);
+                }}
+              >
+                <Icon className="h-4 w-4" />
+                <span className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ${dot}`} />
+                {hover === lead.id && !multi && (
+                  <span
+                    role="tooltip"
+                    className="hotspot-label pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-44 -translate-x-1/2 whitespace-normal rounded px-2 py-1 text-left text-xs"
+                  >
+                    <b>{lead.name}</b> · {label}
+                    <span className="block text-[10px] text-foreground/80">{lead.desc}</span>
+                  </span>
+                )}
+              </button>
+            );
+          })}
 
-          {castle &&
+          {bannerClusters.map((cluster) => {
+            const p = screen(cluster.x, cluster.y);
+            if (!onStage(p)) return null;
+            const lead = cluster.items[0]!.banner;
+            return (
+              <button
+                key={cluster.key}
+                aria-label={
+                  cluster.items.length > 1
+                    ? `${cluster.items.length} player castles`
+                    : `${lead.name} · level ${lead.level}`
+                }
+                className="absolute flex h-4 min-w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-0.5 rounded-full border border-gold/40 bg-background/70 px-0.5 text-gold ring-1 ring-gold/60 backdrop-blur-sm transition hover:scale-125"
+                style={{ left: p.left, top: p.top }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (moved.current) return;
+                  if (cluster.items.length > 1) {
+                    zoomAt(2.2, p.left, p.top);
+                    return;
+                  }
+                  setSelected(null);
+                  setPicked(lead);
+                }}
+              >
+                <Crown className="h-2.5 w-2.5" />
+                {cluster.items.length > 1 && <b className="text-[9px] leading-none">{cluster.items.length}</b>}
+              </button>
+            );
+          })}
+
+          {castle && (
             (() => {
               const p = screen(castle.x, castle.y);
-              if (p.left < -60 || p.top < -60 || p.left > size.w + 60 || p.top > size.h + 60)
-                return null;
+              if (!onStage(p)) return null;
               return (
                 <span
-                  className="absolute flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-background/60 bg-background/80 text-gold ring-2 ring-gold backdrop-blur-sm"
+                  className="pointer-events-none absolute flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-background/60 bg-background/80 text-gold ring-2 ring-gold backdrop-blur-sm"
                   style={{ left: p.left, top: p.top }}
                   title="Your castle"
                 >
                   <Crown className="h-5 w-5" />
                 </span>
               );
-            })()}
+            })()
+          )}
 
-          {!castle && (
-            <div className="absolute left-1/2 top-3 z-20 w-[min(92vw,26rem)] -translate-x-1/2 rounded border border-gold/40 bg-background/90 px-3 py-2 text-center shadow">
+          {!castle && !planting && (
+            <div
+              className="absolute left-1/2 top-3 z-20 w-[min(92vw,26rem)] -translate-x-1/2 rounded border border-gold/40 bg-background/90 px-3 py-2 text-center shadow"
+              onClick={(e) => e.stopPropagation()}
+            >
               <p className="text-xs">
-                Your banner is not planted yet. Find an abandoned castle and teleport your castle
-                there.
+                Your banner is not planted yet. Plant it anywhere in the realm — or on an abandoned
+                castle.
               </p>
-              <button onClick={showRuin} className="btn-gold mt-2 px-3 py-1 text-xs">
-                Show me the nearest ruin
-              </button>
+              <div className="mt-2 flex justify-center gap-2">
+                <button onClick={() => setPlanting(true)} className="btn-gold px-3 py-1 text-xs">
+                  Plant my banner
+                </button>
+                <button onClick={showRuin} className="btn-ghost px-3 py-1 text-xs">
+                  Nearest ruin
+                </button>
+              </div>
+            </div>
+          )}
+
+          {planting && (
+            <div className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded border border-gold/50 bg-background/90 px-3 py-1.5 text-center text-xs text-gold shadow">
+              Tap anywhere in the realm to raise your banner
+            </div>
+          )}
+
+          {picked && (
+            <div
+              className="game-panel absolute bottom-3 left-3 z-30 w-[min(92vw,22rem)] p-3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Player castle</p>
+                  <h3 className="truncate font-display text-xl text-gold">{picked.name}</h3>
+                </div>
+                <button
+                  onClick={() => setPicked(null)}
+                  aria-label="Dismiss castle"
+                  className="btn-ghost flex h-7 w-7 items-center justify-center"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Level {picked.level} · {regionAt(picked.x, picked.y).name}
+              </p>
             </div>
           )}
 
@@ -406,7 +582,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                    {KIND_STYLE[selected.kind].label} · {terrainName(selected.terrain)}
+                    {KIND_STYLE[selected.kind].label} · {regionAt(selected.x, selected.y).name}
                   </p>
                   <h3 className="truncate font-display text-xl text-gold">{selected.name}</h3>
                 </div>
@@ -430,14 +606,19 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
               </p>
 
               <div className="mt-2.5">
-                {selected.kind === "ruin" ? (
-                  castle?.siteId === selected.id ? (
-                    <p className="text-xs text-gold">Your banner already flies here.</p>
-                  ) : (
-                    <button className="btn-gold w-full py-1.5" onClick={() => claim(selected)}>
-                      Teleport castle here
+                {selected.kind === "landmark" ? (
+                  <p className="text-xs text-muted-foreground">
+                    A painted wonder of the realm — no raid here, only the view.
+                  </p>
+                ) : selected.kind === "ruin" ? (
+                  <div className="flex flex-wrap gap-2">
+                    <button className="btn-gold flex-1 py-1.5" onClick={() => void plant(selected.x, selected.y)}>
+                      {castle ? "Move banner here" : "Plant banner here"}
                     </button>
-                  )
+                    <button className="btn-ghost px-3 py-1.5 text-xs" onClick={() => setPlanting(true)}>
+                      Pick another spot
+                    </button>
+                  </div>
                 ) : selected.kind === "keep" ? (
                   <button
                     className="btn-gold w-full py-1.5"
@@ -463,7 +644,9 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
         </div>
 
         <p className="border-t border-border px-3 py-2 text-[11px] text-muted-foreground md:px-6">
-          {footerHint}
+          {WORLD_SITES.length} places of interest stand on one bounded realm — drag to travel, scroll
+          or pinch the buttons to zoom, and plant your own castle anywhere on it. Banners are shared:
+          every hero the realm holds can raise one.
         </p>
       </div>
     </div>

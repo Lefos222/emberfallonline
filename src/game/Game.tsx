@@ -128,7 +128,7 @@ export function Game() {
   return (
     <div className="fixed inset-0 overflow-hidden bg-background">
       <audio ref={audio} src={theme.url} loop preload="auto" />
-      <audio ref={mapAudio} src="/world-map-theme.mp3" preload="auto" />
+      <audio ref={mapAudio} src="/world-map-theme.mp3" loop preload="auto" />
       {!authReady || !userId ? (
         <div className="flex h-full items-center justify-center gap-2 font-display text-lg"><Loader2 className="h-5 w-5 animate-spin" />Loading…</div>
       ) : !hero ? (

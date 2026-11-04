@@ -1068,6 +1068,11 @@ export type Database = {
         Args: { _application: string; _hero: string }
         Returns: undefined
       }
+      world_castle_map: { Args: never; Returns: Json }
+      world_castle_place: {
+        Args: { _hero: string; _name: string; _x: number; _y: number }
+        Returns: Json
+      }
       world_map_state: { Args: { _hero: string }; Returns: Json }
       world_raid_complete: {
         Args: { _hero: string; _node: string; _req: string }
