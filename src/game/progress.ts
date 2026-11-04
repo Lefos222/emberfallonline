@@ -10,7 +10,7 @@ export interface ProgressState {
   equipment: Partial<Record<Slot, Item>>;
   /** Counters other achievement families read from the saved hero. */
   crafts?: number;
-  astrals?: { base: string }[];
+  astrals?: { base: string; rarity?: number; lvl?: number }[];
   conquest?: { tokens?: number };
   kills?: Record<string, number>;
   quests?: string[];
@@ -20,6 +20,15 @@ export interface ProgressState {
   passives?: Record<string, number>;
   guildSkills?: Record<string, number>;
   challenges?: Record<string, number>;
+  gems?: Record<string, number>;
+  synth?: { crafted?: string[]; worn?: Record<string, number> };
+  gold?: number;
+  buildings?: Record<string, number>;
+  dungeons?: Record<string, number>;
+  attrDrills?: Record<string, number>;
+  rewardChest?: { claims?: number };
+  dailyRewards?: { cycles?: number };
+  eventBoss?: Record<string, number>;
 }
 
 export const emptyRecord = (): CombatRecord => ({ battles: 0, wins: 0, losses: 0, bosses: 0, arenaWins: 0, enhances: 0, bestEnh: 0 });
@@ -41,7 +50,9 @@ export function recordEnhance(h: ProgressState, newEnh: number) {
 }
 
 // ---------- Achievements ----------
-export type AchCategory = "Combat" | "Bosses" | "Progression" | "Crafting" | "Arena" | "Collection" | "Conquest" | "Enchanting" | "Bestiary" | "Exploration" | "Guild" | "Training";
+export type AchCategory = "Combat" | "Bosses" | "Progression" | "Crafting" | "Arena" | "Collection" | "Conquest" | "Enchanting" | "Bestiary" | "Exploration" | "Guild" | "Training" | "Astrals" | "Gems" | "Synthesis" | "Treasure" | "Wealth";
+/** Every category in the order the Throne Hall lists them. */
+export const ACH_CATEGORIES: AchCategory[] = ["Combat", "Bosses", "Progression", "Crafting", "Arena", "Collection", "Astrals", "Gems", "Synthesis", "Conquest", "Enchanting", "Bestiary", "Exploration", "Guild", "Training", "Treasure", "Wealth"];
 export interface Achievement { id: string; cat: AchCategory; name: string; desc: string; goal: number; gold: number; title?: string; value: (h: ProgressState) => number }
 
 const rec = (h: ProgressState) => ({ ...emptyRecord(), ...(h.record ?? {}) });
@@ -49,6 +60,25 @@ const rec = (h: ProgressState) => ({ ...emptyRecord(), ...(h.record ?? {}) });
 const sum = (map: Record<string, number> | undefined) => Object.values(map ?? {}).reduce((a, n) => a + n, 0);
 const tiers = (base: Omit<Achievement, "id" | "goal" | "gold" | "name" | "title">, id: string, names: string[], goals: number[], golds: number[], titles: (string | undefined)[]) =>
   goals.map((goal, i): Achievement => ({ ...base, id: `${id}_${i + 1}`, name: names[i], goal, gold: golds[i], title: titles[i] }));
+
+// Counters the later families read. Astrals, gems and synthesis saves are shaped by crafting.ts and synthesis.ts.
+const astrals = (h: ProgressState) => h.astrals ?? [];
+const bestAstralLvl = (h: ProgressState) => astrals(h).reduce((m, a) => Math.max(m, a.lvl ?? 1), 0);
+const bestAstralRarity = (h: ProgressState) => astrals(h).reduce((m, a) => Math.max(m, (a.rarity ?? 0) + 1), 0);
+const astralsOfRarity = (h: ProgressState, rarity: number) => astrals(h).filter((a) => a.rarity === rarity).length;
+/** Gems are stored as "<family>:<tier>" keys (see crafting.ts). */
+const gemKeys = (h: ProgressState) => Object.keys(h.gems ?? {}).filter((k) => (h.gems?.[k] ?? 0) > 0);
+const gemTotal = (h: ProgressState) => Object.values(h.gems ?? {}).reduce((a, n) => a + n, 0);
+const gemFamilies = (h: ProgressState) => new Set(gemKeys(h).map((k) => k.split(":")[0])).size;
+const bestGemTier = (h: ProgressState) => gemKeys(h).reduce((best, k) => Math.max(best, Number(k.split(":")[1]) || 0), 0);
+/** Synthesis pieces are stored as "<tier>:<slot>" keys (see synthesis.ts). */
+const synthPieces = (h: ProgressState) => (h.synth?.crafted ?? []).length;
+const synthSets = (h: ProgressState) => {
+  const perTier: Record<string, number> = {};
+  for (const key of h.synth?.crafted ?? []) { const tier = key.split(":")[0]; perTier[tier] = (perTier[tier] ?? 0) + 1; }
+  return Object.values(perTier).filter((n) => n >= 8).length;
+};
+const synthWorn = (h: ProgressState) => Object.keys(h.synth?.worn ?? {}).length;
 
 export const ACHIEVEMENTS: Achievement[] = [
   ...tiers({ cat: "Combat", desc: "Win battles", value: (h) => rec(h).wins }, "wins", ["Blooded", "Veteran", "Warmaster"], [10, 100, 1000], [200, 2000, 20000], [undefined, "Veteran", "Warmaster"]),
@@ -92,6 +122,66 @@ export const ACHIEVEMENTS: Achievement[] = [
   ...tiers({ cat: "Progression", desc: "Spend points in the skill tree", value: (h) => sum(h.talents) }, "talentranks", ["Student of War", "Grandmaster"], [15, 50], [1500, 15000], [undefined, "Grandmaster"]),
   // Progression: passive tree ranks
   ...tiers({ cat: "Progression", desc: "Spend Insight in the passive tree", value: (h) => sum(h.passives) }, "passiveranks", ["Awakened", "Enlightened"], [10, 40], [2000, 20000], [undefined, "Enlightened"]),
+
+  // ---- Combat, extended ----
+  ...tiers({ cat: "Combat", desc: "Fight any battle", value: (h) => rec(h).battles }, "battles", ["First Blood", "Skirmisher", "Battle-Hardened", "War Machine", "Eternal Soldier"], [1, 50, 250, 1000, 5000], [50, 400, 2500, 12000, 60000], [undefined, undefined, "Battle-Hardened", undefined, "Eternal Soldier"]),
+  ...tiers({ cat: "Bosses", desc: "Defeat bosses", value: (h) => rec(h).bosses }, "boss3", ["Doom of Kings", "Apocalypse"], [500, 1000], [75000, 150000], ["Doom of Kings", "Apocalypse"]),
+  ...tiers({ cat: "Bosses", desc: "Clear challenge boss difficulties", value: (h) => sum(h.challenges) }, "trialdiffs", ["Trial Challenger", "Trial Master", "Trial Sovereign"], [5, 15, 40], [4000, 30000, 120000], [undefined, "Trial Master", "Trial Sovereign"]),
+
+  // ---- Progression, extended ----
+  ...tiers({ cat: "Progression", desc: "Reach character level", value: (h) => h.level }, "lvl2", ["Adept", "Champion", "Grand Champion", "Mythic Hero"], [30, 50, 65, 80], [1500, 6000, 25000, 80000], [undefined, "Champion", "Grand Champion", "Mythic Hero"]),
+  ...tiers({ cat: "Progression", desc: "Clear campaign stages", value: (h) => h.stage - 1 }, "stage2", ["Trailblazer", "Vanguard", "Campaign Champion", "Road's End"], [15, 30, 80, 120], [800, 4000, 20000, 60000], [undefined, undefined, "Campaign Champion", "Road's End"]),
+  ...tiers({ cat: "Progression", desc: "Climb Endless Conquest floors", value: (h) => h.spire - 1 }, "spire3", ["High Climber", "Skybreaker", "Conquest Sovereign"], [150, 300, 500], [40000, 90000, 200000], [undefined, undefined, "Conquest Sovereign"]),
+  ...tiers({ cat: "Progression", desc: "Gain Ascension levels", value: (h) => h.paragon }, "asc3", ["Ascendant Lord", "Transcendent Ascendant", "Beyond Mortal"], [75, 100, 150], [150000, 300000, 600000], ["Ascendant Lord", "Transcendent Ascendant", "Beyond Mortal"]),
+
+  // ---- Crafting, extended ----
+  ...tiers({ cat: "Crafting", desc: "Craft items at the Forge", value: (h) => h.crafts ?? 0 }, "crafts2", ["Forge Master", "Forge Lord", "Forge Deity"], [250, 500, 1000], [25000, 60000, 150000], [undefined, "Forge Lord", "Forge Deity"]),
+  ...tiers({ cat: "Crafting", desc: "Successfully enhance gear", value: (h) => rec(h).enhances }, "enh3", ["Tempering Expert", "Enchanting Master", "Enchanting Legend"], [250, 500, 1000], [20000, 50000, 120000], [undefined, "Enchanting Master", "Enchanting Legend"]),
+
+  // ---- Synthesis armour ----
+  ...tiers({ cat: "Synthesis", desc: "Forge synthesis pieces", value: (h) => synthPieces(h) }, "synthpcs", ["First Suit", "Half Wardrobe", "Full Wardrobe"], [8, 40, 72], [5000, 30000, 120000], [undefined, undefined, "Wardrobe Keeper"]),
+  ...tiers({ cat: "Synthesis", desc: "Complete whole synthesis sets", value: (h) => synthSets(h) }, "synthsets", ["One Complete Set", "Three Complete Sets", "Six Complete Sets", "Every Set Forged"], [1, 3, 6, 9], [10000, 40000, 120000, 300000], [undefined, undefined, undefined, "Synthesis Sovereign"]),
+  ...tiers({ cat: "Synthesis", desc: "Wear synthesis pieces at once", value: (h) => synthWorn(h) }, "synthworn", ["Matching Steel", "Synthesis Knight"], [4, 8], [6000, 30000], [undefined, "Synthesis Knight"]),
+
+  // ---- Arena, extended ----
+  ...tiers({ cat: "Arena", desc: "Win arena fights", value: (h) => rec(h).arenaWins }, "arena3", ["Arena Immortal", "Blood Sovereign"], [500, 1000], [80000, 200000], ["Arena Immortal", "Blood Sovereign"]),
+
+  // ---- Astrals ----
+  ...tiers({ cat: "Astrals", desc: "Own Astrals", value: (h) => astrals(h).length }, "astraln", ["Star Finder", "Astral Keeper", "Astral Archivist", "Astral Sovereign", "Astral Cosmos"], [1, 5, 15, 30, 60], [300, 2000, 8000, 30000, 100000], [undefined, undefined, undefined, "Astral Sovereign", "Astral Cosmos"]),
+  ...tiers({ cat: "Astrals", desc: "Reach an Astral's level", value: (h) => bestAstralLvl(h) }, "astralmax", ["Nurtured Star", "Perfect Astral"], [5, 10], [5000, 40000], [undefined, "Perfect Astral"]),
+  ...tiers({ cat: "Astrals", desc: "Own an Astral of this rarity or better", value: (h) => bestAstralRarity(h) }, "astralrarity", ["Green Shimmer", "Blue Shimmer", "Purple Shimmer", "Golden Shimmer", "Crimson Shimmer"], [2, 3, 4, 5, 6], [200, 600, 1500, 4000, 12000], [undefined, undefined, undefined, "Golden Shimmer", "Crimson Shimmer"]),
+  ...tiers({ cat: "Astrals", desc: "Own Red Astrals", value: (h) => astralsOfRarity(h, 5) }, "astralred", ["One Red Star", "Crimson Constellation"], [1, 3], [25000, 100000], [undefined, "Crimson Constellation"]),
+
+  // ---- Gems ----
+  ...tiers({ cat: "Gems", desc: "Own gems in total", value: (h) => gemTotal(h) }, "gemcount", ["Gem Pouch", "Gem Vault", "Gem Hoard", "Gem Treasury"], [10, 50, 200, 500], [500, 3000, 15000, 60000], [undefined, undefined, undefined, "Gem Treasurer"]),
+  ...tiers({ cat: "Gems", desc: "Own distinct gem families", value: (h) => gemFamilies(h) }, "gemfam", ["Gem Cutter", "Gem Scholar", "Gem Savant", "Gem Master"], [2, 4, 6, 8], [800, 3000, 9000, 25000], [undefined, undefined, undefined, "Gem Master"]),
+  ...tiers({ cat: "Gems", desc: "Own a gem of this level or better", value: (h) => bestGemTier(h) }, "gemtier", ["Cutting Edge", "Radiant Touch", "Celestial Gem", "Primordial Gem"], [3, 6, 9, 12], [1000, 5000, 25000, 100000], [undefined, undefined, undefined, "Primordial"]),
+
+  // ---- Conquest, extended ----
+  ...tiers({ cat: "Conquest", desc: "Collect Conquest Tokens total", value: (h) => h.conquest?.tokens ?? 0 }, "ctokens3", ["Token Emperor", "Token Immortal"], [5000, 20000], [30000, 120000], ["Token Emperor", "Token Immortal"]),
+
+  // ---- Bestiary, extended ----
+  ...tiers({ cat: "Bestiary", desc: "Defeat monsters", value: (h) => sum(h.kills) }, "kills2", ["Exterminator", "Apex Hunter", "Extinction Bringer"], [2500, 5000, 10000], [50000, 120000, 300000], [undefined, undefined, "Extinction Bringer"]),
+  ...tiers({ cat: "Bestiary", desc: "Defeat distinct monster species", value: (h) => Object.keys(h.kills ?? {}).length }, "species", ["Field Guide", "Zoologist", "Menagerie", "Living Bestiary"], [5, 25, 60, 100], [1200, 8000, 40000, 150000], [undefined, undefined, undefined, "Living Bestiary"]),
+
+  // ---- Exploration, extended ----
+  ...tiers({ cat: "Exploration", desc: "Reach Long Road stages", value: (h) => h.road?.best ?? 0 }, "road3", ["Long Hauler", "Far Wanderer", "End of the Road"], [150, 200, 300], [60000, 120000, 250000], [undefined, undefined, "End of the Road"]),
+  ...tiers({ cat: "Exploration", desc: "Claim region quests", value: (h) => (h.quests ?? []).length }, "quests3", ["Odd Job", "District Hero", "Realm Champion"], [2, 6, 8], [400, 4000, 30000], [undefined, undefined, "Realm Champion"]),
+  ...tiers({ cat: "Exploration", desc: "Clear dungeons", value: (h) => sum(h.dungeons) }, "dungeons", ["Dungeon Diver", "Dungeon Delver", "Dungeon Conqueror", "Dungeon Sovereign"], [1, 5, 20, 50], [800, 5000, 30000, 120000], [undefined, undefined, undefined, "Dungeon Sovereign"]),
+  ...tiers({ cat: "Exploration", desc: "Plant your banner on the world map", value: (h) => (h as { worldCastle?: unknown }).worldCastle ? 1 : 0 }, "banner", ["Banner Lord"], [1], [5000], ["Banner Lord"]),
+
+  // ---- Guild and training, extended ----
+  ...tiers({ cat: "Guild", desc: "Learn guild skill ranks", value: (h) => sum(h.guildSkills) }, "guild2", ["Guild Champion"], [100], [80000], ["Guild Champion"]),
+  ...tiers({ cat: "Training", desc: "Learn barracks drill ranks", value: (h) => sum(h.drills) }, "drills2", ["Drill Marshal", "Drill Legend"], [60, 100], [50000, 120000], ["Drill Marshal", "Drill Legend"]),
+  ...tiers({ cat: "Training", desc: "Raise attribute drill ranks", value: (h) => sum(h.attrDrills) }, "attrdrills", ["Iron Body", "Steel Body", "Adamant Body"], [10, 30, 60], [3000, 20000, 80000], [undefined, undefined, "Adamant Body"]),
+
+  // ---- Treasure ----
+  ...tiers({ cat: "Treasure", desc: "Collect periodic reward chests", value: (h) => h.rewardChest?.claims ?? 0 }, "chestclaims", ["Chest Opener", "Chest Collector", "Chest Hunter", "Chest Sovereign"], [10, 50, 100, 250], [600, 3000, 12000, 40000], [undefined, undefined, undefined, "Chest Sovereign"]),
+  ...tiers({ cat: "Treasure", desc: "Finish 30-day reward cycles", value: (h) => h.dailyRewards?.cycles ?? 0 }, "rewardcycles", ["First Cycle", "Third Cycle", "Sixth Cycle", "Year of Rewards"], [1, 3, 6, 12], [2000, 8000, 25000, 100000], [undefined, undefined, undefined, "Year of Rewards"]),
+  ...tiers({ cat: "Treasure", desc: "Fight event bosses", value: (h) => sum(h.eventBoss) }, "eventboss", ["Event Fighter", "Event Veteran", "Event Champion"], [1, 10, 50], [1000, 8000, 40000], [undefined, undefined, "Event Champion"]),
+
+  // ---- Wealth ----
+  ...tiers({ cat: "Wealth", desc: "Hold gold at once", value: (h) => h.gold ?? 0 }, "gold", ["Pocket Change", "Wealthy", "Rich", "Fortune's Own"], [10000, 100000, 1000000, 5000000], [500, 3000, 15000, 60000], [undefined, undefined, undefined, "Fortune's Own"]),
 ];
 
 export const achProgress = (h: ProgressState, a: Achievement) => Math.min(a.goal, Math.max(0, a.value(h)));

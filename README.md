@@ -213,14 +213,16 @@ Requirements:
 
 Support these six rarities:
 
-- Grey — Common.
+- White — Common.
 - Green — Uncommon.
 - Blue — Rare.
 - Purple — Epic.
-- Orange — Legendary.
-- Gold — Mythic.
+- Gold — Legendary.
+- Red — Mythic.
 
-Grey and Green should be common. Blue and Purple should be less common. Orange should be rare, and Gold should be exceptionally rare.
+White and Green should be common. Blue and Purple should be less common. Gold should be rare, and Red should be exceptionally rare.
+
+Every Astral is summoned at level 1 and can be upgraded ten times, to level 10. Each upgrade costs Starshards, and the price rises with the Astral's rarity.
 
 Display the actual configured probabilities rather than misleading or invented odds.
 
@@ -491,7 +493,7 @@ This includes, where needed:
 
 - **Item artwork:** Ember Ore, Soul Essence, Starshards, Boss Cores, crafting materials, gems, Astrals, scrolls, recipes, fragments, and collectible items.
 - **Equipment artwork:** Weapons, armor, equipment icons, inventory thumbnails, and crafting-result previews.
-- **Astral artwork:** Distinct visuals for all six rarities: Grey, Green, Blue, Purple, Orange, and Gold.
+- **Astral artwork:** Distinct visuals for all six rarities: White, Green, Blue, Purple, Gold, and Red.
 - **Gem artwork:** Distinct icons for every gem type, including physical attack, magic attack, physical defense, magic defense, HP, critical chance, critical damage, accuracy, dodge, block, and penetration.
 - **Cosmetics:** Character outfits, weapon skins, wings, mounts where supported, profile frames, and other collectible appearances.
 - **UI assets:** Guild emblems, mailbox icons, Lucky Shot visuals, buttons, rarity borders, inventory icons, reward illustrations, and missing interface elements.

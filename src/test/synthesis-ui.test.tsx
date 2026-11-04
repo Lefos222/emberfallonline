@@ -27,11 +27,11 @@ const tile = (name: RegExp) => screen.getByRole("button", { name });
 
 describe("synthesis tab", () => {
   it("shows the level, the current set, the next set and all eight pieces", () => {
-    render(<Harness hero={heroAt(30)} />);
+    render(<Harness hero={heroAt(40)} />);
     expect(screen.getByTestId("synthesis-tab")).toBeTruthy();
     expect(screen.getByText("Current set")).toBeTruthy();
     expect(screen.getAllByText("Synthesis Set I").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Requires level 40").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Requires level 50").length).toBeGreaterThan(0);
     // Eight equipment pieces, each with its own crafting state.
     for (const slot of SYNTH_SLOTS) {
       const label = slot === "weapon" ? "Sword" : slot === "ring1" ? "Ring I" : slot === "ring2" ? "Ring II" : null;
@@ -41,7 +41,7 @@ describe("synthesis tab", () => {
   });
 
   it("blocks crafting while the player is short of materials", () => {
-    render(<Harness hero={heroAt(30)} />);
+    render(<Harness hero={heroAt(40)} />);
     expect(screen.getAllByText(/Not enough/).length).toBeGreaterThan(0);
     const forge = tile(/^Forge piece$/i) as HTMLButtonElement;
     expect(forge.disabled).toBe(true);
@@ -49,7 +49,7 @@ describe("synthesis tab", () => {
 
   it("forges a piece, then equips it, and the preview follows the equipment", () => {
     const cost = synthCost(1, "helmet");
-    render(<Harness hero={heroAt(30, { ...cost })} />);
+    render(<Harness hero={heroAt(40, { ...cost })} />);
     const forge = tile(/^Forge piece$/i) as HTMLButtonElement;
     expect(forge.disabled).toBe(false);
     fireEvent.click(forge);
@@ -64,14 +64,21 @@ describe("synthesis tab", () => {
     expect(tile(/^Remove from helmet$/i)).toBeTruthy();
   });
 
+  it("keeps the whole forge shut until level 30 and shows the first set at level 40", () => {
+    render(<Harness hero={heroAt(29)} />);
+    expect(screen.getByText(/Synthesis opens at character level 30/)).toBeTruthy();
+    expect(screen.queryAllByText("Not forged").length).toBe(0);
+    expect(screen.getAllByText("Lv 40").length).toBeGreaterThanOrEqual(8);
+  });
+
   it("keeps locked sets visible with their required level", () => {
-    render(<Harness hero={heroAt(35)} />);
+    render(<Harness hero={heroAt(45)} />);
     const rail = screen.getByRole("group", { name: /synthesis sets/i });
     expect(within(rail).getAllByRole("button")).toHaveLength(9);
-    expect(within(rail).getByRole("button", { name: /Synthesis Set IX, locked until level 110/ })).toBeTruthy();
+    expect(within(rail).getByRole("button", { name: /Synthesis Set IX, locked until level 120/ })).toBeTruthy();
     fireEvent.click(within(rail).getByRole("button", { name: /Synthesis Set IX/ }));
-    expect(screen.getByText(/Unlocks at level 110/)).toBeTruthy();
-    const forge = tile(/^Requires level 110$/i) as HTMLButtonElement;
+    expect(screen.getByText(/Unlocks at level 120/)).toBeTruthy();
+    const forge = tile(/^Requires level 120$/i) as HTMLButtonElement;
     expect(forge.disabled).toBe(true);
   });
 });
