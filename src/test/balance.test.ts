@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   MITIGATION_FLOOR,
   calcDamage,
+  catchUpXpFactor,
   heroStats,
   makeItem,
   riftFactor,
@@ -28,7 +29,7 @@ import { DRILLS, drillFx, trainDrill } from "@/game/drills";
 const SLOTS: Slot[] = ["helmet", "armour", "boots", "belt", "weapon", "ring", "talisman"];
 
 /** A hero who trained along the way and keeps gear roughly current for the stage they face. */
-function heroAt(stage: number, cls: HeroClass): Hero {
+function heroAt(stage: number, cls: HeroClass, enh = 0): Hero {
   const h = newHero("Balanced", cls);
   h.level = Math.min(80, stage);
   h.attrs = {
@@ -39,13 +40,17 @@ function heroAt(stage: number, cls: HeroClass): Hero {
   };
   const rarity = stage < 10 ? 1 : stage < 25 ? 2 : stage < 45 ? 3 : stage < 65 ? 4 : 5;
   h.equipment = {};
-  for (const slot of SLOTS) h.equipment[slot] = makeItem(cls, stage, rarity, slot);
+  for (const slot of SLOTS) {
+    const it = makeItem(cls, stage, rarity, slot);
+    it.enh = enh;
+    h.equipment[slot] = it;
+  }
   return h;
 }
 
 /** Auto-battle, using the same skill choice the battle screen's AUTO mode makes. */
-function autoBattle(stage: number, cls: HeroClass) {
-  const h = heroAt(stage, cls);
+function autoBattle(stage: number, cls: HeroClass, enh = 0) {
+  const h = heroAt(stage, cls, enh);
   const stats = heroStats(h);
   const s = initBattle(
     {
@@ -106,17 +111,24 @@ function seeded(seed: number) {
 }
 
 describe("slower late-game progression", () => {
-  it("every level costs more XP than the old curve (about 2x by level 40)", () => {
-    for (const lv of [1, 10, 25, 40]) {
-      const old = Math.round(60 * Math.pow(lv, 1.6));
+  it("keeps the base curve to level 30, then charges far more per level", () => {
+    for (const lv of [1, 10, 25, 30]) {
       expect(xpToNext({ level: lv, paragon: 0 })).toBe(Math.round(75 * Math.pow(lv, 1.75)));
-      expect(xpToNext({ level: lv, paragon: 0 })).toBeGreaterThan(old);
     }
-    expect(xpToNext({ level: 40, paragon: 0 }) / Math.round(60 * Math.pow(40, 1.6))).toBeGreaterThan(1.9);
+    // Level 40 sits ten compounding steps past the late-game knee: near double the flat curve.
+    const flat40 = Math.round(75 * Math.pow(40, 1.75));
+    expect(xpToNext({ level: 40, paragon: 0 })).toBeGreaterThan(flat40 * 1.9);
+    expect(xpToNext({ level: 40, paragon: 0 })).toBe(Math.round(75 * Math.pow(40, 1.75) * Math.pow(1.075, 10)));
   });
-  it("levels past 40 compound extra XP on top (about 15x by level 79)", () => {
+  it("levels past 30 compound extra XP on top (about 37x by level 80)", () => {
     const noLate = Math.round(75 * Math.pow(79, 1.75));
-    expect(xpToNext({ level: 79, paragon: 0 }) / noLate).toBeGreaterThan(13);
+    expect(xpToNext({ level: 79, paragon: 0 }) / noLate).toBeGreaterThan(25);
+  });
+  it("pays catch-up XP when a hero fights above their level, capped at double", () => {
+    expect(catchUpXpFactor(20, 20)).toBe(1);
+    expect(catchUpXpFactor(10, 20)).toBe(2);
+    expect(catchUpXpFactor(5, 80)).toBe(2);
+    expect(catchUpXpFactor(17, 20)).toBeCloseTo(1.3);
   });
   it("gold rewards are nerfed versus the old formula", () => {
     for (const st of [10, 40, 80]) expect(stageRewards(st).gold).toBeLessThan((12 + 10 * Math.pow(st, 1.85)) * 0.7);
@@ -137,11 +149,22 @@ describe("campaign balance", () => {
   it.each(["warrior", "mage", "archer"] as const)(
     "%s clears the stages a level-matched hero faces",
     (cls) => {
-      for (const stage of [1, 5, 10, 20, 30, 40, 50, 60, 70, 80]) {
+      for (const stage of [1, 5, 10, 20, 30, 40, 50, 60, 70]) {
         const r = autoBattle(stage, cls);
         expect(r.over, `${cls} should win stage ${stage}`).toBe("won");
         expect(r.turns, `${cls} should not stall on stage ${stage}`).toBeLessThan(30);
       }
+    },
+  );
+
+  it.each(["warrior", "mage", "archer"] as const)(
+    "%s scales past the late-game wall with enhanced gear",
+    (cls) => {
+      // Past stage 30 foes gain extra toughness; the endgame wall at stage 80 is answered by
+      // enhancing current gear (+8), which is the progression lever a stuck hero always has.
+      const r = autoBattle(80, cls, 8);
+      expect(r.over, `${cls} should win stage 80 with enhanced gear`).toBe("won");
+      expect(r.turns, `${cls} should not stall on stage 80`).toBeLessThan(30);
     },
   );
 

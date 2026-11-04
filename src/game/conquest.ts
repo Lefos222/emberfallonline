@@ -2,6 +2,7 @@ import { addGem, addMats, GEM_MAX_TIER, type GemType, type Mat } from "./craftin
 import { stageRewards, type Hero } from "./data";
 import { grant } from "./logic";
 import { greekDayStart } from "./events";
+import { scaledGold } from "./gold";
 
 /**
  * Endless Conquest. Floors never stop scaling: each one is built from the shared
@@ -45,15 +46,17 @@ export function spendBlitz(h: Hero, now = Date.now()) {
   h.conquest = { ...(h.conquest ?? {}), blitzDay: blitzDay(now), blitzUsed: blitzesUsed(h, now) + 1 };
 }
 
-/** Tokens a gem of this level costs in the Conquest store; deeper levels grow steeply. */
-export const gemTokenPrice = (level: number) => Math.round(8 * Math.pow(level, 1.5));
+/** Gold a gem costs in the Conquest store: 1,800 for a level 1 gem of any family, then the tier
+ *  climbs steeply (level²) so buying socket power at the gate stays a real late-game sink.
+ *  Scaled by hero level like every other gold price (see gold.ts). */
+export const gemGoldPrice = (level: number, heroLevel = 1) => scaledGold(1800 * level * level, heroLevel);
 
-/** Buy a gem of any family and level with Conquest Tokens. Returns an error message, or null on success. */
+/** Buy a gem of any family and level with gold at the Conquest Gate. Returns an error message, or null on success. */
 export function buyConquestGem(h: Hero, type: GemType, level: number): string | null {
   if (level < 1 || level > GEM_MAX_TIER) return "No such gem level";
-  const cost = gemTokenPrice(level);
-  if (conquestTokens(h) < cost) return `Not enough Conquest Tokens — ${cost} needed`;
-  addConquestTokens(h, -cost);
+  const cost = gemGoldPrice(level, h.level);
+  if (h.gold < cost) return `Not enough gold — ${cost} needed`;
+  h.gold -= cost;
   addGem(h, type, level);
   return null;
 }
@@ -61,17 +64,17 @@ export function buyConquestGem(h: Hero, type: GemType, level: number): string | 
 /** Equipment materials and items the Conquest Gate sells for tokens. */
 export interface TokenOffer { id: string; mat: Mat; qty: number; cost: number; gold?: number; name?: string }
 export const TOKEN_OFFERS: TokenOffer[] = [
-  { id: "goldchest", mat: "ore", qty: 0, cost: 30, gold: 5000, name: "Gold Chest" },
-  { id: "ore", mat: "ore", qty: 10, cost: 20 },
-  { id: "hide", mat: "hide", qty: 10, cost: 20 },
-  { id: "bloom", mat: "bloom", qty: 5, cost: 25 },
-  { id: "essence", mat: "essence", qty: 2, cost: 40 },
-  { id: "fragment", mat: "fragment", qty: 2, cost: 50 },
-  { id: "crystal", mat: "crystal", qty: 1, cost: 60 },
-  { id: "enchantstone", mat: "enchantStone", qty: 2, cost: 80 },
-  { id: "sigil", mat: "sigil", qty: 1, cost: 120 },
-  { id: "starshard", mat: "starshard", qty: 1, cost: 150 },
-  { id: "bossCore", mat: "bossCore", qty: 1, cost: 300 },
+  { id: "goldchest", mat: "ore", qty: 0, cost: 90, gold: 5000, name: "Gold Chest" },
+  { id: "ore", mat: "ore", qty: 10, cost: 60 },
+  { id: "hide", mat: "hide", qty: 10, cost: 60 },
+  { id: "bloom", mat: "bloom", qty: 5, cost: 75 },
+  { id: "essence", mat: "essence", qty: 2, cost: 120 },
+  { id: "fragment", mat: "fragment", qty: 2, cost: 150 },
+  { id: "crystal", mat: "crystal", qty: 1, cost: 180 },
+  { id: "enchantstone", mat: "enchantStone", qty: 2, cost: 240 },
+  { id: "sigil", mat: "sigil", qty: 1, cost: 360 },
+  { id: "starshard", mat: "starshard", qty: 1, cost: 450 },
+  { id: "bossCore", mat: "bossCore", qty: 1, cost: 900 },
 ];
 
 /** Buy one offer with tokens. Returns an error message, or null on success. */

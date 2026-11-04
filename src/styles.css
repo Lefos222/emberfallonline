@@ -159,6 +159,7 @@
   .bar-track { background: oklch(0.1 0.02 20); border: 1px solid oklch(0.5 0.08 65); border-radius: 999px; overflow: hidden; }
   .bar-hp { background: linear-gradient(180deg, oklch(0.68 0.22 27), oklch(0.42 0.18 25)); transition: width 0.4s ease; }
   .bar-xp { background: linear-gradient(180deg, oklch(0.78 0.14 230), oklch(0.5 0.15 240)); transition: width 0.4s ease; }
+  .bar-stamina { background: linear-gradient(180deg, oklch(0.82 0.17 145), oklch(0.52 0.15 150)); transition: width 0.4s ease; }
   .hotspot {
     position: absolute;
     transform: translate(-50%, -50%);

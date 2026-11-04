@@ -264,6 +264,10 @@ export interface Hero {
   road?: { stage: number; wave: number; best: number; cleared: number };
   /** Endless Conquest: tokens earned from cleared floors and spent in the Conquest Gate (see conquest.ts). */
   conquest?: { tokens?: number; blitzDay?: string; blitzUsed?: number };
+  /** Campaign Gate stamina for the Greek day (see stamina.ts). */
+  stamina?: { day?: string; used?: number };
+  /** Current level's quest board: counter snapshot taken when the level began, plus claimed ids (see level-quests.ts). */
+  levelQuests?: { level: number; base: Record<string, number>; claimed: string[] };
   /** Barracks drill ranks by drill id (see drills.ts). */
   drills?: Record<string, number>;
   /** Bestiary entries the character has defeated, by bestiary id. */
@@ -294,10 +298,19 @@ export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
 }
 
 /** Levels past this point get steadily slower so reaching the cap takes weeks, not days. */
-export const LATE_LEVEL = 40;
-/** Extra XP multiplier per level: 1x up to Lv 40, then +7% compounding each level (~15x by Lv 80). */
+export const LATE_LEVEL = 30;
+/** Extra XP multiplier per level: 1x up to Lv 30, then +7.5% compounding each level (~37x by Lv 80). */
 export function lateLevelFactor(level: number) {
-  return Math.pow(1.07, Math.max(0, level - LATE_LEVEL));
+  return Math.pow(1.075, Math.max(0, level - LATE_LEVEL));
+}
+
+/** Stages past this point are the hard half of the campaign: foes grow faster than the road below it. */
+export const HARD_STAGE = 30;
+
+/** A hero fighting a stage far above their own level is under-levelled: the campaign pays up to
+ *  double XP until they catch up, so a bad stretch never walls a player out of progression. */
+export function catchUpXpFactor(level: number, stage: number) {
+  return 1 + Math.min(1, Math.max(0, stage - level) * 0.1);
 }
 
 export interface Stats {
@@ -449,16 +462,21 @@ export function stageFoe(stage: number, mult = 1, type?: EnemyType, name?: strin
   };
 }
 
-/** Monsters get tougher as you progress: +0.6% health/damage per stage after stage 5 (bosses get 40% of that, they already spike). */
+/** Monsters get tougher as you progress: +0.6% health/damage per stage after stage 5 (bosses get 40% of that, they already spike).
+ *  From stage 31 the curve steepens by +0.8% compounding each stage (~+49% by stage 80), so the late
+ *  campaign is a real wall the hero answers with levels, enhancements, gems and talents. */
 export function foeToughness(stage: number) {
-  return 1 + Math.max(0, stage - 5) * 0.006;
+  const steady = 1 + Math.max(0, stage - 5) * 0.006;
+  return steady * Math.pow(1.008, Math.max(0, stage - HARD_STAGE));
 }
 
-/** Rewards rise with the stage but always stay below what the next level costs (see xpToNext). */
+/** Rewards rise with the stage but always stay below what the next level costs (see xpToNext).
+ *  Past stage 30 they keep climbing slowly (the foe curve climbs faster), backed by the catch-up XP. */
 export function stageRewards(stage: number, mult = 1) {
+  const late = Math.pow(1.01, Math.max(0, stage - HARD_STAGE));
   return {
-    xp: Math.round(40 * Math.pow(stage, 1.6) * mult),
-    gold: Math.round((8 + 6 * Math.pow(stage, 1.75)) * mult),
+    xp: Math.round(40 * Math.pow(stage, 1.6) * late * mult),
+    gold: Math.round((8 + 6 * Math.pow(stage, 1.75)) * late * mult),
   };
 }
 
