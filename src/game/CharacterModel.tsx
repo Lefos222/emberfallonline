@@ -10,6 +10,7 @@ import mageMale from '@/assets/heroes/mage-male-idle.png';
 import mageMaleAction from '@/assets/heroes/mage-male-action.png';
 import mageFemale from '@/assets/heroes/mage-female-idle.png';
 import mageFemaleAction from '@/assets/heroes/mage-female-action.png';
+import { synthArt, tierName } from './synthesis';
 import type { HeroClass } from './data';
 
 const MODELS: Record<HeroClass, Record<'male' | 'female', [string, string]>> = {
@@ -18,9 +19,20 @@ const MODELS: Record<HeroClass, Record<'male' | 'female', [string, string]>> = {
   mage: { male: [mageMale, mageMaleAction], female: [mageFemale, mageFemaleAction] },
 };
 export type HeroPose = 'auto' | 'idle' | 'action';
-export function CharacterModel({ cls, gender, className = '', pose = 'auto' }: { cls: HeroClass; gender: 'male' | 'female'; className?: string; pose?: HeroPose }) {
-  const [idle, action] = MODELS[cls][gender];
+
+/**
+ * The hero's body. With `synth` set, the worn synthesis set's painted armour replaces the
+ * default class look — the appearance always follows the equipment, never the level.
+ */
+export function CharacterModel({ cls, gender, className = '', pose = 'auto', synth }: { cls: HeroClass; gender: 'male' | 'female'; className?: string; pose?: HeroPose; synth?: number | null }) {
   const label = `${gender === 'female' ? 'Female' : 'Male'} ${cls === 'warrior' ? 'Knight' : cls === 'mage' ? 'Mage' : 'Archer'}`;
+  const art = synth ? synthArt(cls, gender, synth) : undefined;
+  if (art) {
+    return <div className={`hero-model synth-card ${className}`} data-character-model={`${cls}-${gender}-synthesis`} data-synthesis-tier={synth}>
+      <img src={art} alt={`${label} in ${tierName(synth!)} armour`} draggable={false} className="synth-card-art" />
+    </div>;
+  }
+  const [idle, action] = MODELS[cls][gender];
   return <div className={`hero-model ${className}`} data-character-model={`${cls}-${gender}`} data-hero-pose={pose}>
     <img src={idle} alt={label} draggable={false} className="hero-model-idle" />
     <img src={action} alt="" aria-hidden="true" draggable={false} className="hero-model-action" />

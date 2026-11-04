@@ -339,6 +339,10 @@
 }
 
 .hero-model { position: relative; aspect-ratio: 1; overflow: hidden; }
+/* Synthesis armour: the hero's body is the painted set from the design sheets, framed like an
+   armoury portrait so the parchment art sits inside the game's dark panels. */
+.synth-card { aspect-ratio: 420 / 538; border: 1px solid color-mix(in oklab, var(--gold) 45%, transparent); border-radius: 6px; background: #0b0705; box-shadow: inset 0 0 28px -8px #000; }
+.synth-card > .synth-card-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
 .hero-model > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
 .hero-model-action { opacity: 0; }
 .hero-model[data-hero-pose="action"] > .hero-model-idle { opacity: 0; }

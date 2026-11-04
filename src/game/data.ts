@@ -6,11 +6,12 @@ import goblinImg from "@/assets/enemy-goblin.png";
 import demonImg from "@/assets/enemy-demon.png";
 import dragonImg from "@/assets/enemy-dragon.png";
 import { talentFx, talentSkills } from "./talents";
-import { astralFx, gemFx, migrateGems, zeroGemFx, type Astral, type BonusFx, type Mat } from "./crafting";
+import { astralFx, gemFx, migrateGems, zeroFx, zeroGemFx, type Astral, type BonusFx, type Mat } from "./crafting";
 import { setFx, type BattleEntry, type CombatRecord } from "./progress";
 import { scaledGold } from "./gold";
 import { drillFx } from "./drills";
 import { guildFx } from "./guild-tower";
+import { normalizeSynth, synthFx } from "./synthesis";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -283,6 +284,8 @@ export interface Hero {
   guildSkills?: Record<string, number>;
   /** Ancestral Tower progression: next fightable floor and deepest cleared (see ancestral-tower.ts). */
   ancTower?: { floor: number; bestFloor: number };
+  /** Synthesis armour: forged pieces ("<tier>:<slot>") and the set worn in each slot (see synthesis.ts). */
+  synth?: { crafted?: string[]; worn?: Record<string, number> };
 
 }
 
@@ -322,6 +325,8 @@ export function normalizeHero(h: Hero): Hero {
   }
   // Gems from older saves are remapped onto the eight chart families (see crafting.ts).
   migrateGems(h);
+  // Synthesis gear survives every save round-trip; unknown or un-forged pieces are dropped.
+  normalizeSynth(h);
   return h;
 }
 
@@ -335,16 +340,20 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   // Barracks drills are the hero's permanent training track beside the attribute points (see drills.ts).
   const dr = opts.talents ? drillFx(h) : null;
   const gf2 = opts.talents ? guildFx(h) : null;
-  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0);
+  // Synthesis armour joins the same percentage pipeline as the other long-term tracks.
+  const sy = opts.talents ? synthFx(h) : zeroFx();
+  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + sy[k];
   const sf0 = opts.gear ? setFx(h.equipment) : { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
   const af = opts.talents ? astralFx(h) : null;
   const sf = {
-    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0),
-    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0),
-    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0),
-    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0),
+    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct,
+    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct,
+    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct,
+    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit,
   };
-  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0); tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0);
+  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge;
+  tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + sy.critDmg;
+  tf.pen += sy.pen;
   const pa = 1 + (tf.atkPct + sf.atkPct) / 100, ph = 1 + (tf.hpPct + sf.hpPct) / 100, pd = 1 + (tf.defPct + sf.defPct) / 100;
   const c = CLASSES[h.cls];
   const items = opts.gear ? (Object.values(h.equipment).filter(Boolean) as Item[]) : [];
@@ -386,7 +395,7 @@ export function powerBreakdown(h: Hero): PowerSource[] {
     { label: "Attributes", power: withAttrs - base },
     { label: "Equipment", power: withGear - withAttrs },
     { label: `Ascension ${h.paragon}`, power: withAsc - withGear },
-    { label: "Skill tree, drills & Astrals", power: total - withAsc },
+    { label: "Skill tree, drills, Astrals & Synthesis", power: total - withAsc },
   ];
 }
 export const powerOf = (s: { hp: number; atk: number; def: number; crit: number }) => Math.round(s.atk * 2 + s.def * 1.5 + s.hp * 0.2 + s.crit * 10);
