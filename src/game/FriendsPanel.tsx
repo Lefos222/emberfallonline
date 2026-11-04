@@ -8,6 +8,7 @@ import {
   friendRequestsSupported,
   listFriendRequests,
   listFriends,
+  listIncomingDirectMessages,
   listSentRequests,
   removeFriend,
   requestFriend,
@@ -23,6 +24,25 @@ import {
 type Tab = "friends" | "requests" | "find";
 
 const ONLINE_MS = 5 * 60 * 1000;
+
+/** Last time this device opened each conversation, so the list can badge new messages. */
+const seenKey = (heroId: string) => `ef-dm-seen:${heroId}`;
+function readSeen(heroId: string): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(seenKey(heroId)) ?? "{}") as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+function markSeen(heroId: string, friendId: string) {
+  const seen = readSeen(heroId);
+  seen[friendId] = new Date().toISOString();
+  try {
+    localStorage.setItem(seenKey(heroId), JSON.stringify(seen));
+  } catch {
+    // A blocked storage bucket only costs the badge, never the conversation.
+  }
+}
 
 /** "Online now" for a hero the server saw playing in the last few minutes. */
 export function presence(lastPlayed: string): { online: boolean; label: string } {
@@ -84,22 +104,54 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
   const [searching, setSearching] = useState(false);
   const [searched, setSearched] = useState(false);
   const [chatWith, setChatWith] = useState<FriendProfile | null>(null);
+  const [unread, setUnread] = useState<Record<string, number>>({});
   const [targetId, setTargetId] = useState<string | null>(null);
   const alive = useRef(true);
   const locked = useRef(false);
+  const chatRef = useRef<FriendProfile | null>(null);
+  useEffect(() => {
+    chatRef.current = chatWith;
+  }, [chatWith]);
 
   const reload = async () => {
     if (!heroId) return;
-    const [rows, pending, waiting] = await Promise.all([
+    const [rows, pending, waiting, inbox] = await Promise.all([
       listFriends(heroId),
       listFriendRequests(heroId).catch(() => [] as FriendRequest[]),
       listSentRequests(heroId),
+      listIncomingDirectMessages(heroId).catch(() => []),
     ]);
     if (!alive.current) return;
+    const seen = readSeen(heroId);
+    const counts: Record<string, number> = {};
+    for (const message of inbox) {
+      if (message.sender_id === chatRef.current?.id) continue;
+      const at = Date.parse(message.created_at);
+      const readAt = Date.parse(seen[message.sender_id] ?? "");
+      if (Number.isFinite(at) && at > (Number.isFinite(readAt) ? readAt : 0)) {
+        counts[message.sender_id] = (counts[message.sender_id] ?? 0) + 1;
+      }
+    }
     setFriends(rows);
     setIncoming(pending);
     setSent(waiting);
+    setUnread(counts);
     setLoaded(true);
+  };
+
+  /** Open or close a conversation; opening marks everything from that friend as read. */
+  const openChat = (friend: FriendProfile) => {
+    if (chatWith?.id === friend.id) {
+      setChatWith(null);
+      return;
+    }
+    if (heroId) markSeen(heroId, friend.id);
+    setUnread((current) => {
+      const next = { ...current };
+      delete next[friend.id];
+      return next;
+    });
+    setChatWith(friend);
   };
 
   useEffect(() => {
@@ -336,12 +388,18 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                         type="button"
                         variant={chatWith?.id === friend.id ? "default" : "outline"}
                         size="icon"
-                        aria-label={`Message ${friend.name}`}
-                        title={`Message ${friend.name}`}
+                        className="relative"
+                        aria-label={`Message ${friend.name}${unread[friend.id] ? ` (${unread[friend.id]} new)` : ""}`}
+                        title={unread[friend.id] ? `${unread[friend.id]} new message${unread[friend.id] > 1 ? "s" : ""}` : `Message ${friend.name}`}
                         disabled={busy}
-                        onClick={() => setChatWith(chatWith?.id === friend.id ? null : friend)}
+                        onClick={() => openChat(friend)}
                       >
                         <MessageSquare className="h-4 w-4" />
+                        {unread[friend.id] > 0 && (
+                          <span aria-hidden="true" className="absolute -right-1.5 -top-1.5 min-w-4 rounded-full bg-blood px-1 text-center text-[10px] font-bold leading-4 text-foreground">
+                            {unread[friend.id] > 9 ? "9+" : unread[friend.id]}
+                          </span>
+                        )}
                       </Button>
                       <Button
                         type="button"

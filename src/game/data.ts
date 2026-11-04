@@ -287,6 +287,10 @@ export interface Hero {
   eventBoss?: Record<string, number>;
   /** 30-day reward board: days claimed this cycle, the Greek day of the last claim, cycles finished (see daily-rewards.ts). */
   dailyRewards?: { day?: number; last?: string; cycles?: number };
+  /** Chest items waiting in the vault, by chest id (see chests.ts). */
+  chests?: Partial<Record<"gold" | "gem", number>>;
+  /** Periodic free reward chest: when it was last collected and how many have been collected (see chests.ts). */
+  rewardChest?: { last?: number; claims?: number };
 
 }
 

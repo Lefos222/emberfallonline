@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Gem, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConquestCoin, GemChestIcon, GoldChestIcon } from "./CoinIcon";
 import { GemIcon, MatIcon } from "./MatIcon";
 import { GEMS, GEM_MAX_TIER, GEM_STAT_LABEL, GEM_TYPES, MATS, gemKey, gemValue, type GemType } from "./crafting";
 import { BLITZ_PER_DAY, blitz, blitzBlocker, blitzRewards, blitzesLeft, buyConquestGem, buyTokenOffer, conquestTokens, floorsCleared, gemGoldPrice, TOKEN_OFFERS } from "./conquest";
@@ -59,20 +60,20 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
 
       <div className="slot p-3">
         <div className="mb-1 flex items-center justify-between gap-2 font-display text-gold">
-          <span>Conquest Tokens</span>
+          <span className="flex items-center gap-2"><ConquestCoin size={20} />Conquest Tokens</span>
           <span>{fmt(tokens)}</span>
         </div>
-        <p className="text-xs text-muted-foreground">Every cleared floor pays tokens. Spend them on materials, gold chests and enchantment stones.</p>
+        <p className="text-xs text-muted-foreground">Every cleared floor pays tokens. Spend them on materials, chests and enchantment stones. Chests go to your vault — open them from the Armory.</p>
         <div className="mt-3 grid gap-1.5 sm:grid-cols-2">
           {TOKEN_OFFERS.map((o) => {
-            const isGold = !!o.gold;
-            const label = isGold ? (o.name ?? "Gold Chest") : `${MATS[o.mat].name} ×${o.qty}`;
+            const isChest = !!o.chest;
+            const label = isChest ? (o.name ?? "Chest") : `${MATS[o.mat].name} ×${o.qty}`;
             return (
               <button key={o.id} className="slot flex items-center justify-between gap-2 p-2 text-left text-xs" disabled={tokens < o.cost}
-                title={isGold ? `Open for ${o.gold} gold` : `${MATS[o.mat].desc} (${MATS[o.mat].src})`}
-                onClick={() => update((h) => { const err = buyTokenOffer(h, o.id); setMsg(err ? { ok: false, t: err } : { ok: true, t: isGold ? `Opened ${o.name} — +${fmt(o.gold!)} gold!` : `Bought ${MATS[o.mat].name} ×${o.qty}` }); })}>
+                title={isChest ? "Goes to your vault — open it from the Armory" : `${MATS[o.mat].desc} (${MATS[o.mat].src})`}
+                onClick={() => update((h) => { const err = buyTokenOffer(h, o.id); setMsg(err ? { ok: false, t: err } : { ok: true, t: isChest ? `${o.name} added to your vault — open it from the Armory` : `Bought ${MATS[o.mat].name} ×${o.qty}` }); })}>
                 <span className="flex min-w-0 items-center gap-1.5">
-                  {isGold ? <span className="text-gold">🪙</span> : <MatIcon mat={o.mat} size={18} />}
+                  {o.chest === "gold" ? <GoldChestIcon size={20} /> : o.chest === "gem" ? <GemChestIcon size={20} /> : <MatIcon mat={o.mat} size={18} />}
                   <span className="truncate">{label}</span>
                 </span>
                 <span className="shrink-0 font-bold text-gold">{fmt(o.cost)} t</span>

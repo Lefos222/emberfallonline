@@ -194,6 +194,23 @@ export async function listDirectMessages(
   return (data ?? []).reverse();
 }
 
+/** Every private message sent to this hero, newest first, for the friends-list unread badges. */
+export interface IncomingDirectMessage extends DirectMessage {
+  recipient_id: string | null;
+}
+
+export async function listIncomingDirectMessages(heroId: string): Promise<IncomingDirectMessage[]> {
+  const { data, error } = await supabase
+    .from("chat_messages")
+    .select("id,sender_id,sender_name,body,created_at,recipient_id")
+    .eq("channel", "private")
+    .eq("recipient_id", heroId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export async function sendDirectMessage(heroId: string, friendId: string, body: string) {
   const { error } = await supabase.rpc("send_chat", {
     _hero: heroId,

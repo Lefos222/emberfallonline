@@ -19,6 +19,7 @@ import { CampaignBlitz } from "./CampaignBlitz";
 import { update, useGame } from "./store";
 import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { MatIcon } from "./MatIcon";
+import { Vault } from "./Vault";
 import { MATS, REFINE, matCount, refine, scrapItem, scrapYield, sockets, type Mat } from "./crafting";
 import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
@@ -162,6 +163,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               return <ItemSlot key={it?.id ?? i} item={it} size={44} selected={!!it && sel?.id === it.id} onClick={() => it && setSel({ id: it.id, equipped: false })} />;
             })}
           </div>
+          <Vault />
           {(() => {
             const all = Object.keys(MATS) as Mat[];
             const owned = all.filter((m) => matCount(hero, m) > 0);
