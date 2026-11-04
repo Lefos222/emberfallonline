@@ -32,13 +32,13 @@ export function CharacterModel({ cls, gender, className = '', pose = 'auto', syn
   const art = synth ? synthArt(cls, gender, synth) : undefined;
   if (art) {
     return <div className={`hero-model synth-card ${className}`} data-character-model={`${cls}-${gender}-synthesis`} data-synthesis-tier={synth}>
-      <img src={art} alt={`${label} in ${tierName(synth!)} armour`} draggable={false} className="synth-card-art" />
+      <img src={art} alt={`${label} in ${tierName(synth!)} armour`} draggable={false} className="synth-card-art hero-model-flip" />
     </div>;
   }
   const gearArt = look !== null && look !== undefined ? armourArt(cls, gender, look) : undefined;
   if (gearArt) {
     return <div className={`hero-model ${className}`} data-character-model={`${cls}-${gender}`} data-armour-look={look}>
-      <img src={gearArt} alt={`${label} in armour`} draggable={false} className="hero-model-idle" />
+      <img src={gearArt} alt={`${label} in armour`} draggable={false} className="hero-model-idle hero-model-flip" />
     </div>;
   }
   const [idle, action] = MODELS[cls][gender];
