@@ -76,13 +76,12 @@ export function Game() {
     if (!a) return;
     a.volume = 0.35;
     localStorage.setItem("bm-muted", muted ? "1" : "0");
-    // The World Tree carries its own score; the castle theme falls silent inside it.
-    if (muted || open === "worldmap") { a.pause(); return; }
+    if (muted) { a.pause(); return; }
     const play = () => { if (!muted) void a.play().catch(() => {}); };
     play();
     window.addEventListener("pointerdown", play, { once: true });
     return () => window.removeEventListener("pointerdown", play);
-  }, [muted, open]);
+  }, [muted]);
 
   const start: StartBattle = (o) => {
     if (!hero || starting.current || battle) return;
@@ -172,7 +171,7 @@ export function Game() {
           {open === "temple" && <Temple onClose={() => setOpen(null)} />}
           {open === "market" && <Market onClose={() => setOpen(null)} />}
           {open === "arena" && <Arena onClose={() => setOpen(null)} start={start} />}
-          {open === "worldmap" && <WorldMap onClose={() => setOpen(null)} start={start} muted={muted} onToggleMute={() => setMuted((m) => !m)} />}
+          {open === "worldmap" && <WorldMap onClose={() => setOpen(null)} start={start} />}
           {open === "oracle" && <Oracle onClose={() => setOpen(null)} start={start} />}
         </>
       )}
