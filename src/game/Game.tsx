@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircle, Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2, BookOpen, CalendarDays, Gem, Gavel } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
+import { ArtIcon } from "./ArtIcon";
 import { GuildHall } from "./GuildHall";
 import { WorldChat } from "./WorldChat";
 import { FriendsPanel } from "./FriendsPanel";
@@ -121,7 +122,7 @@ export function Game() {
             <Button variant="ghost" size="icon" aria-label="Battle Scrolls" title="Battle Scrolls" onClick={() => setOpen("scrolls")}><ScrollText /></Button>
             <Button variant="ghost" size="icon" aria-label="Bestiary" title="Bestiary" onClick={() => setOpen("bestiary")}><BookOpen /></Button>
             <Button variant="ghost" size="icon" aria-label="Profession Lodge" title="Profession Lodge" onClick={()=>setOpen('professions')}><Anvil/></Button>
-            <Button variant="ghost" size="icon" aria-label="Premium Shop" title="Premium Shop" onClick={()=>setOpen('premium')}><Gem/></Button>
+            <Button variant="ghost" size="icon" aria-label="Premium Shop" title="Premium Shop" onClick={()=>setOpen('premium')}><ArtIcon name="crown" /></Button>
             <Button variant="ghost" size="icon" aria-label="Auction House" title="Auction House" onClick={()=>setOpen('auction')}><Gavel/></Button>
           </nav>
           <WorldChat heroId={heroId} />

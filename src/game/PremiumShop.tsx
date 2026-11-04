@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Gem, Crown } from 'lucide-react';
+import { Gem } from 'lucide-react';
+import { ArtIcon } from './ArtIcon';
 import { GameTabs, Panel, fmt } from './ui';
 import { useGame } from './store';
 import { DIAMOND_PACKS, DIAMOND_SHOP, GOLD_PACKS, VIP_LEVELS, premiumState } from './economy';
@@ -99,7 +100,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
           {vip && p.vip.until && (
             <div className="slot mb-4 flex flex-wrap items-center justify-between gap-3 border-gold/60 p-4">
               <div>
-                <p className="font-display text-lg text-gold"><Crown className="mr-1 inline h-5 w-5" />VIP {vip.level} — {vip.name}</p>
+                <p className="font-display text-lg text-gold"><ArtIcon name="crown" className="mr-1" />VIP {vip.level} — {vip.name}</p>
                 <p className="text-xs text-muted-foreground">Active until {new Date(p.vip.until).toLocaleString()}</p>
               </div>
               <Button disabled={request.busy || p.claimedToday} onClick={() => run('VIP daily reward claimed', () => claimVipDaily())}>
