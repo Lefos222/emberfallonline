@@ -26,12 +26,14 @@ export interface FighterInput {
   skillLoadout?: string[];
   /** Painted armour variant of the worn chest piece (see appearance.ts). */
   look?: number | null;
+  /** Worn synthesis set, which keeps its own painted art (see appearance.ts). */
+  synth?: number | null;
 }
 
 export interface Unit {
   id: string; side: "hero" | "foe"; name: string; img: string; sprite?: SpriteRect; mirror?: boolean;
   cls?: HeroClass; boss?: boolean; elite?: boolean; level: number;
-  gender?: 'male' | 'female'; scrolls?: ('dmg' | 'def' | 'xp')[]; look?: number | null;
+  gender?: 'male' | 'female'; scrolls?: ('dmg' | 'def' | 'xp')[]; look?: number | null; synth?: number | null;
   maxHp: number; hp: number; atk: number; def: number; crit: number; critDmg: number; dodge: number;
   pen: number; acc: number; block: number; heal: number; speed: number;
   mana: number; maxMana: number; statuses: Status[]; cds: Record<string, number>;
@@ -118,7 +120,7 @@ function toUnit(f: FighterInput, side: Unit["side"], id: string): Unit {
   const maxMana = 100;
   return {
     id, side, name: f.name, img: f.img, sprite: f.sprite, mirror: f.mirror, cls: f.cls, boss: f.boss, elite: f.elite, level: f.level,
-    gender: f.gender, scrolls: f.scrolls, look: f.look,
+    gender: f.gender, scrolls: f.scrolls, look: f.look, synth: f.synth,
     maxHp: Math.max(1, Math.round(f.hp)), hp: Math.max(1, Math.round(f.hp)), atk: f.atk, def: f.def, crit: f.crit,
     critDmg: f.critDmg ?? 200, dodge: f.dodge, pen: f.pen ?? 0, acc: f.acc ?? 0,
     block: Math.min(BLOCK_CAP, f.block ?? (f.boss ? 5 : 0)), heal: Math.min(HEAL_CAP, f.heal ?? 0),
