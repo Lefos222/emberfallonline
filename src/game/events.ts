@@ -97,6 +97,9 @@ export const WORLD_EVENTS: WorldEvent[] = [
   },
 ];
 
+/** Boss-event rewards pay out on the fifth boss kill, never on a single hit (see event-rewards.ts). */
+export const EVENT_BOSS_KILLS_REQUIRED = 5;
+
 export type EventStatus =
   | { state: "live"; startedAt: number; endsAt: number; msLeft: number }
   | { state: "upcoming"; startsAt: number; msLeft: number };

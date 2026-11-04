@@ -16,6 +16,7 @@ import guild from "@/assets/icons/ui-guild.png";
 import profile from "@/assets/icons/ui-profile.png";
 import quest from "@/assets/icons/ui-quest.png";
 import astral from "@/assets/icons/ui-astral.png";
+import auction from "@/assets/icons/ui-auction.svg";
 
 /**
  * Painted interface art, keyed by icon name. Add the asset file here and every
@@ -41,6 +42,7 @@ const ART_ICONS = {
   profile,
   quest,
   astral,
+  auction,
 } as const;
 
 export type ArtIconName = keyof typeof ART_ICONS;

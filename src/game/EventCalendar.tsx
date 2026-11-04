@@ -18,12 +18,14 @@ import {
   REMIND_LEAD_MS,
   statusOf,
   timeIn,
+  EVENT_BOSS_KILLS_REQUIRED,
   GAME_TZ,
   TZ_CHOICES,
   WORLD_EVENTS,
   zoneLabel,
   type WorldEvent,
 } from "./events";
+import { countEventBossKill, eventBossKills, isBossEvent } from "./event-rewards";
 
 const STORE_KEY = "ef-event-reminders";
 
@@ -114,6 +116,16 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
             lines.push("The event is still open — return before the countdown ends.");
             return;
           }
+          // Boss events pay out every fifth kill, so one invasion cannot hand out the whole reward.
+          if (isBossEvent(ev)) {
+            const { kills, rewarded } = countEventBossKill(hh, ev.id);
+            if (!rewarded) {
+              lines.push(`Boss participation ${kills}/${EVENT_BOSS_KILLS_REQUIRED}`);
+              lines.push(`Rewards are paid on the ${EVENT_BOSS_KILLS_REQUIRED}th boss kill.`);
+              return;
+            }
+            lines.push(`Reward earned after ${EVENT_BOSS_KILLS_REQUIRED} boss kills`);
+          }
           const xp = scrollXp(rw.xp, xpMultiplier);
           const { levels } = grant(hh, xp, rw.gold);
           loot = rollLoot(hh, ev.stage, 1, ev.kind === "boss" ? 2 : 0);
@@ -169,6 +181,7 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
         {rows.map(({ ev, s }) => {
           const at = s.state === "live" ? s.endsAt : s.startsAt;
           const encounter = eventEncounter(ev, s.state === 'live' ? s.startedAt : s.startsAt);
+          const bossKills = eventBossKills(h, ev.id);
           return (
             <article
               key={ev.id}
@@ -186,6 +199,14 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
                   </h3>
                   <p className="text-sm text-muted-foreground">{ev.blurb}</p>
                   <p className="mt-1 text-xs text-muted-foreground">Reward: {ev.reward}</p>
+                  {isBossEvent(ev) && (
+                    <div className="mt-2 max-w-xs">
+                      <p className="text-xs font-semibold text-gold">
+                        Boss participations {bossKills}/{EVENT_BOSS_KILLS_REQUIRED} — the reward is paid on the {EVENT_BOSS_KILLS_REQUIRED}th boss kill
+                      </p>
+                      <progress className="mt-1 h-2 w-full accent-primary" max={EVENT_BOSS_KILLS_REQUIRED} value={bossKills} aria-label={`Boss participations ${bossKills} of ${EVENT_BOSS_KILLS_REQUIRED}`} />
+                    </div>
+                  )}
                 </div>
                 <div className="text-right">
                   <p
