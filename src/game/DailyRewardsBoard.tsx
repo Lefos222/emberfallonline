@@ -1,7 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Gift, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { update, useGame } from "./store";
+import { GemChestIcon, GoldChestIcon } from "./CoinIcon";
+import {
+  CHESTS,
+  REWARD_CHEST_HOURS,
+  claimRewardChest,
+  formatChestCountdown,
+  rewardChestCountdown,
+  rewardChestReady,
+  type ChestKind,
+} from "./chests";
 import {
   DAILY_REWARDS,
   DAILY_REWARD_DAYS,
@@ -11,6 +21,66 @@ import {
   claimedBoardDays,
   nextBoardDay,
 } from "./daily-rewards";
+
+/**
+ * The free reward chest on a timer. Collecting puts a real chest in the Armory
+ * vault, so the player decides when to redeem it.
+ */
+function RewardChest() {
+  const { hero } = useGame();
+  const [now, setNow] = useState(() => Date.now());
+  const [receipt, setReceipt] = useState<ChestKind | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  if (!hero) return null;
+
+  const claims = Math.max(0, Math.floor(hero.rewardChest?.claims ?? 0));
+  const nextKind: ChestKind = (claims + 1) % 4 === 0 ? "gem" : "gold";
+  const ready = rewardChestReady(hero, now);
+  const claim = () => {
+    setError("");
+    setReceipt(null);
+    let kind: ChestKind | null = null;
+    update((h) => {
+      if (!rewardChestReady(h)) return;
+      kind = claimRewardChest(h);
+    });
+    if (!kind) {
+      setError("Your save is still syncing — try the claim again in a moment.");
+      return;
+    }
+    setReceipt(kind);
+  };
+
+  return (
+    <div className="slot mb-4 flex flex-wrap items-center gap-3 border-gold/50 bg-gold/5 p-3" aria-label="Reward chest">
+      {nextKind === "gem" ? <GemChestIcon size={52} /> : <GoldChestIcon size={52} />}
+      <div className="min-w-0 flex-1">
+        <div className="font-display text-lg text-gold">Reward Chest</div>
+        <p className="text-xs text-muted-foreground">
+          A free {CHESTS[nextKind].name} every {REWARD_CHEST_HOURS} hours. It is stored in your Armory vault —
+          open it whenever you like.
+        </p>
+        <p className="text-xs font-bold">
+          {ready ? "Ready to collect." : `Next chest in ${formatChestCountdown(rewardChestCountdown(hero, now))}`}
+        </p>
+      </div>
+      <Button disabled={!ready} onClick={claim}>
+        <Gift />
+        {ready ? `Collect ${CHESTS[nextKind].name}` : "Refilling"}
+      </Button>
+      {receipt && (
+        <p role="status" className="w-full text-sm text-r1">
+          {CHESTS[receipt].name} added to your vault — open it from the Armory.
+        </p>
+      )}
+      {error && <p role="alert" className="w-full text-sm text-hp">{error}</p>}
+    </div>
+  );
+}
 
 /**
  * The 30-day reward board: one gift per Greek day, taken in order. Chest days bundle a bigger
@@ -42,6 +112,8 @@ export function DailyRewardsBoard() {
   };
 
   return (
+    <>
+    <RewardChest />
     <section className="mb-2 border-b border-border pb-5" aria-label="30-day reward board">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -108,5 +180,6 @@ export function DailyRewardsBoard() {
         </p>
       )}
     </section>
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import { addGem, addMats, GEM_MAX_TIER, type GemType, type Mat } from "./crafting";
+import { addChests, type ChestKind } from "./chests";
 import { stageRewards, type Hero } from "./data";
 import { grant } from "./logic";
 import { greekDayStart } from "./events";
@@ -61,10 +62,11 @@ export function buyConquestGem(h: Hero, type: GemType, level: number): string | 
   return null;
 }
 
-/** Equipment materials and items the Conquest Gate sells for tokens. */
-export interface TokenOffer { id: string; mat: Mat; qty: number; cost: number; gold?: number; name?: string }
+/** Equipment materials and chest items the Conquest Gate sells for tokens. */
+export interface TokenOffer { id: string; mat: Mat; qty: number; cost: number; chest?: ChestKind; name?: string }
 export const TOKEN_OFFERS: TokenOffer[] = [
-  { id: "goldchest", mat: "ore", qty: 0, cost: 90, gold: 5000, name: "Gold Chest" },
+  { id: "goldchest", mat: "ore", qty: 0, cost: 90, chest: "gold", name: "Gold Chest" },
+  { id: "gemchest", mat: "ore", qty: 0, cost: 260, chest: "gem", name: "Gem Chest" },
   { id: "ore", mat: "ore", qty: 10, cost: 60 },
   { id: "hide", mat: "hide", qty: 10, cost: 60 },
   { id: "bloom", mat: "bloom", qty: 5, cost: 75 },
@@ -83,7 +85,7 @@ export function buyTokenOffer(h: Hero, id: string): string | null {
   if (!o) return "Unknown offer";
   if (conquestTokens(h) < o.cost) return `Not enough Conquest Tokens — ${o.cost} needed`;
   addConquestTokens(h, -o.cost);
-  if (o.gold) { h.gold += o.gold; return null; }
+  if (o.chest) { addChests(h, o.chest); return null; }
   addMats(h, { [o.mat]: o.qty });
   return null;
 }

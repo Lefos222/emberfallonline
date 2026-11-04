@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { X, Coins, Gem } from "lucide-react";
+import { X, Gem } from "lucide-react";
+import { GoldCoin } from "./CoinIcon";
 import { GearIcon } from "./GearIcon";
 import { itemStats, itemScore, RARITIES, type Item } from "./data";
 
@@ -24,8 +25,8 @@ export function Panel({ title, onClose, children, wide }: { title: string; onClo
 
 export function Gold({ n, className = "" }: { n: number; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1 font-bold text-gold ${className}`}>
-      <Coins className="h-4 w-4" />
+    <span className={`inline-flex items-center gap-1 font-bold text-gold ${className}`} title="Gold">
+      <GoldCoin size={16} />
       {fmt(n)}
     </span>
   );

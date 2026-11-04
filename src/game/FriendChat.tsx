@@ -69,7 +69,10 @@ export function FriendChat({
   }, [heroId, friend.id]);
 
   useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
+    const list = listRef.current;
+    if (!list) return;
+    if (typeof list.scrollTo === "function") list.scrollTo({ top: list.scrollHeight });
+    else list.scrollTop = list.scrollHeight;
   }, [messages]);
 
   const send = async () => {

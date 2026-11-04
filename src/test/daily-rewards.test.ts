@@ -41,6 +41,12 @@ describe("30-day reward board", () => {
     expect(h.gold).toBeGreaterThan(goldBefore);
     expect(canClaimBoardDay(h, NOON)).toBe(false);
   });
+  it("puts a real gold chest in the vault on chest days", () => {
+    const h = newHero("Board", "warrior");
+    const chestDay = DAILY_REWARDS.find((rw) => rw.chests?.includes("gold"))!;
+    for (let i = 0; i < chestDay.day; i++) claimBoardDay(h, NOON + i * 24 * 3_600_000);
+    expect(h.chests?.gold).toBeGreaterThanOrEqual(1);
+  });
   it("allows one claim per Greek day", () => {
     const h = newHero("Board", "warrior");
     claimBoardDay(h, NOON);

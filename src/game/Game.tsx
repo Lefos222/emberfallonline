@@ -20,7 +20,8 @@ import { scrollFighter } from "./scrolls";
 import castle from "@/assets/castle.jpg.asset.json";
 import theme from "@/assets/theme.mp3.asset.json";
 import { supabase } from "@/integrations/supabase/client";
-import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } from "./data";
+import { BUILDINGS, CASTLE_BUILDINGS, CLASSES, heroStats, type BuildingId, type Item } from "./data";
+import { rewardChestReady } from "./chests";
 import { authHandoffPending, getState, leaveCharacter, update, useGame } from "./store";
 import { recordBattle } from "./progress";
 import { heroAppearance } from "./appearance";
@@ -132,7 +133,7 @@ export function Game() {
       ) : (
         <>
           <CastleMap onOpen={setOpen} />
-          <ShortcutBar open={open} onOpen={setOpen} friendRequests={friendRequests} />
+          <ShortcutBar open={open} onOpen={setOpen} friendRequests={friendRequests} chestReady={rewardChestReady(hero)} />
           <nav aria-label="Rewards" className="game-panel bottom-nav rewards-nav absolute bottom-3 left-3 z-20 flex gap-1 p-1.5">
             <Button variant="ghost" size="icon" aria-label="Mailbox" title="Mailbox" onClick={() => setOpen("mailbox")}><ArtIcon name="mail" size={24} /></Button>
             <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><ArtIcon name="lucky" size={24} /></Button>
@@ -201,26 +202,33 @@ export function Game() {
 
 function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: (m: boolean) => void; cloud: string; onProfile: () => void }) {
   const { hero, gender, chars, heroId } = useGame();
-  const frame = chars?.find((c) => c.id === heroId)?.frame ?? "iron";
+  const me = chars?.find((c) => c.id === heroId);
+  const frame = me?.frame ?? "iron";
   if (!hero) return null;
   const s = heroStats(hero);
   return (
     <div className="hud-top pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2">
-      <div className="game-panel pointer-events-auto p-2 pr-4">
-        <div className="flex items-center gap-3">
-        <button className={`slot h-11 w-11 shrink-0 overflow-hidden lg:h-14 lg:w-14 ${frameClass(frame)}`} onClick={onProfile} aria-label="Profile">
-          {hero.avatar !== undefined ? <AvatarIcon index={hero.avatar} size={40} /> : <Portrait cls={hero.cls} gender={gender} className="w-full" {...heroAppearance(hero)} />}
-        </button>
-        <div className="w-24 lg:w-40">
-          <div className="truncate font-display">{hero.name}</div>
-          <div className="text-xs text-muted-foreground">Lv {hero.level}{hero.paragon ? ` · Asc ${hero.paragon}` : ""}</div>
-          <XpBar hero={hero} />
-        </div>
-        <div className="flex flex-col text-xs lg:text-sm">
-          <Gold n={hero.gold} />
-          <Diamonds n={premiumState(hero).balance} />
-          <span className="font-bold"><Trophy className="mr-1 inline h-4 w-4 text-r4" />{fmt(s.power)}</span>
-        </div>
+      <div className="game-panel player-card pointer-events-auto p-2 pr-3 lg:p-2.5 lg:pr-4">
+        <div className="flex items-center gap-2.5">
+          <button className={`player-portrait relative h-14 w-14 shrink-0 overflow-hidden lg:h-16 lg:w-16 ${frameClass(frame)}`} onClick={onProfile} aria-label="Profile">
+            {hero.avatar !== undefined ? <AvatarIcon index={hero.avatar} size={48} /> : <Portrait cls={hero.cls} gender={gender} className="w-full" {...heroAppearance(hero)} />}
+            <span className="player-level">Lv {hero.level}</span>
+          </button>
+          <div className="w-40 lg:w-52">
+            <div className="flex items-baseline gap-1.5">
+              <span className="min-w-0 truncate font-display text-sm font-bold lg:text-base">{hero.name}</span>
+              {hero.paragon > 0 && <span className="shrink-0 rounded bg-gold/20 px-1 text-[10px] font-bold text-gold">Asc {hero.paragon}</span>}
+            </div>
+            <div className="truncate text-[10px] uppercase tracking-wider text-muted-foreground">
+              {CLASSES[hero.cls].name}{me?.title ? ` · ${me.title}` : ""}
+            </div>
+            <XpBar hero={hero} />
+            <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] lg:text-xs">
+              <Gold n={hero.gold} />
+              <Diamonds n={premiumState(hero).balance} />
+              <span className="font-bold"><Trophy className="mr-0.5 inline h-3.5 w-3.5 text-r4" />{fmt(s.power)}</span>
+            </div>
+          </div>
         </div>
         <StaminaBar hero={hero} />
       </div>
@@ -243,7 +251,7 @@ function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: 
 function StaminaBar({ hero }: { hero: Hero }) {
   const left = staminaLeft(hero);
   return (
-    <div className="mt-1.5 w-40 lg:w-56" title={`Campaign stamina ${left}/${STAMINA_PER_DAY} — it refills at Greek midnight`}>
+    <div className="mt-1.5 w-full" title={`Campaign stamina ${left}/${STAMINA_PER_DAY} — it refills at Greek midnight`}>
       <div className="mb-0.5 flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
         <span className="font-display">Stamina</span>
         <span className={left < 10 ? "font-bold text-hp" : "font-bold text-foreground"}>{left}/{STAMINA_PER_DAY}</span>
@@ -365,13 +373,16 @@ const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIcon
   { id: "oracle", label: "Quest Board", tip: "AI-generated quests", icon: "quest" },
 ];
 
-function ShortcutBar({ open, onOpen, friendRequests = 0 }: { open: ShortcutTarget | null; onOpen: (t: ShortcutTarget) => void; friendRequests?: number }) {
+function ShortcutBar({ open, onOpen, friendRequests = 0, chestReady = false }: { open: ShortcutTarget | null; onOpen: (t: ShortcutTarget) => void; friendRequests?: number; chestReady?: boolean }) {
   return (
     <nav aria-label="Shortcuts" className="game-panel bottom-nav shortcut-nav pointer-events-auto absolute bottom-3 right-3 z-20 flex gap-1.5 p-1.5">
       {SHORTCUTS.map(({ id, label, tip, icon }) => (
         <button key={id} onClick={() => onOpen(id)} aria-label={label} aria-pressed={open === id}
           className={`slot group relative flex h-11 w-11 items-center justify-center transition hover:scale-110 ${open === id ? "ring-2 ring-gold" : ""}`}>
           <ArtIcon name={icon} size={32} className={open === id ? "ring-1 ring-gold" : ""} />
+          {id === "daily" && chestReady && (
+            <span aria-label="Reward chest ready" className="absolute -left-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-r1 ring-2 ring-background" />
+          )}
           {id === "friends" && friendRequests > 0 && (
             <span aria-label={`${friendRequests} pending friend requests`} className="absolute -right-1 -top-1 min-w-5 rounded-full bg-blood px-1.5 py-0.5 text-center text-[10px] font-bold text-foreground">
               {friendRequests > 9 ? "9+" : friendRequests}

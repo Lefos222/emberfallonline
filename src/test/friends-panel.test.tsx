@@ -6,6 +6,7 @@ import type { FriendProfile, FriendRequest, HeroSearchResult } from "@/game/soci
 const social = vi.hoisted(() => ({
   listFriends: vi.fn(),
   listFriendRequests: vi.fn(),
+  listIncomingDirectMessages: vi.fn(),
   listSentRequests: vi.fn(),
   requestFriend: vi.fn(),
   friendRequestsSupported: vi.fn(() => true),
@@ -64,6 +65,7 @@ const hero = (over: Partial<HeroSearchResult>): HeroSearchResult => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  localStorage.clear();
   social.listFriends.mockResolvedValue([
     friend({ id: "f1", name: "Bronn" }),
     friend({
@@ -74,6 +76,7 @@ beforeEach(() => {
     }),
   ]);
   social.listFriendRequests.mockResolvedValue([request({})]);
+  social.listIncomingDirectMessages.mockResolvedValue([]);
   social.listSentRequests.mockResolvedValue([
     request({ id: "out1", hero_id: "s2", name: "Tamsin" }),
   ]);
@@ -149,6 +152,30 @@ describe("friend system", () => {
 
     fireEvent.click(await within(panel).findByRole("button", { name: /Add friend/ }));
     expect(await within(panel).findByText("You are now friends with Kael.")).toBeTruthy();
+  });
+
+  it("badges new messages from a friend until the conversation is opened", async () => {
+    social.listIncomingDirectMessages.mockResolvedValue([
+      {
+        id: "m1",
+        sender_id: "f1",
+        sender_name: "Bronn",
+        body: "Meet me at the gate",
+        created_at: new Date().toISOString(),
+        recipient_id: "me",
+      },
+    ]);
+    render(<FriendsPanel heroId="me" />);
+    const panel = screen.getByTestId("friends-panel");
+
+    const chatButton = await within(panel).findByRole("button", {
+      name: /Message Bronn \(1 new\)/,
+    });
+    expect(chatButton).toHaveTextContent("1");
+
+    fireEvent.click(chatButton);
+    expect(await within(panel).findByText(/No messages yet/)).toBeTruthy();
+    expect(within(panel).queryByRole("button", { name: /1 new/ })).toBeNull();
   });
 
   it("marks a hero online only while the server saw them recently", () => {
