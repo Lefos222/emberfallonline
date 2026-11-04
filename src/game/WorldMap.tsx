@@ -105,6 +105,22 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
   }, []);
   useEffect(refreshBanners, [refreshBanners]);
 
+  // Other lords plant and move their banners while the map is open, so the realm is
+  // re-read on a short cycle and whenever the tab comes back to the front.
+  useEffect(() => {
+    const tick = () => {
+      if (document.visibilityState === "visible") refreshBanners();
+    };
+    const id = window.setInterval(tick, 10000);
+    window.addEventListener("focus", tick);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener("focus", tick);
+      document.removeEventListener("visibilitychange", tick);
+    };
+  }, [refreshBanners]);
+
   // The stage fills the panel; the camera needs its pixel size to frame the realm.
   useEffect(() => {
     const el = stageRef.current;
