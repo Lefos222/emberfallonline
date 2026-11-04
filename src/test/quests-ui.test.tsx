@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { QuestsButton, QuestsPanel } from "@/game/Quests";
 import { ProfilePanel } from "@/game/CharacterSelect";
+import { AvatarIcon } from "@/game/AvatarIcon";
 import { newHero } from "@/game/data";
 import { getState, setHero } from "@/game/store";
 import { resetLevelQuests } from "@/game/level-quests";
@@ -57,5 +58,13 @@ describe("profile portraits", () => {
 
     fireEvent.click(within(gallery).getByRole("button", { name: "Portrait 7" }));
     expect(getState().hero?.avatar).toBe(6);
+  });
+
+  it("crops a portrait to its own square inside the gallery sheet", () => {
+    const { container } = render(<AvatarIcon index={0} size={100} />);
+    const style = (container.firstChild as HTMLElement).style;
+    // The sheet's tiles are 43x43 at (11,5) with 58x55 pitch, not equal fifths.
+    expect(style.backgroundSize).toBe("686.0465% 516.2791%");
+    expect(style.backgroundPosition).toBe("4.3651% 2.7933%");
   });
 });

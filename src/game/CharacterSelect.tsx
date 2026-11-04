@@ -209,7 +209,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
     <Panel title="Profile" onClose={onClose}>
       <div className="flex flex-col gap-4 md:flex-row">
         <div className="flex w-40 shrink-0 flex-col items-center gap-1 self-center">
-          <button className={`slot w-40 p-1 ${frameClass(frame)}`} onClick={() => setGallery(true)} aria-label="Open full-screen portraits" title="Open full-screen portraits">
+          <button className={`slot w-40 overflow-hidden p-0 ${frameClass(frame)}`} onClick={() => setGallery(true)} aria-label="Open full-screen portraits" title="Open full-screen portraits">
             {hero.avatar !== undefined
               ? <AvatarIcon index={hero.avatar} fill className="block aspect-square w-full" />
               : <Portrait cls={hero.cls} gender={gender} className="w-full" />}
