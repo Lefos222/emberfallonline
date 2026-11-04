@@ -1,7 +1,6 @@
 # Roadmap
 
 ## Current request
-- [ ] Add four chestpiece and four class-weapon appearances per class, driven by equipped items in inventory and battle; preserve selection and saves.
 - [ ] Make phone navigation, inventory, battles, chat, quests and trading usable; preserve character-selection artwork.
 - Netlify work paused at the user's request; leave existing hosting configuration untouched.
 - [ ] Replace AI quest rewards with exactly six server-validated daily profession quests and daily rewards.
@@ -29,7 +28,7 @@
 - [ ] Mounts/pets/bonding and estate editor/visitors. Depends on collectible ownership and placement implementation.
 - [~] Atomic auction economy/trade. Verified end to end: list → buy → cancel, buyer debit, ore delivery, seller credit, self-buy blocked, sold listings can't be re-bought. Remaining: authoritative currency ownership so a seller's open preview can't overwrite credited gold with a stale client save (observed once in testing).
 - [ ] Ranked seasons and reusable validated seasonal reward cycle/catch-up. Blocked on authoritative battle settlement; Arena currently trusts submitted outcomes.
-- [~] Outfit/weapon-specific layered artwork: heroes are drawn as layered art with four chest-plate looks and four weapon looks per class, picked by the worn piece's power band (iron/ember/moon/ancestral) in creation, inventory, profile and battle. Remaining: original art for future phases and full legacy asset audit.
+- [ ] Outfit/weapon-specific layered artwork, original art for future phases and full legacy asset audit.
 - [ ] Real high-level unlock/use verification and measured 60-hour balance; current test character lacks endgame milestones.
 - [ ] Full hosted stranger Google/Lovable round trip and funded scroll ten-battle cycle remain unverified.
 - Guild expansion remains deferred in favor of general endless progression.
