@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { heroStats, makeItem, newHero, INVENTORY_CAP } from "@/game/data";
-import { RECIPES, battleMats, craft, fuseGem, gemValue, insertGem, refine, removeGem, scrapItem, scrapYield, summonAstral, equipAstral } from "@/game/crafting";
+import {
+  ASTRAL_MAX_LVL, ASTRAL_RARITY, RECIPES, astralLabel, astralUpgradeCost, astralValue,
+  battleMats, craft, equipAstral, fuseGem, gemValue, insertGem, normalizeAstrals, refine, removeGem, scrapItem,
+  scrapYield, summonAstral, upgradeAstral,
+} from "@/game/crafting";
 import { buyConquestGem, gemGoldPrice } from "@/game/conquest";
 
 describe("gems, astrals, crafting", () => {
@@ -58,6 +62,31 @@ describe("gems, astrals, crafting", () => {
     expect(h.gold).toBe(0);
     expect(h.mats.ore).toBe(0);
   });
+  it("astrals carry the six-colour ladder and climb ten levels", () => {
+    const h = newHero("T", "warrior");
+    h.mats = { starshard: 9999 };
+    const a = summonAstral(h, () => 0.999) as Exclude<ReturnType<typeof summonAstral>, string>;
+    expect(ASTRAL_RARITY).toEqual(["White", "Green", "Blue", "Purple", "Gold", "Red"]);
+    expect(a.rarity).toBe(0);
+    expect(a.lvl).toBe(1);
+    expect(ASTRAL_MAX_LVL).toBe(10);
+    // Rarity outranks levels: a fresh Red Astral beats a fully upgraded White one.
+    expect(astralValue({ ...a, rarity: 5, lvl: 1 })).toBeGreaterThan(astralValue({ ...a, rarity: 0, lvl: ASTRAL_MAX_LVL }));
+    expect(astralLabel({ ...a, lvl: ASTRAL_MAX_LVL })).toMatch(/Lv10$/);
+    // Ten upgrades, the eleventh is refused.
+    const first = astralUpgradeCost(a);
+    for (let i = 0; i < ASTRAL_MAX_LVL - 1; i++) expect(upgradeAstral(h, a.id)).toBeNull();
+    expect(a.lvl).toBe(ASTRAL_MAX_LVL);
+    expect(upgradeAstral(h, a.id)).toBe("Max level");
+    expect(astralUpgradeCost(a)).toBeGreaterThan(first);
+  });
+
+  it("clamps old saves and server Astrals onto the new ladder", () => {
+    const h = { astrals: [{ id: "a", base: "ember", rarity: 9, lvl: 0 }, { id: "b", base: "owl", rarity: -2, lvl: 40 }] };
+    normalizeAstrals(h);
+    expect(h.astrals.map((x) => [x.rarity, x.lvl])).toEqual([[5, 1], [0, 10]]);
+  });
+
   it("equipped astrals add stats; summoning costs 10 starshards", () => {
     const h = newHero("T", "warrior"); h.mats = { starshard: 10 };
     const a = summonAstral(h, () => 0.99);

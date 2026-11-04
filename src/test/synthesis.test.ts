@@ -4,7 +4,7 @@ import { matCount } from "@/game/crafting";
 import {
   SYNTH_LEVELS, SYNTH_SLOTS, SYNTH_TIER_COUNT, appearanceTier, craftSynth, isCrafted, normalizeSynth,
   overallProgress, pieceFx, pieceState, setCost, setProgress, synthBlocker, synthCost, synthFx, synthLevel,
-  tierOverview, unlockedTier, unwearSynth, wearSynth,
+  synthUnlocked, tierOverview, unlockedTier, unwearSynth, wearSynth,
 } from "@/game/synthesis";
 
 function heroAt(level: number, cls: "warrior" | "mage" | "archer" = "warrior"): Hero {
@@ -20,21 +20,23 @@ function rich(h: Hero): Hero {
 }
 
 describe("synthesis sets", () => {
-  it("has nine sets from level 30 to 110 and eight pieces each", () => {
+  it("has nine sets from level 40 to 120 and eight pieces each", () => {
     expect(SYNTH_TIER_COUNT).toBe(9);
-    expect(SYNTH_LEVELS).toEqual([30, 40, 50, 60, 70, 80, 90, 100, 110]);
+    expect(SYNTH_LEVELS).toEqual([40, 50, 60, 70, 80, 90, 100, 110, 120]);
     expect(SYNTH_SLOTS).toHaveLength(8);
     expect(new Set(SYNTH_SLOTS).size).toBe(8);
   });
 
-  it("unlocks one set every ten levels, counting ascension levels", () => {
-    expect(unlockedTier(heroAt(29))).toBe(0);
-    expect(unlockedTier(heroAt(30))).toBe(1);
-    expect(unlockedTier(heroAt(75))).toBe(5);
-    expect(unlockedTier(heroAt(80))).toBe(6);
+  it("opens the forge at level 30 and unlocks one set every ten levels after that", () => {
+    expect(synthUnlocked(heroAt(29))).toBe(false);
+    expect(synthUnlocked(heroAt(40))).toBe(true);
+    expect(unlockedTier(heroAt(39))).toBe(0);
+    expect(unlockedTier(heroAt(40))).toBe(1);
+    expect(unlockedTier(heroAt(85))).toBe(5);
+    expect(unlockedTier(heroAt(90))).toBe(6);
     const ascended = heroAt(80);
-    ascended.paragon = 30;
-    expect(synthLevel(ascended)).toBe(110);
+    ascended.paragon = 40;
+    expect(synthLevel(ascended)).toBe(120);
     expect(unlockedTier(ascended)).toBe(9);
     expect(tierOverview(ascended).filter((t) => t.unlocked)).toHaveLength(9);
   });
@@ -74,14 +76,14 @@ describe("synthesis sets", () => {
 
 describe("forging synthesis pieces", () => {
   it("refuses pieces of a set the character has not unlocked", () => {
-    const h = rich(heroAt(30));
-    expect(synthBlocker(h, 2, "helmet")).toBe("Requires character level 40");
-    expect(craftSynth(h, 2, "helmet")).toBe("Requires character level 40");
+    const h = rich(heroAt(40));
+    expect(synthBlocker(h, 2, "helmet")).toBe("Requires character level 50");
+    expect(craftSynth(h, 2, "helmet")).toBe("Requires character level 50");
     expect(isCrafted(h, 2, "helmet")).toBe(false);
   });
 
   it("refuses a piece the player cannot pay for and names the missing material", () => {
-    const h = heroAt(30);
+    const h = heroAt(40);
     h.mats = { ore: 1 };
     const blocked = synthBlocker(h, 1, "chest");
     expect(blocked).toMatch(/Not enough/);
@@ -90,7 +92,7 @@ describe("forging synthesis pieces", () => {
   });
 
   it("spends exactly the piece's materials and records it once", () => {
-    const h = rich(heroAt(30));
+    const h = rich(heroAt(40));
     const cost = synthCost(1, "weapon");
     const before = Object.fromEntries(Object.keys(cost).map((m) => [m, matCount(h, m as never)]));
     expect(craftSynth(h, 1, "weapon")).toBeNull();
@@ -103,7 +105,7 @@ describe("forging synthesis pieces", () => {
   });
 
   it("reports the piece state the interface needs", () => {
-    const h = heroAt(30);
+    const h = heroAt(40);
     const st = pieceState(h, 1, "helmet");
     expect(st.crafted).toBe(false);
     expect(st.locked).toBe(false);
@@ -111,13 +113,13 @@ describe("forging synthesis pieces", () => {
     expect(st.blocker).toMatch(/Not enough/);
     const locked = pieceState(h, 9, "helmet");
     expect(locked.locked).toBe(true);
-    expect(locked.blocker).toBe("Requires character level 110");
+    expect(locked.blocker).toBe("Requires character level 120");
   });
 });
 
 describe("worn synthesis equipment", () => {
   it("only wears pieces that were actually forged", () => {
-    const h = rich(heroAt(30));
+    const h = rich(heroAt(40));
     expect(wearSynth(h, 1, "helmet")).toBe("Forge the piece first");
     craftSynth(h, 1, "helmet");
     expect(wearSynth(h, 1, "helmet")).toBeNull();
@@ -127,7 +129,7 @@ describe("worn synthesis equipment", () => {
   });
 
   it("changes the hero's stats through the shared pipeline", () => {
-    const h = rich(heroAt(30));
+    const h = rich(heroAt(40));
     const bare = heroStats(h).power;
     for (const slot of SYNTH_SLOTS) {
       craftSynth(h, 1, slot);
@@ -149,7 +151,7 @@ describe("worn synthesis equipment", () => {
   });
 
   it("survives a save round-trip and drops impossible entries", () => {
-    const h = rich(heroAt(40));
+    const h = rich(heroAt(50));
     craftSynth(h, 1, "helmet");
     craftSynth(h, 2, "chest");
     wearSynth(h, 1, "helmet");
@@ -168,7 +170,7 @@ describe("worn synthesis equipment", () => {
   });
 
   it("counts overall progress for the progression rail", () => {
-    const h = rich(heroAt(30));
+    const h = rich(heroAt(40));
     for (const slot of SYNTH_SLOTS) craftSynth(h, 1, slot);
     const prog = overallProgress(h);
     expect(prog.crafted).toBe(8);

@@ -4,7 +4,8 @@ import { matCount, zeroFx, type BonusFx, type Mat } from "./crafting";
 /**
  * Synthesis — the long-term armour progression of Ember Fall.
  *
- * Nine sets unlock one character level per ten levels (30 → 110). Each set is forged
+ * The forge opens its Synthesis tab at level 30, and the nine armour sets themselves run
+ * from level 40 to level 120, one set every ten levels. Each set is forged
  * piece by piece from the same materials the rest of the castle already drops, so
  * battle, bosses, elites, dungeons and gathering all feed it instead of a separate
  * economy. What the player wears here is stored on the hero save, drives both the
@@ -24,8 +25,10 @@ export const SYNTH_SLOT_LABEL: Record<SynthSlot, string> = {
 /** The class weapon every set carries (the game's classes already fight with these). */
 export const SYNTH_WEAPON: Record<HeroClass, string> = { warrior: "Sword", mage: "Wand", archer: "Bow" };
 
-/** Character level each set unlocks at. Set I opens at 30, Set IX at 110. */
-export const SYNTH_LEVELS = [30, 40, 50, 60, 70, 80, 90, 100, 110];
+/** Character level the forge's Synthesis tab opens at, before the first set exists. */
+export const SYNTH_UNLOCK_LEVEL = 30;
+/** Character level each armour set unlocks at. Set I opens at 40, Set IX at 120. */
+export const SYNTH_LEVELS = [40, 50, 60, 70, 80, 90, 100, 110, 120];
 export const SYNTH_TIER_COUNT = SYNTH_LEVELS.length;
 
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"];
@@ -36,7 +39,10 @@ export const pieceName = (tier: number, slot: SynthSlot, cls: HeroClass) =>
 /** Ascension levels count toward synthesis unlocks, exactly like the forge's level gates. */
 export const synthLevel = (h: Pick<Hero, "level" | "paragon">) => h.level + (h.paragon ?? 0);
 
-/** The highest set the character has unlocked (0 when still below level 30). */
+/** Whether the forge's Synthesis tab has opened for this character (character level 30). */
+export const synthUnlocked = (h: Pick<Hero, "level" | "paragon">) => synthLevel(h) >= SYNTH_UNLOCK_LEVEL;
+
+/** The highest set the character has unlocked (0 when still below level 40). */
 export function unlockedTier(h: Pick<Hero, "level" | "paragon">): number {
   const lv = synthLevel(h);
   let out = 0;

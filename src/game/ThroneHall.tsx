@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, Gift, Skull } from "lucide-react";
-import { ACHIEVEMENTS, SET_BONUSES, achProgress, activeSets, emptyRecord, isClaimable } from "./progress";
+import { ACHIEVEMENTS, ACH_CATEGORIES, SET_BONUSES, achProgress, activeSets, emptyRecord, isClaimable, type AchCategory } from "./progress";
 import { CLASSES, heroSkills, heroStats, powerBreakdown, xpToNext } from "./data";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
@@ -13,6 +13,7 @@ import { PassiveTreeContent } from "./PassiveTree";
 export function ThroneHall({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
   const [tab, setTab] = useState<"overview" | "skills" | "passives" | "ach" | "history">("skills");
+  const [achCat, setAchCat] = useState<AchCategory | "All">("All");
   if (!hero) return null;
   const s = heroStats(hero);
   const trees = TREES[hero.cls];
@@ -38,8 +39,20 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
       ]} />
 
       {tab === "ach" ? (
+        <div>
+          <div className="mb-2 flex flex-wrap gap-1" role="group" aria-label="Achievement categories">
+            {(["All", ...ACH_CATEGORIES] as const).map((c) => {
+              const n = c === "All" ? ACHIEVEMENTS.length : ACHIEVEMENTS.filter((a) => a.cat === c).length;
+              return (
+                <button key={c} onClick={() => setAchCat(c)} aria-pressed={achCat === c}
+                  className={`btn-ghost px-2 py-0.5 text-xs ${achCat === c ? "ring-1 ring-gold text-gold" : "text-muted-foreground"}`}>
+                  {c} <span className="text-[10px]">{n}</span>
+                </button>
+              );
+            })}
+          </div>
         <div className="grid gap-2 md:grid-cols-2">
-          {ACHIEVEMENTS.map((a) => {
+          {ACHIEVEMENTS.filter((a) => achCat === "All" || a.cat === achCat).map((a) => {
             const p = achProgress(hero, a);
             const done = (hero.achClaimed ?? []).includes(a.id);
             return (
@@ -59,6 +72,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
               </div>
             );
           })}
+        </div>
         </div>
       ) : tab === "history" ? (
         <div>

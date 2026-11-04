@@ -319,19 +319,27 @@ export const ASTRAL_BASES: Record<string, { name: string; kind: AstralKind; stat
   rune: { name: "Rune Fox", kind: "offense", stat: "mpen", per: 0.4, power: "Runebind: carves through magical defences" },
   lotus: { name: "Moon Lotus", kind: "utility", stat: "heal", per: 1.5, power: "Moonbloom: petals that mend wounds and deepen heals" },
 };
-/** Six rarities: Grey, Green, Blue, Purple, Orange, Gold. */
-export const ASTRAL_RARITY = ["Grey", "Green", "Blue", "Purple", "Orange", "Gold"];
-export const ASTRAL_TIER = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"];
-export const ASTRAL_COLORS = ["#9a9a9a", "#3fbf5a", "#3b82f6", "#a855f7", "#f97316", "#facc15"];
+/** The six rarity colours every Astral is born into: White, Green, Blue, Purple, Gold, Red. */
+export const ASTRAL_RARITY = ["White", "Green", "Blue", "Purple", "Gold", "Red"];
+export const ASTRAL_RARITY_NOTE = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"];
+export const ASTRAL_TIER = ASTRAL_RARITY_NOTE;
+export const ASTRAL_COLORS = ["#e6e9ef", "#3fbf5a", "#3b82f6", "#a855f7", "#facc15", "#e11d48"];
+/** How much of its species bonus each rarity carries: a Red Astral is worth far more than a White one. */
+export const ASTRAL_RARITY_POWER = [1, 1.35, 1.8, 2.4, 3.2, 4.5];
 /** Lucky Shot / summon odds in % per rarity (index = rarity). Must match the lucky_shot database function. */
 export const ASTRAL_ODDS = [40, 30, 17, 9, 3.5, 0.5];
 export const ASTRAL_SLOTS = 8;
 /** Slots 1-3 are open from the start; every further slot wakes every 10 levels. */
 export const ASTRAL_SLOT_LEVELS = [1, 1, 1, 10, 20, 30, 40, 50];
-export const ASTRAL_MAX_LVL = 20;
+/** Every Astral is summoned at Lv 1 and can be upgraded ten times, up to Lv 10. */
+export const ASTRAL_MAX_LVL = 10;
+/** Share of the species' base bonus one upgrade level adds. */
+export const ASTRAL_LVL_STEP = 0.15;
 export const SUMMON_COST = 10; // starshards
-export const astralUpgradeCost = (a: Astral) => 2 + a.lvl * (a.rarity + 1);
-export const astralValue = (a: Astral) => +(ASTRAL_BASES[a.base].per * (1 + a.rarity) * (1 + a.lvl * 0.15)).toFixed(1);
+/** Starshards banked upgrade step: each rarity tier raises every level's price. */
+export const astralUpgradeCost = (a: Astral) => 3 + Math.max(0, a.lvl - 1) * (a.rarity + 2);
+export const astralValue = (a: Astral) =>
+  +((ASTRAL_BASES[a.base]?.per ?? 0) * (ASTRAL_RARITY_POWER[a.rarity] ?? 1) * (1 + Math.max(0, a.lvl - 1) * ASTRAL_LVL_STEP)).toFixed(1);
 export const astralLabel = (a: Astral) => `${ASTRAL_RARITY[a.rarity]} ${ASTRAL_BASES[a.base]?.name ?? "Astral"} Lv${a.lvl}`;
 export const astralStatText = (a: Astral) => `+${astralValue(a)}${STAT_LABEL[ASTRAL_BASES[a.base].stat]}`;
 
@@ -346,7 +354,7 @@ export function summonAstral(h: CraftState, rand = Math.random): Astral | string
   spendMats(h, { starshard: SUMMON_COST });
   const rarity = rollAstralRarity(rand() * 100);
   const bases = Object.keys(ASTRAL_BASES);
-  const a: Astral = { id: Math.random().toString(36).slice(2, 10) + Date.now().toString(36), base: bases[Math.floor(rand() * bases.length)], rarity, lvl: 0 };
+  const a: Astral = { id: Math.random().toString(36).slice(2, 10) + Date.now().toString(36), base: bases[Math.floor(rand() * bases.length)], rarity, lvl: 1 };
   h.astrals = [...(h.astrals ?? []), a];
   return a;
 }
@@ -359,16 +367,26 @@ export function upgradeAstral(h: CraftState, id: string): string | null {
   spendMats(h, { starshard: c }); a.lvl++;
   return null;
 }
-/** Feed a duplicate (same species, not equipped) into an Astral: +2 levels per duplicate, +1 more per duplicate rarity. */
+/** Feed a duplicate (same species, not equipped) into an Astral: +1 level, +1 more for every two rarity steps. */
 export function absorbAstral(h: CraftState, targetId: string, foodId: string): string | null {
   const t = h.astrals?.find((x) => x.id === targetId); const f = h.astrals?.find((x) => x.id === foodId);
   if (!t || !f || t.id === f.id) return "Astral not found";
   if (t.base !== f.base) return "Only duplicates of the same species can be absorbed";
   if ((h.astralSlots ?? []).includes(f.id)) return "Unequip the duplicate first";
   if (t.lvl >= ASTRAL_MAX_LVL) return "Max level";
-  t.lvl = Math.min(ASTRAL_MAX_LVL, t.lvl + 2 + f.rarity);
+  t.lvl = Math.min(ASTRAL_MAX_LVL, t.lvl + 1 + Math.floor(f.rarity / 2));
   h.astrals = h.astrals!.filter((x) => x.id !== f.id);
   return null;
+}
+
+/** Keep every Astral inside the six-colour, ten-level ladder, including ones the server or an old save returns. */
+export function normalizeAstrals(h: { astrals?: Astral[] }) {
+  for (const a of h.astrals ?? []) {
+    const rarity = Math.round(Number(a.rarity));
+    a.rarity = Number.isFinite(rarity) ? Math.min(ASTRAL_RARITY.length - 1, Math.max(0, rarity)) : 0;
+    const lvl = Math.round(Number(a.lvl));
+    a.lvl = Number.isFinite(lvl) ? Math.min(ASTRAL_MAX_LVL, Math.max(1, lvl)) : 1;
+  }
 }
 export function equipAstral(h: CraftState, id: string | null, slot: number): string | null {
   if (slot < 0 || slot >= ASTRAL_SLOTS) return "No such slot";

@@ -7,9 +7,9 @@ import { update, useGame } from "./store";
 import { MATS, matCount, type Mat } from "./crafting";
 import { CLASSES, type Hero, type HeroClass, type Item, type Slot } from "./data";
 import {
-  SYNTH_LEVELS, SYNTH_SLOTS, SYNTH_SLOT_LABEL, SYNTH_TIER_COUNT, SYNTH_WEAPON,
+  SYNTH_LEVELS, SYNTH_SLOTS, SYNTH_SLOT_LABEL, SYNTH_TIER_COUNT, SYNTH_UNLOCK_LEVEL, SYNTH_WEAPON,
   appearanceTier, craftSynth, fxLine, overallProgress, pieceName, pieceState, setCost, setProgress,
-  synthLevel, tierName, tierOverview, unlockedTier, unwearSynth, wearSynth, type SynthSlot,
+  synthLevel, synthUnlocked, tierName, tierOverview, unlockedTier, unwearSynth, wearSynth, type SynthSlot,
 } from "./synthesis";
 
 /** Where each synthesis piece borrows its atlas art from. */
@@ -44,7 +44,7 @@ function Header({ hero }: { hero: Hero }) {
       <div className="grid gap-1.5 sm:grid-cols-4">
         {cell("Character level", String(synthLevel(hero)), hero.paragon ? `Level ${hero.level} · Ascension ${hero.paragon}` : undefined)}
         {cell("Synthesis progress", `${prog.crafted}/${prog.total} pieces`, `${prog.complete} of ${SYNTH_TIER_COUNT} sets complete`)}
-        {cell("Current set", prog.unlocked ? tierName(prog.unlocked) : "Locked", prog.unlocked ? undefined : "Unlocks at level 30")}
+        {cell("Current set", prog.unlocked ? tierName(prog.unlocked) : "Locked", prog.unlocked ? undefined : `The forge opens at level ${SYNTH_UNLOCK_LEVEL}`)}
         {cell("Next set", next ? tierName(next) : "None — all unlocked", next ? `Requires level ${SYNTH_LEVELS[next - 1]}` : "The last milestone is reached")}
       </div>
       <div className="mt-1.5 h-1.5 overflow-hidden rounded bg-secondary" role="progressbar" aria-label="Synthesis progress" aria-valuemin={0} aria-valuemax={prog.total} aria-valuenow={prog.crafted}>
@@ -60,7 +60,7 @@ function TierRail({ hero, tier, onPick }: { hero: Hero; tier: number; onPick: (t
     <div className="mb-3" role="group" aria-label="Synthesis sets">
       <div className="mb-1 flex items-baseline justify-between">
         <span className="font-display text-sm text-gold">All nine sets</span>
-        <span className="text-[10px] text-muted-foreground">A new set every ten levels · level 30 to 110</span>
+        <span className="text-[10px] text-muted-foreground">A new set every ten levels · level {SYNTH_LEVELS[0]} to {SYNTH_LEVELS[SYNTH_TIER_COUNT - 1]}</span>
       </div>
       <div className="grid grid-cols-3 gap-1 sm:grid-cols-5 lg:grid-cols-9">
         {tierOverview(hero).map((t) => (
@@ -236,6 +236,11 @@ export function SynthesisPanel({ hero, gender, act }: {
     <div data-testid="synthesis-tab">
       <Header hero={hero} />
       {msg && <div className={`anim-pop mb-2 text-center font-display ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</div>}
+      {!synthUnlocked(hero) && (
+        <p className="mb-2 rounded border border-border/60 bg-secondary/40 px-2 py-1.5 text-center text-[11px] text-muted-foreground">
+          <Lock className="mr-0.5 inline h-3 w-3" />Synthesis opens at character level {SYNTH_UNLOCK_LEVEL}. The first set is forged at level {SYNTH_LEVELS[0]}.
+        </p>
+      )}
       <div className="grid gap-3 lg:grid-cols-[220px_minmax(0,1fr)_240px]">
         <div>
           <HeroPreview hero={hero} gender={gender} />

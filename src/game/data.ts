@@ -6,7 +6,7 @@ import goblinImg from "@/assets/enemy-goblin.png";
 import demonImg from "@/assets/enemy-demon.png";
 import dragonImg from "@/assets/enemy-dragon.png";
 import { talentFx, talentSkills } from "./talents";
-import { astralFx, gemFx, migrateGems, zeroFx, zeroGemFx, type Astral, type BonusFx, type Mat } from "./crafting";
+import { astralFx, gemFx, migrateGems, normalizeAstrals, zeroFx, zeroGemFx, type Astral, type BonusFx, type Mat } from "./crafting";
 import { setFx, type BattleEntry, type CombatRecord } from "./progress";
 import { scaledGold } from "./gold";
 import { drillAttrs, drillFx } from "./drills";
@@ -350,6 +350,8 @@ export function normalizeHero(h: Hero): Hero {
   delete legacy.ancTower;
   // Gems from older saves are remapped onto the eight chart families (see crafting.ts).
   migrateGems(h);
+  // Astrals are clamped onto the six-colour, ten-level ladder (see crafting.ts).
+  normalizeAstrals(h);
   // Synthesis gear survives every save round-trip; unknown or un-forged pieces are dropped.
   normalizeSynth(h);
   return h;
