@@ -414,74 +414,7 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
 
 @keyframes hint-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
 
-/* ---------- the endless world tree map ----------
+/* ---------- painted armour orientation ----------
    Painted armour and set art are drawn looking the other way from the base class
    model; flipping them keeps the hero facing right in every wearing. */
 .hero-model-flip { transform: scaleX(-1); }
-
-.world-tree { isolation: isolate; }
-.world-vignette { background: radial-gradient(ellipse at center, transparent 52%, rgb(0 0 0 / 0.62) 100%); }
-
-.world-region-label {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  color: var(--gold);
-  opacity: 0.17;
-  font-size: clamp(1.4rem, 4vw, 3.6rem);
-  font-weight: 800;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  pointer-events: none;
-  text-shadow: 0 2px 18px rgb(0 0 0 / 0.8);
-}
-
-.world-site {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 9999px;
-  border-width: 2px;
-  background: rgb(10 8 6 / 0.74);
-  backdrop-filter: blur(3px);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-.world-site:hover { transform: translate(-50%, -50%) scale(1.22); z-index: 5; }
-.world-site.is-selected { box-shadow: 0 0 0 3px rgb(255 210 120 / 0.5), 0 0 24px rgb(255 180 60 / 0.45); z-index: 6; }
-
-.world-site-name {
-  position: absolute;
-  top: calc(100% + 2px);
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  font-size: 10px;
-  line-height: 1.1;
-  color: var(--foreground);
-  text-shadow: 0 1px 4px #000, 0 0 8px #000;
-  opacity: 0.85;
-  pointer-events: none;
-}
-
-.world-castle {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.4rem;
-  height: 2.4rem;
-  border-radius: 9999px;
-  border: 2px solid var(--gold);
-  background: rgb(24 16 6 / 0.85);
-  color: var(--gold);
-  box-shadow: 0 0 22px rgb(255 190 80 / 0.5);
-  pointer-events: none;
-  z-index: 7;
-}
-
-.world-site-card { box-shadow: 0 12px 40px rgb(0 0 0 / 0.6); }
