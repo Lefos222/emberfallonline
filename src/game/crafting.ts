@@ -2,7 +2,7 @@ import type { HeroClass, Item, Slot } from "./data";
 import { scaledGold } from "./gold";
 
 // ---------- Materials ----------
-export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone" | "ancientBone" | "voidShard" | "emberHeart";
+export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone";
 export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity: number }> = {
   ore: { name: "Ember Ore", desc: "Common ore used in crafting and gem cutting.", src: "Every won battle (more in higher regions)", rarity: 0 },
   essence: { name: "Soul Essence", desc: "Distilled souls used in crafting and gem fusion.", src: "Tougher fights, elites, bosses", rarity: 2 },
@@ -14,9 +14,6 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   bloom: { name: "Emberbloom", desc: "Fire-touched herb. Refines into Soul Essence.", src: "Won battles, elites and gathering journeys", rarity: 1 },
   crystal: { name: "Arcane Crystal", desc: "Crystallised mana. Refines into Starshards.", src: "Elites and Dungeon Gate bosses", rarity: 2 },
   enchantStone: { name: "Enchantment Stone", desc: "A resonant stone used to enchant gear at the Forge instead of gold. Higher success rate.", src: "Conquest Gate shop and Guild shop", rarity: 3 },
-  ancientBone: { name: "Ancient Relic Bone", desc: "Bone of a long-dead ancestor. Used only in Ancestral equipment crafting.", src: "Ancestral Tower boss floors", rarity: 4 },
-  voidShard: { name: "Void Crystal Shard", desc: "A shard of crystallised void. Used only in Ancestral equipment crafting.", src: "Ancestral Tower boss floors 2+", rarity: 4 },
-  emberHeart: { name: "Ember Heart Core", desc: "The still-beating heart of an ancestral titan. Used only in Ancestral equipment crafting.", src: "Ancestral Tower boss floors 3+", rarity: 5 },
 };
 type Mats = Partial<Record<Mat, number>>;
 
@@ -25,7 +22,6 @@ export interface CraftState {
   mats?: Mats; gems?: Record<string, number>; astrals?: Astral[]; astralSlots?: (string | null)[];
   equipment: Partial<Record<Slot, Item>>; inventory: Item[];
   crafts?: number;
-  anc?: { step: number; relics: number; done: boolean };
 }
 
 export const matCount = (h: Pick<CraftState, "mats">, m: Mat) => h.mats?.[m] ?? 0;
@@ -396,10 +392,6 @@ export const ASTRAL_MILESTONES = [{ n: 3, gold: 1000 }, { n: 6, gold: 5000 }, { 
 // ---------- Recipes ----------
 export interface Recipe {
   id: string; name: string; rarity: number; mats: Mats; gold: number; minLevel: number; desc: string;
-  /** Ancestral heirlooms are forged in their own Forge tab, one recipe per slot. */
-  ancestral?: true;
-  /** Slot an ancestral recipe produces (standard recipes take the slot the player picked). */
-  slot?: Slot;
 }
 
 /** What a recipe's gold cost comes to for a hero of this level. */
@@ -415,18 +407,6 @@ export const RECIPES: Recipe[] = [
   { id: "voidforged", name: "Voidforged Sovereign", rarity: 5, mats: { ore: 620, essence: 150, starshard: 80, bossCore: 24, sigil: 30 }, gold: 80000, minLevel: 80, desc: "A Mythic sovereign piece for Ascension builds. Three gem sockets." },
 ];
 
-/** The Ancestral tier: one heirloom per slot, forged only after the Sanctuary trials are complete.
- *  Every piece costs millions of gold once the hero's level is taken into account, plus a vault of
- *  materials — this is the long-term goal the whole forge feeds into. */
-export const ANCESTRAL_RECIPES: Recipe[] = [
-  { id: "ancestral_helmet", name: "Ancestral Helm", slot: "helmet", rarity: 6, ancestral: true, minLevel: 80, gold: 1200000, desc: "Ancestral headpiece. Three gem sockets and the highest bonus in the game.", mats: { ore: 800, essence: 200, bossCore: 40, fragment: 300, sigil: 80, crystal: 100, ancientBone: 20, voidShard: 10, emberHeart: 5 } },
-  { id: "ancestral_armour", name: "Ancestral Plate", slot: "armour", rarity: 6, ancestral: true, minLevel: 80, gold: 1800000, desc: "Ancestral chestpiece, the heart of the set.", mats: { ore: 1000, essence: 250, bossCore: 60, fragment: 400, sigil: 100, crystal: 120, ancientBone: 30, voidShard: 15, emberHeart: 8 } },
-  { id: "ancestral_boots", name: "Ancestral Greaves", slot: "boots", rarity: 6, ancestral: true, minLevel: 80, gold: 1100000, desc: "Ancestral greaves, forged around a crystal core.", mats: { ore: 700, essence: 180, bossCore: 30, fragment: 250, sigil: 70, crystal: 90, ancientBone: 18, voidShard: 8, emberHeart: 4 } },
-  { id: "ancestral_belt", name: "Ancestral Girdle", slot: "belt", rarity: 6, ancestral: true, minLevel: 80, gold: 1100000, desc: "Ancestral warbelt, bound with elite sigils.", mats: { ore: 700, essence: 180, bossCore: 30, fragment: 250, sigil: 70, crystal: 90, ancientBone: 18, voidShard: 8, emberHeart: 4 } },
-  { id: "ancestral_weapon", name: "Ancestral Relic Weapon", slot: "weapon", rarity: 6, ancestral: true, minLevel: 80, gold: 1600000, desc: "Ancestral weapon, quenched in starshard light.", mats: { ore: 900, essence: 230, bossCore: 50, fragment: 350, sigil: 90, starshard: 80, ancientBone: 25, voidShard: 12, emberHeart: 6 } },
-  { id: "ancestral_ring", name: "Ancestral Signet", slot: "ring", rarity: 6, ancestral: true, minLevel: 80, gold: 1000000, desc: "Ancestral ring set with a star-cut stone.", mats: { ore: 600, essence: 220, bossCore: 25, fragment: 200, sigil: 60, starshard: 90, crystal: 120, ancientBone: 15, voidShard: 8, emberHeart: 4 } },
-  { id: "ancestral_talisman", name: "Ancestral Reliquary", slot: "talisman", rarity: 6, ancestral: true, minLevel: 80, gold: 1050000, desc: "Ancestral reliquary, holding the last of the old magic.", mats: { ore: 650, essence: 240, bossCore: 30, fragment: 220, sigil: 65, starshard: 100, crystal: 130, ancientBone: 16, voidShard: 10, emberHeart: 5 } },
-];
 /** Armor slots: Rare and better armor exists only through crafting. */
 export const ARMOR_SLOTS: Slot[] = ["helmet", "armour", "boots", "belt"];
 export const isArmor = (s: Slot) => ARMOR_SLOTS.includes(s);
@@ -439,7 +419,6 @@ export const recipeMats = (r: Recipe, slot: Slot): Mats => {
   return out;
 };
 export function craftBlocker(h: CraftState, r: Recipe, invCap: number, slot: Slot = "weapon"): string | null {
-  if (r.ancestral && !h.anc?.done) return "Complete the Ancestral Sanctuary trials";
   if (h.level + h.paragon < r.minLevel) return `Requires level ${r.minLevel}`;
   if (h.gold < recipeGold(r, h.level)) return "Not enough gold";
   if (!hasMats(h, recipeMats(r, slot))) return "Missing materials";

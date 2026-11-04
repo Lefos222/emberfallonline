@@ -57,7 +57,6 @@ export const RARITIES = [
   { name: "Epic", mult: 2.1 },
   { name: "Legendary", mult: 2.8 },
   { name: "Mythic", mult: 3.8 },
-  { name: "Ancestral", mult: 5.2 },
 ];
 
 export interface Item {
@@ -69,7 +68,6 @@ export interface Item {
   icon: number;
   enh: number;
   name: string;
-  anc?: boolean;
   /** True when produced by the Forge (the only source of Rare+ armor). */
   crafted?: boolean;
   /** Socketed gem keys (see crafting.ts), null = empty socket. */
@@ -136,12 +134,6 @@ export function makeItem(cls: HeroClass, ilvl: number, rarity: number, slot?: Sl
     id: uid(), slot: s, cls, rarity, ilvl: Math.max(1, Math.floor(ilvl)), icon: tier, enh: 0,
     name: `${prefix} ${SLOT_NAMES[cls][s]} ${suffix}`.trim(),
   };
-}
-
-const ANC_NAMES: Record<HeroClass, string> = { warrior: "Vanguard", mage: "Arcanist", archer: "Hunt" };
-export function makeAncestral(cls: HeroClass, ilvl: number, slot: Slot): Item {
-  return { id: uid(), slot, cls, rarity: 6, ilvl: Math.max(1, Math.floor(ilvl)), icon: Math.floor(Math.random() * iconCount(slot)), enh: 0, anc: true,
-    name: `Ancestral ${ANC_NAMES[cls]} ${SLOT_NAMES[cls][slot]}` };
 }
 
 export function itemStats(it: Item): ItemStats {
@@ -244,7 +236,6 @@ export interface Hero {
   merchant: Item[];
   wins: number;
   quests?: string[];
-  anc?: { step: number; relics: number; done: boolean };
   dungeons?: Record<string, number>;
   /** Skill tree ranks by talent id. */
   talents?: Record<string, number>;
@@ -282,8 +273,6 @@ export interface Hero {
   guildCoins?: number;
   /** Guild skill tower ranks by skill id (see guild-tower.ts). */
   guildSkills?: Record<string, number>;
-  /** Ancestral Tower progression: next fightable floor and deepest cleared (see ancestral-tower.ts). */
-  ancTower?: { floor: number; bestFloor: number };
   /** Synthesis armour: forged pieces ("<tier>:<slot>") and the set worn in each slot (see synthesis.ts). */
   synth?: { crafted?: string[]; worn?: Record<string, number> };
 
@@ -323,6 +312,17 @@ export function normalizeHero(h: Hero): Hero {
   if (a.int === undefined || a.agi === undefined) {
     h.attrs = { str: a.str ?? 0, int: 0, agi: a.luck ?? 0, vit: (a.vit ?? 0) + (a.armor ?? 0) };
   }
+  // The seventh (top) rarity tier and its save fields are gone: drop any leftover pieces and
+  // fields so older saves keep loading after the tier's removal.
+  const maxRarity = RARITIES.length - 1;
+  h.inventory = h.inventory.filter((i) => i.rarity <= maxRarity);
+  for (const pos of WEAR_SLOTS) {
+    const worn = h.equipment[pos];
+    if (worn && worn.rarity > maxRarity) delete h.equipment[pos];
+  }
+  const legacy = h as unknown as { anc?: unknown; ancTower?: unknown };
+  delete legacy.anc;
+  delete legacy.ancTower;
   // Gems from older saves are remapped onto the eight chart families (see crafting.ts).
   migrateGems(h);
   // Synthesis gear survives every save round-trip; unknown or un-forged pieces are dropped.
@@ -510,8 +510,6 @@ export const BUILDINGS = [
   { id: "market", name: "Royal Treasury", x: 44, y: 82, r: 5, desc: "Gold & merchant", soon: false },
   { id: "dungeon", name: "Dungeon Gate", x: 24, y: 80, r: 4, desc: "Boss challenges & elites · Lv 20+", soon: false },
   { id: "tower", name: "Magic Tower", x: 66, y: 74, r: 4, desc: "Summon & upgrade Astrals", soon: false },
-  { id: "sanctuary", name: "Ancestral Sanctuary", x: 87, y: 42, r: 5, desc: "Ancestral trials & heirloom crafting", soon: false , shortcut: true },
-  { id: "anctree", name: "Ancestral Tree", x: 80, y: 62, r: 5, desc: "Ancestral Tower · 100k BR · Lv 80+", soon: false },
   { id: "gems", name: "Gem Workshop", x: 54.5, y: 71, r: 4, desc: "Cut, socket & fuse gems", soon: false },
   { id: "guild", name: "Guild Hall", x: 35, y: 55, r: 4, desc: "Guilds & guild chat", soon: false },
   { id: "friends", name: "Friends", x: 0, y: 0, r: 0, desc: "Friends & messages", soon: false, shortcut: true },

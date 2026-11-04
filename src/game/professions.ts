@@ -13,7 +13,7 @@ export const DISCOVERY_RARITIES=['Common','Uncommon','Rare','Exceptional'];
 export const DISCOVERY_NAMES:Record<ProfessionId,string[]>={
   mining:['Copper Ore','Silver Ore','Azure Crystal','Sunfire Geode'],herbalism:['Wildleaf','Moonmint','Starblossom','Phoenix Orchid'],
   logging:['Oak Timber','Ironwood','Runewood','Worldtree Heart'],fishing:['River Perch','Silverfin','Frost Koi','Celestial Ray'],
-  archaeology:['Pottery Shard','Runic Tablet','Royal Artifact','Ancestor’s Seal'],treasure:['Roadside Cache','Merchant’s Cache','Forgotten Vault','Sovereign’s Hoard'],
+  archaeology:['Pottery Shard','Runic Tablet','Royal Artifact','Ancient Seal'],treasure:['Roadside Cache','Merchant’s Cache','Forgotten Vault','Sovereign’s Hoard'],
 };
 export interface Discovery {request:string;profession:ProfessionId;area:number;rarity:number;quantity:number;resource:string;xp:number;at:string}
 export interface GatheringState {professions:Record<string,{xp:number;tool:number;journeys:number}>;resources:Record<string,number>;history:Discovery[];active:{request:string;profession:ProfessionId;area:number;startedAt:string;readyAt:string}|null;nextAt?:string}

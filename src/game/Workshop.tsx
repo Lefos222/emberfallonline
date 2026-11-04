@@ -3,14 +3,14 @@ import { CharacterModel } from "./CharacterModel";
 import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { ArrowUp, Gem, Hammer, Lock, Plus, Sparkles, X } from "lucide-react";
-import { invCap, SLOTS, WEAR_SLOTS, wornCompare, makeAncestral, makeItem, type Hero, type Item, type Slot } from "./data";
+import { invCap, SLOTS, WEAR_SLOTS, wornCompare, makeItem, type Hero, type Item, type Slot } from "./data";
 import { update, useGame } from "./store";
 import { GemCraftWindow, GemPicker } from "./GemWindows";
 import { SynthesisTab } from "./Synthesis";
 import { appearanceTier } from "./synthesis";
 import { GameTabs, Gold, ItemCard, Panel, fmt } from "./ui";
 import {
-  ANCESTRAL_RECIPES, ASTRAL_BASES, ASTRAL_MAX_LVL, ASTRAL_MILESTONES, ASTRAL_RARITY, ASTRAL_SLOT_LEVELS, ASTRAL_SLOTS, FUSE_COUNT, GEMS, GEM_MAX_TIER, MATS, RECIPES, SUMMON_COST,
+  ASTRAL_BASES, ASTRAL_MAX_LVL, ASTRAL_MILESTONES, ASTRAL_RARITY, ASTRAL_SLOT_LEVELS, ASTRAL_SLOTS, FUSE_COUNT, GEMS, GEM_MAX_TIER, MATS, RECIPES, SUMMON_COST,
   astralUpgradeCost, astralValue, craft, craftBlocker, equipAstral, fuseCost, fuseGem, gemName, gemValue, GEM_STAT_LABEL, insertGem, matCount, parseGem, recipeGold, removeGem,
   socketCount, sockets, STAT_LABEL, recipeMats, summonAstral, upgradeAstral, absorbAstral, type Mat, type Recipe,
 } from "./crafting";
@@ -256,27 +256,24 @@ function RecipeRow({ r, slot, hero, ilvl, busy, onCraft }: { r: Recipe; slot: Sl
   );
 }
 
-/** The Forge's crafting window: standard recipes for any slot, and the Ancestral tab with one
- *  heirloom per slot behind the Sanctuary trials. */
+/** The Forge's crafting window: standard recipes for any slot, plus the Synthesis tab. */
 export function Crafting({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
-  const [tab, setTab] = useState<"standard" | "ancestral" | "synthesis">("standard");
+  const [tab, setTab] = useState<"standard" | "synthesis">("standard");
   const [slot, setSlot] = useState<Slot>("weapon");
   const [last, setLast] = useState<Item | null>(null);
   const [busy, setBusy] = useState(false);
   const [toast, say] = useToast();
   if (!hero) return null;
   const ilvl = hero.level + Math.floor(hero.paragon / 2);
-  const ancestralOpen = !!hero.anc?.done;
   const doCraft = (r: Recipe, at: Slot) => {
     if (busy) return; // prevents double-click double crafts
     setBusy(true);
     update((h) => {
-      const recipe = (r.ancestral ? ANCESTRAL_RECIPES : RECIPES).find((x) => x.id === r.id);
+      const recipe = RECIPES.find((x) => x.id === r.id);
       if (!recipe) return;
-      const out = craft(h, recipe, invCap(h),
-        () => (recipe.ancestral ? makeAncestral(h.cls, ilvl, at) : makeItem(h.cls, ilvl, recipe.rarity, at)), at);
-      if (typeof out !== 'string' && !recipe.ancestral && !['rare','epic','legend','mythic'].includes(recipe.id)) out.name = `${recipe.name} ${at}`;
+      const out = craft(h, recipe, invCap(h), () => makeItem(h.cls, ilvl, recipe.rarity, at), at);
+      if (typeof out !== 'string' && !['rare','epic','legend','mythic'].includes(recipe.id)) out.name = `${recipe.name} ${at}`;
       if (typeof out === "string") say(false, out); else { setLast(out); say(true, `Forged ${out.name}!`); }
     });
     setTimeout(() => setBusy(false), 400);
@@ -287,20 +284,9 @@ export function Crafting({ onClose }: { onClose: () => void }) {
       {toast}
       <GameTabs label="Forge recipes" value={tab} onChange={setTab} tabs={[
         { id: "standard", name: "Standard recipes" },
-        { id: "ancestral", name: "Ancestral" },
         { id: "synthesis", name: "Synthesis" },
       ]} />
       {tab === "synthesis" && <SynthesisTab />}
-      {tab === "ancestral" && (
-        <div className="slot mb-3 p-3">
-          <div className="font-display text-gold">Ancestral heirlooms</div>
-          <p className="text-xs text-muted-foreground">
-            The highest tier in Ember Fall: one piece per slot, each costing millions of gold and a vault of
-            materials. Every price rises with your level, so the full set is the long climb after the Sanctuary.
-          </p>
-          {!ancestralOpen && <p className="mt-1 text-xs text-hp">Locked — complete the Ancestral Sanctuary trials to forge these.</p>}
-        </div>
-      )}
       {tab === "standard" && (
         <div className="mb-3 flex flex-wrap gap-1 text-sm">
           {SLOTS.map((s) => <Button key={s} size="sm" variant={slot === s ? 'default' : 'ghost'} onClick={() => setSlot(s)}>{s}</Button>)}
@@ -309,9 +295,7 @@ export function Crafting({ onClose }: { onClose: () => void }) {
       {tab !== "synthesis" && (
         <div className="grid gap-4 md:grid-cols-[1.4fr_1fr]">
           <div className="space-y-2">
-            {tab === "standard"
-              ? RECIPES.map((r) => <RecipeRow key={r.id} r={r} slot={slot} hero={hero} ilvl={ilvl} busy={busy} onCraft={() => doCraft(r, slot)} />)
-              : ANCESTRAL_RECIPES.map((r) => <RecipeRow key={r.id} r={r} slot={r.slot!} hero={hero} ilvl={ilvl} busy={busy} onCraft={() => doCraft(r, r.slot!)} />)}
+            {RECIPES.map((r) => <RecipeRow key={r.id} r={r} slot={slot} hero={hero} ilvl={ilvl} busy={busy} onCraft={() => doCraft(r, slot)} />)}
             <p className="text-xs text-muted-foreground">Crafted items: {hero.crafts ?? 0}</p>
           </div>
           <div>{last ? <ItemCard item={last} compare={wornCompare(hero, last)} /> : <p className="py-10 text-center text-muted-foreground">Your newest creation appears here, compared with what you wear.</p>}</div>

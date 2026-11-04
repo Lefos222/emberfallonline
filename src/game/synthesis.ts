@@ -33,7 +33,7 @@ export const tierName = (tier: number) => `Synthesis Set ${ROMAN[tier - 1] ?? ti
 export const pieceName = (tier: number, slot: SynthSlot, cls: HeroClass) =>
   slot === "weapon" ? `${tierName(tier)} · ${SYNTH_WEAPON[cls]}` : `${tierName(tier)} · ${SYNTH_SLOT_LABEL[slot]}`;
 
-/** Ascension levels count toward synthesis unlocks, exactly like the ancestral forge does. */
+/** Ascension levels count toward synthesis unlocks, exactly like the forge's level gates. */
 export const synthLevel = (h: Pick<Hero, "level" | "paragon">) => h.level + (h.paragon ?? 0);
 
 /** The highest set the character has unlocked (0 when still below level 30). */
@@ -221,8 +221,7 @@ export function synthBlocker(h: Hero, tier: number, slot: SynthSlot): string | n
 const MATS_NAME: Record<Mat, string> = {
   ore: "Ember Ore", essence: "Soul Essence", starshard: "Starshard", bossCore: "Boss Core",
   fragment: "Armor Fragment", sigil: "Elite Sigil", hide: "Beast Hide", bloom: "Emberbloom",
-  crystal: "Arcane Crystal", enchantStone: "Enchantment Stone", ancientBone: "Ancient Relic Bone",
-  voidShard: "Void Crystal Shard", emberHeart: "Ember Heart Core",
+  crystal: "Arcane Crystal", enchantStone: "Enchantment Stone",
 };
 
 /** Forge one piece: spends its materials and records it on the save. */

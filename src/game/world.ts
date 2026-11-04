@@ -116,17 +116,3 @@ export function dungeonFoe(d: Dungeon, heroLevel: number, extra = 1): Foe & { sp
   return { ...base, ...tweak, name: b.name, level: lvl, boss: true, sprite: b.sprite };
 }
 
-// ---------- Ancestral questline ----------
-export const RELICS_NEEDED = 5;
-export const ANC_LEVEL = 80;
-export interface AncStep { title: string; desc: string; kind: "unlock" | "relics" | "boss"; boss?: TierBossId; mult?: number }
-export const ANC_STEPS: AncStep[] = [
-  { title: "Whispers of the Ancestors", desc: `Reach level ${ANC_LEVEL} and clear Molten Peaks (stage 30) to hear the Sanctuary's call.`, kind: "unlock" },
-  { title: "Relics of the Ancients", desc: `Recover ${RELICS_NEEDED} Ancestral Relics. Campaign bosses and dungeon bosses have a chance to drop them.`, kind: "relics" },
-  { title: "Trial of Iron", desc: "Defeat the Ancestral echo of Aegis, the Iron Overlord.", kind: "boss", boss: "aegis", mult: 1.5 },
-  { title: "Trial of the Void", desc: "Defeat the Ancestral echo of Tenebris, the Void Empress.", kind: "boss", boss: "tenebris", mult: 1.6 },
-  { title: "Judgment of Embers", desc: "Defeat the Ancestral echo of Vulkan, the Ember Titan, to claim your heritage.", kind: "boss", boss: "vulkan", mult: 1.75 },
-];
-export const ancState = (h: Hero) => h.anc ?? { step: 0, relics: 0, done: false };
-export const canBeginAncestral = (h: Hero) => h.level + h.paragon >= ANC_LEVEL && h.stage > 30;
-export const RELIC_DROP = 0.4;
