@@ -8,6 +8,7 @@ import { GameTabs, Panel } from "./ui";
 import { activities, reward, rewardLines, takeLuckyShot } from "./services";
 import { object, type Activities, type Objective } from "./services-contract";
 import { ASTRAL_ODDS, ASTRAL_RARITY, astralLabel, astralStatText, type Astral } from "./crafting";
+import { DailyRewardsBoard } from "./DailyRewardsBoard";
 
 export function useRequest() {
   const locked = useRef(false);
@@ -108,7 +109,8 @@ export function ActivityBoard({ onClose }: { onClose: () => void }) {
     <div><h3 className="font-display text-lg">{KIND_LABEL[o.kind] ?? o.kind}{o.stage ? ` · Stage ${o.stage}` : ""}</h3><p className="text-sm text-muted-foreground">{Math.min(o.progress, o.target)} / {o.target}</p><progress className="mt-1 h-2 w-44 accent-primary" max={o.target} value={Math.min(o.progress, o.target)} /></div>
     <Button variant={o.claimed ? "ghost" : "default"} disabled={request.busy || o.claimed || o.progress < o.target} onClick={() => void request.run(() => claim(o.id))}>{o.claimed ? <Check /> : <Gift />}{o.claimed ? "Claimed" : "Claim"}</Button>
   </div>;
-  return <Panel title="Daily & Weekly Activities" onClose={onClose}>
+  return <Panel title="Daily & Weekly Activities" onClose={onClose} wide>
+    <DailyRewardsBoard />
     <div className="flex justify-end"><Button variant="outline" size="icon" aria-label="Refresh activities" disabled={request.busy} onClick={() => void request.run(load)}><RefreshCw /></Button></div>
     <RequestStatus {...request} />
     {board && <>

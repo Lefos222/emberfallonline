@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2, Gavel } from "lucide-react";
+import { Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
 import { ArtIcon, type ArtIconName } from "./ArtIcon";
@@ -130,7 +130,7 @@ export function Game() {
             <Button variant="ghost" size="icon" aria-label="Bestiary" title="Bestiary" onClick={() => setOpen("bestiary")}><ArtIcon name="spellbook" size={24} /></Button>
             <Button variant="ghost" size="icon" aria-label="Profession Lodge" title="Profession Lodge" onClick={()=>setOpen('professions')}><ArtIcon name="anvil" size={24} /></Button>
             <Button variant="ghost" size="icon" aria-label="Premium Shop" title="Premium Shop" onClick={()=>setOpen('premium')}><ArtIcon name="diamond" size={24} /></Button>
-            <Button variant="ghost" size="icon" aria-label="Auction House" title="Auction House" onClick={()=>setOpen('auction')}><Gavel/></Button>
+            <Button variant="ghost" size="icon" aria-label="Auction House" title="Auction House" onClick={()=>setOpen('auction')}><ArtIcon name="auction" size={24} /></Button>
           </nav>
           <WorldChat heroId={heroId} />
           <QuestsButton count={claimableLevelQuests(hero)} onClick={() => setOpen("quests")} />
@@ -317,7 +317,7 @@ const SOON_TEXT: Record<string, string> = {
   gems: "Socket gems into gear, combine fragments and upgrade gems for real stat bonuses.",
   guild: "Create or join guilds, with roles, contribution, guild chat and co-op bosses.",
   friends: "Add friends, see who is online and send private messages.",
-  daily: "A 7-day reward board that rotates to a new theme every week.",
+  daily: "A 30-day reward board with gold, gems, materials and gold chests.",
 };
 
 function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onClose: () => void }) {
@@ -347,7 +347,7 @@ const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIcon
   { id: "armory", label: "Inventory", tip: "Bag & equipment", icon: "bag" },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", icon: "hammer" },
   { id: "gems", label: "Gem Workshop", tip: "Cut, socket & fuse gems", icon: "gem" },
-  { id: "daily", label: "Daily Rewards", tip: "7-day reward board", icon: "gift" },
+  { id: "daily", label: "Daily Rewards", tip: "30-day reward board", icon: "gift" },
   { id: "road", label: "Long Road", tip: "Endless regions past the campaign", icon: "star" },
   { id: "calendar", label: "Events", tip: "World event calendar & reminders", icon: "calendar" },
   { id: "friends", label: "Friends", tip: "Friends & messages", icon: "goblet" },

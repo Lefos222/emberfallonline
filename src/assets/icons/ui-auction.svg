@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="mat" cx="50%" cy="34%" r="78%">
+      <stop offset="0%" stop-color="#3b2b1d"/>
+      <stop offset="62%" stop-color="#22160e"/>
+      <stop offset="100%" stop-color="#120b07"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0%" stop-color="#fff0bd"/>
+      <stop offset="38%" stop-color="#e8bc5c"/>
+      <stop offset="72%" stop-color="#c08b28"/>
+      <stop offset="100%" stop-color="#8b5c14"/>
+    </linearGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#9a663a"/>
+      <stop offset="55%" stop-color="#6d4322"/>
+      <stop offset="100%" stop-color="#3f2412"/>
+    </linearGradient>
+    <linearGradient id="coin" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%" stop-color="#ffe7a3"/>
+      <stop offset="55%" stop-color="#dfae4c"/>
+      <stop offset="100%" stop-color="#94651a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="9" fill="url(#mat)"/>
+  <rect x="1.1" y="1.1" width="61.8" height="61.8" rx="8" fill="none" stroke="#63482a" stroke-width="1.7" opacity="0.9"/>
+
+  <!-- coin stack behind the gavel -->
+  <ellipse cx="45.5" cy="52" rx="10" ry="4.3" fill="#7d5417"/>
+  <ellipse cx="45.5" cy="50.6" rx="10" ry="4.3" fill="url(#coin)" stroke="#5c3c0c" stroke-width="0.8"/>
+  <ellipse cx="45.5" cy="46.8" rx="10" ry="4.3" fill="url(#coin)" stroke="#5c3c0c" stroke-width="0.8"/>
+  <ellipse cx="45.5" cy="45.4" rx="6.4" ry="2.5" fill="#f3d387" opacity="0.55"/>
+  <path d="M40.5 47.2v3.6M50.5 47.2v3.6" stroke="#6b470f" stroke-width="1.1" opacity="0.7"/>
+
+  <!-- handle -->
+  <line x1="17.5" y1="47" x2="36.5" y2="28" stroke="#2a170a" stroke-width="8" stroke-linecap="round" opacity="0.75"/>
+  <line x1="17.5" y1="46" x2="36" y2="27.5" stroke="url(#wood)" stroke-width="6" stroke-linecap="round"/>
+  <line x1="19.5" y1="43.6" x2="32.5" y2="30.6" stroke="#c58f57" stroke-width="1.4" stroke-linecap="round" opacity="0.55"/>
+  <path d="M14.5 49.6l3.2-2.6" stroke="#caa06a" stroke-width="2.4" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- gavel head, long axis perpendicular to the handle -->
+  <g transform="rotate(45 43 21)">
+    <rect x="32" y="14.6" width="22" height="12.8" rx="4.2" fill="#2a170a" opacity="0.6" transform="translate(0.8 1.6)"/>
+    <rect x="32" y="14" width="22" height="12.8" rx="4.2" fill="url(#gold)" stroke="#6a440f" stroke-width="1.2"/>
+    <rect x="33.6" y="15.8" width="18.8" height="4.2" rx="2.1" fill="#ffefbd" opacity="0.55"/>
+    <path d="M37.4 15.4v11.8M48.6 15.4v11.8" stroke="#8a5b12" stroke-width="1.1" opacity="0.85"/>
+    <path d="M39.6 17.2h6.8" stroke="#fff6d6" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+  </g>
+
+  <!-- glint -->
+  <path d="M28.5 20.5l1.1 2.6 2.6 1.1-2.6 1.1-1.1 2.6-1.1-2.6-2.6-1.1 2.6-1.1z" fill="#fff6d6" opacity="0.75"/>
+</svg>

@@ -279,6 +279,10 @@ export interface Hero {
   guildSkills?: Record<string, number>;
   /** Synthesis armour: forged pieces ("<tier>:<slot>") and the set worn in each slot (see synthesis.ts). */
   synth?: { crafted?: string[]; worn?: Record<string, number> };
+  /** Boss-event participations toward the five-kill reward, by event id (see event-rewards.ts). */
+  eventBoss?: Record<string, number>;
+  /** 30-day reward board: days claimed this cycle, the Greek day of the last claim, cycles finished (see daily-rewards.ts). */
+  dailyRewards?: { day?: number; last?: string; cycles?: number };
 
 }
 
