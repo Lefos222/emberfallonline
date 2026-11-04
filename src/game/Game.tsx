@@ -211,7 +211,7 @@ function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: 
       <div className="game-panel player-card pointer-events-auto p-2 pr-3 lg:p-2.5 lg:pr-4">
         <div className="flex items-center gap-2.5">
           <button className={`player-portrait relative h-14 w-14 shrink-0 overflow-hidden lg:h-16 lg:w-16 ${frameClass(frame)}`} onClick={onProfile} aria-label="Profile">
-            {hero.avatar !== undefined ? <AvatarIcon index={hero.avatar} size={48} /> : <Portrait cls={hero.cls} gender={gender} className="w-full" {...heroAppearance(hero)} />}
+            {hero.avatar !== undefined ? <AvatarIcon index={hero.avatar} fill className="block h-full w-full" /> : <Portrait cls={hero.cls} gender={gender} className="w-full" {...heroAppearance(hero)} />}
             <span className="player-level">Lv {hero.level}</span>
           </button>
           <div className="w-40 lg:w-52">
