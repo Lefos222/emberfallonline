@@ -14,14 +14,14 @@ import {
 
 /** Where each synthesis piece borrows its atlas art from. */
 const ICON_SLOT: Record<SynthSlot, Slot> = {
-  helmet: "helmet", chest: "armour", belt: "belt", boots: "boots", cloak: "armour",
+  helmet: "helmet", chest: "armour", belt: "belt", boots: "boots",
   ring1: "ring", ring2: "ring", sigil: "talisman", weapon: "weapon",
 };
 
 function PieceIcon({ slot, tier, cls, size = 34 }: { slot: SynthSlot; tier: number; cls: HeroClass; size?: number }) {
   const icon: Pick<Item, "slot" | "cls" | "icon"> = {
     slot: ICON_SLOT[slot], cls,
-    icon: slot === "ring2" ? (tier + 2) % 8 : slot === "cloak" ? (tier + 2) % 6 : (tier - 1) % 6,
+    icon: slot === "ring2" ? (tier + 2) % 8 : (tier - 1) % 6,
   };
   return <GearIcon item={icon} size={size} />;
 }
@@ -83,7 +83,7 @@ function TierRail({ hero, tier, onPick }: { hero: Hero; tier: number; onPick: (t
   );
 }
 
-/** The nine pieces of the chosen set, each showing whether it is forged and worn. */
+/** The eight pieces of the chosen set, each showing whether it is forged and worn. */
 function PieceGrid({ hero, tier, slot, onPick }: { hero: Hero; tier: number; slot: SynthSlot; onPick: (s: SynthSlot) => void }) {
   return (
     <div className="grid grid-cols-3 gap-1.5">
@@ -207,7 +207,7 @@ function SetBill({ tier }: { tier: number }) {
           <span key={m} className="flex items-center gap-1"><MatIcon mat={m} size={12} />{MATS[m].name} <b className="text-gold">{n}</b></span>
         ))}
       </div>
-      <p className="mt-1 text-muted-foreground">Nine pieces, roughly a fortnight of steady grinding.</p>
+      <p className="mt-1 text-muted-foreground">Eight pieces, roughly a fortnight of steady grinding.</p>
     </div>
   );
 }

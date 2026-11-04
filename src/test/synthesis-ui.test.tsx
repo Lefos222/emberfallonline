@@ -26,18 +26,18 @@ function heroAt(level: number, mats: Partial<Record<string, number>> = {}): Hero
 const tile = (name: RegExp) => screen.getByRole("button", { name });
 
 describe("synthesis tab", () => {
-  it("shows the level, the current set, the next set and all nine pieces", () => {
+  it("shows the level, the current set, the next set and all eight pieces", () => {
     render(<Harness hero={heroAt(30)} />);
     expect(screen.getByTestId("synthesis-tab")).toBeTruthy();
     expect(screen.getByText("Current set")).toBeTruthy();
     expect(screen.getAllByText("Synthesis Set I").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Requires level 40").length).toBeGreaterThan(0);
-    // Nine equipment pieces, each with its own crafting state.
+    // Eight equipment pieces, each with its own crafting state.
     for (const slot of SYNTH_SLOTS) {
       const label = slot === "weapon" ? "Sword" : slot === "ring1" ? "Ring I" : slot === "ring2" ? "Ring II" : null;
       if (label) expect(screen.getAllByText(label).length).toBeGreaterThan(0);
     }
-    expect(screen.getAllByText("Not forged").length).toBe(9);
+    expect(screen.getAllByText("Not forged").length).toBe(8);
   });
 
   it("blocks crafting while the player is short of materials", () => {
@@ -58,7 +58,7 @@ describe("synthesis tab", () => {
 
     fireEvent.click(tile(/^Equip piece$/i));
     expect(screen.getByText("Synthesis Set I · Helmet equipped")).toBeTruthy();
-    expect(screen.getByText("1/9 pieces worn")).toBeTruthy();
+    expect(screen.getByText("1/8 pieces worn")).toBeTruthy();
     // Every slot line reports the set it now wears.
     expect(screen.getAllByText("I").length).toBeGreaterThan(0);
     expect(tile(/^Remove from helmet$/i)).toBeTruthy();

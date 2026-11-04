@@ -11,13 +11,13 @@ import { matCount, zeroFx, type BonusFx, type Mat } from "./crafting";
  * stat pipeline (see data.ts computeStats) and the character's appearance.
  */
 
-/** One of the nine pieces of a synthesis set. Two rings are crafted separately. */
-export type SynthSlot = "helmet" | "chest" | "belt" | "boots" | "cloak" | "ring1" | "ring2" | "sigil" | "weapon";
+/** One of the eight pieces of a synthesis set. Two rings are crafted separately. */
+export type SynthSlot = "helmet" | "chest" | "belt" | "boots" | "ring1" | "ring2" | "sigil" | "weapon";
 
-export const SYNTH_SLOTS: SynthSlot[] = ["helmet", "chest", "belt", "boots", "cloak", "ring1", "ring2", "sigil", "weapon"];
+export const SYNTH_SLOTS: SynthSlot[] = ["helmet", "chest", "belt", "boots", "ring1", "ring2", "sigil", "weapon"];
 
 export const SYNTH_SLOT_LABEL: Record<SynthSlot, string> = {
-  helmet: "Helmet", chest: "Chestplate", belt: "Belt", boots: "Boots", cloak: "Cloak",
+  helmet: "Helmet", chest: "Chestplate", belt: "Belt", boots: "Boots",
   ring1: "Ring I", ring2: "Ring II", sigil: "Sigil", weapon: "Weapon",
 };
 
@@ -108,7 +108,7 @@ const MATS_USED = Object.keys(SET_TOTALS) as Mat[];
 
 /** Share of a set's bill each piece carries, before its own material bias. */
 const PIECE_SHARE: Record<SynthSlot, number> = {
-  helmet: 0.11, chest: 0.16, belt: 0.10, boots: 0.10, cloak: 0.11,
+  helmet: 0.11, chest: 0.16, belt: 0.10, boots: 0.10,
   ring1: 0.08, ring2: 0.08, sigil: 0.10, weapon: 0.16,
 };
 
@@ -118,7 +118,6 @@ const PIECE_BIAS: Record<SynthSlot, Mats> = {
   chest: { ore: 1.2, hide: 1.2, fragment: 1.4, bossCore: 1.2, crystal: 1.2, bloom: 0.6 },
   belt: { hide: 1.6, bloom: 1.2, ore: 0.7, sigil: 0.9 },
   boots: { hide: 1.5, crystal: 1.2, ore: 0.8, bloom: 1.1 },
-  cloak: { hide: 1.8, bloom: 1.5, fragment: 1.2, ore: 0.6, crystal: 0.8 },
   ring1: { crystal: 1.8, starshard: 1.1, ore: 0.5, hide: 0.2, sigil: 1.2 },
   ring2: { crystal: 1.1, starshard: 1.8, ore: 0.5, hide: 0.2, sigil: 1.0 },
   sigil: { essence: 1.8, starshard: 1.5, sigil: 1.6, bloom: 1.3, ore: 0.4, hide: 0.2 },
@@ -160,7 +159,6 @@ const PIECE_FX: Record<SynthSlot, Partial<Record<keyof BonusFx, number>>> = {
   chest: { defPct: 1.8, hpPct: 3.0, block: 0.6 },
   belt: { hpPct: 2.2, critDmg: 4 },
   boots: { dodge: 1.0, hpPct: 1.0, atkPct: 0.6 },
-  cloak: { defPct: 1.2, dodge: 0.8, hpPct: 1.2 },
   ring1: { atkPct: 1.4, crit: 0.8 },
   ring2: { atkPct: 1.2, pen: 0.8 },
   sigil: { crit: 0.6, critDmg: 6, heal: 0.6 },
