@@ -18,6 +18,21 @@ describe("progress", () => {
     h.achClaimed = [a.id];
     expect(isClaimable(h, a)).toBe(false);
   });
+  it("counters from other systems feed their achievement families", () => {
+    const h = newHero("Tester", "mage");
+    h.kills = { wolf: 20, boar: 10 };
+    h.drills = { vitality: 3 };
+    h.talents = { t1: 5, t2: 10 };
+    h.quests = ["wilds-elite", "wilds-boss"];
+    h.road = { stage: 30, wave: 1, best: 26, cleared: 25 };
+    const byId = (id: string) => ACHIEVEMENTS.find((a) => a.id === id)!;
+    expect(isClaimable(h, byId("kills_1"))).toBe(true); // 30 kills ≥ 25
+    expect(isClaimable(h, byId("kills_2"))).toBe(false); // 30 < 250
+    expect(isClaimable(h, byId("drills_1"))).toBe(true);
+    expect(isClaimable(h, byId("talentranks_1"))).toBe(true); // 15 ranks
+    expect(isClaimable(h, byId("quests_1"))).toBe(false); // needs 4
+    expect(isClaimable(h, byId("road_1"))).toBe(true); // best 26 ≥ 25
+  });
   it("2 matching set pieces grant +4% attack and raise stats", () => {
     const h = newHero("Tester", "warrior");
     const w = makeItem("warrior", 10, 2, "weapon"); w.name = "Moonlit Blade";
