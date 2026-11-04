@@ -71,13 +71,27 @@ const client = supabase as unknown as {
     args: SocialRPCs[K]["args"],
   ): PromiseLike<{
     data: SocialRPCs[K]["result"] | null;
-    error: { message: string } | null;
+    error: { message: string; code?: string } | null;
   }>;
 };
 async function call<K extends keyof SocialRPCs>(name: K, args: SocialRPCs[K]["args"]) {
   const { data, error } = await client.rpc(name, args);
   if (error) throw new Error(error.message);
   return data;
+}
+
+/** PostgREST answers PGRST202 when the database never received the function's SQL. */
+function missingRpc(error: { message: string; code?: string }) {
+  return error.code === "PGRST202" || /could not find the function/i.test(error.message);
+}
+
+let requestsSupported = true;
+/**
+ * False once the server reports the friend-request SQL is not deployed. The panel then
+ * says the hero was added instead of pretending a request is waiting for an answer.
+ */
+export function friendRequestsSupported() {
+  return requestsSupported;
 }
 export async function addFriend(heroId: string, name: string) {
   return call("add_friend", { _hero: heroId, _name: name.trim() });
@@ -93,11 +107,27 @@ export async function inspectHero(heroId: string, targetId: string): Promise<Ins
   if (!rows?.[0]) throw new Error("That hero cannot be inspected");
   return rows[0];
 }
+/**
+ * Asks another hero to become friends. A project whose database has not run the
+ * friend-request SQL still lets heroes add each other: the older add_friend RPC
+ * creates the friendship immediately, so nobody hits a schema-cache error.
+ */
 export async function requestFriend(heroId: string, name: string) {
-  return call("request_friend", { _hero: heroId, _name: name.trim() });
+  const trimmed = name.trim();
+  const { data, error } = await client.rpc("request_friend", { _hero: heroId, _name: trimmed });
+  if (!error) return data;
+  if (!missingRpc(error)) throw new Error(error.message);
+  requestsSupported = false;
+  return call("add_friend", { _hero: heroId, _name: trimmed });
 }
 export async function listFriendRequests(heroId: string): Promise<FriendRequest[]> {
-  return (await call("list_friend_requests", { _hero: heroId })) ?? [];
+  const { data, error } = await client.rpc("list_friend_requests", { _hero: heroId });
+  if (!error) return data ?? [];
+  if (missingRpc(error)) {
+    requestsSupported = false;
+    return [];
+  }
+  throw new Error(error.message);
 }
 export async function respondFriendRequest(heroId: string, requestId: string, accept: boolean) {
   await call("respond_friend_request", { _hero: heroId, _request: requestId, _accept: accept });

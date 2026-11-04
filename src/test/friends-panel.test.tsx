@@ -8,6 +8,7 @@ const social = vi.hoisted(() => ({
   listFriendRequests: vi.fn(),
   listSentRequests: vi.fn(),
   requestFriend: vi.fn(),
+  friendRequestsSupported: vi.fn(() => true),
   respondFriendRequest: vi.fn(),
   cancelFriendRequest: vi.fn(),
   removeFriend: vi.fn(),
@@ -77,6 +78,7 @@ beforeEach(() => {
     request({ id: "out1", hero_id: "s2", name: "Tamsin" }),
   ]);
   social.requestFriend.mockResolvedValue("new-request");
+  social.friendRequestsSupported.mockReturnValue(true);
   social.respondFriendRequest.mockResolvedValue(undefined);
   social.cancelFriendRequest.mockResolvedValue(undefined);
   social.searchHeroes.mockResolvedValue([]);
@@ -134,6 +136,19 @@ describe("friend system", () => {
       await within(panel).findByText("Friend request sent to Kael. They must accept it first."),
     ).toBeTruthy();
     expect(social.requestFriend).toHaveBeenCalledWith("me", "Kael");
+  });
+
+  it("reports an instant friendship when the server has no friend-request SQL", async () => {
+    social.friendRequestsSupported.mockReturnValue(false);
+    social.searchHeroes.mockResolvedValue([hero({ id: "h1", name: "Kael", relation: "none" })]);
+    render(<FriendsPanel heroId="me" />);
+    const panel = screen.getByTestId("friends-panel");
+
+    fireEvent.click(within(panel).getByRole("tab", { name: "Find heroes" }));
+    fireEvent.change(within(panel).getByTestId("friend-search"), { target: { value: "kae" } });
+
+    fireEvent.click(await within(panel).findByRole("button", { name: /Add friend/ }));
+    expect(await within(panel).findByText("You are now friends with Kael.")).toBeTruthy();
   });
 
   it("marks a hero online only while the server saw them recently", () => {
