@@ -225,6 +225,8 @@ export interface Hero {
   level: number;
   xp: number;
   paragon: number;
+  /** Chosen profile portrait, an index into the shared sheet (see AvatarIcon). */
+  avatar?: number;
   gold: number;
   attrs: Record<Attr, number>;
   equipment: GearRecord;

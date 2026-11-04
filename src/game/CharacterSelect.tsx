@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Loader2, Plus, Trash2, Play, ArrowLeft, LogOut, RefreshCw } from "lucide-react";
 import { CharacterModel } from './CharacterModel';
+import { AVATAR_COUNT, AvatarIcon } from './AvatarIcon';
 import { CharacterPose } from './CharacterPose';
 import selectionBackground from "@/assets/heroes/selection-bloodmoon.jpg";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { RefreshCw as PoseIcon, Sword, Sparkles, Crosshair } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client";
 import { CLASSES, type HeroClass } from "./data";
 import {
-  createCharacter, deleteCharacter, lastCharacterId, loadCharacters, selectCharacter, updateProfile, useGame, type CharacterRow, type Gender,
+  createCharacter, deleteCharacter, lastCharacterId, loadCharacters, selectCharacter, update, updateProfile, useGame, type CharacterRow, type Gender,
 } from "./store";
 import { Panel, fmt } from "./ui";
 import { earnedTitles } from "./progress";
@@ -208,7 +209,21 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
       <div className="flex flex-col gap-4 md:flex-row">
         <div className={`slot w-40 shrink-0 self-center p-1 ${frameClass(frame)}`}><Portrait cls={hero.cls} gender={gender} className="w-full" /></div>
         <div className="flex-1 space-y-3">
-          <div><div className="font-display text-2xl">{hero.name}</div>{title && <div className="text-gold">{title}</div>}</div>
+          <div className="flex items-center gap-2">
+            {hero.avatar !== undefined && <AvatarIcon index={hero.avatar} size={44} />}
+            <div><div className="font-display text-2xl">{hero.name}</div>{title && <div className="text-gold">{title}</div>}</div>
+          </div>
+          <div className="text-sm">Profile portrait
+            <div className="mt-1 grid grid-cols-5 gap-1 sm:grid-cols-10">
+              {Array.from({ length: AVATAR_COUNT }, (_, i) => (
+                <button key={i} type="button" aria-label={`Portrait ${i + 1}`} aria-pressed={hero.avatar === i}
+                  className={`rounded ${hero.avatar === i ? "ring-2 ring-gold" : "opacity-75 hover:opacity-100"}`}
+                  onClick={() => update((h) => { h.avatar = i; })}>
+                  <AvatarIcon index={i} size={34} />
+                </button>
+              ))}
+            </div>
+          </div>
           <label className="block text-sm">Biography
             <textarea className="slot mt-1 w-full p-2 outline-none" maxLength={200} rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
           </label>

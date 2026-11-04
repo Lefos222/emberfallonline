@@ -4,6 +4,7 @@ import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircl
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
 import { ArtIcon } from "./ArtIcon";
+import { AvatarIcon } from "./AvatarIcon";
 import { GuildHall } from "./GuildHall";
 import { WorldChat } from "./WorldChat";
 import { FriendsPanel } from "./FriendsPanel";
@@ -193,7 +194,7 @@ function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: 
     <div className="hud-top pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2">
       <div className="game-panel pointer-events-auto flex items-center gap-3 p-2 pr-4">
         <button className={`slot h-11 w-11 shrink-0 overflow-hidden lg:h-14 lg:w-14 ${frameClass(frame)}`} onClick={onProfile} aria-label="Profile">
-          <Portrait cls={hero.cls} gender={gender} className="w-full" />
+          {hero.avatar !== undefined ? <AvatarIcon index={hero.avatar} size={40} /> : <Portrait cls={hero.cls} gender={gender} className="w-full" />}
         </button>
         <div className="w-24 lg:w-40">
           <div className="truncate font-display">{hero.name}</div>
