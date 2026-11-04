@@ -75,11 +75,11 @@ describe("endless conquest", () => {
 
   it("spends tokens on equipment materials", () => {
     const h = hero(101);
-    h.conquest = { tokens: 200 };
+    h.conquest = { tokens: 500 };
     const sigil = TOKEN_OFFERS.find((o) => o.id === "sigil")!;
     expect(buyTokenOffer(h, "sigil")).toBeNull();
     expect(matCount(h, "sigil")).toBe(sigil.qty);
-    expect(conquestTokens(h)).toBe(200 - sigil.cost);
+    expect(conquestTokens(h)).toBe(500 - sigil.cost);
     expect(buyTokenOffer(h, "bossCore")).toMatch(/Not enough/);
     expect(matCount(h, "bossCore")).toBe(0);
   });

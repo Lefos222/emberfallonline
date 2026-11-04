@@ -10,10 +10,13 @@ export function AvatarIcon({
   index,
   size = 40,
   className = "",
+  fill = false,
 }: {
   index: number;
   size?: number;
   className?: string;
+  /** Stretch to the parent box instead of a fixed square (used by the full-screen gallery). */
+  fill?: boolean;
 }) {
   const cell = Math.min(AVATAR_COUNT - 1, Math.max(0, Math.trunc(index) || 0));
   const col = cell % COLS;
@@ -24,8 +27,8 @@ export function AvatarIcon({
       aria-label={`Portrait ${cell + 1}`}
       className={`inline-block shrink-0 overflow-hidden rounded-[3px] bg-black bg-no-repeat align-middle ${className}`}
       style={{
-        width: size,
-        height: size,
+        width: fill ? "100%" : size,
+        height: fill ? "100%" : size,
         backgroundImage: `url(${sheet.url})`,
         backgroundSize: `${COLS * 100}% ${ROWS * 100}%`,
         backgroundPosition: `${(col * 100) / (COLS - 1)}% ${(row * 100) / (ROWS - 1)}%`,

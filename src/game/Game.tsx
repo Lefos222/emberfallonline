@@ -35,7 +35,10 @@ import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
 import { Diamonds, Gold, ItemCard, Panel, fmt } from "./ui";
 import { premiumState } from "./economy";
-import { CONQUEST_LEVEL, canEnterConquest } from "./data";
+import { CONQUEST_LEVEL, canEnterConquest, type Hero } from "./data";
+import { QuestsButton, QuestsPanel } from "./Quests";
+import { claimableLevelQuests, rollLevelQuests } from "./level-quests";
+import { STAMINA_PER_DAY, staminaLeft } from "./stamina";
 
 const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
 
@@ -51,6 +54,12 @@ export function Game() {
   const audio = useRef<HTMLAudioElement>(null);
   const starting = useRef(false);
   const [entryError, setEntryError] = useState("");
+
+  // Every level opens its own quest board: snapshot its counters the moment the level starts.
+  useEffect(() => {
+    if (!hero) return;
+    update((h) => { if (!h.levelQuests || h.levelQuests.level !== h.level) rollLevelQuests(h); });
+  }, [hero?.level]);
 
   // A sign-in that lands a beat late must not bounce the player out; re-check live state at fire time.
   useEffect(() => {
@@ -124,9 +133,11 @@ export function Game() {
             <Button variant="ghost" size="icon" aria-label="Auction House" title="Auction House" onClick={()=>setOpen('auction')}><Gavel/></Button>
           </nav>
           <WorldChat heroId={heroId} />
+          <QuestsButton count={claimableLevelQuests(hero)} onClick={() => setOpen("quests")} />
           <Hud muted={muted} setMuted={setMuted} cloud={cloud} onProfile={() => setOpen("profile")} />
           <p className="castle-hint pointer-events-none absolute inset-x-0 top-32 z-20 text-center font-display text-xs text-gold drop-shadow-[0_1px_2px_black]">Drag the castle to reach every building</p>
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
+          {open === "quests" && <QuestsPanel onClose={() => setOpen(null)} />}
           {open === "mailbox" && <Mailbox onClose={() => setOpen(null)} />}
           {open === "lucky" && <LuckyShots onClose={() => setOpen(null)} />}
           {open === "daily" && <ActivityBoard onClose={() => setOpen(null)} />}
@@ -187,7 +198,8 @@ function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: 
   const s = heroStats(hero);
   return (
     <div className="hud-top pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2">
-      <div className="game-panel pointer-events-auto flex items-center gap-3 p-2 pr-4">
+      <div className="game-panel pointer-events-auto p-2 pr-4">
+        <div className="flex items-center gap-3">
         <button className={`slot h-11 w-11 shrink-0 overflow-hidden lg:h-14 lg:w-14 ${frameClass(frame)}`} onClick={onProfile} aria-label="Profile">
           {hero.avatar !== undefined ? <AvatarIcon index={hero.avatar} size={40} /> : <Portrait cls={hero.cls} gender={gender} className="w-full" synth={appearanceTier(hero)} />}
         </button>
@@ -201,6 +213,8 @@ function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: 
           <Diamonds n={premiumState(hero).balance} />
           <span className="font-bold"><Trophy className="mr-1 inline h-4 w-4 text-r4" />{fmt(s.power)}</span>
         </div>
+        </div>
+        <StaminaBar hero={hero} />
       </div>
       <div className="game-panel pointer-events-auto flex items-center gap-1 p-2 lg:gap-2">
         <button className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" onClick={() => setMuted(!muted)} aria-label="Music">
@@ -212,6 +226,22 @@ function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: 
         <button className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" onClick={onProfile} aria-label="Profile"><IdCard className="h-5 w-5" /></button>
         <button className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" onClick={() => void leaveCharacter()} aria-label="Switch character" title="Switch character"><Users className="h-5 w-5" /></button>
         <button className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" onClick={async () => { if (await leaveCharacter()) await supabase.auth.signOut(); }} aria-label="Sign out"><LogOut className="h-5 w-5" /></button>
+      </div>
+    </div>
+  );
+}
+
+/** Campaign Gate stamina, under the profile in the top-left HUD. */
+function StaminaBar({ hero }: { hero: Hero }) {
+  const left = staminaLeft(hero);
+  return (
+    <div className="mt-1.5 w-40 lg:w-56" title={`Campaign stamina ${left}/${STAMINA_PER_DAY} — it refills at Greek midnight`}>
+      <div className="mb-0.5 flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
+        <span className="font-display">Stamina</span>
+        <span className={left < 10 ? "font-bold text-hp" : "font-bold text-foreground"}>{left}/{STAMINA_PER_DAY}</span>
+      </div>
+      <div className="bar-track h-2">
+        <div className="bar-stamina h-full" style={{ width: `${Math.min(100, (left / STAMINA_PER_DAY) * 100)}%` }} />
       </div>
     </div>
   );
@@ -312,7 +342,7 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "road" | "calendar" | 'professions' | 'premium' | 'auction';
+type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "road" | "calendar" | 'professions' | 'premium' | 'auction' | 'quests';
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIconName }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", icon: "bag" },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", icon: "hammer" },

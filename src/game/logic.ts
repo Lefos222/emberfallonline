@@ -16,6 +16,8 @@ export function grant(h: Hero, xp: number, gold: number): { levels: number } {
     // Every level-up pays one skill point (see talents.totalPoints) and one passive point.
     h.insight = (h.insight ?? 0) + 1;
   }
+  // A new level brings its own quests; the board re-snapshots on the next read (see level-quests.ts).
+  if (levels) h.levelQuests = undefined;
   return { levels };
 }
 

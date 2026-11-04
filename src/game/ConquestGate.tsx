@@ -3,7 +3,7 @@ import { Gem, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GemIcon, MatIcon } from "./MatIcon";
 import { GEMS, GEM_MAX_TIER, GEM_STAT_LABEL, GEM_TYPES, MATS, gemKey, gemValue, type GemType } from "./crafting";
-import { BLITZ_PER_DAY, blitz, blitzBlocker, blitzRewards, blitzesLeft, buyConquestGem, buyTokenOffer, conquestTokens, floorsCleared, gemTokenPrice, TOKEN_OFFERS } from "./conquest";
+import { BLITZ_PER_DAY, blitz, blitzBlocker, blitzRewards, blitzesLeft, buyConquestGem, buyTokenOffer, conquestTokens, floorsCleared, gemGoldPrice, TOKEN_OFFERS } from "./conquest";
 import type { Hero } from "./data";
 import { update } from "./store";
 import { Gold, fmt } from "./ui";
@@ -19,7 +19,7 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
   const [gemLevel, setGemLevel] = useState(1);
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
   const tokens = conquestTokens(hero);
-  const gemPrice = gemTokenPrice(gemLevel);
+  const gemPrice = gemGoldPrice(gemLevel, hero.level);
   const usable = Math.min(Math.max(1, target || 1), Math.max(1, cap));
   const left = blitzesLeft(hero);
   const blocked = blitzBlocker(hero, usable);
@@ -85,9 +85,9 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
       <div className="slot p-3 md:col-span-2">
         <div className="mb-1 flex items-center justify-between gap-2 font-display text-gold">
           <span className="flex items-center gap-2"><Gem className="h-4 w-4" />Gem stock</span>
-          <span className="text-xs font-bold">{fmt(tokens)} tokens</span>
+          <Gold n={hero.gold} />
         </div>
-        <p className="text-xs text-muted-foreground">Every gem family at any level, bought straight from the gate. Deeper gems cost more tokens.</p>
+        <p className="text-xs text-muted-foreground">Every gem family at any level, bought straight from the gate for gold. A level 1 gem costs 1,800 gold whatever the family; deeper tiers cost far more.</p>
         <div className="mt-2 flex flex-wrap gap-1">
           {GEM_TYPES.map((t) => (
             <button key={t} className={"px-2 py-1 text-xs " + (gemType === t ? "btn-gold" : "btn-ghost")}
@@ -104,10 +104,10 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
             </select>
           </label>
           <span className="slot px-2 py-1">+{gemValue(gemKey(gemType, gemLevel))} {GEM_STAT_LABEL[GEMS[gemType].stat]}</span>
-          <Button size="sm" disabled={tokens < gemPrice} onClick={() => update((h) => {
+          <Button size="sm" disabled={hero.gold < gemPrice} onClick={() => update((h) => {
             const err = buyConquestGem(h, gemType, gemLevel);
-            setMsg(err ? { ok: false, t: err } : { ok: true, t: `Bought a ${GEMS[gemType].name} gem (Lv ${gemLevel})` });
-          })}>Buy · {fmt(gemPrice)} tokens</Button>
+            setMsg(err ? { ok: false, t: err } : { ok: true, t: `Bought a ${GEMS[gemType].name} gem (Lv ${gemLevel}) for ${fmt(gemPrice)} gold` });
+          })}>Buy · {fmt(gemPrice)} gold</Button>
         </div>
       </div>
       {msg && <p role="status" className={`anim-pop text-sm md:col-span-2 ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</p>}

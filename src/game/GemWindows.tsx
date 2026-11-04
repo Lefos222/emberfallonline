@@ -6,7 +6,7 @@ import {
   craftGem, gemBlocker, gemCraftCost, gemCraftLevel, gemKey, gemName, gemValue, matCount, parseGem,
   type GemType, type Mat,
 } from "./crafting";
-import { buyConquestGem, conquestTokens, gemTokenPrice } from "./conquest";
+import { buyConquestGem, gemGoldPrice } from "./conquest";
 import type { Hero } from "./data";
 import { update } from "./store";
 import { Gold, fmt } from "./ui";
@@ -63,8 +63,7 @@ export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => v
   const g = GEMS[type];
   const cost = gemCraftCost(level, hero.level);
   const blocked = gemBlocker(hero, level);
-  const tokens = conquestTokens(hero);
-  const price = gemTokenPrice(level);
+  const price = gemGoldPrice(level, hero.level);
   const costs: [Mat, number][] = [["ore", cost.ore], ["essence", cost.essence], ["crystal", cost.crystal], ["starshard", cost.starshard], ["bossCore", cost.bossCore]];
 
   const forge = () => update((h) => {
@@ -73,7 +72,7 @@ export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => v
   });
   const buy = () => update((h) => {
     const e = buyConquestGem(h, type, level);
-    setMsg(e ? { ok: false, t: e } : { ok: true, t: `Bought a ${gemName(key)} for ${fmt(price)} tokens.` });
+    setMsg(e ? { ok: false, t: e } : { ok: true, t: `Bought a ${gemName(key)} for ${fmt(price)} gold.` });
   });
 
   return (
@@ -85,7 +84,7 @@ export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => v
         </div>
         <p className="mb-3 text-sm text-muted-foreground">
           Eight gem families, twelve levels each — the chart values are the stats a socketed gem grants.
-          Forge with materials, buy with Conquest Tokens, or fuse {FUSE_COUNT} identical gems into the next level.
+          Forge with materials, buy with gold at the Conquest Gate, or fuse {FUSE_COUNT} identical gems into the next level.
         </p>
 
         <div className="mb-2 flex flex-wrap gap-2">
@@ -131,12 +130,12 @@ export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => v
           <button className="btn-gold flex-1 py-2" disabled={!!blocked} title={blocked ?? "Forge with materials"} onClick={forge}>
             <Hammer className="mr-1 inline h-4 w-4" />Forge {GEMS[type].name}
           </button>
-          <button className="btn-ghost flex-1 py-2" disabled={tokens < price} title={tokens < price ? `Needs ${price} tokens` : "Buy with Conquest Tokens"} onClick={buy}>
-            <ShoppingBag className="mr-1 inline h-4 w-4" />Buy · {fmt(price)} tokens
+          <button className="btn-ghost flex-1 py-2" disabled={hero.gold < price} title={hero.gold < price ? `Needs ${fmt(price)} gold` : "Buy with gold at the Conquest Gate"} onClick={buy}>
+            <ShoppingBag className="mr-1 inline h-4 w-4" />Buy · {fmt(price)} gold
           </button>
         </div>
         <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground">
-          <span>Conquest Tokens held: <b className="text-gold">{fmt(tokens)}</b></span>
+          <span>Gold held: <b className="text-gold">{fmt(hero.gold)}</b></span>
           <span>{blocked ? blocked : "Ready to forge."}</span>
         </div>
         {msg && <p role="status" className={`anim-pop mt-2 text-center text-sm ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</p>}

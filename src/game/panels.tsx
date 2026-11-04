@@ -9,8 +9,9 @@ import { recordEnhance } from "./progress";
 import { adviseStrategy } from "@/lib/quests.functions";
 import {
   attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceStoneChance, enchantStoneCost, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
-  CONQUEST_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, type Attr, type EnemyType, type Hero, type HeroClass, type Item, type Slot, type Stats, type WearSlot,
+  CONQUEST_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, catchUpXpFactor, type Attr, type EnemyType, type Hero, type HeroClass, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
+import { STAMINA_PER_DAY, STAMINA_PER_FIGHT, spendStamina, staminaBlocker, staminaLeft } from "./stamina";
 import { refreshMerchant } from "./logic";
 import { addConquestTokens, floorTokens } from "./conquest";
 import { ConquestTokens } from "./ConquestGate";
@@ -252,32 +253,41 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   const ratio = s.power / foePower;
   const danger = ratio > 1.3 ? { t: "Easy", c: "text-r1" } : ratio > 0.95 ? { t: "Fair", c: "text-r4" } : ratio > 0.7 ? { t: "Hard", c: "text-hp" } : { t: "Deadly", c: "text-blood" };
   const zone = zoneOf(stage);
+  // Campaign fights cost stamina; the Conquest floors, dungeons and arena never do.
+  const noStamina = !spire && staminaBlocker(hero) !== null;
 
-  const fight = () => start({
-    title: spire ? `Endless Conquest · Floor ${stage}` : `${zone.name} · Stage ${stage}`,
-    auto,
-    right: { ...foe, name: foe.boss ? `${foe.name}` : foe.name },
-    onResult: async (won, xpMultiplier = 1) => {
-      if (!won) return { lines: ["Defeated… grow stronger and return."] };
-      const { grant, rollLoot, addLoot } = await import("./logic");
-      let lines: string[] = [];
-      let loot: Item | null = null;
-      // Clearing a floor pays Conquest Tokens; deeper floors pay more.
-      const tokens = spire ? floorTokens(stage) : 0;
-      update((h) => {
-        const { levels } = grant(h, scrollXp(rw.xp, xpMultiplier), rw.gold);
-        loot = rollLoot(h, stage, foe.boss || spire ? 1 : 0.45, spire ? 2 : foe.boss ? 2 : 0);
-        if (loot) addLoot(h, loot);
-        if (tokens) addConquestTokens(h, tokens);
-        if (spire && stage === h.spire) h.spire++;
-        if (!spire && stage === h.stage) h.stage++;
-        h.wins++;
-        lines = [`+${fmt(scrollXp(rw.xp, xpMultiplier))} XP`, `+${fmt(rw.gold)} gold`, ...(tokens ? [`+${tokens} Conquest Tokens`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
-      });
-      if (stage === max) setStage(stage + 1);
-      return { lines, loot };
-    },
-  });
+  const fight = () => {
+    if (noStamina) return;
+    start({
+      title: spire ? `Endless Conquest · Floor ${stage}` : `${zone.name} · Stage ${stage}`,
+      auto,
+      right: { ...foe, name: foe.boss ? `${foe.name}` : foe.name },
+      onResult: async (won, xpMultiplier = 1) => {
+        // One fight's stamina is spent whatever the outcome, so a loss still counts as a play.
+        if (!spire) update((h) => spendStamina(h));
+        if (!won) return { lines: ["Defeated… grow stronger and return."] };
+        const { grant, rollLoot, addLoot } = await import("./logic");
+        let lines: string[] = [];
+        let loot: Item | null = null;
+        // Clearing a floor pays Conquest Tokens; deeper floors pay more.
+        const tokens = spire ? floorTokens(stage) : 0;
+        update((h) => {
+          // Fighting above the hero's level pays catch-up XP (see catchUpXpFactor).
+          const xp = scrollXp(rw.xp * catchUpXpFactor(h.level, stage), xpMultiplier);
+          const { levels } = grant(h, xp, rw.gold);
+          loot = rollLoot(h, stage, foe.boss || spire ? 1 : 0.45, spire ? 2 : foe.boss ? 2 : 0);
+          if (loot) addLoot(h, loot);
+          if (tokens) addConquestTokens(h, tokens);
+          if (spire && stage === h.spire) h.spire++;
+          if (!spire && stage === h.stage) h.stage++;
+          h.wins++;
+          lines = [`+${fmt(xp)} XP`, `+${fmt(rw.gold)} gold`, ...(tokens ? [`+${tokens} Conquest Tokens`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+        });
+        if (stage === max) setStage(stage + 1);
+        return { lines, loot };
+      },
+    });
+  };
 
   return (
     <Panel title={spire ? "Endless Conquest" : "Campaign Gate"} onClose={onClose}>
@@ -309,7 +319,19 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
           <label className="flex items-center justify-center gap-2 text-sm">
             <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} className="accent-[var(--gold)]" /> Auto-battle
           </label>
-          <button className="btn-gold w-full py-3 text-xl" onClick={fight}><Swords className="mr-2 inline" />FIGHT</button>
+          <button className="btn-gold w-full py-3 text-xl" disabled={noStamina} onClick={fight}><Swords className="mr-2 inline" />FIGHT</button>
+          {!spire && (
+            <div className="text-xs">
+              <div className="mb-1 flex items-center justify-between text-muted-foreground">
+                <span>Stamina · {STAMINA_PER_FIGHT} per fight</span>
+                <span className={noStamina ? "font-bold text-hp" : "font-bold"}>{staminaLeft(hero)}/{STAMINA_PER_DAY}</span>
+              </div>
+              <div className="bar-track h-2">
+                <div className="bar-stamina h-full" style={{ width: `${Math.min(100, (staminaLeft(hero) / STAMINA_PER_DAY) * 100)}%` }} />
+              </div>
+              {noStamina && <p className="mt-1 text-hp">{staminaBlocker(hero)}</p>}
+            </div>
+          )}
         </div>
       </div>
       {spire && <ConquestTokens hero={hero} />}
