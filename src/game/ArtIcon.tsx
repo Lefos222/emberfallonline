@@ -1,15 +1,51 @@
 import crown from "@/assets/hud-crown.png.asset.json";
+import mail from "@/assets/icons/ui-mail.png";
+import lucky from "@/assets/icons/ui-lucky.png";
+import scroll from "@/assets/icons/ui-scroll.png";
+import spellbook from "@/assets/icons/ui-spellbook.png";
+import goblet from "@/assets/icons/ui-goblet.png";
+import diamond from "@/assets/icons/ui-diamond.png";
+import hammer from "@/assets/icons/ui-hammer.png";
+import bag from "@/assets/icons/ui-bag.png";
+import anvil from "@/assets/icons/ui-anvil.png";
+import gem from "@/assets/icons/ui-gem.png";
+import gift from "@/assets/icons/ui-gift.png";
+import star from "@/assets/icons/ui-star.png";
+import calendar from "@/assets/icons/ui-calendar.png";
+import guild from "@/assets/icons/ui-guild.png";
+import profile from "@/assets/icons/ui-profile.png";
+import quest from "@/assets/icons/ui-quest.png";
+import astral from "@/assets/icons/ui-astral.png";
 
 /**
  * Painted interface art, keyed by icon name. Add the asset file here and every
- * crown glyph that reads `ART_ICONS` renders the painting instead of the line
- * drawing — the surrounding buttons keep their markup and behaviour.
+ * glyph that reads `ArtIcon` renders the painting instead of a line drawing —
+ * the surrounding buttons keep their markup and behaviour.
  */
-const ART_ICONS: Partial<Record<string, { url: string }>> = { crown };
+const ART_ICONS = {
+  crown: crown.url,
+  mail,
+  lucky,
+  scroll,
+  spellbook,
+  goblet,
+  diamond,
+  hammer,
+  bag,
+  anvil,
+  gem,
+  gift,
+  star,
+  calendar,
+  guild,
+  profile,
+  quest,
+  astral,
+} as const;
 
 export type ArtIconName = keyof typeof ART_ICONS;
 
-/** Painted icon on a transparent-looking dark mat; renders nothing when no art exists yet. */
+/** Painted icon on its dark mat, sized to the slot it sits in. */
 export function ArtIcon({
   name,
   size = 22,
@@ -23,7 +59,7 @@ export function ArtIcon({
   if (!art) return null;
   return (
     <img
-      src={art.url}
+      src={art}
       alt=""
       aria-hidden="true"
       loading="lazy"

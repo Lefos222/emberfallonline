@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Backpack, Anvil, Gift, Mail, Crosshair, ScrollText, Sparkles, UserCircle, Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2, BookOpen, CalendarDays, Gem, Gavel } from "lucide-react";
+import { Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2, Gavel } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
-import { ArtIcon } from "./ArtIcon";
+import { ArtIcon, type ArtIconName } from "./ArtIcon";
 import { AvatarIcon } from "./AvatarIcon";
 import { GuildHall } from "./GuildHall";
 import { WorldChat } from "./WorldChat";
@@ -118,12 +118,12 @@ export function Game() {
           <CastleMap onOpen={setOpen} />
           <ShortcutBar open={open} onOpen={setOpen} />
           <nav aria-label="Rewards" className="game-panel bottom-nav rewards-nav absolute bottom-3 left-3 z-20 flex gap-1 p-1.5">
-            <Button variant="ghost" size="icon" aria-label="Mailbox" title="Mailbox" onClick={() => setOpen("mailbox")}><Mail /></Button>
-            <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><Crosshair /></Button>
-            <Button variant="ghost" size="icon" aria-label="Battle Scrolls" title="Battle Scrolls" onClick={() => setOpen("scrolls")}><ScrollText /></Button>
-            <Button variant="ghost" size="icon" aria-label="Bestiary" title="Bestiary" onClick={() => setOpen("bestiary")}><BookOpen /></Button>
-            <Button variant="ghost" size="icon" aria-label="Profession Lodge" title="Profession Lodge" onClick={()=>setOpen('professions')}><Anvil/></Button>
-            <Button variant="ghost" size="icon" aria-label="Premium Shop" title="Premium Shop" onClick={()=>setOpen('premium')}><ArtIcon name="crown" /></Button>
+            <Button variant="ghost" size="icon" aria-label="Mailbox" title="Mailbox" onClick={() => setOpen("mailbox")}><ArtIcon name="mail" size={24} /></Button>
+            <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><ArtIcon name="lucky" size={24} /></Button>
+            <Button variant="ghost" size="icon" aria-label="Battle Scrolls" title="Battle Scrolls" onClick={() => setOpen("scrolls")}><ArtIcon name="scroll" size={24} /></Button>
+            <Button variant="ghost" size="icon" aria-label="Bestiary" title="Bestiary" onClick={() => setOpen("bestiary")}><ArtIcon name="spellbook" size={24} /></Button>
+            <Button variant="ghost" size="icon" aria-label="Profession Lodge" title="Profession Lodge" onClick={()=>setOpen('professions')}><ArtIcon name="anvil" size={24} /></Button>
+            <Button variant="ghost" size="icon" aria-label="Premium Shop" title="Premium Shop" onClick={()=>setOpen('premium')}><ArtIcon name="diamond" size={24} /></Button>
             <Button variant="ghost" size="icon" aria-label="Auction House" title="Auction House" onClick={()=>setOpen('auction')}><Gavel/></Button>
           </nav>
           <WorldChat heroId={heroId} />
@@ -320,26 +320,26 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
 }
 
 type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "road" | "calendar" | 'professions' | 'premium' | 'auction';
-const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; Icon: typeof Backpack }[] = [
-  { id: "armory", label: "Inventory", tip: "Bag & equipment", Icon: Backpack },
-  { id: "forge", label: "Forge", tip: "Enhance & salvage gear", Icon: Anvil },
-  { id: "gems", label: "Gem Workshop", tip: "Cut, socket & fuse gems", Icon: Gem },
-  { id: "daily", label: "Daily Rewards", tip: "7-day reward board", Icon: Gift },
-  { id: "road", label: "Long Road", tip: "Endless regions past the campaign", Icon: Sparkles },
-  { id: "calendar", label: "Events", tip: "World event calendar & reminders", Icon: CalendarDays },
-  { id: "friends", label: "Friends", tip: "Friends & messages", Icon: Users },
-  { id: "profile", label: "Profile", tip: "Your hero profile", Icon: UserCircle },
-  { id: "oracle", label: "Quest Board", tip: "AI-generated quests", Icon: ScrollText },
-  { id: "sanctuary", label: "Ancestral Sanctuary", tip: "Ancestral questline", Icon: Sparkles },
+const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIconName }[] = [
+  { id: "armory", label: "Inventory", tip: "Bag & equipment", icon: "bag" },
+  { id: "forge", label: "Forge", tip: "Enhance & salvage gear", icon: "hammer" },
+  { id: "gems", label: "Gem Workshop", tip: "Cut, socket & fuse gems", icon: "gem" },
+  { id: "daily", label: "Daily Rewards", tip: "7-day reward board", icon: "gift" },
+  { id: "road", label: "Long Road", tip: "Endless regions past the campaign", icon: "star" },
+  { id: "calendar", label: "Events", tip: "World event calendar & reminders", icon: "calendar" },
+  { id: "friends", label: "Friends", tip: "Friends & messages", icon: "goblet" },
+  { id: "profile", label: "Profile", tip: "Your hero profile", icon: "profile" },
+  { id: "oracle", label: "Quest Board", tip: "AI-generated quests", icon: "quest" },
+  { id: "sanctuary", label: "Ancestral Sanctuary", tip: "Ancestral questline", icon: "astral" },
 ];
 
 function ShortcutBar({ open, onOpen }: { open: ShortcutTarget | null; onOpen: (t: ShortcutTarget) => void }) {
   return (
     <nav aria-label="Shortcuts" className="game-panel bottom-nav shortcut-nav pointer-events-auto absolute bottom-3 right-3 z-20 flex gap-1.5 p-1.5">
-      {SHORTCUTS.map(({ id, label, tip, Icon }) => (
+      {SHORTCUTS.map(({ id, label, tip, icon }) => (
         <button key={id} onClick={() => onOpen(id)} aria-label={label} aria-pressed={open === id}
           className={`slot group relative flex h-11 w-11 items-center justify-center transition hover:scale-110 ${open === id ? "ring-2 ring-gold" : ""}`}>
-          <Icon className={`h-5 w-5 ${open === id ? "text-gold" : ""}`} />
+          <ArtIcon name={icon} size={32} className={open === id ? "ring-1 ring-gold" : ""} />
           <span role="tooltip" className="hotspot-label pointer-events-none absolute bottom-full right-0 mb-2 hidden whitespace-nowrap rounded px-2 py-1 text-left text-xs group-hover:block group-focus-visible:block">
             {label}<span className="block text-[10px] text-foreground/80">{tip}</span>
           </span>
