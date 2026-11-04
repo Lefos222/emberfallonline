@@ -14,6 +14,7 @@ import {
 import { refreshMerchant } from "./logic";
 import { addConquestTokens, floorTokens } from "./conquest";
 import { ConquestTokens } from "./ConquestGate";
+import { CampaignBlitz } from "./CampaignBlitz";
 import { update, useGame } from "./store";
 import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { MatIcon } from "./MatIcon";
@@ -312,6 +313,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
         </div>
       </div>
       {spire && <ConquestTokens hero={hero} />}
+      {!spire && <CampaignBlitz hero={hero} />}
       <Advisor hero={hero} stats={s} foe={foe} key={stage + (spire ? "s" : "c")} />
     </Panel>
   );

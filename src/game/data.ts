@@ -289,8 +289,8 @@ export function newHero(name: string, cls: HeroClass): Hero {
 }
 
 export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
-  if (h.level < MAX_LEVEL) return Math.round(60 * Math.pow(h.level, 1.6) * lateLevelFactor(h.level));
-  return Math.round(60 * Math.pow(MAX_LEVEL, 1.6) * lateLevelFactor(MAX_LEVEL) * Math.pow(1.05, h.paragon));
+  if (h.level < MAX_LEVEL) return Math.round(75 * Math.pow(h.level, 1.75) * lateLevelFactor(h.level));
+  return Math.round(75 * Math.pow(MAX_LEVEL, 1.75) * lateLevelFactor(MAX_LEVEL) * Math.pow(1.05, h.paragon));
 }
 
 /** Levels past this point get steadily slower so reaching the cap takes weeks, not days. */
@@ -454,7 +454,7 @@ export function foeToughness(stage: number) {
   return 1 + Math.max(0, stage - 5) * 0.006;
 }
 
-/** Rewards rise on the same polynomial curve as the experience a level needs (see xpToNext). */
+/** Rewards rise with the stage but always stay below what the next level costs (see xpToNext). */
 export function stageRewards(stage: number, mult = 1) {
   return {
     xp: Math.round(40 * Math.pow(stage, 1.6) * mult),
