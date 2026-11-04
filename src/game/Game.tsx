@@ -12,7 +12,6 @@ import { ScrollShop } from "./ScrollShop";
 import { Bestiary } from "./Bestiary";
 import { EventCalendar } from "./EventCalendar";
 import { Expeditions } from './Expeditions';
-import { Professions } from './Professions';
 import { PremiumShop } from './PremiumShop';
 import { AuctionHouse } from './AuctionHouse';
 import { WorldMap } from './WorldMap';
@@ -35,12 +34,15 @@ import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
 import { Diamonds, Gold, ItemCard, Panel, fmt } from "./ui";
 import { premiumState } from "./economy";
-import { CONQUEST_LEVEL, canEnterConquest, type Hero } from "./data";
+import { CONQUEST_LEVEL, SANCTUARY_LEVEL, canEnterConquest, type Hero } from "./data";
 import { QuestsButton, QuestsPanel } from "./Quests";
 import { claimableLevelQuests, rollLevelQuests } from "./level-quests";
 import { STAMINA_PER_DAY, staminaLeft } from "./stamina";
 
 const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
+
+/** Buildings whose battle leaves the panel open underneath, so the player lands back in it. */
+const BATTLE_PANELS = ["portal", "spire", "worldmap"] as const;
 
 export function Game() {
   const { hero, heroId, userId, cloud, authReady } = useGame();
@@ -86,6 +88,8 @@ export function Game() {
     return () => window.removeEventListener("pointerdown", play);
   }, [muted]);
 
+  const keepsPanel = open !== null && (BATTLE_PANELS as readonly string[]).includes(open);
+
   const start: StartBattle = (o) => {
     if (!hero || starting.current || battle) return;
     starting.current = true; setEntryError("");
@@ -94,7 +98,9 @@ export function Game() {
         const active = await beginScrollBattle();
         const current = getState();
         if (!current.hero) return;
-        setOpen(null);
+        // The Campaign Gate, Conquest Gate and World Tree stay mounted under the battle, so the
+        // player comes back to the exact screen they fought from instead of the castle.
+        if (!keepsPanel) setOpen(null);
         setBattle({ ...o, left: scrollFighter({ ...heroFighter(current.hero, heroStats(current.hero)), gender: current.gender }, active) });
       } catch (e) { setEntryError(e instanceof Error ? e.message : "Battle entry failed."); }
       finally { starting.current = false; }
@@ -131,7 +137,6 @@ export function Game() {
             <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><ArtIcon name="lucky" size={24} /></Button>
             <Button variant="ghost" size="icon" aria-label="Battle Scrolls" title="Battle Scrolls" onClick={() => setOpen("scrolls")}><ArtIcon name="scroll" size={24} /></Button>
             <Button variant="ghost" size="icon" aria-label="Bestiary" title="Bestiary" onClick={() => setOpen("bestiary")}><ArtIcon name="spellbook" size={24} /></Button>
-            <Button variant="ghost" size="icon" aria-label="Profession Lodge" title="Profession Lodge" onClick={()=>setOpen('professions')}><ArtIcon name="anvil" size={24} /></Button>
             <Button variant="ghost" size="icon" aria-label="Premium Shop" title="Premium Shop" onClick={()=>setOpen('premium')}><ArtIcon name="diamond" size={24} /></Button>
             <Button variant="ghost" size="icon" aria-label="Auction House" title="Auction House" onClick={()=>setOpen('auction')}><ArtIcon name="auction" size={24} /></Button>
           </nav>
@@ -151,7 +156,6 @@ export function Game() {
           {open === "bestiary" && <Bestiary h={hero} onClose={() => setOpen(null)} />}
           {open === "road" && <LongRoad onClose={() => setOpen(null)} start={start} />}
           {open === "calendar" && <EventCalendar h={hero} onClose={() => setOpen(null)} start={start} />}
-          {open === 'professions' && <Professions onClose={()=>setOpen(null)} />}
           {open === 'premium' && <PremiumShop onClose={()=>setOpen(null)} />}
           {open === 'auction' && <AuctionHouse onClose={()=>setOpen(null)} />}
           {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
@@ -321,10 +325,12 @@ const SOON_TEXT: Record<string, string> = {
   guild: "Create or join guilds, with roles, contribution, guild chat and co-op bosses.",
   friends: "Add friends, see who is online and send private messages.",
   daily: "A 30-day reward board with gold, gems, materials and gold chests.",
+  sanctuary: "The Sanctuary is the late-game progression system, and it opens at level 110.",
 };
 
 function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onClose: () => void }) {
   const b = BUILDINGS.find((x) => x.id === id);
+  const sanctuary = id === "sanctuary";
   return (
     <Panel title={b?.name ?? "Building"} onClose={onClose}>
       <div className="py-10 text-center">
@@ -335,9 +341,11 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
           </>
         ) : (
           <>
-            <p className="mb-2 font-display text-2xl text-gold">Under construction</p>
+            <p className="mb-2 font-display text-2xl text-gold">{sanctuary ? "Coming soon" : "Under construction"}</p>
             <p className="mx-auto max-w-md text-muted-foreground">{SOON_TEXT[id]}</p>
-            <p className="mt-3 text-xs text-muted-foreground">This building isn't playable yet — it's coming in a future update.</p>
+            <p className="mt-3 text-xs text-muted-foreground">
+              {sanctuary ? `Nothing waits inside yet — the Sanctuary opens at level ${SANCTUARY_LEVEL}.` : "This building isn't playable yet — it's coming in a future update."}
+            </p>
           </>
         )}
       </div>
@@ -345,7 +353,7 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "road" | "calendar" | 'professions' | 'premium' | 'auction' | 'quests';
+type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "road" | "calendar" | 'premium' | 'auction' | 'quests';
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIconName }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", icon: "bag" },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", icon: "hammer" },

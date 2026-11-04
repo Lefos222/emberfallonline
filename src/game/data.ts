@@ -9,7 +9,7 @@ import { talentFx, talentSkills } from "./talents";
 import { astralFx, gemFx, migrateGems, zeroFx, zeroGemFx, type Astral, type BonusFx, type Mat } from "./crafting";
 import { setFx, type BattleEntry, type CombatRecord } from "./progress";
 import { scaledGold } from "./gold";
-import { drillFx } from "./drills";
+import { drillAttrs, drillFx } from "./drills";
 import { guildFx } from "./guild-tower";
 import { normalizeSynth, synthFx } from "./synthesis";
 
@@ -32,6 +32,8 @@ export type GearRecord = Partial<Record<WearSlot, Item>>;
 
 export const MAX_LEVEL = 80;
 export const CONQUEST_LEVEL = 10;
+/** The Sanctuary, which replaces the old Lodge, opens late — at character level 110. */
+export const SANCTUARY_LEVEL = 110;
 export const canEnterConquest = (level: number) => level >= CONQUEST_LEVEL;
 export const INVENTORY_CAP = 40;
 export const BAG_ROW = 8;
@@ -272,6 +274,8 @@ export interface Hero {
   levelQuests?: { level: number; base: Record<string, number>; claimed: string[] };
   /** Barracks drill ranks by drill id (see drills.ts). */
   drills?: Record<string, number>;
+  /** Barracks attribute drill ranks by attribute — permanent bonuses to Str/Int/Agi/Vit (see drills.ts). */
+  attrDrills?: Record<string, number>;
   /** Bestiary entries the character has defeated, by bestiary id. */
   kills?: Record<string, number>;
   weekly?: { week: number; kills: number; claimed: boolean };
@@ -377,7 +381,11 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   const c = CLASSES[h.cls];
   const items = opts.gear ? (Object.values(h.equipment).filter(Boolean) as Item[]) : [];
   const g = items.reduce((a, it) => { const s = itemStats(it); a.atk += s.atk; a.def += s.def; a.hp += s.hp; a.crit += s.crit; return a; }, { atk: 0, def: 0, hp: 0, crit: 0 });
-  const at = opts.attrs ? h.attrs : { str: 0, int: 0, agi: 0, vit: 0 };
+  // Barracks attribute drills bank extra points of the four attributes (see drills.ts).
+  const da = opts.talents ? drillAttrs(h) : null;
+  const at = opts.attrs
+    ? { str: h.attrs.str + (da?.str ?? 0), int: h.attrs.int + (da?.int ?? 0), agi: h.attrs.agi + (da?.agi ?? 0), vit: h.attrs.vit + (da?.vit ?? 0) }
+    : { str: 0, int: 0, agi: 0, vit: 0 };
   const p = opts.asc ? 1 + h.paragon * 0.02 : 1;
   const L = h.level;
   // Per level every stat keeps growing so the campaign never outruns the hero; Vitality is the
@@ -539,6 +547,7 @@ export const BUILDINGS = [
   { id: "friends", name: "Friends", x: 0, y: 0, r: 0, desc: "Friends & messages", soon: false, shortcut: true },
   { id: "daily", name: "Daily Rewards", x: 46, y: 66, r: 3.5, desc: "Login rewards & activities", soon: false , shortcut: true },
   { id: "worldmap", name: "World Tree", x: 50, y: 49, r: 4.5, desc: "Explore the world map · raids & bosses", soon: false },
+  { id: "sanctuary", name: "Sanctuary", x: 27, y: 38, r: 4.5, desc: `New progression · Lv ${SANCTUARY_LEVEL}+`, soon: true },
 ] as const;
 /** Buildings physically placed in the castle (shortcut-only screens excluded). */
 export const CASTLE_BUILDINGS = BUILDINGS.filter((b) => !("shortcut" in b && b.shortcut));

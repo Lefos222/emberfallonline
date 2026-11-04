@@ -38,7 +38,6 @@ export const DIAMOND_SHOP: DiamondItem[] = [
   { id: 'frame_diamond', name: 'Diamond Frame', diamonds: 800, kind: 'cosmetic', description: 'Prestigious portrait frame' },
   { id: 'title_immortal', name: 'Immortal Title', diamonds: 500, kind: 'cosmetic', description: 'The "Immortal" title' },
   { id: 'scroll_bundle', name: 'War Scroll Bundle', diamonds: 400, kind: 'scrolls', description: '5 Damage, 5 Defence and 5 Experience Scrolls' },
-  { id: 'resource_bundle', name: 'Gatherer’s Cache', diamonds: 300, kind: 'resources', description: '5 of every common gathering resource' },
 ];
 
 export interface PremiumState {

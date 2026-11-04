@@ -2,14 +2,14 @@ import { greekDayStart } from "./events";
 import type { Hero } from "./data";
 
 /**
- * Campaign Gate stamina. The campaign is the only gate that spends it: 300 a Greek day,
- * 10 per fight, so a player gets 30 campaign fights daily and the floors stay unlimited
- * everywhere else (Conquest floors, dungeons, arena and activities never touch it).
+ * Campaign Gate stamina. Only a lost campaign fight spends it: 300 a Greek day, 10 per loss,
+ * so a losing streak costs at most 30 fights daily while winning is always free. Conquest
+ * floors, dungeons, the arena and activities never touch it.
  */
 
 export const STAMINA_PER_DAY = 300;
 export const STAMINA_PER_FIGHT = 10;
-/** Campaign fights one full bar pays for. */
+/** Lost campaign fights one full bar pays for. */
 export const CAMPAIGN_FIGHTS_PER_DAY = STAMINA_PER_DAY / STAMINA_PER_FIGHT;
 
 export interface StaminaState {
@@ -33,12 +33,17 @@ export const staminaLeft = (h: StaminaState, now = Date.now()) =>
 /** Why a campaign fight cannot start, or null when the hero has stamina. */
 export function staminaBlocker(h: StaminaState, now = Date.now()): string | null {
   if (staminaLeft(h, now) >= STAMINA_PER_FIGHT) return null;
-  return `Out of stamina — ${STAMINA_PER_DAY} a day, ${STAMINA_PER_FIGHT} per campaign fight. It refills at Greek midnight.`;
+  return `Out of stamina — ${STAMINA_PER_DAY} a day, ${STAMINA_PER_FIGHT} per lost campaign fight. It refills at Greek midnight.`;
 }
 
-/** Spend one campaign fight's stamina. */
+/** Spend the stamina of one lost campaign fight. */
 export function spendStamina(h: Hero, now = Date.now()) {
   h.stamina = { day: staminaDay(now), used: staminaUsed(h, now) + STAMINA_PER_FIGHT };
+}
+
+/** Settle a campaign fight: only a loss costs stamina, a win leaves the bar untouched. */
+export function settleCampaignStamina(h: Hero, won: boolean, now = Date.now()) {
+  if (!won) spendStamina(h, now);
 }
 
 /** When the bar refills: the next Greek midnight. */

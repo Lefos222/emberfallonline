@@ -33,8 +33,6 @@ async function auctionCall(op: string, rpc: "auction_list" | "auction_list_item"
   localStorage.removeItem(`ef-pending:${id}:${op}`);
 }
 
-export const listResource = (resource: string, qty: number, price: number) =>
-  auctionCall(`auction-list:${resource}`, "auction_list", { _resource: resource, _qty: qty, _price: price });
 /** List a bagged piece of equipment whole — it keeps its stats, enhancement and socketed gems. */
 export const listItem = (item: Item, price: number) =>
   auctionCall(`auction-list-item:${item.id}`, "auction_list_item", { _item: item, _price: price });
@@ -43,9 +41,4 @@ export const listGem = (gem: string, qty: number, price: number) =>
   auctionCall(`auction-list-gem:${gem}`, "auction_list_gem", { _gem: gem, _qty: qty, _price: price });
 export const buyListing = (listing: string) => auctionCall(`auction-buy:${listing}`, "auction_buy", { _listing: listing });
 export const cancelListing = (listing: string) => auctionCall(`auction-cancel:${listing}`, "auction_cancel", { _listing: listing });
-
-export function resourceLabel(key: string): string {
-  const parts = key.split(":");
-  return parts.length === 3 ? parts[0] : key;
-}
 export { object };

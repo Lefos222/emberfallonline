@@ -11,7 +11,7 @@ import {
   attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceStoneChance, enchantStoneCost, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
   CONQUEST_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, catchUpXpFactor, type Attr, type EnemyType, type Hero, type HeroClass, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
-import { STAMINA_PER_DAY, STAMINA_PER_FIGHT, spendStamina, staminaBlocker, staminaLeft } from "./stamina";
+import { STAMINA_PER_DAY, STAMINA_PER_FIGHT, settleCampaignStamina, staminaBlocker, staminaLeft } from "./stamina";
 import { refreshMerchant } from "./logic";
 import { addConquestTokens, floorTokens } from "./conquest";
 import { ConquestTokens } from "./ConquestGate";
@@ -25,12 +25,10 @@ import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
 import { CharacterModel } from "./CharacterModel";
 import { QuestBoard } from "./QuestBoard";
-import { BarracksUpgrade, DrillTracks } from "./Barracks";
+import { AttributeDrills, BarracksUpgrade, DrillTracks } from "./Barracks";
 import { batchSizes } from "./barracks";
 import { CharacterPose } from "./CharacterPose";
 import { heroAppearance } from "./appearance";
-import { DiscoveryArt } from "./Professions";
-import { DISCOVERY_NAMES, DISCOVERY_RARITIES, GATHERING_AREAS, gatheringState, type ProfessionId } from "./professions";
 
 export type StartBattle = (opts: {
   right: Fighter; auto?: boolean; title: string;
@@ -185,31 +183,6 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               </div>
             );
           })()}
-          {(() => {
-            const supplies = Object.entries(gatheringState(hero).resources);
-            if (!supplies.length) return (<div className="mt-4"><div className="mb-1.5 font-display text-sm text-gold">Gathering supplies</div><p className="text-xs text-muted-foreground">Nothing gathered yet - supplies you collect stay listed here with their exact counts.</p></div>);
-            return (
-              <div className="mt-4">
-                <div className="mb-1.5 font-display text-sm text-gold">Gathering supplies · {supplies.reduce((a, [, n]) => a + n, 0)} held · {supplies.length} type{supplies.length === 1 ? "" : "s"}</div>
-                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-                  {supplies.map(([key, n]) => {
-                    const [p, a, r] = key.split(":");
-                    const rarity = Number(r);
-                    if (!DISCOVERY_NAMES[p as ProfessionId]) return null;
-                    return (
-                      <div key={key} className={`slot rarity-${Math.min(rarity + 1, 5)} flex items-center gap-2 p-1.5`} title={`${DISCOVERY_RARITIES[rarity]} · ${GATHERING_AREAS[Number(a)]}`}>
-                        <DiscoveryArt profession={p as ProfessionId} rarity={rarity} className="h-9 w-9 rounded" />
-                        <div className="min-w-0">
-                          <div className="truncate text-[11px] font-bold">{DISCOVERY_NAMES[p as ProfessionId][rarity]}</div>
-                          <div className="text-[10px] text-muted-foreground">×{n} · {DISCOVERY_RARITIES[rarity]}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })()}
           <div className="mt-4 min-h-40">
             {selItem ? (
               <ItemCard
@@ -253,7 +226,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   const ratio = s.power / foePower;
   const danger = ratio > 1.3 ? { t: "Easy", c: "text-r1" } : ratio > 0.95 ? { t: "Fair", c: "text-r4" } : ratio > 0.7 ? { t: "Hard", c: "text-hp" } : { t: "Deadly", c: "text-blood" };
   const zone = zoneOf(stage);
-  // Campaign fights cost stamina; the Conquest floors, dungeons and arena never do.
+  // Only a lost campaign fight costs stamina; wins, Conquest floors, dungeons and the arena spend none.
   const noStamina = !spire && staminaBlocker(hero) !== null;
 
   const fight = () => {
@@ -263,9 +236,11 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
       auto,
       right: { ...foe, name: foe.boss ? `${foe.name}` : foe.name },
       onResult: async (won, xpMultiplier = 1) => {
-        // One fight's stamina is spent whatever the outcome, so a loss still counts as a play.
-        if (!spire) update((h) => spendStamina(h));
-        if (!won) return { lines: ["Defeated… grow stronger and return."] };
+        // Only a lost campaign fight costs stamina — a win leaves the bar untouched.
+        if (!won) {
+          if (!spire) update((h) => settleCampaignStamina(h, false));
+          return { lines: ["Defeated… grow stronger and return."] };
+        }
         const { grant, rollLoot, addLoot } = await import("./logic");
         let lines: string[] = [];
         let loot: Item | null = null;
@@ -323,7 +298,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
           {!spire && (
             <div className="text-xs">
               <div className="mb-1 flex items-center justify-between text-muted-foreground">
-                <span>Stamina · {STAMINA_PER_FIGHT} per fight</span>
+                <span>Stamina · {STAMINA_PER_FIGHT} per lost fight</span>
                 <span className={noStamina ? "font-bold text-hp" : "font-bold"}>{staminaLeft(hero)}/{STAMINA_PER_DAY}</span>
               </div>
               <div className="bar-track h-2">
@@ -546,6 +521,7 @@ export function Temple({ onClose }: { onClose: () => void }) {
           );
         })}
       </div>
+      <AttributeDrills hero={hero} />
       <DrillTracks hero={hero} />
     </Panel>
   );

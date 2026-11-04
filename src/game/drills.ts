@@ -84,3 +84,68 @@ export function trainDrill(h: DrillState, id: string): string | null {
   h.drills = { ...(h.drills ?? {}), [id]: drillRank(h, id) + 1 };
   return null;
 }
+
+/**
+ * Attribute drills: the barracks' permanent training of the four attributes themselves.
+ * Unlike the one-off attribute training batches, a rank is a fixed step that stays bought,
+ * so the barracks keeps offering something to upgrade long after a hero's gold is spent.
+ */
+type AttrId = "str" | "int" | "agi" | "vit";
+
+export interface AttributeDrill {
+  id: AttrId;
+  name: string;
+  /** Attribute points one rank grants. */
+  per: number;
+  max: number;
+  /** Gold of the first rank; every further rank costs more. */
+  base: number;
+  /** Barracks building level that unlocks the drill. */
+  barracks: number;
+  desc: string;
+}
+
+export const ATTRIBUTE_DRILLS: AttributeDrill[] = [
+  { id: "str", name: "Strength", per: 1, max: 10, base: 2200, barracks: 2, desc: "Loaded marches and heavy-bag drills that build raw Strength." },
+  { id: "int", name: "Intelligence", per: 1, max: 10, base: 2600, barracks: 5, desc: "Sigil study and warding drills that sharpen Intelligence." },
+  { id: "agi", name: "Agility", per: 1, max: 10, base: 3000, barracks: 9, desc: "Balance, reflex and footwork drills that build Agility." },
+  { id: "vit", name: "Vitality", per: 1, max: 10, base: 3400, barracks: 13, desc: "Conditioning drills that deepen Vitality and endurance." },
+];
+
+/** Attribute drill ranks live beside the other barracks drills, keyed by attribute. */
+export interface AttrDrillState extends DrillState { attrDrills?: Record<string, number> }
+
+export const attrDrillRank = (h: Pick<AttrDrillState, "attrDrills">, id: string) => Math.max(0, h.attrDrills?.[id] ?? 0);
+
+/** Gold for the next rank: each rank costs more, and the price scales with the hero's level. */
+export const attrDrillCost = (d: AttributeDrill, rank: number, level = 1) => scaledGold(d.base * Math.pow(rank + 1, 1.6), level);
+
+/** What the banked ranks of one attribute drill are worth as text. */
+export const attrDrillText = (d: AttributeDrill, ranks = 1) => `+${d.per * ranks} ${d.name}`;
+
+/** Every attribute point the hero's drills have banked. */
+export function drillAttrs(h: Pick<AttrDrillState, "attrDrills">): Record<AttrId, number> {
+  const out: Record<AttrId, number> = { str: 0, int: 0, agi: 0, vit: 0 };
+  for (const d of ATTRIBUTE_DRILLS) out[d.id] += d.per * attrDrillRank(h, d.id);
+  return out;
+}
+
+/** Why the next attribute rank can't be trained, or null when it can. */
+export function attrDrillBlocker(h: AttrDrillState, id: string): string | null {
+  const d = ATTRIBUTE_DRILLS.find((x) => x.id === id);
+  if (!d) return "Unknown drill";
+  if (attrDrillRank(h, id) >= d.max) return "Fully drilled";
+  if (barracksLevel(h) < d.barracks) return `Requires barracks level ${d.barracks}`;
+  if (h.gold < attrDrillCost(d, attrDrillRank(h, id), h.level)) return "Not enough gold";
+  return null;
+}
+
+/** Buy one rank of an attribute drill with gold. Returns an error message, or null on success. */
+export function trainAttributeDrill(h: AttrDrillState, id: string): string | null {
+  const blocked = attrDrillBlocker(h, id);
+  if (blocked) return blocked;
+  const d = ATTRIBUTE_DRILLS.find((x) => x.id === id)!;
+  h.gold -= attrDrillCost(d, attrDrillRank(h, id), h.level);
+  h.attrDrills = { ...(h.attrDrills ?? {}), [id]: attrDrillRank(h, id) + 1 };
+  return null;
+}

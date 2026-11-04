@@ -7,7 +7,6 @@ import { adoptServerSave, useGame, withServerHero } from "./store";
 import { returnedSave } from "./services-contract";
 import { Panel } from "./ui";
 import { RequestStatus, useRequest } from "./Rewards";
-import { GuildEvents } from './GuildEvents';
 import { GuildContribute, GuildShopPanel, GuildSkillTower } from './GuildShop';
 
 export function GuildHall({ onClose }: { onClose: () => void }) {
@@ -143,7 +142,6 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
           </div>
         </div>)}
       </div>}
-      <GuildEvents />
       <div className="mt-5">
         <GuildContribute />
         <GuildShopPanel />

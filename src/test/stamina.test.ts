@@ -4,6 +4,7 @@ import {
   CAMPAIGN_FIGHTS_PER_DAY,
   STAMINA_PER_DAY,
   STAMINA_PER_FIGHT,
+  settleCampaignStamina,
   spendStamina,
   staminaBlocker,
   staminaDay,
@@ -31,6 +32,15 @@ describe("campaign stamina", () => {
     for (let i = 0; i < CAMPAIGN_FIGHTS_PER_DAY; i++) spendStamina(h);
     expect(staminaLeft(h)).toBe(0);
     expect(staminaBlocker(h)).toMatch(/Out of stamina/);
+  });
+
+  it("only charges a lost campaign fight — a win leaves the bar untouched", () => {
+    const h = newHero("Walker", "warrior");
+    settleCampaignStamina(h, true);
+    expect(staminaLeft(h)).toBe(STAMINA_PER_DAY);
+    expect(h.stamina?.used ?? 0).toBe(0);
+    settleCampaignStamina(h, false);
+    expect(staminaLeft(h)).toBe(STAMINA_PER_DAY - STAMINA_PER_FIGHT);
   });
 
   it("refills at the next Greek day", () => {
