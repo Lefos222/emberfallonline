@@ -28,9 +28,9 @@ import {
 const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 2.5;
 
-/** One pass of the painted map art, in world units (the art is 1536×1024). */
+/** One pass of the painted map art, in world units (the art is 2048×1143). */
 const MAP_W = 4096;
-const MAP_H = Math.round((MAP_W * 1024) / 1536);
+const MAP_H = Math.round((MAP_W * 1143) / 2048);
 
 const KIND_STYLE: Record<SiteKind, { ring: string; dot: string; label: string; Icon: typeof Gem }> =
   {
@@ -187,7 +187,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
     const isCastle = site.kind === "keep";
     if (isCastle) {
       if (castleRaidsLeft(heroId) <= 0) {
-        setError("All three castle raids are spent — they refill at midnight UTC.");
+        setError("All castle raids are spent — they refill at midnight UTC.");
         return;
       }
       if (!state || raidsLeft(state, "gold") <= 0) {

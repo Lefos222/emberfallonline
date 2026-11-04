@@ -9,8 +9,8 @@ const state = (used: Partial<Record<"gold" | "ore" | "boss", number>>, nodes: st
 const node = (id: string) => MAP_NODES.find((n) => n.id === id)!;
 
 describe("world tree raid allowances", () => {
-  it("pays 10 gold, 8 ore and 4 boss raids a day", () => {
-    expect(RAID_LIMITS).toEqual({ gold: 10, ore: 8, boss: 4 });
+  it("pays 30 gold, 24 ore and 12 boss raids a day", () => {
+    expect(RAID_LIMITS).toEqual({ gold: 30, ore: 24, boss: 12 });
   });
 
   it("counts how often a node was raided today", () => {
@@ -23,8 +23,8 @@ describe("world tree raid allowances", () => {
   });
 
   it("closes a node only once the allowance is spent", () => {
-    expect(canRaid(state({ gold: 10 }, ["gold-1"]), node("gold-1"))).toBe(false);
-    expect(raidsLeft(state({ ore: 3 }), "ore")).toBe(5);
-    expect(raidsLeft(state({ boss: 9 }), "boss")).toBe(0);
+    expect(canRaid(state({ gold: 30 }, ["gold-1"]), node("gold-1"))).toBe(false);
+    expect(raidsLeft(state({ ore: 3 }), "ore")).toBe(21);
+    expect(raidsLeft(state({ boss: 9 }), "boss")).toBe(3);
   });
 });
