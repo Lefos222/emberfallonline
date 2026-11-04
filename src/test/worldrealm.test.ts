@@ -15,19 +15,9 @@ import {
   sitesInView,
   zoomCamera,
 } from "@/game/worldmap";
-import {
-  LODGE_MATERIAL_ORDER,
-  discoveryMaterial,
-  gatheringState,
-  lodgeStores,
-  type GatheringState,
-} from "@/game/professions";
 
 const size = { w: 1200, h: 800 };
 const toScreen = (x: number, y: number) => ({ left: x / 10, top: y / 10 });
-
-const gathering = (resources: Record<string, number>): GatheringState =>
-  gatheringState({ srv: { gathering: { resources, professions: {}, history: [] } } });
 
 describe("the bounded realm", () => {
   it("is one painted map with an edge", () => {
@@ -131,27 +121,3 @@ describe("marker clustering", () => {
   });
 });
 
-describe("the lodge stores", () => {
-  it("banks every profession's haul as material", () => {
-    expect(discoveryMaterial("logging", 0)).toBe("wood");
-    expect(discoveryMaterial("herbalism", 2)).toBe("grass");
-    expect(discoveryMaterial("mining", 0)).toBe("stone");
-    expect(discoveryMaterial("mining", 3)).toBe("iron");
-    expect(discoveryMaterial("fishing", 1)).toBe("fish");
-    expect(discoveryMaterial("archaeology", 1)).toBe("relic");
-  });
-
-  it("reads the server's resource ledger as wood, grass, stone, iron, fish and relics", () => {
-    const stores = lodgeStores(
-      gathering({ "logging:0:0": 4, "logging:1:1": 2, "mining:0:0": 5, "mining:2:2": 3, "herbalism:0:0": 1 }),
-    );
-    expect(stores.stock).toEqual({ wood: 6, grass: 1, stone: 5, iron: 3, fish: 0, relic: 0 });
-    expect(stores.total).toBe(15);
-    expect(stores.rarities.wood).toEqual({ 0: 4, 1: 2 });
-    expect(LODGE_MATERIAL_ORDER).toEqual(["wood", "grass", "stone", "iron", "fish", "relic"]);
-  });
-
-  it("ignores keys the lodge does not know", () => {
-    expect(lodgeStores(gathering({ "bogus:0:0": 9, "fishing:4:3": 2 })).stock.fish).toBe(2);
-  });
-});

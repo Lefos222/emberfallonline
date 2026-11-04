@@ -11,7 +11,7 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   fragment: { name: "Armor Fragment", desc: "Shards of fine armor. Rare+ armor can only be forged from these.", src: "Monsters (12%), elites, bosses, weekly activities", rarity: 2 },
   sigil: { name: "Elite Sigil", desc: "Trophy of an elite foe. Needed for Epic+ armor.", src: "Elite Hunt and Dungeon Gate bosses", rarity: 3 },
   hide: { name: "Beast Hide", desc: "Hide stripped from slain monsters. Refines into Armor Fragments.", src: "Every won battle (more in higher regions)", rarity: 1 },
-  bloom: { name: "Emberbloom", desc: "Fire-touched herb. Refines into Soul Essence.", src: "Won battles, elites and gathering journeys", rarity: 1 },
+  bloom: { name: "Emberbloom", desc: "Fire-touched herb. Refines into Soul Essence.", src: "Won battles and elites", rarity: 1 },
   crystal: { name: "Arcane Crystal", desc: "Crystallised mana. Refines into Starshards.", src: "Elites and Dungeon Gate bosses", rarity: 2 },
   enchantStone: { name: "Enchantment Stone", desc: "A resonant stone used to enchant gear at the Forge instead of gold. Higher success rate.", src: "Conquest Gate shop and Guild shop", rarity: 3 },
 };

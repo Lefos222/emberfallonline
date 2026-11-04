@@ -1,7 +1,9 @@
-import { Crosshair, Eye, Heart, HeartPulse, Lock, Shield, ShieldCheck, Sparkles, Swords, Trophy, Wind, type LucideIcon } from "lucide-react";
+import { Clover, Crosshair, Eye, Heart, HeartPulse, Lock, Shield, ShieldCheck, Sparkles, Swords, Trophy, Wind, type LucideIcon } from "lucide-react";
 import type { Hero } from "./data";
 import { BARRACKS_MAX, BARRACKS_UNLOCKS, barracksCost, barracksLevel, trainingDiscount, upgradeBarracks } from "./barracks";
-import { DRILLS, drillBlocker, drillCost, drillRank, drillText, trainDrill } from "./drills";
+import {
+  ATTRIBUTE_DRILLS, DRILLS, attrDrillBlocker, attrDrillCost, attrDrillRank, drillBlocker, drillCost, drillRank, drillText, trainAttributeDrill, trainDrill,
+} from "./drills";
 import { update } from "./store";
 import { Gold } from "./ui";
 
@@ -39,6 +41,49 @@ const DRILL_ICONS: Record<string, LucideIcon> = {
   vitality: HeartPulse, weapons: Swords, shields: Shield, endurance: Heart, recovery: Sparkles,
   focus: Crosshair, toughness: Heart, marksman: Eye, guardwork: ShieldCheck, footwork: Wind,
 };
+
+const ATTR_DRILL_ICONS: Record<string, LucideIcon> = { str: Swords, int: Sparkles, agi: Clover, vit: Heart };
+
+/**
+ * Attribute drills: the four attributes themselves, upgraded rank by rank in the barracks.
+ * Each rank permanently banks points of that attribute, on top of the training batches above.
+ */
+export function AttributeDrills({ hero }: { hero: Hero }) {
+  const level = barracksLevel(hero);
+  return (
+    <div className="mt-6">
+      <div className="mb-1 flex items-center gap-2 font-display text-sm text-gold"><Swords className="h-4 w-4" />Attribute drills</div>
+      <p className="mb-3 text-xs text-muted-foreground">
+        Permanent upgrades for the four attributes: every rank banks its points for good, costs more than
+        the last, and the deeper ranks need the barracks itself upgraded.
+      </p>
+      <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-4">
+        {ATTRIBUTE_DRILLS.map((d) => {
+          const Icon = ATTR_DRILL_ICONS[d.id] ?? Swords;
+          const rank = attrDrillRank(hero, d.id);
+          const cost = attrDrillCost(d, rank, hero.level);
+          const blocked = attrDrillBlocker(hero, d.id);
+          const locked = level < d.barracks;
+          return (
+            <div key={d.id} className={"slot p-3 text-center " + (locked ? "opacity-60" : "")}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-1.5 font-display"><Icon className="h-4 w-4 text-gold" />{d.name}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">Rank {rank}/{d.max}</span>
+              </div>
+              <div className="mt-1 font-display text-2xl text-gold">+{d.per * rank}</div>
+              <div className="text-xs text-muted-foreground">{d.desc}</div>
+              <div className="mt-1 text-xs">Next rank <b className="text-gold">+{d.per} {d.name}</b></div>
+              <button className="btn-gold mt-2 w-full py-1.5 text-sm" disabled={!!blocked} title={blocked ?? `Drill rank ${rank + 1}`}
+                onClick={() => update((h) => { trainAttributeDrill(h, d.id); })}>
+                {rank >= d.max ? "Fully drilled" : locked ? <>Barracks level {d.barracks}</> : <>Train rank {rank + 1} <Gold n={cost} className="text-primary-foreground" /></>}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 /**
  * The drill yard: permanent barracks tracks beside the four attributes. Each rank is paid for in
