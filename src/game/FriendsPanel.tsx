@@ -5,6 +5,7 @@ import { InspectPanel } from "./InspectPanel";
 import { FriendChat } from "./FriendChat";
 import {
   cancelFriendRequest,
+  friendRequestsSupported,
   listFriendRequests,
   listFriends,
   listSentRequests,
@@ -186,15 +187,20 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
   };
 
   const addHero = async (hero: HeroSearchResult) => {
-    const ok = await mutate(
-      (id) => requestFriend(id, hero.name),
-      `Friend request sent to ${hero.name}. They must accept it first.`,
+    // The note depends on whether the server took a pending request or an instant friendship.
+    const ok = await mutate((id) => requestFriend(id, hero.name));
+    if (!ok) return;
+    const pendingRequest = friendRequestsSupported();
+    setNote(
+      pendingRequest
+        ? `Friend request sent to ${hero.name}. They must accept it first.`
+        : `You are now friends with ${hero.name}.`,
     );
-    if (ok) {
-      setResults((rows) =>
-        rows.map((r) => (r.id === hero.id ? { ...r, relation: "sent" as const } : r)),
-      );
-    }
+    setResults((rows) =>
+      rows.map((r) =>
+        r.id === hero.id ? { ...r, relation: pendingRequest ? "sent" : "friend" } : r,
+      ),
+    );
   };
 
   const acceptFromSearch = async (hero: HeroSearchResult) => {
