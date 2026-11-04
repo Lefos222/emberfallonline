@@ -1,4 +1,4 @@
-import { addMats, type Mat } from "./crafting";
+import { addGem, addMats, GEM_MAX_TIER, type GemType, type Mat } from "./crafting";
 import { stageRewards, type Hero } from "./data";
 import { grant } from "./logic";
 import { greekDayStart } from "./events";
@@ -43,6 +43,19 @@ export const blitzesLeft = (h: BlitzState, now = Date.now()) => Math.max(0, BLIT
 /** Spend one of today's blitzes. */
 export function spendBlitz(h: Hero, now = Date.now()) {
   h.conquest = { ...(h.conquest ?? {}), blitzDay: blitzDay(now), blitzUsed: blitzesUsed(h, now) + 1 };
+}
+
+/** Tokens a gem of this level costs in the Conquest store; deeper levels grow steeply. */
+export const gemTokenPrice = (level: number) => Math.round(8 * Math.pow(level, 1.5));
+
+/** Buy a gem of any family and level with Conquest Tokens. Returns an error message, or null on success. */
+export function buyConquestGem(h: Hero, type: GemType, level: number): string | null {
+  if (level < 1 || level > GEM_MAX_TIER) return "No such gem level";
+  const cost = gemTokenPrice(level);
+  if (conquestTokens(h) < cost) return `Not enough Conquest Tokens — ${cost} needed`;
+  addConquestTokens(h, -cost);
+  addGem(h, type, level);
+  return null;
 }
 
 /** Equipment materials and items the Conquest Gate sells for tokens. */

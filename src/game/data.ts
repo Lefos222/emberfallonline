@@ -6,7 +6,7 @@ import goblinImg from "@/assets/enemy-goblin.png";
 import demonImg from "@/assets/enemy-demon.png";
 import dragonImg from "@/assets/enemy-dragon.png";
 import { talentFx, talentSkills } from "./talents";
-import { astralFx, gemFx, type Astral, type BonusFx, type Mat } from "./crafting";
+import { astralFx, gemFx, migrateGems, zeroGemFx, type Astral, type BonusFx, type Mat } from "./crafting";
 import { setFx, type BattleEntry, type CombatRecord } from "./progress";
 import { scaledGold } from "./gold";
 import { drillFx } from "./drills";
@@ -320,6 +320,8 @@ export function normalizeHero(h: Hero): Hero {
   if (a.int === undefined || a.agi === undefined) {
     h.attrs = { str: a.str ?? 0, int: 0, agi: a.luck ?? 0, vit: (a.vit ?? 0) + (a.armor ?? 0) };
   }
+  // Gems from older saves are remapped onto the eight chart families (see crafting.ts).
+  migrateGems(h);
   return h;
 }
 
@@ -327,21 +329,22 @@ const MAGIC: Record<HeroClass, boolean> = { warrior: false, mage: true, archer: 
 
 function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boolean; talents?: boolean }): Stats {
   const tf = opts.talents ? talentFx(h) : { hpPct: 0, atkPct: 0, defPct: 0, crit: 0, dodge: 0, critDmg: 0, pen: 0 };
-  const xg = opts.gear ? gemFx(h.equipment) : null; const xa = opts.talents ? astralFx(h) : null;
+  // Gems add the chart's flat stats; Astrals, drills and guild skills stay percentage based.
+  const gm = opts.gear ? gemFx(h.equipment) : zeroGemFx();
+  const xa = opts.talents ? astralFx(h) : null;
   // Barracks drills are the hero's permanent training track beside the attribute points (see drills.ts).
   const dr = opts.talents ? drillFx(h) : null;
   const gf2 = opts.talents ? guildFx(h) : null;
-  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xg?.[k] ?? 0) + (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0);
+  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0);
   const sf0 = opts.gear ? setFx(h.equipment) : { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
-  const gf = opts.gear ? gemFx(h.equipment) : null;
   const af = opts.talents ? astralFx(h) : null;
   const sf = {
-    atkPct: sf0.atkPct + (gf?.atkPct ?? 0) + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0),
-    defPct: sf0.defPct + (gf?.defPct ?? 0) + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0),
-    hpPct: sf0.hpPct + (gf?.hpPct ?? 0) + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0),
-    crit: sf0.crit + (gf?.crit ?? 0) + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0),
+    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0),
+    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0),
+    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0),
+    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0),
   };
-  tf.dodge += (gf?.dodge ?? 0) + (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0); tf.critDmg += (gf?.critDmg ?? 0) + (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0);
+  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0); tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0);
   const pa = 1 + (tf.atkPct + sf.atkPct) / 100, ph = 1 + (tf.hpPct + sf.hpPct) / 100, pd = 1 + (tf.defPct + sf.defPct) / 100;
   const c = CLASSES[h.cls];
   const items = opts.gear ? (Object.values(h.equipment).filter(Boolean) as Item[]) : [];
@@ -351,17 +354,17 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   const L = h.level;
   // Per level every stat keeps growing so the campaign never outruns the hero; Vitality is the
   // strongest health lever, and Strength adds a little health on the side.
-  const hp = Math.round(ph * ((100 + L * 40 + at.vit * 22 + at.str * 4) * c.hp + g.hp) * p);
-  const patk = Math.round(pa * ((10 + L * 5 + at.str * 3 + at.agi * 1.5) * c.atk + (MAGIC[h.cls] ? g.atk * 0.3 : g.atk)) * p);
-  const matk = Math.round((pa + ex('matkPct') / 100) * ((10 + L * 5 + at.int * 3.2) * c.atk + (MAGIC[h.cls] ? g.atk : g.atk * 0.3)) * p);
-  const pdef = Math.round(pd * ((5 + L * 2.5 + at.vit * 1.5 + at.str * 1) * c.def + g.def) * p);
-  const mdef = Math.round((pd + ex('mdefPct') / 100) * ((5 + L * 2.5 + at.vit * 1 + at.int * 1.5) * c.def + g.def * 0.8) * p);
-  const crit = Math.min(60, +(5 + c.crit + at.agi * 0.2 + g.crit + tf.crit + sf.crit).toFixed(1));
+  const hp = Math.round(ph * ((100 + L * 40 + at.vit * 22 + at.str * 4) * c.hp + g.hp) * p) + gm.hp;
+  const patk = Math.round(pa * ((10 + L * 5 + at.str * 3 + at.agi * 1.5) * c.atk + (MAGIC[h.cls] ? g.atk * 0.3 : g.atk)) * p) + gm.patk;
+  const matk = Math.round((pa + ex('matkPct') / 100) * ((10 + L * 5 + at.int * 3.2) * c.atk + (MAGIC[h.cls] ? g.atk : g.atk * 0.3)) * p) + gm.matk;
+  const pdef = Math.round(pd * ((5 + L * 2.5 + at.vit * 1.5 + at.str * 1) * c.def + g.def) * p) + gm.pdef;
+  const mdef = Math.round((pd + ex('mdefPct') / 100) * ((5 + L * 2.5 + at.vit * 1 + at.int * 1.5) * c.def + g.def * 0.8) * p) + gm.mdef;
+  const crit = Math.min(60, +(5 + c.crit + at.agi * 0.2 + g.crit + tf.crit + sf.crit + gm.crit).toFixed(1));
   const critDmg = Math.min(300, Math.round(150 + at.agi * 0.3 + at.str * 0.15 + tf.critDmg));
-  const pen = Math.min(40, +(at.str * 0.08 + at.int * 0.08 + h.paragon * 0.1 + tf.pen + (MAGIC[h.cls] ? ex('mpen') : (gf?.pen ?? 0) + (af?.pen ?? 0) + (gf2?.pen ?? 0))).toFixed(1));
+  const pen = Math.min(40, +(at.str * 0.08 + at.int * 0.08 + h.paragon * 0.1 + tf.pen + (MAGIC[h.cls] ? ex('mpen') : (af?.pen ?? 0) + (gf2?.pen ?? 0))).toFixed(1));
   const acc = Math.min(30, +(at.agi * 0.08 + L * 0.05 + ex('acc')).toFixed(1));
-  const block = Math.min(25, +ex('block').toFixed(1));
-  const heal = Math.min(50, +ex('heal').toFixed(1));
+  const block = Math.min(25, +(ex('block') + gm.block).toFixed(1));
+  const heal = Math.min(50, +(ex('heal') + gm.charisma).toFixed(1));
   const dodge = Math.min(30, +(c.dodge + at.agi * 0.06 + tf.dodge).toFixed(1));
   const atk = MAGIC[h.cls] ? matk : patk;
   const def = Math.round((pdef + mdef) / 2);

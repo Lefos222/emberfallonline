@@ -34,11 +34,10 @@ export const MatIcon = ({ mat, size = 20 }: { mat: Mat; size?: number }) => MAT_
 );
 /** Cut shapes so each gem type is recognisable even without a painted icon. */
 const CUTS: Partial<Record<GemType, string>> = {
-  amethyst: "M10 1l6 5-2 12H6L4 6z", aquamarine: "M3 7l7-6 7 6-7 12z", garnet: "M10 2a8 8 0 1 1 0 16a8 8 0 1 1 0-16z",
-  peridot: "M10 1l8 9-8 9-8-9z", opal: "M10 2c5 0 8 3.5 8 8s-3 8-8 8-8-3.5-8-8 3-8 8-8z", onyx: "M3 3h14v14H3z",
-  obsidian: "M10 1l3 6 6 1-4 5 1 6-6-3-6 3 1-6-4-5 6-1z", moonstone: "M13 2a8 8 0 1 0 5 13A7 7 0 0 1 13 2z", pearl: "M10 3a7 7 0 1 1 0 14a7 7 0 1 1 0-14z",
+  amethyst: "M10 1l6 5-2 12H6L4 6z", aquamarine: "M3 7l7-6 7 6-7 12z",
+  tourmaline: "M10 2c5 0 8 3.5 8 8s-3 8-8 8-8-3.5-8-8 3-8 8-8z", lapis: "M10 1l8 9-8 9-8-9z",
 };
-const GEM_SHEET: GemType[] = ["amethyst", "aquamarine", "garnet", "peridot", "opal", "onyx", "obsidian", "moonstone", "pearl"];
+const GEM_SHEET: GemType[] = ["amethyst", "aquamarine"];
 const GEM_SHEET_COLS = 3;
 export const GemIcon = ({ type, size = 18 }: { type: GemType; size?: number }) => {
   const cell = GEM_SHEET.indexOf(type);

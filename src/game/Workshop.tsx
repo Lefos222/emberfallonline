@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button';
 import { ArrowUp, Gem, Hammer, Lock, Plus, Sparkles, X } from "lucide-react";
 import { invCap, SLOTS, WEAR_SLOTS, wornCompare, makeAncestral, makeItem, type Hero, type Item, type Slot } from "./data";
 import { update, useGame } from "./store";
-import { GemCutWindow, GemPicker } from "./GemWindows";
+import { GemCraftWindow, GemPicker } from "./GemWindows";
 import { GameTabs, Gold, ItemCard, Panel, fmt } from "./ui";
 import {
   ANCESTRAL_RECIPES, ASTRAL_BASES, ASTRAL_MAX_LVL, ASTRAL_MILESTONES, ASTRAL_RARITY, ASTRAL_SLOT_LEVELS, ASTRAL_SLOTS, FUSE_COUNT, GEMS, GEM_MAX_TIER, MATS, RECIPES, SUMMON_COST,
-  astralUpgradeCost, astralValue, craft, craftBlocker, cutGem, equipAstral, fuseCost, fuseGem, gemName, gemValue, insertGem, matCount, parseGem, recipeGold, removeGem,
+  astralUpgradeCost, astralValue, craft, craftBlocker, equipAstral, fuseCost, fuseGem, gemName, gemValue, GEM_STAT_LABEL, insertGem, matCount, parseGem, recipeGold, removeGem,
   socketCount, sockets, STAT_LABEL, recipeMats, summonAstral, upgradeAstral, absorbAstral, type Mat, type Recipe,
 } from "./crafting";
 
@@ -37,7 +37,7 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
   const [selId, setSelId] = useState<string | null>(null);
   const [pick, setPick] = useState<number | null>(null);
-  const [cutOpen, setCutOpen] = useState(false);
+  const [forgeOpen, setForgeOpen] = useState(false);
   const [toast, say] = useToast();
   if (!hero) return null;
   const gear = [...WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean) as Item[], ...hero.inventory].filter((i) => socketCount(i) > 0);
@@ -68,7 +68,7 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
               <div className="mt-3 space-y-2">
                 {sockets(sel).map((g, i) => (
                   <div key={i} className="slot flex items-center justify-between gap-2 px-3 py-2 text-sm">
-                    {g ? <span><GemIcon type={parseGem(g)!.type} />{gemName(g)} (+{gemValue(g)} {STAT_LABEL[GEMS[parseGem(g)!.type].stat]})</span>
+                    {g ? <span><GemIcon type={parseGem(g)!.type} />{gemName(g)} (+{gemValue(g)} {GEM_STAT_LABEL[GEMS[parseGem(g)!.type].stat]})</span>
                        : <span className="text-muted-foreground">Empty socket {i + 1}</span>}
                     {g
                       ? <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => act((h) => { const e = removeGem(h, sel.id, i); say(!e, e ?? "Gem removed"); })}><X className="inline h-3 w-3" /> Remove</button>
@@ -82,10 +82,10 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
         <div>
           <div className="mb-2 flex items-center justify-between font-display">
             Your gems
-            <Button size="sm" onClick={() => setCutOpen(true)}><Gem className="h-4 w-4" />Cut a gem</Button>
+            <Button size="sm" onClick={() => setForgeOpen(true)}><Gem className="h-4 w-4" />Forge a gem</Button>
           </div>
-          <p className="mb-3 text-xs text-muted-foreground">Cutting opens a window that shows exactly what the gem will do before you spend anything.</p>
-          {owned.length === 0 && <p className="text-sm text-muted-foreground">No gems yet. Cut some from Ember Ore.</p>}
+          <p className="mb-3 text-xs text-muted-foreground">The forge shows exactly what a gem grants and what it costs before you spend anything.</p>
+          {owned.length === 0 && <p className="text-sm text-muted-foreground">No gems yet. Forge one from materials, or buy one with Conquest Tokens.</p>}
           <div className="space-y-1">
             {owned.map(([k, n]) => {
               const g = parseGem(k)!;
@@ -93,12 +93,12 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
               const fc = fuseCost(g.tier, hero.level);
               return (
                 <div key={k} className="slot flex flex-wrap items-center justify-between gap-1 px-2 py-1.5 text-sm">
-                  <span><GemIcon type={g.type} />{gemName(k)} ×{n}<span className="block text-xs text-muted-foreground">+{gemValue(k)} {STAT_LABEL[GEMS[g.type].stat]}</span></span>
+                  <span><GemIcon type={g.type} />{gemName(k)} ×{n}<span className="block text-xs text-muted-foreground">Level {g.tier} · +{gemValue(k)} {GEM_STAT_LABEL[GEMS[g.type].stat]}</span></span>
                   <span className="flex gap-1">
                     <button className="btn-ghost px-2 py-0.5 text-xs" disabled={free < 0} title={!sel ? "Select gear first" : free < 0 ? "No empty socket" : "Insert"}
                       onClick={() => sel && act((h) => { const e = insertGem(h, sel.id, free, k); say(!e, e ?? "Gem socketed"); })}>Insert</button>
                     {g.tier < GEM_MAX_TIER && (
-                      <button className="btn-ghost px-2 py-0.5 text-xs" disabled={n < FUSE_COUNT} title={`Fuse ${FUSE_COUNT} → 1 higher tier · ${fmt(fc.gold)} gold + ${fc.essence} essence`}
+                      <button className="btn-ghost px-2 py-0.5 text-xs" disabled={n < FUSE_COUNT} title={`Fuse ${FUSE_COUNT} → 1 level higher · ${fmt(fc.gold)} gold + ${fc.essence} essence`}
                         onClick={() => act((h) => { const e = fuseGem(h, k); say(!e, e ?? "Fusion complete!"); })}><ArrowUp className="inline h-3 w-3" />Fuse</button>
                     )}
                   </span>
@@ -110,13 +110,10 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
       </div>
       {pick !== null && sel && (
         <GemPicker hero={hero} socket={pick} onClose={() => setPick(null)}
-          onCut={() => { setPick(null); setCutOpen(true); }}
+          onForge={() => { setPick(null); setForgeOpen(true); }}
           onPick={(key) => act((h) => { const e = insertGem(h, sel.id, pick, key); say(!e, e ?? "Gem socketed"); setPick(null); })} />
       )}
-      {cutOpen && (
-        <GemCutWindow hero={hero} onClose={() => setCutOpen(false)}
-          onCut={(type) => act((h) => { const k = cutGem(h, Math.random, type); say(!!k && k.includes(':'), k && k.includes(':') ? `Cut a ${gemName(k)}!` : k ?? ''); setCutOpen(false); })} />
-      )}
+      {forgeOpen && <GemCraftWindow hero={hero} onClose={() => setForgeOpen(false)} />}
     </Panel>
   );
 }

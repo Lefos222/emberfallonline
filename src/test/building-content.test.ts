@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { attrCost, newHero, makeItem, INVENTORY_CAP } from '@/game/data';
 import { EXPEDITIONS, expeditionFoe, trainingCost, trainAttribute, advanceAncestral, awardAncestralRelic, completeAncestralTrial } from '@/game/building-content';
-import { ANCESTRAL_RECIPES, RECIPES, craft, recipeGold, recipeMats, cutGem, absorbAstral } from '@/game/crafting';
+import { ANCESTRAL_RECIPES, RECIPES, craft, recipeGold, recipeMats, craftGem, absorbAstral } from '@/game/crafting';
 import { WORLD_EVENTS, H } from '@/game/events';
 import { eventEncounter, liveOccurrence } from '@/game/event-encounters';
 import { makeDrop } from '@/game/logic';
@@ -66,10 +66,11 @@ describe('building content preserves existing progression', () => {
     expect(typeof result).toBe('object'); expect(h.inventory[0].crafted).toBe(true); expect(h.mats.ore).toBe(0);
     expect(h.gold).toBe(5000000-spent);
   });
-  it('targeted gem cuts spend the existing targeted cost once', () => {
-    const h=newHero('Test','mage'); h.gold=450; h.mats={ore:24,essence:1};
-    expect(cutGem(h,()=>0,'moonstone')).toBe('moonstone:1');
-    expect(h.gold).toBe(0); expect(h.mats).toMatchObject({ore:0,essence:0}); expect(h.gems?.['moonstone:1']).toBe(1);
+  it('forging a gem spends its materials exactly once', () => {
+    const h=newHero('Test','mage'); h.gold=200; h.mats={ore:10};
+    expect(craftGem(h,'sapphire',1)).toBeNull();
+    expect(h.gold).toBe(0); expect(h.mats).toMatchObject({ore:0}); expect(h.gems?.['sapphire:1']).toBe(1);
+    expect(craftGem(h,'sapphire',1)).toBe('Not enough Ember Ore');
   });
   it('feeding an equipped duplicate is rejected and preserves both Astrals', () => {
     const h=newHero('Test','warrior'); h.astrals=[{id:'a',base:'ember',rarity:1,lvl:0},{id:'b',base:'ember',rarity:2,lvl:0}];h.astralSlots=['b'];

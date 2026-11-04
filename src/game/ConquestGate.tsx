@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Zap } from "lucide-react";
+import { Gem, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MatIcon } from "./MatIcon";
-import { MATS } from "./crafting";
-import { BLITZ_PER_DAY, blitz, blitzBlocker, blitzRewards, blitzesLeft, buyTokenOffer, conquestTokens, floorsCleared, TOKEN_OFFERS } from "./conquest";
+import { GemIcon, MatIcon } from "./MatIcon";
+import { GEMS, GEM_MAX_TIER, GEM_STAT_LABEL, GEM_TYPES, MATS, gemKey, gemValue, type GemType } from "./crafting";
+import { BLITZ_PER_DAY, blitz, blitzBlocker, blitzRewards, blitzesLeft, buyConquestGem, buyTokenOffer, conquestTokens, floorsCleared, gemTokenPrice, TOKEN_OFFERS } from "./conquest";
 import type { Hero } from "./data";
 import { update } from "./store";
 import { Gold, fmt } from "./ui";
@@ -15,8 +15,11 @@ import { Gold, fmt } from "./ui";
 export function ConquestTokens({ hero }: { hero: Hero }) {
   const cap = floorsCleared(hero);
   const [target, setTarget] = useState(() => Math.max(1, cap || 1));
+  const [gemType, setGemType] = useState<GemType>("ruby");
+  const [gemLevel, setGemLevel] = useState(1);
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
   const tokens = conquestTokens(hero);
+  const gemPrice = gemTokenPrice(gemLevel);
   const usable = Math.min(Math.max(1, target || 1), Math.max(1, cap));
   const left = blitzesLeft(hero);
   const blocked = blitzBlocker(hero, usable);
@@ -52,7 +55,6 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
         {blocked ? <p className="mt-2 text-xs text-muted-foreground">{blocked}</p> : preview && (
           <p className="mt-2 text-xs">Pays <span className="font-bold text-xp">+{fmt(preview.xp)} XP</span>, <Gold n={preview.gold} />, <span className="font-bold text-gold">+{fmt(preview.tokens)} tokens</span>.</p>
         )}
-        {msg && <p role="status" className={`anim-pop mt-2 text-sm ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</p>}
       </div>
 
       <div className="slot p-3">
@@ -79,6 +81,36 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
           })}
         </div>
       </div>
+
+      <div className="slot p-3 md:col-span-2">
+        <div className="mb-1 flex items-center justify-between gap-2 font-display text-gold">
+          <span className="flex items-center gap-2"><Gem className="h-4 w-4" />Gem stock</span>
+          <span className="text-xs font-bold">{fmt(tokens)} tokens</span>
+        </div>
+        <p className="text-xs text-muted-foreground">Every gem family at any level, bought straight from the gate. Deeper gems cost more tokens.</p>
+        <div className="mt-2 flex flex-wrap gap-1">
+          {GEM_TYPES.map((t) => (
+            <button key={t} className={"px-2 py-1 text-xs " + (gemType === t ? "btn-gold" : "btn-ghost")}
+              onClick={() => { setGemType(t); setMsg(null); }}>
+              <GemIcon type={t} size={16} /> {GEMS[t].name}
+            </button>
+          ))}
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+          <label>Level
+            <select aria-label="Gem level" className="ml-1 rounded border border-border bg-background p-1" value={gemLevel}
+              onChange={(e) => { setGemLevel(Number(e.target.value)); setMsg(null); }}>
+              {Array.from({ length: GEM_MAX_TIER }, (_, i) => i + 1).map((n) => <option key={n} value={n}>Lv {n}</option>)}
+            </select>
+          </label>
+          <span className="slot px-2 py-1">+{gemValue(gemKey(gemType, gemLevel))} {GEM_STAT_LABEL[GEMS[gemType].stat]}</span>
+          <Button size="sm" disabled={tokens < gemPrice} onClick={() => update((h) => {
+            const err = buyConquestGem(h, gemType, gemLevel);
+            setMsg(err ? { ok: false, t: err } : { ok: true, t: `Bought a ${GEMS[gemType].name} gem (Lv ${gemLevel})` });
+          })}>Buy · {fmt(gemPrice)} tokens</Button>
+        </div>
+      </div>
+      {msg && <p role="status" className={`anim-pop text-sm md:col-span-2 ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</p>}
     </div>
   );
 }

@@ -1,27 +1,20 @@
 import { useState } from "react";
-import { Gem, X } from "lucide-react";
+import { Gem, Hammer, ShoppingBag, X } from "lucide-react";
 import { GemIcon, MatIcon } from "./MatIcon";
 import {
-  FUSE_COUNT, GEMS, GEM_MAX_TIER, GEM_TIER_NAMES, GEM_TYPES, STAT_LABEL, gemCutCost,
-  gemKey, gemName, gemValue, matCount, parseGem, type GemType,
+  FUSE_COUNT, GEMS, GEM_MAX_TIER, GEM_STAT_LABEL, GEM_TIER_NAMES, GEM_TYPES, MATS,
+  craftGem, gemBlocker, gemCraftCost, gemCraftLevel, gemKey, gemName, gemValue, matCount, parseGem,
+  type GemType, type Mat,
 } from "./crafting";
+import { buyConquestGem, conquestTokens, gemTokenPrice } from "./conquest";
 import type { Hero } from "./data";
-import { Gold } from "./ui";
+import { update } from "./store";
+import { Gold, fmt } from "./ui";
 
 const modal = "fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4";
 
-/** Effects a gem type has beyond its raw number: defensive and utility gems change how a fight plays out. */
-const NOTABLE: Partial<Record<GemType, string>> = {
-  onyx: "Block: flat chance to shrug off a hit.",
-  opal: "Dodge: chance to avoid a hit entirely.",
-  pearl: "Healing power: strengthens heals and life-steal.",
-  obsidian: "Armour pen: cuts through enemy defence.",
-  moonstone: "Magic pen: cuts through enemy magic defence.",
-  peridot: "Accuracy: helps land hits on high-dodge foes.",
-};
-
 /** Pick one of the gems you own for one socket. */
-export function GemPicker({ hero, socket, onPick, onCut, onClose }: { hero: Hero; socket: number; onPick: (key: string) => void; onCut: () => void; onClose: () => void }) {
+export function GemPicker({ hero, socket, onPick, onForge, onClose }: { hero: Hero; socket: number; onPick: (key: string) => void; onForge: () => void; onClose: () => void }) {
   const owned = Object.entries(hero.gems ?? {}).filter(([, n]) => n > 0).sort();
   return (
     <div className={modal} role="dialog" aria-modal="true" aria-label="Insert a gem" onClick={onClose}>
@@ -32,8 +25,8 @@ export function GemPicker({ hero, socket, onPick, onCut, onClose }: { hero: Hero
         </div>
         {owned.length === 0 ? (
           <div className="py-6 text-center">
-            <p className="mb-3 text-muted-foreground">You have no gems in your pouch yet. Cut one from Ember Ore first.</p>
-            <button className="btn-gold px-4 py-2" onClick={onCut}><Gem className="mr-1 inline h-4 w-4" />Open gem cutting</button>
+            <p className="mb-3 text-muted-foreground">You have no gems in your pouch yet. Forge one from materials first.</p>
+            <button className="btn-gold px-4 py-2" onClick={onForge}><Gem className="mr-1 inline h-4 w-4" />Open the gem forge</button>
           </div>
         ) : (
           <div className="space-y-1.5">
@@ -44,15 +37,15 @@ export function GemPicker({ hero, socket, onPick, onCut, onClose }: { hero: Hero
                   <span>
                     <GemIcon type={g.type} /> {gemName(key)} ×{n}
                     <span className="block text-xs text-muted-foreground">
-                      +{gemValue(key)} {STAT_LABEL[GEMS[g.type].stat]} · best on {GEMS[g.type].classes}
-                      {NOTABLE[g.type] ? " · " + NOTABLE[g.type] : ""}
+                      +{gemValue(key)} {GEM_STAT_LABEL[GEMS[g.type].stat]} · best on {GEMS[g.type].classes}
+                      {" · " + GEMS[g.type].note}
                     </span>
                   </span>
                   <span className="btn-ghost px-2 py-0.5 text-xs">Insert</span>
                 </button>
               );
             })}
-            <button className="btn-ghost mt-2 w-full py-1.5 text-xs" onClick={onCut}><Gem className="mr-1 inline h-3 w-3" />Cut another gem</button>
+            <button className="btn-ghost mt-2 w-full py-1.5 text-xs" onClick={onForge}><Gem className="mr-1 inline h-3 w-3" />Forge another gem</button>
           </div>
         )}
       </div>
@@ -60,61 +53,93 @@ export function GemPicker({ hero, socket, onPick, onCut, onClose }: { hero: Hero
   );
 }
 
-/** Shows what a cut will produce — stats and side effects — before any ore or gold is spent. */
-export function GemCutWindow({ hero, onClose, onCut }: { hero: Hero; onClose: () => void; onCut: (type?: GemType) => void }) {
-  const [choice, setChoice] = useState<GemType | "random">("random");
-  const target = choice === "random" ? undefined : choice;
-  const cost = gemCutCost(hero.level, target);
-  const afford = matCount(hero, "ore") >= cost.ore && hero.gold >= cost.gold && matCount(hero, "essence") >= cost.essence;
-  const shown: GemType[] = target ? [target] : GEM_TYPES;
+/** The gem forge: pick a family and a level, see exactly what it grants, then forge it from
+ *  materials or buy it with Conquest Tokens. */
+export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => void }) {
+  const [type, setType] = useState<GemType>("ruby");
+  const [level, setLevel] = useState(1);
+  const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
+  const key = gemKey(type, level);
+  const g = GEMS[type];
+  const cost = gemCraftCost(level, hero.level);
+  const blocked = gemBlocker(hero, level);
+  const tokens = conquestTokens(hero);
+  const price = gemTokenPrice(level);
+  const costs: [Mat, number][] = [["ore", cost.ore], ["essence", cost.essence], ["crystal", cost.crystal], ["starshard", cost.starshard], ["bossCore", cost.bossCore]];
+
+  const forge = () => update((h) => {
+    const e = craftGem(h, type, level);
+    setMsg(e ? { ok: false, t: e } : { ok: true, t: `Forged a ${gemName(key)} — +${gemValue(key)} ${GEM_STAT_LABEL[g.stat]}.` });
+  });
+  const buy = () => update((h) => {
+    const e = buyConquestGem(h, type, level);
+    setMsg(e ? { ok: false, t: e } : { ok: true, t: `Bought a ${gemName(key)} for ${fmt(price)} tokens.` });
+  });
+
   return (
-    <div className={modal} role="dialog" aria-modal="true" aria-label="Gem cutting" onClick={onClose}>
-      <div className="game-panel anim-pop max-h-[85vh] w-full max-w-2xl overflow-y-auto p-4" onClick={(e) => e.stopPropagation()}>
+    <div className={modal} role="dialog" aria-modal="true" aria-label="Gem forge" onClick={onClose}>
+      <div className="game-panel anim-pop max-h-[88vh] w-full max-w-2xl overflow-y-auto p-4" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between gap-2">
-          <div className="font-display text-lg text-gold">Cut a gem</div>
+          <div className="font-display text-lg text-gold">Forge a gem</div>
           <button className="btn-ghost px-2 py-1" onClick={onClose} aria-label="Close"><X className="h-4 w-4" /></button>
         </div>
         <p className="mb-3 text-sm text-muted-foreground">
-          A cut always gives a {GEM_TIER_NAMES[0]} tier-1 gem. Fuse {FUSE_COUNT} identical gems to reach the next tier; each tier multiplies the bonus, up to {GEM_TIER_NAMES[GEM_MAX_TIER - 1]} ×{GEM_MAX_TIER}.
+          Eight gem families, twelve levels each — the chart values are the stats a socketed gem grants.
+          Forge with materials, buy with Conquest Tokens, or fuse {FUSE_COUNT} identical gems into the next level.
         </p>
-        <div className="mb-3 flex flex-wrap gap-2">
-          <button className={"px-3 py-1.5 text-sm " + (choice === "random" ? "btn-gold" : "btn-ghost")} onClick={() => setChoice("random")}>Random gem</button>
+
+        <div className="mb-2 flex flex-wrap gap-2">
           {GEM_TYPES.map((t) => (
-            <button key={t} className={"px-3 py-1.5 text-sm " + (choice === t ? "btn-gold" : "btn-ghost")} onClick={() => setChoice(t)}>
+            <button key={t} className={"px-3 py-1.5 text-sm " + (type === t ? "btn-gold" : "btn-ghost")} onClick={() => setType(t)}>
               <GemIcon type={t} /> {GEMS[t].name}
             </button>
           ))}
         </div>
-        <div className="mb-3 flex flex-wrap items-center gap-3 text-sm">
-          <span className="slot px-2 py-1">{target ? "Chosen cut" : "Random cut"}</span>
-          <span className="slot px-2 py-1"><MatIcon mat="ore" size={16} /> {cost.ore} Ember Ore</span>
-          <span className="slot px-2 py-1"><Gold n={cost.gold} /></span>
-          {cost.essence > 0 && <span className="slot px-2 py-1">{cost.essence} Soul Essence</span>}
-        </div>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {shown.map((t) => {
-            const g = GEMS[t];
-            const one = gemKey(t, 1);
+
+        <div className="mb-3 grid grid-cols-4 gap-1 sm:grid-cols-6">
+          {Array.from({ length: GEM_MAX_TIER }, (_, i) => i + 1).map((n) => {
+            const k = gemKey(type, n);
             return (
-              <div key={t} className="slot flex items-start gap-3 p-3">
-                <span className="mt-0.5 shrink-0"><GemIcon type={t} size={32} /></span>
-                <div className="min-w-0 text-sm">
-                  <div className="font-display text-gold">{gemName(one)}</div>
-                  <div>+{gemValue(one)} {STAT_LABEL[g.stat]} per socketed gem</div>
-                  <div className="text-xs text-muted-foreground">Best on {g.classes}{NOTABLE[t] ? " · " + NOTABLE[t] : ""}</div>
-                  <div className="text-xs text-muted-foreground">At tier {GEM_MAX_TIER}: +{+(g.per * GEM_MAX_TIER * GEM_MAX_TIER).toFixed(1)} {STAT_LABEL[g.stat]}</div>
-                </div>
-              </div>
+              <button key={n} className={"slot px-1 py-1 text-center text-xs " + (level === n ? "ring-2 ring-gold" : "")} onClick={() => setLevel(n)}>
+                <span className="block font-bold">Lv {n}</span>
+                <span className="block text-[10px] text-muted-foreground">+{gemValue(k)}</span>
+              </button>
             );
           })}
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button className="btn-gold flex-1 py-2" disabled={!afford} onClick={() => onCut(target)}>
-            <Gem className="mr-1 inline h-4 w-4" />{target ? "Cut a " + GEM_TIER_NAMES[0] + " " + GEMS[target].name : "Cut a random gem"}
-          </button>
-          <button className="btn-ghost px-4 py-2" onClick={onClose}>Cancel</button>
+
+        <div className="slot mb-3 flex items-start gap-3 p-3">
+          <span className="mt-0.5 shrink-0"><GemIcon type={type} size={32} /></span>
+          <div className="min-w-0 text-sm">
+            <div className="font-display text-gold">{gemName(key)} <span className="text-xs text-muted-foreground">· {GEM_TIER_NAMES[level - 1]} · level {level}</span></div>
+            <div>+{gemValue(key)} {GEM_STAT_LABEL[g.stat]} per socketed gem</div>
+            <div className="text-xs text-muted-foreground">Best on {g.classes} · {g.note}</div>
+            <div className="text-xs text-muted-foreground">Unlocks at hero level {gemCraftLevel(level)}</div>
+          </div>
         </div>
-        {!afford && <p className="mt-2 text-center text-xs text-hp">Not enough Ember Ore, gold or essence for this cut.</p>}
+
+        <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+          {costs.filter(([, n]) => n > 0).map(([m, n]) => (
+            <span key={m} className={"slot px-2 py-1 " + (matCount(hero, m) >= n ? "" : "text-hp")} title={MATS[m].desc}>
+              <MatIcon mat={m} size={16} /> {matCount(hero, m)}/{n} {MATS[m].name}
+            </span>
+          ))}
+          <span className={"slot px-2 py-1 " + (hero.gold >= cost.gold ? "" : "text-hp")}><Gold n={cost.gold} /></span>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button className="btn-gold flex-1 py-2" disabled={!!blocked} title={blocked ?? "Forge with materials"} onClick={forge}>
+            <Hammer className="mr-1 inline h-4 w-4" />Forge {GEMS[type].name}
+          </button>
+          <button className="btn-ghost flex-1 py-2" disabled={tokens < price} title={tokens < price ? `Needs ${price} tokens` : "Buy with Conquest Tokens"} onClick={buy}>
+            <ShoppingBag className="mr-1 inline h-4 w-4" />Buy · {fmt(price)} tokens
+          </button>
+        </div>
+        <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground">
+          <span>Conquest Tokens held: <b className="text-gold">{fmt(tokens)}</b></span>
+          <span>{blocked ? blocked : "Ready to forge."}</span>
+        </div>
+        {msg && <p role="status" className={`anim-pop mt-2 text-center text-sm ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</p>}
       </div>
     </div>
   );
