@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Current request
+- [ ] Replace all six hero appearances from the supplied reference, add variable poses, redesign selection and verify shared artwork on desktop/phone.
 - [ ] Make phone navigation, inventory, battles, chat, quests and trading usable; preserve character-selection artwork.
 - Netlify work paused at the user's request; leave existing hosting configuration untouched.
 - [ ] Replace AI quest rewards with exactly six server-validated daily profession quests and daily rewards.
