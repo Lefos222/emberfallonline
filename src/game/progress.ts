@@ -12,8 +12,6 @@ export interface ProgressState {
   crafts?: number;
   astrals?: { base: string }[];
   conquest?: { tokens?: number };
-  anc?: { done: boolean };
-  ancTower?: { bestFloor: number };
   kills?: Record<string, number>;
   quests?: string[];
   road?: { best: number };
@@ -43,7 +41,7 @@ export function recordEnhance(h: ProgressState, newEnh: number) {
 }
 
 // ---------- Achievements ----------
-export type AchCategory = "Combat" | "Bosses" | "Progression" | "Crafting" | "Arena" | "Collection" | "Conquest" | "Ancestral" | "Enchanting" | "Bestiary" | "Exploration" | "Guild" | "Training";
+export type AchCategory = "Combat" | "Bosses" | "Progression" | "Crafting" | "Arena" | "Collection" | "Conquest" | "Enchanting" | "Bestiary" | "Exploration" | "Guild" | "Training";
 export interface Achievement { id: string; cat: AchCategory; name: string; desc: string; goal: number; gold: number; title?: string; value: (h: ProgressState) => number }
 
 const rec = (h: ProgressState) => ({ ...emptyRecord(), ...(h.record ?? {}) });
@@ -66,9 +64,6 @@ export const ACHIEVEMENTS: Achievement[] = [
   // Conquest achievements
   ...tiers({ cat: "Conquest", desc: "Climb Endless Conquest floors", value: (h) => h.spire - 1 }, "spire2", ["Daring Climber", "Tower Climber", "Unstoppable"], [25, 50, 200], [3000, 15000, 50000], [undefined, undefined, "Unstoppable"]),
   ...tiers({ cat: "Conquest", desc: "Collect Conquest Tokens total", value: (h) => h.conquest?.tokens ?? 0 }, "ctokens", ["Token Hoarder", "Token Baron"], [200, 2000], [1000, 10000], [undefined, "Token Baron"]),
-  // Ancestral achievements
-  ...tiers({ cat: "Ancestral", desc: "Reach level 80 and unlock Ancestral", value: (h) => (h.anc?.done ? 1 : 0) }, "ancunlock", ["Heritage Awakened"], [1], [25000], ["Heritage Bearer"]),
-  ...tiers({ cat: "Ancestral", desc: "Clear Ancestral Tower floors", value: (h) => h.ancTower?.bestFloor ?? 0 }, "ancfloor", ["Ancestral Initiate", "Ancestral Adept", "Ancestral Master"], [1, 5, 20], [2000, 10000, 50000], [undefined, undefined, "Ancestral Master"]),
   // Enchanting achievements
   ...tiers({ cat: "Enchanting", desc: "Enhance one item to +N", value: (h) => rec(h).bestEnh }, "enh2", ["Refined", "Exquisite", "Transcendent"], [8, 12, 15], [3000, 15000, 40000], [undefined, undefined, "Transcendent"]),
   // More crafting achievements
@@ -107,7 +102,7 @@ export const earnedTitles = (h: Pick<ProgressState, "achClaimed">) =>
 
 // ---------- Equipment sets ----------
 /** Gear sets are the item families named by their prefix (e.g. "Bloodforged"). */
-export const SET_NAMES = ["Worn", "Iron", "Bloodforged", "Moonlit", "Dread", "Abyssal", "Crimson", "Soulbound", "Eclipse", "Ancient", "Ancestral"];
+export const SET_NAMES = ["Worn", "Iron", "Bloodforged", "Moonlit", "Dread", "Abyssal", "Crimson", "Soulbound", "Eclipse", "Ancient"];
 export interface SetFx { atkPct: number; defPct: number; hpPct: number; crit: number }
 export const SET_BONUSES: { pieces: number; fx: Partial<SetFx>; label: string }[] = [
   { pieces: 2, fx: { atkPct: 4 }, label: "+4% attack" },

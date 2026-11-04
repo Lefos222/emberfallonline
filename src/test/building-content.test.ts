@@ -1,29 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { attrCost, newHero, makeItem, INVENTORY_CAP } from '@/game/data';
-import { EXPEDITIONS, expeditionFoe, trainingCost, trainAttribute, advanceAncestral, awardAncestralRelic, completeAncestralTrial } from '@/game/building-content';
-import { ANCESTRAL_RECIPES, RECIPES, craft, recipeGold, recipeMats, craftGem, absorbAstral } from '@/game/crafting';
+import { attrCost, newHero } from '@/game/data';
+import { EXPEDITIONS, expeditionFoe, trainingCost, trainAttribute } from '@/game/building-content';
+import { RECIPES, craftGem, absorbAstral, recipeMats } from '@/game/crafting';
 import { WORLD_EVENTS, H } from '@/game/events';
 import { eventEncounter, liveOccurrence } from '@/game/event-encounters';
 import { makeDrop } from '@/game/logic';
 
 describe('building content preserves existing progression', () => {
-  it('ancestral opening preserves the existing level 80 and cleared stage 30 gates',()=>{
-    const h=newHero('Test','warrior');h.level=79;h.stage=31;expect(advanceAncestral(h)).toBe(false);
-    h.level=80;h.stage=30;expect(advanceAncestral(h)).toBe(false);
-    h.stage=31;expect(advanceAncestral(h)).toBe(true);expect(h.anc?.step).toBe(1);
-  });
-  it('only eligible bosses drop relics and five relics unlock trials',()=>{
-    const h=newHero('Test','warrior');h.anc={step:1,relics:4,done:false};
-    expect(awardAncestralRelic(h,false,()=>0)).toBe(false);expect(awardAncestralRelic(h,true,()=>0.4)).toBe(false);
-    expect(awardAncestralRelic(h,true,()=>0.39)).toBe(true);expect(h.anc.relics).toBe(5);
-    expect(awardAncestralRelic(h,true,()=>0)).toBe(false);expect(advanceAncestral(h)).toBe(true);expect(h.anc.step).toBe(2);
-  });
-  it('ancestral losses and repeated results cannot advance trials',()=>{
-    const h=newHero('Test','warrior');h.anc={step:2,relics:5,done:false};
-    expect(completeAncestralTrial(h,2,false)).toBe(false);expect(h.anc.step).toBe(2);
-    expect(completeAncestralTrial(h,2,true)).toBe(true);expect(completeAncestralTrial(h,2,true)).toBe(false);
-    expect(completeAncestralTrial(h,3,true)).toBe(true);expect(completeAncestralTrial(h,4,true)).toBe(true);expect(h.anc.done).toBe(true);
-  });
   it('batch training charges the exact sum of existing escalating single-point costs', () => {
     const h = newHero('Test', 'warrior'); h.gold = 100000;
     const before = h.attrs.str;
@@ -52,19 +35,6 @@ describe('building content preserves existing progression', () => {
       const r = RECIPES.find(r => r.id === id); if (!r) throw new Error(id);
       expect(recipeMats(r,'armour').fragment).toBeGreaterThan(0);
     }
-    for (const r of ANCESTRAL_RECIPES) expect(recipeMats(r, r.slot!).fragment ?? 0).toBeGreaterThan(0);
-  });
-  it('ancestral crafting is locked until the Sanctuary is complete', () => {
-    const h = newHero('Test','warrior'); h.level=80; h.gold=5000000;
-    const r = ANCESTRAL_RECIPES.find(x=>x.id==='ancestral_armour'); if(!r) throw new Error('Recipe missing');
-    h.mats={...r.mats};
-    expect(craft(h,r,INVENTORY_CAP,()=>makeItem(h.cls,80,6),r.slot!)).toBe('Complete the Ancestral Sanctuary trials');
-    expect(h.gold).toBe(5000000);
-    h.anc={step:5,relics:5,done:true};
-    const spent=recipeGold(r,h.level);
-    const result=craft(h,r,INVENTORY_CAP,()=>makeItem(h.cls,80,6),r.slot!);
-    expect(typeof result).toBe('object'); expect(h.inventory[0].crafted).toBe(true); expect(h.mats.ore).toBe(0);
-    expect(h.gold).toBe(5000000-spent);
   });
   it('forging a gem spends its materials exactly once', () => {
     const h=newHero('Test','mage'); h.gold=200; h.mats={ore:10};

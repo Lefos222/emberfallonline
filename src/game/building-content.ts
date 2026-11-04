@@ -1,24 +1,9 @@
 import { attrCost, type Attr, type Hero } from './data';
 import { BOSS_ROSTER, ENEMY_ROSTER } from './bestiary';
 import { SKILLS, stageFoe } from './data';
-import { ancState, canBeginAncestral, RELICS_NEEDED, RELIC_DROP, ANC_STEPS } from './world';
 import { trainingDiscount } from './barracks';
 import { scaledGold } from './gold';
 
-export function advanceAncestral(h: Hero) {
-  const s=ancState(h); if(s.done)return false;
-  if(s.step===0 && canBeginAncestral(h)){h.anc={...s,step:1};return true;}
-  if(s.step===1 && s.relics>=RELICS_NEEDED){h.anc={...s,step:2};return true;}
-  return false;
-}
-export function completeAncestralTrial(h:Hero,expected:number,won:boolean){
-  const s=ancState(h);if(!won||s.done||s.step!==expected||expected<2||expected>=ANC_STEPS.length)return false;
-  h.anc={...s,step:s.step+1,done:s.step+1>=ANC_STEPS.length};return true;
-}
-export function awardAncestralRelic(h:Hero,boss:boolean,rand=Math.random){
-  const s=ancState(h);if(!boss||s.step!==1||s.relics>=RELICS_NEEDED||rand()>=RELIC_DROP)return false;
-  h.anc={...s,relics:s.relics+1};return true;
-}
 
 export function trainingCost(h: Pick<Hero, 'attrs' | 'level'> & { buildings?: Record<string, number> }, attr: Attr, count: number) {
   if (![1, 5, 10, 25, 50].includes(count)) throw new Error('Invalid training batch');

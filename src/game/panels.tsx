@@ -14,6 +14,7 @@ import {
 import { refreshMerchant } from "./logic";
 import { addConquestTokens, floorTokens } from "./conquest";
 import { ConquestTokens } from "./ConquestGate";
+import { CampaignBlitz } from "./CampaignBlitz";
 import { update, useGame } from "./store";
 import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { MatIcon } from "./MatIcon";
@@ -312,6 +313,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
         </div>
       </div>
       {spire && <ConquestTokens hero={hero} />}
+      {!spire && <CampaignBlitz hero={hero} />}
       <Advisor hero={hero} stats={s} foe={foe} key={stage + (spire ? "s" : "c")} />
     </Panel>
   );
@@ -385,7 +387,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   };
   return (
     <Panel title="Forge" onClose={onClose}>
-      {onCraft && <button className="btn-gold mb-4 w-full py-2" onClick={onCraft}><Hammer className="mr-2 inline h-4 w-4" />Open crafting recipes · Standard, Ancestral &amp; Synthesis</button>}
+      {onCraft && <button className="btn-gold mb-4 w-full py-2" onClick={onCraft}><Hammer className="mr-2 inline h-4 w-4" />Open crafting recipes · Standard &amp; Synthesis</button>}
       <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
         <div className="space-y-4">
           <div>

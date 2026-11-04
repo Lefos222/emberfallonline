@@ -134,6 +134,13 @@
       "when": 1793300000004,
       "tag": "0018_gem_chart",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793300000005,
+      "tag": "0019_guild_supply_no_ancestral_beacon",
+      "breakpoints": true
     }
   ]
 }
