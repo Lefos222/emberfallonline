@@ -34,7 +34,7 @@ import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
 import { Diamonds, Gold, ItemCard, Panel, fmt } from "./ui";
 import { premiumState } from "./economy";
-import { CONQUEST_LEVEL, SANCTUARY_LEVEL, canEnterConquest, type Hero } from "./data";
+import { CONQUEST_LEVEL, canEnterConquest, type Hero } from "./data";
 import { QuestsButton, QuestsPanel } from "./Quests";
 import { claimableLevelQuests, rollLevelQuests } from "./level-quests";
 import { STAMINA_PER_DAY, staminaLeft } from "./stamina";
@@ -325,12 +325,10 @@ const SOON_TEXT: Record<string, string> = {
   guild: "Create or join guilds, with roles, contribution, guild chat and co-op bosses.",
   friends: "Add friends, see who is online and send private messages.",
   daily: "A 30-day reward board with gold, gems, materials and gold chests.",
-  sanctuary: "The Sanctuary is the late-game progression system, and it opens at level 110.",
 };
 
 function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onClose: () => void }) {
   const b = BUILDINGS.find((x) => x.id === id);
-  const sanctuary = id === "sanctuary";
   return (
     <Panel title={b?.name ?? "Building"} onClose={onClose}>
       <div className="py-10 text-center">
@@ -341,10 +339,10 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
           </>
         ) : (
           <>
-            <p className="mb-2 font-display text-2xl text-gold">{sanctuary ? "Coming soon" : "Under construction"}</p>
+            <p className="mb-2 font-display text-2xl text-gold">Under construction</p>
             <p className="mx-auto max-w-md text-muted-foreground">{SOON_TEXT[id]}</p>
             <p className="mt-3 text-xs text-muted-foreground">
-              {sanctuary ? `Nothing waits inside yet — the Sanctuary opens at level ${SANCTUARY_LEVEL}.` : "This building isn't playable yet — it's coming in a future update."}
+              This building isn't playable yet — it's coming in a future update.
             </p>
           </>
         )}

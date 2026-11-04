@@ -32,8 +32,6 @@ export type GearRecord = Partial<Record<WearSlot, Item>>;
 
 export const MAX_LEVEL = 80;
 export const CONQUEST_LEVEL = 10;
-/** The Sanctuary, which replaces the old Lodge, opens late — at character level 110. */
-export const SANCTUARY_LEVEL = 110;
 export const canEnterConquest = (level: number) => level >= CONQUEST_LEVEL;
 export const INVENTORY_CAP = 40;
 export const BAG_ROW = 8;
@@ -547,7 +545,6 @@ export const BUILDINGS = [
   { id: "friends", name: "Friends", x: 0, y: 0, r: 0, desc: "Friends & messages", soon: false, shortcut: true },
   { id: "daily", name: "Daily Rewards", x: 46, y: 66, r: 3.5, desc: "Login rewards & activities", soon: false , shortcut: true },
   { id: "worldmap", name: "World Tree", x: 50, y: 49, r: 4.5, desc: "Explore the world map · raids & bosses", soon: false },
-  { id: "sanctuary", name: "Sanctuary", x: 27, y: 38, r: 4.5, desc: `New progression · Lv ${SANCTUARY_LEVEL}+`, soon: true },
 ] as const;
 /** Buildings physically placed in the castle (shortcut-only screens excluded). */
 export const CASTLE_BUILDINGS = BUILDINGS.filter((b) => !("shortcut" in b && b.shortcut));
