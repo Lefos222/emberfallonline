@@ -25,6 +25,20 @@ let state: State = { hero: null, heroId: null, gender: "male", userId: null, ema
 const listeners = new Set<() => void>();
 const LAST = "ef-last-char";
 const COLS = "id,name,hero_class,gender,level,power,arena_rating,last_played,bio,title,frame,is_public,stats";
+/** Character-scoped browser state: the last hero plus pending/idempotency markers of that hero. */
+const CHARACTER_KEYS = ["ef-pending:", "ef-scroll-battle:", "ef-world-castle:"];
+
+/** After a world reset the account has no characters, so nothing about an old hero may linger here. */
+function clearCharacterCache() {
+  if (typeof window === "undefined") return;
+  const stale: string[] = [];
+  for (let i = 0; i < localStorage.length; i += 1) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+    if (key === LAST || CHARACTER_KEYS.some((prefix) => key.startsWith(prefix))) stale.push(key);
+  }
+  stale.forEach((key) => localStorage.removeItem(key));
+}
 
 function set(p: Partial<State>) { state = { ...state, ...p }; listeners.forEach((l) => l()); }
 
@@ -101,7 +115,9 @@ export async function loadCharacters() {
   set({ chars: null, charsError: null });
   const { data, error } = await supabase.from("heroes").select(COLS).eq("user_id", state.userId).order("last_played", { ascending: false });
   if (error) { set({ charsError: error.message, chars: [] }); return; }
-  set({ chars: (data ?? []) as unknown as CharacterRow[] });
+  const rows = (data ?? []) as unknown as CharacterRow[];
+  if (rows.length === 0) clearCharacterCache();
+  set({ chars: rows });
 }
 
 let authEventSeen = false;

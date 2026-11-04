@@ -31,6 +31,23 @@ export interface FriendRequest {
   created_at: string;
 }
 
+/** A request this hero sent and can still withdraw. */
+export type SentFriendRequest = FriendRequest;
+
+/** How a searched hero already relates to the active character. */
+export type HeroRelation = "none" | "friend" | "sent" | "incoming";
+
+export interface HeroSearchResult {
+  id: string;
+  name: string;
+  hero_class: string;
+  gender: string;
+  level: number;
+  power: number;
+  last_played: string;
+  relation: HeroRelation;
+}
+
 type SocialRPCs = {
   add_friend: { args: { _hero: string; _name: string }; result: string };
   remove_friend: { args: { _hero: string; _friend: string }; result: null };
@@ -38,10 +55,13 @@ type SocialRPCs = {
   inspect_hero: { args: { _hero: string; _target: string }; result: InspectedProfile[] };
   request_friend: { args: { _hero: string; _name: string }; result: string | null };
   list_friend_requests: { args: { _hero: string }; result: FriendRequest[] };
+  list_sent_requests: { args: { _hero: string }; result: SentFriendRequest[] };
+  cancel_friend_request: { args: { _hero: string; _request: string }; result: null };
   respond_friend_request: {
     args: { _hero: string; _request: string; _accept: boolean };
     result: null;
   };
+  search_heroes: { args: { _hero: string; _q: string }; result: HeroSearchResult[] };
 };
 // Local migration contract until generated Supabase types include these RPCs.
 // Keep the existing authenticated client/session; do not create a second client.
@@ -81,6 +101,41 @@ export async function listFriendRequests(heroId: string): Promise<FriendRequest[
 }
 export async function respondFriendRequest(heroId: string, requestId: string, accept: boolean) {
   await call("respond_friend_request", { _hero: heroId, _request: requestId, _accept: accept });
+}
+/** Withdrawing is best-effort: a project without the sent-request SQL simply lists none. */
+export async function listSentRequests(heroId: string): Promise<SentFriendRequest[]> {
+  try {
+    return (await call("list_sent_requests", { _hero: heroId })) ?? [];
+  } catch {
+    return [];
+  }
+}
+export async function cancelFriendRequest(heroId: string, requestId: string) {
+  await call("cancel_friend_request", { _hero: heroId, _request: requestId });
+}
+
+/**
+ * Heroes whose public name contains the query, with the relationship already marked.
+ * The SQL RPC answers this in one round trip; before it is deployed the same search
+ * falls back to the public heroes table, so the panel keeps working either way.
+ */
+export async function searchHeroes(heroId: string, query: string): Promise<HeroSearchResult[]> {
+  const q = query.trim().replace(/[^A-Za-z0-9 _-]/g, "");
+  if (q.length < 2) return [];
+  try {
+    return (await call("search_heroes", { _hero: heroId, _q: q })) ?? [];
+  } catch {
+    const { data, error } = await supabase
+      .from("heroes")
+      .select("id,name,hero_class,gender,level,power,last_played")
+      .ilike("name", `%${q}%`)
+      .eq("is_public", true)
+      .neq("id", heroId)
+      .order("level", { ascending: false })
+      .limit(20);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => ({ ...row, relation: "none" as const }));
+  }
 }
 
 export interface DirectMessage {

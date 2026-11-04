@@ -7,7 +7,7 @@ import { ArtIcon, type ArtIconName } from "./ArtIcon";
 import { AvatarIcon } from "./AvatarIcon";
 import { GuildHall } from "./GuildHall";
 import { WorldChat } from "./WorldChat";
-import { FriendsPanel } from "./FriendsPanel";
+import { FriendsPanel, useFriendRequestCount } from "./FriendsPanel";
 import { ScrollShop } from "./ScrollShop";
 import { Bestiary } from "./Bestiary";
 import { EventCalendar } from "./EventCalendar";
@@ -46,6 +46,7 @@ const BATTLE_PANELS = ["portal", "spire", "worldmap"] as const;
 
 export function Game() {
   const { hero, heroId, userId, cloud, authReady } = useGame();
+  const friendRequests = useFriendRequestCount(heroId);
   const nav = useNavigate();
   const [open, setOpen] = useState<ShortcutTarget | null>(null);
   const [battle, setBattle] = useState<null | { right: Fighter; left: Fighter; auto?: boolean; title: string; onResult: Parameters<StartBattle>[0]["onResult"] }>(null);
@@ -131,7 +132,7 @@ export function Game() {
       ) : (
         <>
           <CastleMap onOpen={setOpen} />
-          <ShortcutBar open={open} onOpen={setOpen} />
+          <ShortcutBar open={open} onOpen={setOpen} friendRequests={friendRequests} />
           <nav aria-label="Rewards" className="game-panel bottom-nav rewards-nav absolute bottom-3 left-3 z-20 flex gap-1 p-1.5">
             <Button variant="ghost" size="icon" aria-label="Mailbox" title="Mailbox" onClick={() => setOpen("mailbox")}><ArtIcon name="mail" size={24} /></Button>
             <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><ArtIcon name="lucky" size={24} /></Button>
@@ -161,7 +162,7 @@ export function Game() {
           {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
           {open === "friends" && (
             <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-background/70 p-4 pt-16" onClick={() => setOpen(null)}>
-              <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+              <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
                 <FriendsPanel heroId={heroId} />
                 <button className="btn-ghost mt-2 w-full py-2" onClick={() => setOpen(null)}>Close</button>
               </div>
@@ -364,13 +365,18 @@ const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIcon
   { id: "oracle", label: "Quest Board", tip: "AI-generated quests", icon: "quest" },
 ];
 
-function ShortcutBar({ open, onOpen }: { open: ShortcutTarget | null; onOpen: (t: ShortcutTarget) => void }) {
+function ShortcutBar({ open, onOpen, friendRequests = 0 }: { open: ShortcutTarget | null; onOpen: (t: ShortcutTarget) => void; friendRequests?: number }) {
   return (
     <nav aria-label="Shortcuts" className="game-panel bottom-nav shortcut-nav pointer-events-auto absolute bottom-3 right-3 z-20 flex gap-1.5 p-1.5">
       {SHORTCUTS.map(({ id, label, tip, icon }) => (
         <button key={id} onClick={() => onOpen(id)} aria-label={label} aria-pressed={open === id}
           className={`slot group relative flex h-11 w-11 items-center justify-center transition hover:scale-110 ${open === id ? "ring-2 ring-gold" : ""}`}>
           <ArtIcon name={icon} size={32} className={open === id ? "ring-1 ring-gold" : ""} />
+          {id === "friends" && friendRequests > 0 && (
+            <span aria-label={`${friendRequests} pending friend requests`} className="absolute -right-1 -top-1 min-w-5 rounded-full bg-blood px-1.5 py-0.5 text-center text-[10px] font-bold text-foreground">
+              {friendRequests > 9 ? "9+" : friendRequests}
+            </span>
+          )}
           <span role="tooltip" className="hotspot-label pointer-events-none absolute bottom-full right-0 mb-2 hidden whitespace-nowrap rounded px-2 py-1 text-left text-xs group-hover:block group-focus-visible:block">
             {label}<span className="block text-[10px] text-foreground/80">{tip}</span>
           </span>
