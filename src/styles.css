@@ -338,6 +338,31 @@
   .talent-node, .talent-burst, .talent-pip-on, .talent-link-on, .spec-mine { animation: none; }
 }
 
+.hero-model { position: relative; aspect-ratio: 1; overflow: hidden; }
+.hero-model > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
+.hero-model-action { opacity: 0; }
+.hero-model[data-hero-pose="action"] > .hero-model-idle { opacity: 0; }
+.hero-model[data-hero-pose="action"] > .hero-model-action { opacity: 1; }
+:is(.anim-swing, .anim-overhead, .anim-spin, .anim-leap, .anim-slam, .anim-rage, .anim-cast, .anim-thrust, .anim-nova, .anim-rise, .anim-channel, .anim-siphon, .anim-draw, .anim-rapid, .anim-aim, .anim-dash) .hero-model[data-hero-pose="auto"] > .hero-model-idle { opacity: 0; }
+:is(.anim-swing, .anim-overhead, .anim-spin, .anim-leap, .anim-slam, .anim-rage, .anim-cast, .anim-thrust, .anim-nova, .anim-rise, .anim-channel, .anim-siphon, .anim-draw, .anim-rapid, .anim-aim, .anim-dash) .hero-model[data-hero-pose="auto"] > .hero-model-action { opacity: 1; }
+.hero-selection-backdrop { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.hero-selection-title { text-shadow: 0 3px 12px var(--background); letter-spacing: 0; }
+.hero-class-group { border-top: 2px solid var(--border); border-bottom: 2px solid var(--border); background: color-mix(in oklch, var(--background) 55%, transparent); }
+.hero-class-warrior { --class-accent: var(--gold); }
+.hero-class-mage { --class-accent: var(--xp); }
+.hero-class-archer { --class-accent: var(--r1); }
+.hero-class-heading { color: var(--class-accent); text-shadow: 0 2px 8px var(--background); }
+.hero-choice { position: relative; min-width: 0; height: 320px; padding: 0; border: 1px solid transparent; background: transparent; white-space: normal; border-radius: 0; }
+.hero-choice:hover { background: color-mix(in oklch, var(--class-accent) 10%, transparent); }
+.hero-choice[aria-pressed="true"] { border-color: var(--class-accent); box-shadow: inset 0 0 24px color-mix(in oklch, var(--class-accent) 15%, transparent); }
+.hero-choice .hero-model { width: 100%; height: calc(100% - 32px); }
+.hero-choice-label { position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; }
+.hero-selection-input { min-width: 0; }
+@media (max-width: 767px) {
+  .hero-choice { height: 250px; }
+  .hero-class-group { width: 100%; }
+}
+
 /* ---------- phone playability ----------
    A phone has no hover, a quarter of the width and a notch. Taps get no
    double-tap delay, the two bottom strips become swipeable rows (so no button
