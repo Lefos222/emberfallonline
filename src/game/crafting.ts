@@ -110,25 +110,44 @@ export const zeroFx = (): BonusFx => ({ atkPct: 0, matkPct: 0, defPct: 0, mdefPc
 export const addFx = (a: BonusFx, b: Partial<BonusFx>) => { for (const k of Object.keys(b) as StatKey[]) a[k] += b[k] ?? 0; return a; };
 
 // ---------- Gems ----------
-export type GemType = "ruby" | "amethyst" | "sapphire" | "aquamarine" | "emerald" | "topaz" | "garnet" | "peridot" | "opal" | "onyx" | "obsidian" | "moonstone" | "pearl";
-export const GEMS: Record<GemType, { name: string; stat: StatKey; per: number; color: string; classes: string }> = {
-  ruby: { name: "Ruby", stat: "atkPct", per: 2, color: "#d4283c", classes: "Knight · Archer" },
-  amethyst: { name: "Amethyst", stat: "matkPct", per: 2, color: "#9b4dd8", classes: "Mage" },
-  sapphire: { name: "Sapphire", stat: "defPct", per: 2, color: "#2f6fe0", classes: "Knight" },
-  aquamarine: { name: "Aquamarine", stat: "mdefPct", per: 2, color: "#3fc7d6", classes: "Mage" },
-  emerald: { name: "Emerald", stat: "hpPct", per: 2.5, color: "#23a85a", classes: "Knight · Mage" },
-  topaz: { name: "Topaz", stat: "crit", per: 0.6, color: "#f2b632", classes: "Archer" },
-  garnet: { name: "Garnet", stat: "critDmg", per: 3, color: "#8e1838", classes: "Archer · Knight" },
-  peridot: { name: "Peridot", stat: "acc", per: 0.5, color: "#a4d63a", classes: "Archer" },
-  opal: { name: "Opal", stat: "dodge", per: 0.4, color: "#e8d9f2", classes: "Archer" },
-  onyx: { name: "Onyx", stat: "block", per: 0.5, color: "#5a5a66", classes: "Knight" },
-  obsidian: { name: "Obsidian", stat: "pen", per: 0.5, color: "#2b1d3a", classes: "Knight · Archer" },
-  moonstone: { name: "Moonstone", stat: "mpen", per: 0.5, color: "#bcd3f5", classes: "Mage" },
-  pearl: { name: "Pearl", stat: "heal", per: 2, color: "#f5efe0", classes: "Any" },
+/** The eight gem families of the gem chart: one per combat stat, twelve upgrade levels each. */
+export type GemType = "ruby" | "emerald" | "sapphire" | "topaz" | "amethyst" | "tourmaline" | "aquamarine" | "lapis";
+/** The stat a gem family feeds. Flat stats are added as-is; ratings convert to percents. */
+export type GemStat = "patk" | "pdef" | "matk" | "mdef" | "crit" | "hp" | "charisma" | "block";
+export const GEMS: Record<GemType, { name: string; stat: GemStat; color: string; classes: string; note: string }> = {
+  ruby: { name: "Ruby", stat: "patk", color: "#d4283c", classes: "Knight · Archer", note: "Physical attack" },
+  emerald: { name: "Emerald", stat: "pdef", color: "#23a85a", classes: "Knight", note: "Physical defence" },
+  sapphire: { name: "Sapphire", stat: "matk", color: "#2f6fe0", classes: "Mage", note: "Magic attack" },
+  topaz: { name: "Topaz", stat: "mdef", color: "#f2b632", classes: "Mage", note: "Magic defence" },
+  amethyst: { name: "Amethyst", stat: "crit", color: "#9b4dd8", classes: "Archer · Mage", note: "Critical chance" },
+  tourmaline: { name: "Tourmaline", stat: "hp", color: "#e0528f", classes: "Knight · Mage", note: "Maximum health" },
+  aquamarine: { name: "Aquamarine", stat: "charisma", color: "#3fc7d6", classes: "Any", note: "Charisma — healing power" },
+  lapis: { name: "Lapis", stat: "block", color: "#2a3f9e", classes: "Knight", note: "Block chance" },
 };
 export const GEM_TYPES = Object.keys(GEMS) as GemType[];
-export const GEM_MAX_TIER = 5;
-export const GEM_TIER_NAMES = ["Chipped", "Flawed", "Clear", "Flawless", "Royal"];
+export const GEM_MAX_TIER = 12;
+export const GEM_TIER_NAMES = ["Chipped", "Flawed", "Clear", "Polished", "Flawless", "Radiant", "Royal", "Sovereign", "Celestial", "Ascendant", "Eternal", "Primordial"];
+/** The gem chart: each family's value at levels 1-12. Attack, defence and health are flat
+ *  stats; crit, charisma and block are ratings of 20 points per percent (the game's stat caps
+ *  still apply, so every upgrade keeps moving the stat until it saturates). */
+export const GEM_VALUES: Record<GemStat, number[]> = {
+  patk: [32, 64, 84, 112, 176, 220, 280, 350, 450, 560, 670, 780],
+  pdef: [32, 64, 84, 112, 176, 220, 280, 350, 450, 560, 670, 780],
+  matk: [32, 64, 84, 112, 176, 220, 280, 350, 450, 560, 670, 780],
+  mdef: [32, 64, 84, 112, 176, 220, 280, 350, 450, 560, 670, 780],
+  crit: [16, 32, 42, 56, 88, 120, 180, 260, 360, 480, 580, 660],
+  hp: [160, 320, 420, 560, 880, 1100, 1400, 1750, 2250, 2800, 3350, 3900],
+  charisma: [8, 16, 21, 28, 44, 60, 90, 130, 180, 240, 290, 330],
+  block: [16, 32, 42, 56, 88, 120, 180, 260, 360, 480, 580, 660],
+};
+/** Rating points that make one percent. */
+export const GEM_RATING_PER_POINT = 20;
+const GEM_RATED: GemStat[] = ["crit", "charisma", "block"];
+export const isRatedGemStat = (s: GemStat) => GEM_RATED.includes(s);
+export const GEM_STAT_LABEL: Record<GemStat, string> = {
+  patk: "Physical Attack", pdef: "Physical Defence", matk: "Magic Attack", mdef: "Magic Defence",
+  crit: "Crit Chance", hp: "Max HP", charisma: "Charisma (Healing)", block: "Block Chance",
+};
 /** Gem keys look like "ruby:3". */
 export const gemKey = (t: GemType, tier: number) => `${t}:${tier}`;
 export function parseGem(k: string): { type: GemType; tier: number } | null {
@@ -136,9 +155,43 @@ export function parseGem(k: string): { type: GemType; tier: number } | null {
   return t in GEMS && tier >= 1 && tier <= GEM_MAX_TIER ? { type: t as GemType, tier } : null;
 }
 export const gemName = (k: string) => { const g = parseGem(k); return g ? `${GEM_TIER_NAMES[g.tier - 1]} ${GEMS[g.type].name}` : "?"; };
-/** Bonus a gem gives: per × tier². */
-export const gemValue = (k: string) => { const g = parseGem(k); return g ? +(GEMS[g.type].per * g.tier * g.tier).toFixed(1) : 0; };
-export const gemStatText = (k: string) => { const g = parseGem(k); return g ? `+${gemValue(k)}${STAT_LABEL[GEMS[g.type].stat]}` : ""; };
+/** The chart value of a gem, before ratings are converted to percents. */
+export const gemRaw = (k: string) => { const g = parseGem(k); return g ? GEM_VALUES[GEMS[g.type].stat][g.tier - 1] : 0; };
+/** The stat a gem actually grants: chart value, with ratings divided into percent points. */
+export const gemValue = (k: string) => {
+  const g = parseGem(k);
+  if (!g) return 0;
+  const stat = GEMS[g.type].stat;
+  const raw = GEM_VALUES[stat][g.tier - 1];
+  return isRatedGemStat(stat) ? +(raw / GEM_RATING_PER_POINT).toFixed(1) : raw;
+};
+export const gemStatText = (k: string) => { const g = parseGem(k); return g ? `+${gemValue(k)} ${GEM_STAT_LABEL[GEMS[g.type].stat]}` : ""; };
+/** Legacy gem families (before the chart renovation) remapped onto the eight chart gems. */
+const LEGACY_GEM: Record<string, GemType> = {
+  amethyst: "sapphire", sapphire: "emerald", aquamarine: "topaz", emerald: "tourmaline",
+  topaz: "amethyst", garnet: "amethyst", peridot: "amethyst", opal: "lapis", onyx: "lapis",
+  obsidian: "ruby", moonstone: "sapphire", pearl: "aquamarine",
+};
+/** Remap gems from older saves onto the chart's families, keeping their level. */
+export function migrateGems(h: Pick<CraftState, "gems">) {
+  if (!h.gems) return h;
+  const out: Record<string, number> = {};
+  for (const [k, n] of Object.entries(h.gems)) {
+    if (!n) continue;
+    const g = parseGem(k);
+    let key: string | null = null;
+    if (g) key = gemKey(g.type, g.tier);
+    else {
+      const [t, lv] = k.split(":");
+      const to = LEGACY_GEM[t];
+      const tier = Math.min(GEM_MAX_TIER, Math.max(1, Math.floor(Number(lv) || 1)));
+      if (to) key = gemKey(to, tier);
+    }
+    if (key) out[key] = (out[key] ?? 0) + n;
+  }
+  h.gems = out;
+  return h;
+}
 export const socketCount = (it: Pick<Item, "rarity">) => (it.rarity >= 5 ? 3 : it.rarity >= 3 ? 2 : it.rarity >= 1 ? 1 : 0);
 export const sockets = (it: Item & { gems?: (string | null)[] }) => Array.from({ length: socketCount(it) }, (_, i) => it.gems?.[i] ?? null);
 
@@ -193,28 +246,50 @@ export function fuseGem(h: CraftState, key: string): string | null {
   h.gems = { ...h.gems, [key]: h.gems![key] - FUSE_COUNT, [next]: (h.gems?.[next] ?? 0) + 1 };
   return null;
 }
-export const GEM_CUT_COST = { ore: 8, gold: 150 };
-/** Targeted cut: choose the gem type for triple cost. */
-export const GEM_TARGET_COST = { ore: 24, gold: 450, essence: 1 };
-/** What a cut costs right now: the gold part rises with the hero's level. */
-export const gemCutCost = (level = 1, type?: GemType): { ore: number; gold: number; essence: number } => {
-  const c = type ? GEM_TARGET_COST : { ...GEM_CUT_COST, essence: 0 };
-  return { ore: c.ore, gold: scaledGold(c.gold, level), essence: c.essence };
-};
-/** Cut a tier-1 gem from ore: random type, or a chosen type at GEM_TARGET_COST. */
-export function cutGem(h: CraftState, rand = Math.random, type?: GemType): string | null {
-  const c = gemCutCost(h.level, type);
-  if (matCount(h, "ore") < c.ore) return "Not enough Ember Ore";
+/** Hero level needed before a gem of this level can be forged. */
+export const gemCraftLevel = (level: number) => Math.max(1, (level - 1) * 6);
+export interface GemCraftCost { ore: number; essence: number; crystal: number; starshard: number; bossCore: number; gold: number }
+/** Materials and gold one gem level costs; the gold part rises with the hero's level. */
+export const gemCraftCost = (level: number, heroLevel = 1): GemCraftCost => ({
+  ore: 10 * level,
+  essence: level >= 2 ? 2 * (level - 1) : 0,
+  crystal: level >= 4 ? 2 * (level - 3) : 0,
+  starshard: level >= 7 ? 3 * (level - 6) : 0,
+  bossCore: level >= 10 ? level - 9 : 0,
+  gold: scaledGold(200 * level * level, heroLevel),
+});
+/** What blocks forging a gem of this level right now, or null when it can be forged. */
+export function gemBlocker(h: CraftState, level: number): string | null {
+  if (level < 1 || level > GEM_MAX_TIER) return "No such gem level";
+  const need = gemCraftLevel(level);
+  if (h.level < need) return `Requires hero level ${need}`;
+  const c = gemCraftCost(level, h.level);
+  const costs: [Mat, number][] = [["ore", c.ore], ["essence", c.essence], ["crystal", c.crystal], ["starshard", c.starshard], ["bossCore", c.bossCore]];
+  const short = costs.find(([m, n]) => n > 0 && matCount(h, m) < n);
+  if (short) return `Not enough ${MATS[short[0]].name}`;
   if (h.gold < c.gold) return "Not enough gold";
-  if (matCount(h, "essence") < c.essence) return "Not enough Soul Essence";
-  h.gold -= c.gold; spendMats(h, { ore: c.ore, essence: c.essence });
-  const k = gemKey(type ?? GEM_TYPES[Math.floor(rand() * GEM_TYPES.length)], 1);
+  return null;
+}
+export function addGem(h: CraftState, type: GemType, level: number) {
+  const k = gemKey(type, level);
   h.gems = { ...(h.gems ?? {}), [k]: (h.gems?.[k] ?? 0) + 1 };
-  return k;
+}
+/** Forge a gem of a chosen family and level out of materials and gold. */
+export function craftGem(h: CraftState, type: GemType, level: number): string | null {
+  const b = gemBlocker(h, level);
+  if (b) return b;
+  const c = gemCraftCost(level, h.level);
+  h.gold -= c.gold;
+  spendMats(h, { ore: c.ore, essence: c.essence, crystal: c.crystal, starshard: c.starshard, bossCore: c.bossCore });
+  addGem(h, type, level);
+  return null;
 }
 
-export function gemFx(eq: Partial<Record<Slot, Item>>): BonusFx {
-  const out = zeroFx();
+/** Flat bonuses gems add to the hero's stats (see GEM_VALUES). */
+export interface GemFx { patk: number; pdef: number; matk: number; mdef: number; hp: number; crit: number; charisma: number; block: number }
+export const zeroGemFx = (): GemFx => ({ patk: 0, pdef: 0, matk: 0, mdef: 0, hp: 0, crit: 0, charisma: 0, block: 0 });
+export function gemFx(eq: Partial<Record<Slot, Item>>): GemFx {
+  const out = zeroGemFx();
   for (const it of Object.values(eq)) {
     if (!it) continue;
     for (const k of sockets(it)) { const g = k && parseGem(k); if (g) out[GEMS[g.type].stat] += gemValue(k!); }
@@ -224,9 +299,9 @@ export function gemFx(eq: Partial<Record<Slot, Item>>): BonusFx {
 
 /** Recommended gem builds per class (players are free to use any gems). */
 export const GEM_BUILDS: Record<HeroClass, { name: string; gems: GemType[] }[]> = {
-  warrior: [{ name: "Bulwark", gems: ["sapphire", "emerald", "onyx"] }, { name: "Executioner", gems: ["ruby", "garnet", "obsidian"] }],
-  archer: [{ name: "Deadeye", gems: ["topaz", "garnet", "peridot"] }, { name: "Windrunner", gems: ["ruby", "opal", "topaz"] }],
-  mage: [{ name: "Archmage", gems: ["amethyst", "moonstone", "topaz"] }, { name: "Spellward", gems: ["aquamarine", "emerald", "pearl"] }],
+  warrior: [{ name: "Bulwark", gems: ["emerald", "tourmaline", "lapis"] }, { name: "Executioner", gems: ["ruby", "amethyst", "topaz"] }],
+  archer: [{ name: "Deadeye", gems: ["amethyst", "ruby", "topaz"] }, { name: "Windrunner", gems: ["ruby", "lapis", "amethyst"] }],
+  mage: [{ name: "Archmage", gems: ["sapphire", "amethyst", "aquamarine"] }, { name: "Spellward", gems: ["topaz", "tourmaline", "aquamarine"] }],
 };
 
 // ---------- Astrals ----------

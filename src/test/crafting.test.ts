@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { heroStats, makeItem, newHero, INVENTORY_CAP } from "@/game/data";
-import { RECIPES, battleMats, craft, fuseGem, insertGem, refine, removeGem, scrapItem, scrapYield, summonAstral, equipAstral } from "@/game/crafting";
+import { RECIPES, battleMats, craft, fuseGem, gemValue, insertGem, refine, removeGem, scrapItem, scrapYield, summonAstral, equipAstral } from "@/game/crafting";
+import { buyConquestGem, conquestTokens, gemTokenPrice } from "@/game/conquest";
 
 describe("gems, astrals, crafting", () => {
   it("a socketed ruby raises attack and removing returns the gem", () => {
@@ -14,6 +15,28 @@ describe("gems, astrals, crafting", () => {
     expect(insertGem(h, w.id, 0, "ruby:2")).not.toBeNull(); // no gem left
     expect(removeGem(h, w.id, 0)).toBeNull();
     expect(h.gems["ruby:2"]).toBe(1);
+  });
+  it("gem values follow the twelve-level chart", () => {
+    expect(gemValue("ruby:1")).toBe(32);
+    expect(gemValue("ruby:12")).toBe(780);
+    expect(gemValue("tourmaline:12")).toBe(3900);
+    expect(gemValue("amethyst:12")).toBe(33); // 660 rating / 20 points per percent
+  });
+  it("a socketed ruby adds flat physical attack", () => {
+    const h = newHero("T", "warrior");
+    const w = makeItem("warrior", 10, 3, "weapon"); h.equipment.weapon = w;
+    h.gems = { "ruby:12": 1 };
+    const before = heroStats(h).patk;
+    expect(insertGem(h, w.id, 0, "ruby:12")).toBeNull();
+    expect(heroStats(h).patk).toBe(before + 780);
+  });
+  it("conquest tokens buy any gem level", () => {
+    const h = newHero("T", "warrior");
+    h.conquest = { tokens: gemTokenPrice(3) };
+    expect(buyConquestGem(h, "lapis", 3)).toBeNull();
+    expect(conquestTokens(h)).toBe(0);
+    expect(h.gems?.["lapis:3"]).toBe(1);
+    expect(buyConquestGem(h, "lapis", 4)).toMatch(/Not enough Conquest Tokens/);
   });
   it("fusing needs 3 gems and consumes them", () => {
     const h = newHero("T", "mage"); h.gold = 10000; h.mats = { essence: 5 };
