@@ -20,11 +20,11 @@ function rich(h: Hero): Hero {
 }
 
 describe("synthesis sets", () => {
-  it("has nine sets from level 30 to 110 and nine pieces each", () => {
+  it("has nine sets from level 30 to 110 and eight pieces each", () => {
     expect(SYNTH_TIER_COUNT).toBe(9);
     expect(SYNTH_LEVELS).toEqual([30, 40, 50, 60, 70, 80, 90, 100, 110]);
-    expect(SYNTH_SLOTS).toHaveLength(9);
-    expect(new Set(SYNTH_SLOTS).size).toBe(9);
+    expect(SYNTH_SLOTS).toHaveLength(8);
+    expect(new Set(SYNTH_SLOTS).size).toBe(8);
   });
 
   it("unlocks one set every ten levels, counting ascension levels", () => {
@@ -43,7 +43,7 @@ describe("synthesis sets", () => {
     for (let tier = 1; tier <= SYNTH_TIER_COUNT; tier++) {
       const costs = SYNTH_SLOTS.map((slot) => synthCost(tier, slot));
       const signatures = new Set(costs.map((c) => JSON.stringify(Object.entries(c).sort())));
-      expect(signatures.size).toBe(9);
+      expect(signatures.size).toBe(8);
       const total = setCost(tier);
       const summed = costs.reduce<Record<string, number>>((acc, c) => {
         for (const [m, n] of Object.entries(c)) acc[m] = (acc[m] ?? 0) + (n ?? 0);
@@ -133,7 +133,7 @@ describe("worn synthesis equipment", () => {
       craftSynth(h, 1, slot);
       wearSynth(h, 1, slot);
     }
-    expect(setProgress(h, 1)).toEqual({ crafted: 9, worn: 9, total: 9 });
+    expect(setProgress(h, 1)).toEqual({ crafted: 8, worn: 8, total: 8 });
     expect(heroStats(h).power).toBeGreaterThan(bare);
     expect(synthFx(h).hpPct).toBeGreaterThan(0);
     // The appearance follows the highest set worn, never the level.
@@ -171,8 +171,8 @@ describe("worn synthesis equipment", () => {
     const h = rich(heroAt(30));
     for (const slot of SYNTH_SLOTS) craftSynth(h, 1, slot);
     const prog = overallProgress(h);
-    expect(prog.crafted).toBe(9);
-    expect(prog.total).toBe(81);
+    expect(prog.crafted).toBe(8);
+    expect(prog.total).toBe(72);
     expect(prog.complete).toBe(1);
     expect(prog.unlocked).toBe(1);
   });
