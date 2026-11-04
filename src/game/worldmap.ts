@@ -66,16 +66,28 @@ export function mapFoe(node: MapNode, heroLevel: number): Foe & { sprite?: Retur
 }
 
 /* ------------------------------------------------------------------------- *
- * The endless world
+ * The realm — one painted, bounded world
  *
- * Past the authored home region the map has no edge: it is generated from the
- * sector's own coordinates, so the same ground and the same keeps are always
- * there when the player comes back. Nothing here is saved — a sector's contents
- * are a pure function of its coordinates. Only the player's own castle (see
- * worldcastles.ts) is remembered.
+ * The map art (1376×768, drawn from above) is the whole world: it has an edge,
+ * and nothing exists past it. Every mine, ore dungeon, boss lair, rival keep,
+ * ruin and lookout is authored once over the painted biomes below, so the realm
+ * is the same for every player. Only the castles are player-made: each hero
+ * plants one banner on the map (see worldcastles.ts), and the map holds
+ * thousands of them.
  * ------------------------------------------------------------------------- */
 
-export type Terrain = "plains" | "forest" | "desert" | "swamp" | "volcanic" | "snow";
+/** The world in units; the painted art keeps its 1376×768 aspect. */
+export const WORLD_W = 4096;
+export const WORLD_H = Math.round((WORLD_W * 768) / 1376);
+/** How many times a day another lord's castle may be raided. */
+export const CASTLE_RAIDS_PER_DAY = 9;
+/** Banners the realm can hold: one per hero, thousands of them. */
+export const CASTLE_CAPACITY = 5000;
+
+/** Deepest and closest the camera may go, in world units per pixel. */
+export const MAX_ZOOM = 4;
+
+export type Terrain = "plains" | "forest" | "desert" | "swamp" | "volcanic" | "snow" | "coast" | "astral";
 
 export const TERRAIN: Record<Terrain, { name: string; tint: [number, number, number] }> = {
   plains: { name: "The Heartlands", tint: [78, 88, 58] },
@@ -84,16 +96,13 @@ export const TERRAIN: Record<Terrain, { name: string; tint: [number, number, num
   swamp: { name: "Mire Fen", tint: [52, 70, 64] },
   volcanic: { name: "Bloodmoon Barrens", tint: [86, 47, 41] },
   snow: { name: "Frostspine", tint: [94, 101, 112] },
+  coast: { name: "Shattered Coast", tint: [58, 74, 96] },
+  astral: { name: "Starfall Reach", tint: [64, 56, 96] },
 };
 
-/** World units covered by one pass of the seamless ground texture. */
-export const WORLD_TILE = 4096;
-/** One generated sector of the endless map, in world units. */
-export const SECTOR = 1500;
-/** How many times a day another lord's castle may be raided. */
-export const CASTLE_RAIDS_PER_DAY = 9;
+export const terrainName = (t: Terrain) => TERRAIN[t].name;
 
-export type SiteKind = RaidKind | "ruin" | "keep";
+export type SiteKind = RaidKind | "ruin" | "keep" | "landmark";
 
 export interface CastleLord {
   name: string;
@@ -113,7 +122,7 @@ export interface WorldSite {
   y: number;
   name: string;
   desc: string;
-  /** Danger level, rising with the distance from the home region. */
+  /** Danger level, rising with the distance from the Citadel at the centre. */
   level: number;
   terrain: Terrain;
   /** The server raid node that pays this site's reward, when it has one. */
@@ -128,67 +137,46 @@ export type WorldFoe = Foe & {
   look?: number;
 };
 
-function hash2(x: number, y: number, seed = 0): number {
-  let h =
-    Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + Math.imul(seed | 0, 1442695041);
-  h = Math.imul(h ^ (h >>> 13), 1274126177);
-  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+export interface WorldRegion {
+  id: string;
+  name: string;
+  terrain: Terrain;
+  /** Percent rectangle on the painted map. */
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
-function randomFrom(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+/** The painted biomes of the map art, in reading order. */
+export const WORLD_REGIONS: WorldRegion[] = [
+  { id: "frozen-crown", name: "The Frozen Crown", terrain: "snow", x: 2, y: 1, w: 54, h: 20 },
+  { id: "obsidian-wastes", name: "The Obsidian Wastes", terrain: "volcanic", x: 58, y: 1, w: 22, h: 32 },
+  { id: "autumnwood", name: "Autumnwood", terrain: "forest", x: 80, y: 1, w: 18, h: 28 },
+  { id: "ashen-waste", name: "The Ashen Waste", terrain: "desert", x: 1, y: 21, w: 26, h: 34 },
+  { id: "heartlands", name: "The Heartlands", terrain: "plains", x: 26, y: 19, w: 34, h: 52 },
+  { id: "highreach", name: "Highreach Falls", terrain: "forest", x: 60, y: 31, w: 24, h: 28 },
+  { id: "starfall", name: "The Starfall Reach", terrain: "astral", x: 84, y: 27, w: 15, h: 30 },
+  { id: "sunken-isles", name: "The Sunken Isles", terrain: "coast", x: 1, y: 54, w: 26, h: 44 },
+  { id: "mire-fen", name: "Mire Fen", terrain: "swamp", x: 26, y: 70, w: 26, h: 28 },
+  { id: "shattered-coast", name: "The Shattered Coast", terrain: "volcanic", x: 52, y: 58, w: 46, h: 40 },
+];
 
-const pick = <T>(rand: () => number, items: readonly T[]): T =>
-  items[Math.floor(rand() * items.length) % items.length]!;
-
-function lattice(i: number, j: number, period: number, seed: number): number {
-  const x = ((i % period) + period) % period;
-  const y = ((j % period) + period) % period;
-  return hash2(x, y, seed);
-}
-
-/** Value noise that wraps every `period` lattice cells, so the ground texture tiles seamlessly. */
-function smoothNoise(x: number, y: number, period: number, seed: number): number {
-  const xi = Math.floor(x),
-    yi = Math.floor(y);
-  const xf = x - xi,
-    yf = y - yi;
-  const u = xf * xf * (3 - 2 * xf),
-    v = yf * yf * (3 - 2 * yf);
-  const a = lattice(xi, yi, period, seed),
-    b = lattice(xi + 1, yi, period, seed);
-  const c = lattice(xi, yi + 1, period, seed),
-    d = lattice(xi + 1, yi + 1, period, seed);
-  return (a + (b - a) * u) * (1 - v) + (c + (d - c) * u) * v;
-}
-
-/** The ground at a world point. Periodic, so the painted terrain tiles without seams. */
-export function terrainAt(x: number, y: number): Terrain {
-  const broad = smoothNoise(x / 512, y / 512, 8, 17);
-  const fine = smoothNoise(x / 128, y / 128, 32, 41);
-  const n = broad * 0.68 + fine * 0.32;
-  if (n < 0.2) return "swamp";
-  if (n < 0.38) return "forest";
-  if (n < 0.58) return "plains";
-  if (n < 0.72) return "desert";
-  if (n < 0.86) return "volcanic";
-  return "snow";
-}
-
-export const terrainName = (t: Terrain) => TERRAIN[t].name;
-
-/** Danger rises the further the player travels from the home region. */
-export function levelAt(x: number, y: number): number {
-  return Math.max(1, Math.round(Math.hypot(x, y) / 900));
-}
+/** Points of interest the art itself paints: lookouts, not raid targets. */
+const LANDMARKS: { name: string; x: number; y: number; desc: string; terrain: Terrain }[] = [
+  { name: "The Great Citadel", x: 48, y: 47, desc: "EmberFall's high seat, ringed by rivers — the heart of the realm.", terrain: "plains" },
+  { name: "Pyramids of the Ashen Waste", x: 9, y: 37, desc: "Sun-bleached tombs older than any kingdom.", terrain: "desert" },
+  { name: "The Frozen Crown", x: 34, y: 7, desc: "Glaciers and aurora light over the northern peaks.", terrain: "snow" },
+  { name: "Obsidian Forge", x: 69, y: 15, desc: "Lava runs like a forge channel through black rock.", terrain: "volcanic" },
+  { name: "Whispering Falls", x: 65, y: 44, desc: "A hundred waterfalls comb the eastern mountains.", terrain: "forest" },
+  { name: "The Starfall Hollow", x: 90, y: 44, desc: "A dark well of stars burned into the living rock.", terrain: "astral" },
+  { name: "Western Outpost", x: 3, y: 55, desc: "The last stone footing before the western sea.", terrain: "coast" },
+  { name: "Autumnwood", x: 89, y: 14, desc: "Copper and gold canopies that never fall.", terrain: "forest" },
+  { name: "The Great Whirlpool", x: 12, y: 72, desc: "Sailors swear it swallows whole fleets.", terrain: "coast" },
+  { name: "Sunken Kingdom", x: 19, y: 88, desc: "Ruined towers in waist-deep archipelago water.", terrain: "swamp" },
+  { name: "The Shattered Coast", x: 71, y: 86, desc: "Jagged islands lit by veins of violet glow.", terrain: "volcanic" },
+  { name: "Aurora Gate", x: 94, y: 5, desc: "Where the northern lights touch the ice.", terrain: "snow" },
+];
 
 const GOLD_NAMES = [
   "Sunken Treasury",
@@ -239,43 +227,54 @@ const RUIN_NAMES = [
   "Graven Keep",
 ];
 const LORD_FIRST = [
-  "Aldric",
-  "Bryn",
-  "Cassia",
-  "Dorian",
-  "Eira",
-  "Fenrir",
-  "Gwen",
-  "Halvard",
-  "Ilsa",
-  "Jorund",
-  "Kael",
-  "Lyra",
-  "Magnus",
-  "Nadia",
-  "Osric",
-  "Perrin",
-  "Quill",
-  "Rhea",
-  "Soren",
-  "Tamsin",
-  "Ulric",
-  "Vesna",
-  "Wren",
-  "Yara",
+  "Aldric", "Bryn", "Cassia", "Dorian", "Eira", "Fenrir", "Gwen", "Halvard", "Ilsa", "Jorund",
+  "Kael", "Lyra", "Magnus", "Nadia", "Osric", "Perrin", "Quill", "Rhea", "Soren", "Tamsin",
+  "Ulric", "Vesna", "Wren", "Yara",
 ];
 const LORD_HOUSE = [
-  "of the Ember Watch",
-  "the Iron Hand",
-  "of Thornwood",
-  "the Ashen",
-  "of the Grey March",
-  "the Bloodsworn",
-  "of Frostspine",
-  "the Unbowed",
-  "of the Broken Crown",
-  "the Nightjar",
+  "of the Ember Watch", "the Iron Hand", "of Thornwood", "the Ashen", "of the Grey March",
+  "the Bloodsworn", "of Frostspine", "the Unbowed", "of the Broken Crown", "the Nightjar",
 ];
+
+function hash2(x: number, y: number, seed = 0): number {
+  let h =
+    Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + Math.imul(seed | 0, 1442695041);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+}
+
+function randomFrom(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const pick = <T>(rand: () => number, items: readonly T[]): T =>
+  items[Math.floor(rand() * items.length) % items.length]!;
+
+/** Danger rises the further the player travels from the Citadel at the centre. */
+export function levelAt(x: number, y: number): number {
+  const dx = (x - WORLD_W / 2) / (WORLD_W / 2);
+  const dy = (y - WORLD_H / 2) / (WORLD_H / 2);
+  return Math.max(1, Math.round(1 + Math.hypot(dx, dy) * 44));
+}
+
+/** The painted biome under a world point. */
+export function regionAt(x: number, y: number): WorldRegion {
+  const px = (x / WORLD_W) * 100;
+  const py = (y / WORLD_H) * 100;
+  return (
+    WORLD_REGIONS.find((r) => px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) ??
+    WORLD_REGIONS[4]!
+  );
+}
+
+export const terrainAt = (x: number, y: number): Terrain => regionAt(x, y).terrain;
 
 function makeLord(rand: () => number, level: number): CastleLord {
   const cls = pick(rand, ["warrior", "archer", "mage"] as HeroClass[]);
@@ -290,149 +289,232 @@ function makeLord(rand: () => number, level: number): CastleLord {
   };
 }
 
-const SECTOR_CACHE = new Map<string, WorldSite[]>();
+/** Sites each painted region carries: raid targets, rival keeps and claiming ruins. */
+const REGION_CONTENT = [
+  { gold: 3, ore: 3, boss: 1, keep: 4, ruin: 8 },
+  { gold: 3, ore: 4, boss: 2, keep: 4, ruin: 7 },
+  { gold: 2, ore: 2, boss: 1, keep: 3, ruin: 6 },
+  { gold: 4, ore: 3, boss: 1, keep: 3, ruin: 8 },
+  { gold: 4, ore: 4, boss: 2, keep: 5, ruin: 9 },
+  { gold: 3, ore: 3, boss: 1, keep: 4, ruin: 7 },
+  { gold: 2, ore: 2, boss: 1, keep: 3, ruin: 5 },
+  { gold: 3, ore: 2, boss: 1, keep: 3, ruin: 9 },
+  { gold: 2, ore: 2, boss: 1, keep: 3, ruin: 7 },
+  { gold: 4, ore: 3, boss: 2, keep: 5, ruin: 9 },
+];
 
-/** Every site standing in one sector. Deterministic: the same sector always yields the same world. */
-export function sectorSites(sx: number, sy: number): WorldSite[] {
-  const key = `${sx}:${sy}`;
-  const cached = SECTOR_CACHE.get(key);
-  if (cached) return cached;
-
-  const rand = randomFrom(Math.floor(hash2(sx, sy, 9277) * 4294967296));
-  const cx = (sx + 0.5) * SECTOR;
-  const cy = (sy + 0.5) * SECTOR;
+function buildRealm(): WorldSite[] {
   const sites: WorldSite[] = [];
-  const add = (
-    kind: SiteKind,
-    name: string,
-    desc: string,
-    extra: Partial<WorldSite> = {},
-  ): WorldSite => {
-    const x = cx + (rand() - 0.5) * (SECTOR - 300);
-    const y = cy + (rand() - 0.5) * (SECTOR - 300);
-    const site: WorldSite = {
-      id: `${key}:${sites.length}`,
-      kind,
-      x,
-      y,
-      name,
-      desc,
-      level: levelAt(x, y),
-      terrain: terrainAt(x, y),
-      ...extra,
-    };
-    sites.push(site);
-    return site;
+  const add = (site: Omit<WorldSite, "level" | "terrain"> & { terrain: Terrain }) => {
+    sites.push({ ...site, level: levelAt(site.x, site.y) });
   };
 
-  for (let i = 0; i < 4; i += 1) {
-    if (rand() < 0.55) {
-      add("gold", pick(rand, GOLD_NAMES), "A guarded mine shaft glittering with gold.", {
+  WORLD_REGIONS.forEach((region, ri) => {
+    const rand = randomFrom(Math.floor(hash2(ri, 7, 331) * 4294967296));
+    const content = REGION_CONTENT[ri] ?? REGION_CONTENT[4]!;
+    // Keep sites a little inside the painted biome so nothing stands in the sea.
+    const mx = region.w * 0.1;
+    const my = region.h * 0.14;
+    const place = (): { x: number; y: number } => ({
+      x: Math.round(((region.x + mx + rand() * (region.w - mx * 2)) / 100) * WORLD_W),
+      y: Math.round(((region.y + my + rand() * (region.h - my * 2)) / 100) * WORLD_H),
+    });
+
+    for (let i = 0; i < content.gold; i += 1) {
+      const { x, y } = place();
+      add({
+        id: `${region.id}:gold:${i}`,
+        kind: "gold",
+        x,
+        y,
+        name: pick(rand, GOLD_NAMES),
+        desc: "A guarded mine shaft glittering with gold.",
+        terrain: region.terrain,
         node: `gold-${1 + Math.floor(rand() * 7)}`,
       });
-    } else {
-      add("ore", pick(rand, ORE_NAMES), "An ore seam held by something with teeth.", {
+    }
+    for (let i = 0; i < content.ore; i += 1) {
+      const { x, y } = place();
+      add({
+        id: `${region.id}:ore:${i}`,
+        kind: "ore",
+        x,
+        y,
+        name: pick(rand, ORE_NAMES),
+        desc: "An ore seam held by something with teeth.",
+        terrain: region.terrain,
         node: `ore-${1 + Math.floor(rand() * 5)}`,
       });
     }
-  }
-  if (rand() < 0.85) {
-    add("boss", pick(rand, BOSS_NAMES), "A tyrant's lair. Boss cores and starshards lie within.", {
-      node: `boss-${1 + Math.floor(rand() * 3)}`,
+    for (let i = 0; i < content.boss; i += 1) {
+      const { x, y } = place();
+      add({
+        id: `${region.id}:boss:${i}`,
+        kind: "boss",
+        x,
+        y,
+        name: pick(rand, BOSS_NAMES),
+        desc: "A tyrant's lair. Boss cores and starshards lie within.",
+        terrain: region.terrain,
+        node: `boss-${1 + Math.floor(rand() * 3)}`,
+      });
+    }
+    for (let i = 0; i < content.keep; i += 1) {
+      const { x, y } = place();
+      const lord = makeLord(rand, levelAt(x, y));
+      add({
+        id: `${region.id}:keep:${i}`,
+        kind: "keep",
+        x,
+        y,
+        name: `${lord.name.split(" ")[0]}'s Hold`,
+        desc: "A rival lord's castle. Raid it for plunder while your daily raids last.",
+        terrain: region.terrain,
+        lord,
+      });
+    }
+    for (let i = 0; i < content.ruin; i += 1) {
+      const { x, y } = place();
+      add({
+        id: `${region.id}:ruin:${i}`,
+        kind: "ruin",
+        x,
+        y,
+        name: pick(rand, RUIN_NAMES),
+        desc: "An abandoned castle. Plant your banner here, or claim it as a raiding camp.",
+        terrain: region.terrain,
+      });
+    }
+  });
+
+  for (const l of LANDMARKS) {
+    add({
+      id: `landmark:${l.name}`,
+      kind: "landmark",
+      x: Math.round((l.x / 100) * WORLD_W),
+      y: Math.round((l.y / 100) * WORLD_H),
+      name: l.name,
+      desc: l.desc,
+      terrain: l.terrain,
     });
   }
 
-  const keep = add(
-    "keep",
-    "Rival keep",
-    "A rival lord's castle. Raid it for plunder while your daily raids last.",
-  );
-  keep.lord = makeLord(rand, keep.level);
-  keep.name = `${keep.lord.name.split(" ")[0]}'s Hold`;
+  // The authored raid nodes sit in the Heartlands, where every hero starts.
+  for (const n of MAP_NODES) {
+    const x = Math.round(WORLD_W / 2 + ((n.x - 50) / 100) * WORLD_W * 0.34);
+    const y = Math.round(WORLD_H / 2 + ((n.y - 50) / 100) * WORLD_H * 0.5);
+    add({
+      id: `home-${n.id}`,
+      kind: n.kind,
+      x,
+      y,
+      name: n.name,
+      desc: n.desc,
+      terrain: terrainAt(x, y),
+      node: n.id,
+    });
+  }
 
-  add(
-    "ruin",
-    `${pick(rand, RUIN_NAMES)}`,
-    "An abandoned castle. Claim it to move your own castle here.",
-  );
-  if (rand() < 0.6)
-    add(
-      "ruin",
-      `${pick(rand, RUIN_NAMES)}`,
-      "An abandoned castle. Claim it to move your own castle here.",
-    );
-
-  SECTOR_CACHE.set(key, sites);
   return sites;
 }
 
-/** The authored raid nodes, laid into the world around the home region. */
-export const HOME_NODES: WorldSite[] = MAP_NODES.map((n) => {
-  const x = (n.x - 50) * 34;
-  const y = (n.y - 50) * 26;
-  return {
-    id: `home-${n.id}`,
-    kind: n.kind,
-    x,
-    y,
-    name: n.name,
-    desc: n.desc,
-    level: levelAt(x, y),
-    terrain: terrainAt(x, y),
-    node: n.id,
-  };
-});
+/** Every site standing in the realm, authored once from the painted map. */
+export const WORLD_SITES: WorldSite[] = buildRealm();
 
-/** Every site inside a world-space rectangle, the home nodes included. */
-export function sitesInView(
-  left: number,
-  top: number,
-  right: number,
-  bottom: number,
-  limit = 320,
-): WorldSite[] {
-  const out: WorldSite[] = [];
-  const sx0 = Math.floor(left / SECTOR),
-    sx1 = Math.floor(right / SECTOR);
-  const sy0 = Math.floor(top / SECTOR),
-    sy1 = Math.floor(bottom / SECTOR);
-  for (let sy = sy0; sy <= sy1; sy += 1) {
-    for (let sx = sx0; sx <= sx1; sx += 1) {
-      for (const site of sectorSites(sx, sy)) {
-        if (site.x >= left && site.x <= right && site.y >= top && site.y <= bottom) out.push(site);
-      }
-    }
-  }
-  for (const site of HOME_NODES) {
-    if (site.x >= left && site.x <= right && site.y >= top && site.y <= bottom) out.push(site);
-  }
-  return out.length > limit ? out.slice(0, limit) : out;
+export const sitesOfKind = (kind: SiteKind) => WORLD_SITES.filter((s) => s.kind === kind);
+
+/** Every site inside a world-space rectangle. */
+export function sitesInView(left: number, top: number, right: number, bottom: number): WorldSite[] {
+  return WORLD_SITES.filter((s) => s.x >= left && s.x <= right && s.y >= top && s.y <= bottom);
 }
 
-/** The closest abandoned castle, used when the player has no castle on the map yet. */
+/** The closest abandoned castle to a point, used to suggest where a banner can fly. */
 export function nearestRuin(x: number, y: number): WorldSite | null {
-  const sx = Math.floor(x / SECTOR),
-    sy = Math.floor(y / SECTOR);
   let best: WorldSite | null = null;
   let bestDist = Infinity;
-  for (let ring = 0; ring <= 6; ring += 1) {
-    for (let dy = -ring; dy <= ring; dy += 1) {
-      for (let dx = -ring; dx <= ring; dx += 1) {
-        if (Math.max(Math.abs(dx), Math.abs(dy)) !== ring) continue;
-        for (const site of sectorSites(sx + dx, sy + dy)) {
-          if (site.kind !== "ruin") continue;
-          const d = Math.hypot(site.x - x, site.y - y);
-          if (d < bestDist) {
-            bestDist = d;
-            best = site;
-          }
-        }
-      }
+  for (const site of WORLD_SITES) {
+    if (site.kind !== "ruin") continue;
+    const d = Math.hypot(site.x - x, site.y - y);
+    if (d < bestDist) {
+      bestDist = d;
+      best = site;
     }
-    if (best) return best;
   }
   return best;
 }
+
+/* ------------------------------ camera ------------------------------ */
+
+export interface Camera {
+  x: number;
+  y: number;
+  z: number;
+}
+export interface StageSize {
+  w: number;
+  h: number;
+}
+
+/** The zoom at which the whole painted realm fits inside the stage. */
+export const fitZoom = (size: StageSize) =>
+  Math.max(0.02, Math.min(size.w / WORLD_W, size.h / WORLD_H));
+
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+
+/** Keep the camera over the painted realm: no endless ground past the edge. */
+export function clampCamera(cam: Camera, size: StageSize): Camera {
+  const z = clamp(cam.z, fitZoom(size), MAX_ZOOM);
+  const halfW = size.w / 2 / z;
+  const halfH = size.h / 2 / z;
+  return {
+    z,
+    x: halfW * 2 >= WORLD_W ? WORLD_W / 2 : clamp(cam.x, halfW, WORLD_W - halfW),
+    y: halfH * 2 >= WORLD_H ? WORLD_H / 2 : clamp(cam.y, halfH, WORLD_H - halfH),
+  };
+}
+
+/** Zoom about a point on the stage, keeping that point under the cursor. */
+export function zoomCamera(cam: Camera, size: StageSize, factor: number, px: number, py: number): Camera {
+  const next = clampCamera({ ...cam, z: cam.z * factor }, size);
+  const wx = cam.x + (px - size.w / 2) / cam.z;
+  const wy = cam.y + (py - size.h / 2) / cam.z;
+  return clampCamera({ x: wx - (px - size.w / 2) / next.z, y: wy - (py - size.h / 2) / next.z, z: next.z }, size);
+}
+
+/* ------------------------------ clusters ------------------------------ */
+
+export interface MapCluster<T> {
+  key: string;
+  x: number;
+  y: number;
+  items: T[];
+}
+
+/**
+ * Group markers that would land on the same few pixels, so a realm of thousands of
+ * banners stays readable. `cell` is the bucket width in screen pixels; 0 disables it.
+ */
+export function clusterMarkers<T extends { id: string; x: number; y: number }>(
+  items: T[],
+  toScreen: (x: number, y: number) => { left: number; top: number },
+  cell: number,
+): MapCluster<T>[] {
+  if (cell <= 0) return items.map((i) => ({ key: i.id, x: i.x, y: i.y, items: [i] }));
+  const buckets = new Map<string, MapCluster<T>>();
+  for (const item of items) {
+    const p = toScreen(item.x, item.y);
+    const key = `${Math.floor(p.left / cell)}:${Math.floor(p.top / cell)}`;
+    const found = buckets.get(key);
+    if (found) {
+      found.items.push(item);
+      found.x = (found.x * (found.items.length - 1) + item.x) / found.items.length;
+      found.y = (found.y * (found.items.length - 1) + item.y) / found.items.length;
+    } else buckets.set(key, { key, x: item.x, y: item.y, items: [item] });
+  }
+  return [...buckets.values()];
+}
+
+/* ------------------------------ encounters ------------------------------ */
 
 /** The encounter standing at a site, scaled to the hero so far travel stays a fight. */
 export function siteFoe(site: WorldSite, heroLevel: number): WorldFoe {
