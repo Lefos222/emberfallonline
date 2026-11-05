@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { heroStats, makeItem, newHero, INVENTORY_CAP } from "@/game/data";
 import {
   ASTRAL_MAX_LVL, ASTRAL_RARITY, RECIPES, astralLabel, astralUpgradeCost, astralValue,
-  battleMats, craft, equipAstral, fuseGem, gemValue, insertGem, normalizeAstrals, refine, removeGem, scrapItem,
-  scrapYield, summonAstral, upgradeAstral,
+  battleMats, craft, equipAstral, fuseGem, gemValue, insertGem, normalizeAstrals, refine, removeGem, recipeGold,
+  recipeMats, scrapItem, scrapYield, summonAstral, upgradeAstral,
 } from "@/game/crafting";
 import { buyConquestGem, gemGoldPrice } from "@/game/conquest";
 
@@ -52,11 +52,14 @@ describe("gems, astrals, crafting", () => {
     expect(h.gems).toMatchObject({ "topaz:1": 0, "topaz:2": 1 });
   });
   it("crafting validates materials and never charges twice on failure", () => {
-    const h = newHero("T", "archer"); h.gold = 500; h.mats = { ore: 19, essence: 2 };
     const r = RECIPES[0];
+    const mats = recipeMats(r, "weapon");
+    const need = mats.ore ?? 0;
+    const price = recipeGold(r, 1);
+    const h = newHero("T", "archer"); h.gold = price; h.mats = { ...mats, ore: need - 1 };
     expect(craft(h, r, INVENTORY_CAP, () => makeItem("archer", 1, 2))).toBe("Missing materials");
-    expect(h.gold).toBe(500);
-    h.mats.ore = 20;
+    expect(h.gold).toBe(price);
+    h.mats.ore = need;
     const it = craft(h, r, INVENTORY_CAP, () => makeItem("archer", 1, 2));
     expect(typeof it).not.toBe("string");
     expect(h.gold).toBe(0);

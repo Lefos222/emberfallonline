@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { X, Gem, Diamond } from "lucide-react";
+import { X, Gem, Diamond, Swords } from "lucide-react";
 import { GoldCoin } from "./CoinIcon";
 import { GearIcon } from "./GearIcon";
 import { itemStats, itemScore, RARITIES, type Item } from "./data";
@@ -51,6 +51,16 @@ export function VoidCrystals({ n, className = "" }: { n: number; className?: str
   );
 }
 
+
+/** Arena Marks: the Blood Arena's own currency, won only by duelling (see arena.ts). */
+export function ArenaMarks({ n, className = "" }: { n: number; className?: string }) {
+  return (
+    <span className={"inline-flex items-center gap-1 font-bold text-blood " + className} title="Arena Marks — won only by duelling">
+      <Swords className="h-4 w-4" />
+      {fmt(n)}
+    </span>
+  );
+}
 
 /** Compact tab row shared by the castle's buildings: small, tight and wrapping on narrow screens. */
 export function GameTabs<T extends string>({ label, tabs, value, onChange }: {
