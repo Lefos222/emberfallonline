@@ -358,10 +358,12 @@ export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
 
 /** Levels past this point get steadily slower so reaching the cap takes months, not weeks. */
 export const LATE_LEVEL = 20;
-/** Extra XP multiplier per level: 1x up to Lv 20, then +12% compounding each level (~895x by Lv 80).
- *  This creates a real grind wall after level 20 — each level takes significantly longer than the last. */
+/** Extra XP multiplier per level: 1x up to Lv 20, then +15% compounding each level (~4384x by Lv 80).
+ *  This creates a brutal grind wall after level 20 — each level takes far longer than the last, so
+ *  reaching the cap takes months of deliberate play. Requirements scale: ~460k at Lv 40, ~4.7M at Lv 50,
+ *  ~26M at Lv 60, ~137M at Lv 70, ~700M at Lv 80. */
 export function lateLevelFactor(level: number) {
-  return Math.pow(1.12, Math.max(0, level - LATE_LEVEL));
+  return Math.pow(1.15, Math.max(0, level - LATE_LEVEL));
 }
 
 /** Stages past this point are the hard half of the campaign: foes grow faster than the road below it. */
