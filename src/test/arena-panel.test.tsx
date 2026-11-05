@@ -3,9 +3,9 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { newHero, type Hero } from "@/game/data";
 
 /**
- * The arena panel against a stubbed ladder: every hero on the server is challengeable,
- * the ladder is ranked, and the armory spends Arena Marks. The live server is not needed
- * to prove the panel reads the whole realm instead of a rating bracket.
+ * The arena panel against a stubbed ladder: every hero on the server is challengeable and
+ * the ladder is ranked. The live server is not needed to prove the panel reads the whole
+ * realm instead of a rating bracket.
  */
 const store = vi.hoisted(() => ({ hero: null as unknown as Hero }));
 
@@ -37,7 +37,6 @@ vi.mock("@/game/store", () => ({
 }));
 
 import { Arena } from "@/game/Arena";
-import { arenaMarks } from "@/game/arena";
 
 const renderArena = () => render(<Arena onClose={() => {}} start={() => {}} />);
 
@@ -62,15 +61,9 @@ describe("the Blood Arena panel", () => {
     expect(rows.textContent).toMatch(/1\..*Far Hero.*2\..*Rival One.*3\..*Pit \(you\)/);
   });
 
-  it("buys a unique arena piece with marks only", async () => {
-    store.hero.arenaMarks = 5000;
+  it("no longer carries an armory tab", async () => {
     renderArena();
-    fireEvent.click(await screen.findByRole("tab", { name: "Armory" }));
-    expect(await screen.findByText("Bloodsworn Greatblade")).toBeTruthy();
-    fireEvent.click(screen.getAllByRole("button", { name: /^Buy$/ })[0]);
-    expect(arenaMarks(store.hero)).toBe(800);
-    expect(store.hero.inventory).toHaveLength(1);
-    expect(store.hero.inventory[0].name).toBe("Bloodsworn Greatblade");
-    expect(await screen.findByText("Acquired Bloodsworn Greatblade!")).toBeTruthy();
+    await screen.findByRole("tab", { name: /Duels/ });
+    expect(screen.queryByRole("tab", { name: "Armory" })).toBeNull();
   });
 });
