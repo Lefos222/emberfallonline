@@ -508,7 +508,8 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   clip-path: polygon(50% 0, 100% 12%, 100% 62%, 50% 100%, 0 62%, 0 12%);
   box-shadow: 0 0 18px oklch(0.55 0.22 30 / 0.6);
 }
-.guild-hall-lanes { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; padding: 0.75rem 1rem 1rem; }
+.guild-hall-lanes { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.5rem; padding: 0.75rem 1rem 1rem; }
+@media (max-width: 1024px) { .guild-hall-lanes { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .guild-hall-lanes { grid-template-columns: 1fr; } }
 .guild-lane {
   position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
@@ -530,6 +531,8 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
 .guild-lane-merchant { clip-path: polygon(50% 0, 100% 46%, 100% 100%, 0 100%, 0 46%); }
 .guild-lane-tower { clip-path: polygon(50% 0, 74% 26%, 74% 100%, 26% 100%, 26% 26%); }
 .guild-lane-headquarters { clip-path: polygon(50% 0, 76% 22%, 88% 18%, 100% 30%, 100% 100%, 0 100%, 0 30%, 12% 18%, 24% 22%); }
+.guild-lane-reliquary { clip-path: polygon(50% 0, 84% 26%, 100% 26%, 100% 100%, 0 100%, 0 26%, 16% 26%); }
+.guild-lane-records { clip-path: polygon(50% 4%, 94% 0, 94% 84%, 50% 100%, 6% 84%, 6% 0); }
 .guild-lane-name { font-family: var(--font-display); font-size: 0.78rem; line-height: 1.15; text-align: center; }
 .guild-lane-hint { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); text-align: center; }
 .guild-lane-level {

@@ -1,22 +1,26 @@
 import { Shield } from "lucide-react";
 
-/** The three places a guild member can walk to inside the hall (see GuildHall). */
-export type GuildLocation = "merchant" | "tower" | "headquarters";
+/** The five places a guild member can walk to inside the hall (see GuildHall). */
+export type GuildLocation = "headquarters" | "merchant" | "tower" | "reliquary" | "records";
 
 const LANES: { id: GuildLocation; name: string; hint: string }[] = [
-  { id: "merchant", name: "Guild Merchant", hint: "Guild coins & shop" },
-  { id: "tower", name: "Master Skill Tower", hint: "Permanent stat ranks" },
-  { id: "headquarters", name: "Guild Headquarters", hint: "Roster, banner & chat" },
+  { id: "headquarters", name: "Guild Headquarters", hint: "Roster, charter & chat" },
+  { id: "merchant", name: "Guild Merchant", hint: "Treasury, shop & vault" },
+  { id: "tower", name: "Master Skill Tower", hint: "Endless stat ranks" },
+  { id: "reliquary", name: "Reliquary", hint: "Heirlooms of the ranks" },
+  { id: "records", name: "Hall of Records", hint: "Might, ledger & deeds" },
 ];
 
 /**
- * The guild courtyard: a blood-moon night over the bazaar, with its merchant tent, the master
- * skill tower and the headquarters keep. Each lane is the way into that part of the guild hall.
+ * The guild courtyard: a blood-moon night over the bazaar. Every lane is a room of the hall —
+ * the keep, the merchant's tent, the master skill tower, the reliquary and the record hall.
  */
-export function GuildHallScene({ name, level, members, role, location, onSelect }: {
+export function GuildHallScene({ name, level, members, power, relics, role, location, onSelect }: {
   name: string;
   level: number;
   members: number;
+  power?: number;
+  relics?: { woken: number; total: number };
   role?: string;
   location: GuildLocation;
   onSelect: (where: GuildLocation) => void;
@@ -36,17 +40,19 @@ export function GuildHallScene({ name, level, members, role, location, onSelect 
       <div className="min-w-0">
         <h3 className="truncate font-display text-2xl font-black text-gold">{name}</h3>
         <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-          Guild level {level} · {members} {members === 1 ? "member" : "members"}{role ? ` · ${role}` : ""}
+          Guild level {level} · {members} {members === 1 ? "member" : "members"}
+          {power ? ` · ${Math.round(power).toLocaleString()} power` : ""}{role ? ` · ${role}` : ""}
         </p>
       </div>
     </header>
     <div role="tablist" aria-label="Guild Hall locations" className="guild-hall-lanes">
       {LANES.map((lane) => (
         <button key={lane.id} role="tab" aria-selected={location === lane.id} aria-label={lane.name}
-          className={`guild-lane ${location === lane.id ? "guild-lane-active" : ""}`}
+          className={`guild-lane guild-lane-wide ${location === lane.id ? "guild-lane-active" : ""}`}
           onClick={() => onSelect(lane.id)}>
           <span className={`guild-lane-art guild-lane-${lane.id}`} aria-hidden />
           {lane.id === "tower" && <span className="guild-lane-level">Lv {level}</span>}
+          {lane.id === "reliquary" && relics && <span className="guild-lane-level">{relics.woken}/{relics.total}</span>}
           <span className="guild-lane-name">{lane.name}</span>
           <span className="guild-lane-hint">{lane.hint}</span>
         </button>
