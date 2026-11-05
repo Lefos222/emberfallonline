@@ -11,6 +11,7 @@ import {
   openChest,
   rewardChestCountdown,
   rewardChestReady,
+  rollBattleChest,
 } from "@/game/chests";
 
 const HOUR = 3_600_000;
@@ -42,6 +43,14 @@ describe("vault chests", () => {
   it("refuses to open a chest the hero does not own", () => {
     const h = newHero("Empty", "archer");
     expect(() => openChest(h, "gold")).toThrow(/No Gold Chest/);
+  });
+});
+
+describe("battle chest drops", () => {
+  it("leaves a gem chest on the rarest roll, gold on the common one, nothing otherwise", () => {
+    expect(rollBattleChest(() => 0)).toBe("gem");
+    expect(rollBattleChest(() => 0.08)).toBe("gold");
+    expect(rollBattleChest(() => 0.5)).toBeNull();
   });
 });
 

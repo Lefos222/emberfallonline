@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Volume2, VolumeX, Cloud, CloudOff, Trophy, LogOut, Users, IdCard, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
 import { ArtIcon, type ArtIconName } from "./ArtIcon";
-import { AvatarIcon } from "./AvatarIcon";
 import { GuildHall } from "./GuildHall";
 import { WorldChat } from "./WorldChat";
 import { announceOpenEvents, announceWorldEvent } from "./world-events";
@@ -20,28 +19,25 @@ import { beginScrollBattle } from "./services";
 import { scrollFighter } from "./scrolls";
 import castle from "@/assets/castle.jpg.asset.json";
 import theme from "@/assets/theme.mp3.asset.json";
-import { supabase } from "@/integrations/supabase/client";
-import { BUILDINGS, CASTLE_BUILDINGS, CLASSES, heroStats, type BuildingId, type Item } from "./data";
-import { rewardChestReady } from "./chests";
-import { authHandoffPending, getState, leaveCharacter, update, useGame } from "./store";
+import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } from "./data";
+import { CHESTS, addChests, rewardChestReady, rollBattleChest } from "./chests";
+import { authHandoffPending, getState, update, useGame } from "./store";
 import { recordBattle } from "./progress";
 import { BOSS_CRYSTALS } from "./logic";
-import { heroAppearance } from "./appearance";
-import { CharacterSelect, Portrait, ProfilePanel, frameClass } from "./CharacterSelect";
+import { CharacterSelect, ProfilePanel } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
-import { Campaign, Forge, HeroHall, Market, Oracle, Temple, XpBar, heroFighter, type StartBattle } from "./panels";
+import { Campaign, Forge, HeroHall, Market, Oracle, Temple, heroFighter, type StartBattle } from "./panels";
 import { Arena } from "./Arena";
 import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
 import { LongRoad } from "./LongRoad";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
-import { Diamonds, Gold, ItemCard, Panel, VoidCrystals, fmt } from "./ui";
-import { premiumState } from "./economy";
-import { CONQUEST_LEVEL, canEnterConquest, type Hero } from "./data";
+import { ItemCard, Panel } from "./ui";
+import { CONQUEST_LEVEL, canEnterConquest } from "./data";
 import { QuestsButton, QuestsPanel } from "./Quests";
 import { claimableLevelQuests, rollLevelQuests } from "./level-quests";
-import { STAMINA_PER_DAY, staminaLeft } from "./stamina";
+import { Hud } from "./HeroHud";
 
 const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
 
@@ -135,6 +131,14 @@ export function Game() {
     if (r.loot && r.loot.rarity >= 2) void announceWorldEvent(heroId, `looted ${r.loot.name}!`);
     if (useGameOverflow() > before && !r.lines.some((l) => /Overflow/.test(l))) r.lines.push("Bag full — loot placed in your Overflow Chest (Armory)");
     if (won) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m)); });
+    // A won fight sometimes leaves a chest on the field: gold is the common find, gems the rare one.
+    if (won) {
+      const drop = rollBattleChest();
+      if (drop) {
+        update((h) => addChests(h, drop, 1));
+        r.lines.push(`${CHESTS[drop].name} found — open it in the Armory vault`);
+      }
+    }
     update((h) => recordBattle(h, { title: battle.title, won, boss: !!battle.right.boss, arena: /arena/i.test(battle.title), rewards: [...r.lines, ...(r.loot ? [r.loot.name] : [])] }));
     // Boss victories are the second source of Void Crystals beside level-ups (see logic.grant).
     if (won && battle.right.boss) {
@@ -217,70 +221,6 @@ export function Game() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: (m: boolean) => void; cloud: string; onProfile: () => void }) {
-  const { hero, gender, chars, heroId } = useGame();
-  const me = chars?.find((c) => c.id === heroId);
-  const frame = me?.frame ?? "iron";
-  if (!hero) return null;
-  const s = heroStats(hero);
-  return (
-    <div className="hud-top pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2">
-      <div className="game-panel player-card pointer-events-auto p-2 pr-3 lg:p-2.5 lg:pr-4">
-        <div className="flex items-center gap-2.5">
-          <button className={`player-portrait relative h-14 w-14 shrink-0 overflow-hidden lg:h-16 lg:w-16 ${frameClass(frame)}`} onClick={onProfile} aria-label="Profile">
-            {hero.avatar !== undefined ? <AvatarIcon index={hero.avatar} fill className="block h-full w-full" /> : <Portrait cls={hero.cls} gender={gender} className="w-full" {...heroAppearance(hero)} />}
-            <span className="player-level">Lv {hero.level}</span>
-          </button>
-          <div className="w-40 lg:w-52">
-            <div className="flex items-baseline gap-1.5">
-              <span className="min-w-0 truncate font-display text-sm font-bold lg:text-base">{hero.name}</span>
-              {hero.paragon > 0 && <span className="shrink-0 rounded bg-gold/20 px-1 text-[10px] font-bold text-gold">Asc {hero.paragon}</span>}
-            </div>
-            <div className="truncate text-[10px] uppercase tracking-wider text-muted-foreground">
-              {CLASSES[hero.cls].name}{me?.title ? ` · ${me.title}` : ""}
-            </div>
-            <XpBar hero={hero} />
-            <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] lg:text-xs">
-              <Gold n={hero.gold} />
-              <Diamonds n={premiumState(hero).balance} />
-              <VoidCrystals n={hero.voidCrystals ?? 0} />
-              <span className="font-bold"><Trophy className="mr-0.5 inline h-3.5 w-3.5 text-r4" />{fmt(s.power)}</span>
-            </div>
-          </div>
-        </div>
-        <StaminaBar hero={hero} />
-      </div>
-      <div className="game-panel pointer-events-auto flex items-center gap-1 p-2 lg:gap-2">
-        <button className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" onClick={() => setMuted(!muted)} aria-label="Music">
-          {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5 text-gold" />}
-        </button>
-        <span className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" title={`Cloud: ${cloud}`}>
-          {cloud === "error" ? <CloudOff className="h-5 w-5 text-hp" /> : <Cloud className={`h-5 w-5 ${cloud === "saved" ? "text-r1" : "text-muted-foreground"}`} />}
-        </span>
-        <button className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" onClick={onProfile} aria-label="Profile"><IdCard className="h-5 w-5" /></button>
-        <button className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" onClick={() => void leaveCharacter()} aria-label="Switch character" title="Switch character"><Users className="h-5 w-5" /></button>
-        <button className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10" onClick={async () => { if (await leaveCharacter()) await supabase.auth.signOut(); }} aria-label="Sign out"><LogOut className="h-5 w-5" /></button>
-      </div>
-    </div>
-  );
-}
-
-/** Campaign Gate stamina, under the profile in the top-left HUD. */
-function StaminaBar({ hero }: { hero: Hero }) {
-  const left = staminaLeft(hero);
-  return (
-    <div className="mt-1.5 w-full" title={`Campaign stamina ${left}/${STAMINA_PER_DAY} — it refills at Greek midnight`}>
-      <div className="mb-0.5 flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
-        <span className="font-display">Stamina</span>
-        <span className={left < 10 ? "font-bold text-hp" : "font-bold text-foreground"}>{left}/{STAMINA_PER_DAY}</span>
-      </div>
-      <div className="bar-track h-2">
-        <div className="bar-stamina h-full" style={{ width: `${Math.min(100, (left / STAMINA_PER_DAY) * 100)}%` }} />
-      </div>
     </div>
   );
 }

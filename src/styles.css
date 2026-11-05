@@ -186,43 +186,133 @@
     text-shadow: 0 1px 3px oklch(0 0 0);
   }
   .vignette { background: radial-gradient(ellipse at center, transparent 55%, oklch(0.05 0.02 20 / 0.85)); }
-  /* Top-left player card: an ornate portrait plate with the live currencies under the name. */
-  .player-card {
+  /* Top-left player plate: the painted character card carries the portrait, name banner,
+     currency marks and the wide footer, so the HUD sits inside the art's own slots. */
+  .hud-card {
     position: relative;
-    background: linear-gradient(155deg, oklch(0.27 0.05 32 / 0.94), oklch(0.12 0.02 20 / 0.97));
-    border-color: oklch(0.72 0.12 78);
-    box-shadow: 0 8px 24px oklch(0 0 0 / 0.6), inset 0 1px 0 oklch(0.92 0.1 85 / 0.28);
+    width: clamp(13rem, 34vw, 26rem);
+    aspect-ratio: 1600 / 893;
+    container-type: inline-size;
+    filter: drop-shadow(0 8px 18px oklch(0 0 0 / 0.55));
   }
-  .player-card::before {
-    content: "";
+  .hud-card-art {
     position: absolute;
-    inset: 3px;
-    border-radius: inherit;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
     pointer-events: none;
-    border: 1px solid oklch(0.8 0.12 82 / 0.18);
+    -webkit-user-select: none;
+    user-select: none;
   }
-  .player-portrait {
-    border: 2px solid oklch(0.75 0.13 80);
-    border-radius: 0.5rem;
+  .hud-portrait {
+    position: absolute;
+    left: 10.6%;
+    top: 19.5%;
+    width: 24.7%;
+    height: 44.3%;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 2px;
     background: radial-gradient(circle at 50% 35%, oklch(0.32 0.05 45), oklch(0.1 0.02 20));
-    box-shadow: inset 0 0 12px oklch(0 0 0 / 0.7), 0 2px 8px oklch(0 0 0 / 0.5);
+    box-shadow: inset 0 0 12px oklch(0 0 0 / 0.7);
   }
-  .player-level {
+  .hud-portrait .hero-model { width: 100%; height: 100%; }
+  .hud-portrait-ring { position: absolute; inset: 6%; border: 1px solid transparent; border-radius: 2px; }
+  .hud-level {
     position: absolute;
     left: 50%;
     bottom: 0;
     transform: translateX(-50%);
-    padding: 0 5px;
+    padding: 0 0.45em;
     border-radius: 999px;
     background: var(--gold-gradient);
     color: var(--primary-foreground);
     font-family: var(--font-display);
-    font-size: 9px;
+    font-size: clamp(7px, 2.6cqw, 11px);
     font-weight: 700;
-    line-height: 14px;
+    line-height: 1.55;
     white-space: nowrap;
     box-shadow: 0 1px 4px oklch(0 0 0 / 0.8);
   }
+  .hud-name {
+    position: absolute;
+    left: 43%;
+    right: 4.6%;
+    top: 38.8%;
+    height: 9.2%;
+    display: flex;
+    align-items: center;
+    gap: 0.35em;
+    padding: 0 0.6em;
+    border-radius: 0.4em;
+    background: linear-gradient(180deg, oklch(0.16 0.03 22 / 0.62), oklch(0.07 0.02 18 / 0.78));
+    box-shadow: inset 0 0 10px -4px oklch(0 0 0);
+  }
+  .hud-name-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-display);
+    font-size: clamp(10px, 3.4cqw, 16px);
+    font-weight: 800;
+    text-shadow: 0 1px 3px oklch(0 0 0);
+  }
+  .hud-asc {
+    flex: 0 0 auto;
+    padding: 0 0.25em;
+    border-radius: 3px;
+    background: oklch(0.72 0.14 78 / 0.22);
+    color: var(--gold);
+    font-size: clamp(7px, 2.1cqw, 10px);
+    font-weight: 700;
+  }
+  .hud-stats {
+    position: absolute;
+    left: 43%;
+    right: 4.6%;
+    top: 52.4%;
+    height: 8.6%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.3em;
+    padding: 0 0.7em;
+    border-radius: 0.4em;
+    background: linear-gradient(180deg, oklch(0.14 0.03 22 / 0.7), oklch(0.07 0.02 18 / 0.85));
+    font-size: clamp(8px, 2.5cqw, 12px);
+    white-space: nowrap;
+  }
+  .hud-stats > * { display: inline-flex; align-items: center; gap: 0.2em; min-width: 0; }
+  .hud-stats svg { width: clamp(9px, 2.7cqw, 14px); height: clamp(9px, 2.7cqw, 14px); }
+  .hud-foot {
+    position: absolute;
+    left: 9%;
+    right: 5%;
+    top: 75.6%;
+    height: 15.4%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.3em;
+    padding: 0 2%;
+    border-radius: 0.35em;
+    background: linear-gradient(180deg, oklch(0.13 0.02 20 / 0.5), oklch(0.07 0.02 18 / 0.68));
+  }
+  .hud-class {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted-foreground);
+    font-size: clamp(7px, 2.1cqw, 10px);
+  }
+  .hud-foot .bar-track { height: clamp(4px, 1.2cqw, 8px); }
+  .hud-stamina { width: 92%; margin: 0.35rem auto 0; }
 }
 
 @keyframes mythic-pulse { 50% { box-shadow: 0 0 28px var(--r5); } }
@@ -460,8 +550,8 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
 .hero-model-flip { transform: scaleX(-1); }
 
 /* ---------- Guild Hall courtyard ----------
-   The guild hall opens on the bazaar under the blood moon: a merchant tent, the master
-   skill tower and the headquarters keep. Each lane is the way into that part of the hall. */
+   The hall opens on the painted courtyard: the merchant's stall, the master skill tower,
+   the tiered skill tower and the keep. Each painted building is the way into that part. */
 .guild-hall-scene {
   position: relative;
   isolation: isolate;
@@ -471,34 +561,7 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   background: #12080a;
   box-shadow: inset 0 0 40px -16px #000;
 }
-.guild-hall-sky {
-  position: absolute; inset: 0;
-  background: radial-gradient(120% 95% at 50% 0%, oklch(0.32 0.14 25 / 0.95), oklch(0.11 0.03 20) 72%);
-}
-.guild-hall-moon {
-  position: absolute; right: 5%; top: -26%; height: 62%; aspect-ratio: 1; border-radius: 50%;
-  background: radial-gradient(circle at 42% 38%, oklch(0.68 0.25 32), oklch(0.4 0.19 26) 62%, oklch(0.28 0.13 25));
-  box-shadow: 0 0 46px 14px oklch(0.52 0.21 28 / 0.55);
-  opacity: 0.85;
-}
-.guild-hall-smoke {
-  position: absolute; inset: -10% -20% 30% -20%;
-  background: radial-gradient(50% 60% at 30% 70%, oklch(0.42 0.06 40 / 0.35), transparent 70%),
-              radial-gradient(45% 55% at 70% 60%, oklch(0.5 0.1 30 / 0.22), transparent 70%);
-  animation: guild-drift 26s ease-in-out infinite alternate;
-}
-.guild-hall-ridge {
-  position: absolute; left: 0; right: 0; bottom: 24%; height: 34%;
-  background: linear-gradient(180deg, transparent, oklch(0.15 0.05 22 / 0.92) 46%, oklch(0.09 0.03 20));
-  clip-path: polygon(0 100%, 0 62%, 8% 58%, 12% 28%, 16% 58%, 22% 55%, 26% 72%, 34% 68%, 40% 38%, 44% 68%, 52% 62%, 58% 74%, 66% 66%, 70% 34%, 74% 66%, 82% 60%, 88% 70%, 100% 64%, 100% 100%);
-}
-.guild-hall-lava {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 30%;
-  background: radial-gradient(75% 80% at 50% 100%, oklch(0.74 0.24 45), oklch(0.52 0.22 32) 52%, oklch(0.22 0.08 24) 88%, transparent);
-  opacity: 0.9;
-  mix-blend-mode: screen;
-}
-.guild-hall-banner { position: relative; z-index: 2; display: flex; align-items: center; gap: 0.75rem; padding: 0.9rem 1rem 0.25rem; }
+.guild-hall-banner { position: relative; z-index: 2; display: flex; align-items: center; gap: 0.75rem; padding: 0.9rem 1rem 0.6rem; }
 .guild-hall-emblem {
   display: grid; place-items: center; flex: 0 0 auto;
   width: 2.75rem; height: 3.1rem;
@@ -508,42 +571,58 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   clip-path: polygon(50% 0, 100% 12%, 100% 62%, 50% 100%, 0 62%, 0 12%);
   box-shadow: 0 0 18px oklch(0.55 0.22 30 / 0.6);
 }
-.guild-hall-lanes { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.5rem; padding: 0.75rem 1rem 1rem; }
-@media (max-width: 1024px) { .guild-hall-lanes { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .guild-hall-lanes { grid-template-columns: 1fr; } }
-.guild-lane {
-  position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
-  padding: 0.4rem 0.4rem 0.55rem; border-radius: var(--radius-md);
-  border: 1px solid oklch(0.4 0.08 30 / 0.9);
-  background: linear-gradient(180deg, oklch(0.17 0.04 22 / 0.92), oklch(0.1 0.03 20 / 0.96));
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+.guild-hall-view { position: relative; display: block; width: 100%; aspect-ratio: 1376 / 768; overflow: hidden; }
+.guild-hall-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; -webkit-user-select: none; user-select: none; }
+.guild-hall-ember { position: absolute; bottom: 0; z-index: 1; width: 0.25rem; height: 0.25rem; border-radius: 999px; background: var(--gold); pointer-events: none; }
+.guild-building {
+  position: absolute; z-index: 2;
+  border-radius: 0.6rem;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
-.guild-lane:hover { border-color: oklch(0.7 0.13 60); transform: translateY(-1px); }
-.guild-lane-active {
+.guild-building:hover, .guild-building:focus-visible {
+  border-color: oklch(0.85 0.13 80 / 0.8);
+  background: radial-gradient(60% 60% at 50% 65%, oklch(0.72 0.16 62 / 0.18), transparent 70%);
+  box-shadow: 0 0 22px -6px oklch(0.78 0.16 70 / 0.7), inset 0 0 30px -14px var(--gold);
+}
+.guild-building[aria-selected="true"] {
   border-color: var(--gold);
-  box-shadow: 0 0 18px -4px oklch(0.7 0.16 70 / 0.8), inset 0 0 26px -16px var(--gold);
+  background: radial-gradient(60% 60% at 50% 65%, oklch(0.72 0.16 62 / 0.14), transparent 72%);
+  box-shadow: 0 0 24px -6px oklch(0.78 0.16 70 / 0.85), inset 0 0 34px -16px var(--gold);
 }
-.guild-lane-art {
-  display: block; width: 100%; height: 3.1rem;
-  background: linear-gradient(180deg, oklch(0.36 0.1 28), oklch(0.14 0.04 22));
-  filter: drop-shadow(0 0 8px oklch(0.5 0.18 30 / 0.55));
+.guild-building-plate {
+  position: absolute; left: 50%; bottom: 0.4rem; transform: translateX(-50%);
+  display: grid; gap: 0.05rem; padding: 0.2rem 0.5rem; border-radius: 0.4rem;
+  background: oklch(0.1 0.03 20 / 0.88);
+  border: 1px solid oklch(0.7 0.13 75 / 0.85);
+  text-align: center; white-space: nowrap;
+  opacity: 0; transition: opacity 0.15s;
 }
-.guild-lane-merchant { clip-path: polygon(50% 0, 100% 46%, 100% 100%, 0 100%, 0 46%); }
-.guild-lane-tower { clip-path: polygon(50% 0, 74% 26%, 74% 100%, 26% 100%, 26% 26%); }
-.guild-lane-headquarters { clip-path: polygon(50% 0, 76% 22%, 88% 18%, 100% 30%, 100% 100%, 0 100%, 0 30%, 12% 18%, 24% 22%); }
-.guild-lane-reliquary { clip-path: polygon(50% 0, 84% 26%, 100% 26%, 100% 100%, 0 100%, 0 26%, 16% 26%); }
-.guild-lane-records { clip-path: polygon(50% 4%, 94% 0, 94% 84%, 50% 100%, 6% 84%, 6% 0); }
-.guild-lane-name { font-family: var(--font-display); font-size: 0.78rem; line-height: 1.15; text-align: center; }
-.guild-lane-hint { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); text-align: center; }
-.guild-lane-level {
-  position: absolute; top: 0.35rem; right: 0.45rem;
-  border-radius: 999px; padding: 0.05rem 0.35rem;
+.guild-building:hover .guild-building-plate,
+.guild-building:focus-visible .guild-building-plate,
+.guild-building[aria-selected="true"] .guild-building-plate { opacity: 1; }
+.guild-building-plate b { font-family: var(--font-display); font-size: 0.78rem; color: var(--gold); }
+.guild-building-plate em { font-size: 0.6rem; font-style: normal; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
+.guild-building-badge {
+  position: absolute; top: 0.4rem; right: 0.4rem; z-index: 3;
+  border-radius: 999px; padding: 0.05rem 0.4rem;
   font-size: 0.6rem; font-weight: 700; color: var(--primary-foreground);
   background: var(--gold-gradient);
 }
-@keyframes guild-drift {
-  from { transform: translate3d(-3%, 0, 0) scale(1); opacity: 0.9; }
-  to { transform: translate3d(5%, -5%, 0) scale(1.12); opacity: 0.55; }
+.guild-hall-rooms { display: none; }
+@media (max-width: 767px) {
+  .guild-hall-rooms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; padding: 0.6rem 0.75rem 0.85rem; }
+  .guild-room {
+    display: flex; flex-direction: column; gap: 0.1rem; padding: 0.4rem 0.5rem;
+    border-radius: var(--radius-md); border: 1px solid oklch(0.42 0.08 30 / 0.9);
+    background: linear-gradient(180deg, oklch(0.17 0.04 22 / 0.92), oklch(0.1 0.03 20 / 0.96));
+    text-align: left;
+  }
+  .guild-room-active { border-color: var(--gold); box-shadow: 0 0 16px -6px var(--gold); }
+  .guild-room-name { font-family: var(--font-display); font-size: 0.82rem; }
+  .guild-room-hint { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
 }
 
 /* World-chat event lines (level-ups, good drops, event openings) read as heraldry, not chatter. */
