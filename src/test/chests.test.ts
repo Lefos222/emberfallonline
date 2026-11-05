@@ -7,6 +7,7 @@ import {
   chestCount,
   claimRewardChest,
   formatChestCountdown,
+  goldChestValue,
   openChest,
   rewardChestCountdown,
   rewardChestReady,
@@ -22,7 +23,7 @@ describe("vault chests", () => {
     const goldBefore = h.gold;
     const lines = openChest(h, "gold");
     expect(chestCount(h, "gold")).toBe(1);
-    expect(h.gold).toBe(goldBefore + 2500 + h.level * 150);
+    expect(h.gold).toBe(goldBefore + goldChestValue(h.level));
     expect(matCount(h, "ore")).toBe(5);
     expect(matCount(h, "fragment")).toBe(2);
     expect(lines.length).toBeGreaterThan(0);

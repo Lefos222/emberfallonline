@@ -14,12 +14,12 @@ const gemTotal = (h: Hero) => Object.values(h.gems ?? {}).reduce((a, n) => a + n
 const attrTotal = (h: Hero) => Object.values(h.attrs).reduce((a, n) => a + n, 0);
 
 export const DAILY_QUESTS: DailyQuest[] = [
-  { id: "level", name: "Rise Through the Ranks", desc: "Gain a character level", target: 1, mat: "essence", mats: 2, gold: 400, xp: 250, count: (h) => h.level + h.paragon * 10 },
-  { id: "astral", name: "Bind New Astrals", desc: "Summon or capture 2 Astrals", target: 2, mat: "starshard", mats: 2, gold: 500, xp: 400, count: (h) => (h.astrals ?? []).length },
-  { id: "gems", name: "Cut Three Gems", desc: "Cut 3 gems from Ember Ore", target: 3, mat: "ore", mats: 3, gold: 350, xp: 300, count: gemTotal },
-  { id: "train", name: "Drill the Troops", desc: "Train 5 attribute points", target: 5, mat: "essence", mats: 2, gold: 300, xp: 350, count: attrTotal },
-  { id: "battle", name: "Win Five Battles", desc: "Win 5 fights anywhere", target: 5, mat: "fragment", mats: 1, gold: 450, xp: 500, count: (h) => h.record?.wins ?? 0 },
-  { id: "enhance", name: "Temper the Steel", desc: "Succeed at 3 enhancements", target: 3, mat: "essence", mats: 2, gold: 400, xp: 300, count: (h) => h.record?.enhances ?? 0 },
+  { id: "level", name: "Rise Through the Ranks", desc: "Gain a character level", target: 1, mat: "essence", mats: 2, gold: 180, xp: 250, count: (h) => h.level + h.paragon * 10 },
+  { id: "astral", name: "Bind New Astrals", desc: "Summon or capture 2 Astrals", target: 2, mat: "starshard", mats: 2, gold: 220, xp: 400, count: (h) => (h.astrals ?? []).length },
+  { id: "gems", name: "Cut Three Gems", desc: "Cut 3 gems from Ember Ore", target: 3, mat: "ore", mats: 3, gold: 150, xp: 300, count: gemTotal },
+  { id: "train", name: "Drill the Troops", desc: "Train 5 attribute points", target: 5, mat: "essence", mats: 2, gold: 130, xp: 350, count: attrTotal },
+  { id: "battle", name: "Win Five Battles", desc: "Win 5 fights anywhere", target: 5, mat: "fragment", mats: 1, gold: 200, xp: 500, count: (h) => h.record?.wins ?? 0 },
+  { id: "enhance", name: "Temper the Steel", desc: "Succeed at 3 enhancements", target: 3, mat: "essence", mats: 2, gold: 170, xp: 300, count: (h) => h.record?.enhances ?? 0 },
 ];
 
 /** Quests occasionally pay bonus progression: a skill-tree point or an Insight point. */

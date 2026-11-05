@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { Vault } from "@/game/Vault";
 import { DailyRewardsBoard } from "@/game/DailyRewardsBoard";
 import { newHero } from "@/game/data";
-import { addChests, chestCount } from "@/game/chests";
+import { addChests, chestCount, goldChestValue } from "@/game/chests";
 import { getState, setHero } from "@/game/store";
 
 afterEach(() => setHero(null));
@@ -24,7 +24,7 @@ describe("vault inventory slots", () => {
     fireEvent.click(screen.getByRole("button", { name: /Gold Chest, 1 in vault/ }));
     fireEvent.click(screen.getByRole("button", { name: /^Open \(1\)/ }));
 
-    expect(getState().hero?.gold).toBe(goldBefore + 2500 + hero.level * 150);
+    expect(getState().hero?.gold).toBe(goldBefore + goldChestValue(hero.level));
     expect(chestCount(getState().hero!, "gold")).toBe(0);
     expect(screen.getByText(/Opened Gold Chest:/)).toBeInTheDocument();
   });

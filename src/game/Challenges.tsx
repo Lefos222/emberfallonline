@@ -44,14 +44,14 @@ export function Challenges({ onClose, start, onExpeditions }: { onClose: () => v
       right: foe,
       onResult: async (won, xpMultiplier = 1) => {
         if (!won) return { lines: ["The boss stands victorious. Grow stronger."] };
-        const { grant, addLoot, makeDrop } = await import("./logic");
+        const { grant, addLoot, makeDrop, cappedRarity } = await import("./logic");
         let lines: string[] = []; let loot: Item | null = null;
         update((h) => {
           const { levels } = grant(h, scrollXp(rw.xp, xpMultiplier), rw.gold);
           h.challenges = { ...(h.challenges ?? {}), [id]: Math.max(cleared(h, id), d) };
           if (rw.bossCore) addMats(h, { bossCore: rw.bossCore });
           addWeeklyKill(h);
-          loot = makeDrop(h.cls, h.level + Math.floor(h.paragon / 2) + d * 2, rw.minRarity);
+          loot = makeDrop(h.cls, h.level + Math.floor(h.paragon / 2) + d * 2, cappedRarity(rw.minRarity, h.level));
           loot.name = `${TIER_BOSSES[id].name.split(",")[0]}'s ${loot.name.split(" ").slice(1).join(" ")}`;
           const full = h.inventory.length >= invCap(h); addLoot(h, loot); if (full) lines.push("Bag full — gear placed in your Overflow Chest (Armory)");
           lines = [...lines, `+${fmt(scrollXp(rw.xp, xpMultiplier))} XP`, `+${fmt(rw.gold)} gold`, ...(rw.bossCore ? [`+${rw.bossCore} Boss Core`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
@@ -71,11 +71,11 @@ export function Challenges({ onClose, start, onExpeditions }: { onClose: () => v
         const { grant, rollLoot, addLoot } = await import("./logic");
         let lines: string[] = []; let loot: Item | null = null;
         update((h) => {
-          const { levels } = grant(h, scrollXp(lvl * 60, xpMultiplier), lvl * 40);
+          const { levels } = grant(h, scrollXp(lvl * 60, xpMultiplier), lvl * 12);
           loot = rollLoot(h, lvl + 5, 0.8, 2);
           if (loot) addLoot(h, loot);
           addMats(h, { essence: 2 });
-          lines = [`+${fmt(scrollXp(lvl * 60, xpMultiplier))} XP`, `+${fmt(lvl * 40)} gold`, "+2 Soul Essence", ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+          lines = [`+${fmt(scrollXp(lvl * 60, xpMultiplier))} XP`, `+${fmt(lvl * 12)} gold`, "+2 Soul Essence", ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         return { lines, loot };
       },

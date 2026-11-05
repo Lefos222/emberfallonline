@@ -26,6 +26,8 @@ export interface ProgressState {
   buildings?: Record<string, number>;
   dungeons?: Record<string, number>;
   attrDrills?: Record<string, number>;
+  advancedDrills?: Record<string, number>;
+  voidCrystals?: number;
   rewardChest?: { claims?: number };
   dailyRewards?: { cycles?: number };
   eventBoss?: Record<string, number>;
@@ -173,7 +175,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   // ---- Guild and training, extended ----
   ...tiers({ cat: "Guild", desc: "Learn guild skill ranks", value: (h) => sum(h.guildSkills) }, "guild2", ["Guild Champion"], [100], [80000], ["Guild Champion"]),
   ...tiers({ cat: "Training", desc: "Learn barracks drill ranks", value: (h) => sum(h.drills) }, "drills2", ["Drill Marshal", "Drill Legend"], [60, 100], [50000, 120000], ["Drill Marshal", "Drill Legend"]),
-  ...tiers({ cat: "Training", desc: "Raise attribute drill ranks", value: (h) => sum(h.attrDrills) }, "attrdrills", ["Iron Body", "Steel Body", "Adamant Body"], [10, 30, 60], [3000, 20000, 80000], [undefined, undefined, "Adamant Body"]),
+  ...tiers({ cat: "Training", desc: "Raise attribute drill ranks", value: (h) => sum(h.attrDrills) + sum(h.advancedDrills) }, "attrdrills", ["Iron Body", "Steel Body", "Adamant Body"], [10, 30, 60], [3000, 20000, 80000], [undefined, undefined, "Adamant Body"]),
 
   // ---- Treasure ----
   ...tiers({ cat: "Treasure", desc: "Collect periodic reward chests", value: (h) => h.rewardChest?.claims ?? 0 }, "chestclaims", ["Chest Opener", "Chest Collector", "Chest Hunter", "Chest Sovereign"], [10, 50, 100, 250], [600, 3000, 12000, 40000], [undefined, undefined, undefined, "Chest Sovereign"]),
@@ -185,6 +187,9 @@ export const ACHIEVEMENTS: Achievement[] = [
 ];
 
 export const achProgress = (h: ProgressState, a: Achievement) => Math.min(a.goal, Math.max(0, a.value(h)));
+/** Gold is scarce now (see stageRewards in data.ts), so achievement purses pay their old headline at a fifth. */
+export const ACH_GOLD_SCALE = 0.2;
+export const achGold = (a: Achievement) => Math.max(1, Math.round(a.gold * ACH_GOLD_SCALE));
 export const isClaimable = (h: ProgressState, a: Achievement) => achProgress(h, a) >= a.goal && !(h.achClaimed ?? []).includes(a.id);
 /** Titles unlocked by claimed achievements. */
 export const earnedTitles = (h: Pick<ProgressState, "achClaimed">) =>

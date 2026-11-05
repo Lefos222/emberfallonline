@@ -418,8 +418,8 @@ export const recipeGold = (r: Recipe, level = 1) => scaledGold(r.gold, level);
 export const RECIPES: Recipe[] = [
   { id: "rare", name: "Forged Rare piece", rarity: 2, mats: { ore: 20, essence: 2 }, gold: 500, minLevel: 1, desc: "A guaranteed Rare item for the chosen slot." },
   { id: "epic", name: "Forged Epic piece", rarity: 3, mats: { ore: 90, essence: 16 }, gold: 2500, minLevel: 15, desc: "A guaranteed Epic item with 2 sockets." },
-  { id: "legend", name: "Boss-forged Legendary", rarity: 4, mats: { ore: 220, essence: 40, bossCore: 6 }, gold: 12000, minLevel: 35, desc: "Legendary gear forged from boss cores." },
-  { id: "mythic", name: "Mythic Masterwork", rarity: 5, mats: { ore: 520, essence: 110, bossCore: 20 }, gold: 60000, minLevel: 60, desc: "Mythic gear with 3 sockets." },
+  { id: "legend", name: "Boss-forged Legendary", rarity: 4, mats: { ore: 220, essence: 40, bossCore: 6 }, gold: 12000, minLevel: 40, desc: "Legendary gear forged from boss cores." },
+  { id: "mythic", name: "Mythic Masterwork", rarity: 5, mats: { ore: 520, essence: 110, bossCore: 20 }, gold: 60000, minLevel: 70, desc: "Mythic gear with 3 sockets." },
   { id: "sentinel", name: "Iron Sentinel", rarity: 3, mats: { ore: 120, essence: 12, fragment: 18, sigil: 5 }, gold: 3200, minLevel: 20, desc: "An Epic sentinel piece forged from elite trophies. Two gem sockets." },
   { id: "starweave", name: "Starweave Relic", rarity: 4, mats: { ore: 190, essence: 50, starshard: 40, bossCore: 6 }, gold: 15000, minLevel: 40, desc: "A Legendary Starweave piece for your chosen slot. Two gem sockets." },
   { id: "voidforged", name: "Voidforged Sovereign", rarity: 5, mats: { ore: 620, essence: 150, starshard: 80, bossCore: 24, sigil: 30 }, gold: 80000, minLevel: 80, desc: "A Mythic sovereign piece for Ascension builds. Three gem sockets." },

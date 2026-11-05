@@ -40,7 +40,7 @@ export function challengeRewards(id: TierBossId, difficulty: number, mod: Modifi
   const i = BOSS_ORDER.indexOf(id);
   const m = mod.reward * (1 + i * 0.25);
   return {
-    gold: Math.round(1500 * difficulty * difficulty * m),
+    gold: Math.round(150 * difficulty * difficulty * m),
     xp: Math.round(800 * difficulty * difficulty * m),
     bossCore: difficulty >= 3 ? Math.ceil(difficulty / 3) : 0,
     /** Minimum gear rarity from this clear: Legendary from D5, Mythic from D8. */
@@ -57,7 +57,7 @@ export function eliteFoe(level: number, rand = Math.random): Foe & { sprite: Spr
 }
 
 export const WEEKLY_GOAL = 5;
-export const WEEKLY_REWARD = { gold: 15000, starshard: 20, bossCore: 3 };
+export const WEEKLY_REWARD = { gold: 4000, starshard: 20, bossCore: 3 };
 /** Normalizes the weekly tracker to the current week (resets progress on a new week). */
 export function currentWeekly(h: EndgameState, now = Date.now()) {
   const w = weekIndex(now);
