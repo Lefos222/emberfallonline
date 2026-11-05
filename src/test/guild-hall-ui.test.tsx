@@ -7,15 +7,15 @@ import { GuildReliquary, GuildSkillTower } from "@/game/GuildTower";
 import { GUILD_SKILLS, guildSkillPrice, learnGuildSkill } from "@/game/guild-tower";
 
 describe("the guild courtyard", () => {
-  it("offers every room of the hall as a lane", () => {
+  it("offers every painted building of the hall", () => {
     const onSelect = vi.fn();
     render(<GuildHallScene name="Ember Wardens" level={3} members={12} power={48210} role="leader"
       relics={{ woken: 2, total: 7 }} location="headquarters" onSelect={onSelect} />);
-    for (const lane of ["Guild Headquarters", "Guild Merchant", "Master Skill Tower", "Reliquary", "Hall of Records"]) {
-      expect(screen.getByRole("tab", { name: lane })).toBeInTheDocument();
+    for (const building of ["Guild Headquarters", "Guild Merchant", "Master Skill Tower", "Skill Tower Lvl. 10"]) {
+      expect(screen.getAllByRole("tab", { name: building }).length).toBeGreaterThan(0);
     }
-    fireEvent.click(screen.getByRole("tab", { name: "Hall of Records" }));
-    expect(onSelect).toHaveBeenCalledWith("records");
+    fireEvent.click(screen.getAllByRole("tab", { name: "Skill Tower Lvl. 10" })[0]);
+    expect(onSelect).toHaveBeenCalledWith("reliquary");
   });
 });
 

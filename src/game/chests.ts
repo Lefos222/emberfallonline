@@ -49,6 +49,19 @@ const pickGem = (): GemType => GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.le
 /** Coin inside one Gold Chest — a few fights' worth, in step with the scarce campaign purse. */
 export const goldChestValue = (level: number) => 600 + level * 45;
 
+// ---------- Chests found in battle ----------
+
+/** Chance a won fight leaves a chest behind. Gem chests are the rarer find. */
+export const BATTLE_CHEST_ODDS: Record<ChestKind, number> = { gold: 0.1, gem: 0.04 };
+
+/** Roll the chest a won battle drops, or null when the field stays empty. */
+export function rollBattleChest(random: () => number = Math.random): ChestKind | null {
+  const roll = random();
+  if (roll < BATTLE_CHEST_ODDS.gem) return "gem";
+  if (roll < BATTLE_CHEST_ODDS.gem + BATTLE_CHEST_ODDS.gold) return "gold";
+  return null;
+}
+
 /** Open one chest from the vault. Returns the reward lines shown to the player. */
 export function openChest(h: Hero, kind: ChestKind): string[] {
   if (chestCount(h, kind) < 1) throw new Error(`No ${CHESTS[kind].name} in your vault.`);

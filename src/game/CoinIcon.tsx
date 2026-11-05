@@ -1,10 +1,13 @@
 import { useId } from "react";
+import goldChestArt from "@/assets/chest-gold.webp";
+import gemChestArt from "@/assets/chest-gem.webp";
 
 /**
  * Painted currency marks. The gold coin follows the supplied reference: a milled
  * edge, a raised five-pointed star and warm bronze shadows. The Conquest coin is
  * the gate's cursed token: black iron, a red rune ring and a glowing purple eye.
  * They are drawn as SVG so they stay crisp from the 16px HUD row up to a panel.
+ * The chests use the painted coffer art instead of a vector stand-in.
  */
 
 const clean = (id: string) => id.replace(/[^a-zA-Z0-9_-]/g, "");
@@ -178,156 +181,26 @@ export function ConquestCoin({ size = 18, className = "" }: { size?: number; cla
   );
 }
 
-export function GoldChestIcon({
-  size = 40,
-  className = "",
-}: {
-  size?: number;
-  className?: string;
-}) {
-  const raw = useId();
-  const uid = `chest${clean(raw)}`;
+/** A chest mark taken straight from the painted coffer art, cropped to its square frame. */
+function ChestArt({ art, size, className }: { art: string; size: number; className?: string }) {
   return (
-    <svg
+    <img
+      src={art}
+      alt=""
+      aria-hidden
+      draggable={false}
       width={size}
       height={size}
-      viewBox="0 0 48 48"
-      className={`inline-block shrink-0 align-middle ${className}`}
-      aria-hidden="true"
-      focusable="false"
-    >
-      <defs>
-        <linearGradient id={`${uid}-lid`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#a56e2c" />
-          <stop offset="55%" stopColor="#74481a" />
-          <stop offset="100%" stopColor="#4a2c0f" />
-        </linearGradient>
-        <linearGradient id={`${uid}-body`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#6c4218" />
-          <stop offset="100%" stopColor="#3a220c" />
-        </linearGradient>
-        <linearGradient id={`${uid}-trim`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#ffe9a0" />
-          <stop offset="50%" stopColor="#d3a13f" />
-          <stop offset="100%" stopColor="#8a5f1c" />
-        </linearGradient>
-        <radialGradient id={`${uid}-halo`} cx="50%" cy="55%" r="55%">
-          <stop offset="0%" stopColor="#ffd97a" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#ffd97a" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <circle cx="24" cy="26" r="22" fill={`url(#${uid}-halo)`} />
-      <rect
-        x="8"
-        y="20"
-        width="32"
-        height="21"
-        rx="3"
-        fill={`url(#${uid}-body)`}
-        stroke="#2a1808"
-      />
-      <path
-        d="M8 14.5c0-3 2.4-5.5 5.5-5.5h21c3.1 0 5.5 2.5 5.5 5.5V21H8z"
-        fill={`url(#${uid}-lid)`}
-        stroke="#2a1808"
-      />
-      <rect x="8" y="20" width="32" height="2.6" fill={`url(#${uid}-trim)`} />
-      <rect x="13.5" y="21" width="3.2" height="20" fill={`url(#${uid}-trim)`} opacity="0.9" />
-      <rect x="31.3" y="21" width="3.2" height="20" fill={`url(#${uid}-trim)`} opacity="0.9" />
-      <rect
-        x="20.4"
-        y="15"
-        width="7.2"
-        height="14"
-        rx="1.4"
-        fill={`url(#${uid}-trim)`}
-        stroke="#7a5316"
-        strokeWidth="0.8"
-      />
-      <path
-        d="M24 18.2l1.55 3.3 3.55.35-2.7 2.4.86 3.55L24 26.1l-3.26 1.7.86-3.55-2.7-2.4 3.55-.35z"
-        fill="#5a3d10"
-      />
-      <rect
-        x="21.8"
-        y="29"
-        width="4.4"
-        height="3.6"
-        rx="0.8"
-        fill="#e5bd5b"
-        stroke="#7a5316"
-        strokeWidth="0.7"
-      />
-    </svg>
+      className={`inline-block shrink-0 rounded-[3px] object-cover align-middle ${className}`}
+      style={{ width: size, height: size, objectFit: "cover" }}
+    />
   );
 }
 
+export function GoldChestIcon({ size = 40, className = "" }: { size?: number; className?: string }) {
+  return <ChestArt art={goldChestArt} size={size} className={className} />;
+}
+
 export function GemChestIcon({ size = 40, className = "" }: { size?: number; className?: string }) {
-  const raw = useId();
-  const uid = `gchest${clean(raw)}`;
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 48 48"
-      className={`inline-block shrink-0 align-middle ${className}`}
-      aria-hidden="true"
-      focusable="false"
-    >
-      <defs>
-        <linearGradient id={`${uid}-lid`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#3d3548" />
-          <stop offset="100%" stopColor="#211b2a" />
-        </linearGradient>
-        <linearGradient id={`${uid}-body`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2a2234" />
-          <stop offset="100%" stopColor="#141019" />
-        </linearGradient>
-        <linearGradient id={`${uid}-trim`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#c5a566" />
-          <stop offset="55%" stopColor="#8e7a50" />
-          <stop offset="100%" stopColor="#4c3f28" />
-        </linearGradient>
-        <radialGradient id={`${uid}-halo`} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#a75cff" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#5e2b8f" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <circle cx="24" cy="25" r="21" fill={`url(#${uid}-halo)`} />
-      <rect
-        x="8"
-        y="20"
-        width="32"
-        height="21"
-        rx="3"
-        fill={`url(#${uid}-body)`}
-        stroke="#090710"
-      />
-      <path
-        d="M8 14.5c0-3 2.4-5.5 5.5-5.5h21c3.1 0 5.5 2.5 5.5 5.5V21H8z"
-        fill={`url(#${uid}-lid)`}
-        stroke="#090710"
-      />
-      <rect x="8" y="20" width="32" height="2.6" fill={`url(#${uid}-trim)`} />
-      <rect x="13.5" y="21" width="3.2" height="20" fill={`url(#${uid}-trim)`} opacity="0.85" />
-      <rect x="31.3" y="21" width="3.2" height="20" fill={`url(#${uid}-trim)`} opacity="0.85" />
-      <rect
-        x="20.6"
-        y="14.6"
-        width="6.8"
-        height="14"
-        rx="1.4"
-        fill="#1b1524"
-        stroke="#8e7a50"
-        strokeWidth="0.9"
-      />
-      <path
-        d="M24 16.3l2.9 3.4-1 4.1h-3.8l-1-4.1z"
-        fill="#a75cff"
-        stroke="#e2c8ff"
-        strokeWidth="0.7"
-      />
-      <circle cx="24" cy="26.2" r="1.1" fill="#f0dcff" opacity="0.9" />
-    </svg>
-  );
+  return <ChestArt art={gemChestArt} size={size} className={className} />;
 }

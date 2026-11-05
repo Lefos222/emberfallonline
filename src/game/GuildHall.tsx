@@ -197,8 +197,6 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
         <GuildReliquary />
       </div>}
 
-      {location === "records" && <GuildRecords guild={guild} members={members} memberHeroes={memberHeroes} heroId={heroId} />}
-
       {location === "headquarters" && <>
         {/* The guild charter: the words every member reads on the way in. */}
         <div className="mt-4 slot p-4">
@@ -241,6 +239,12 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
           <div><h4 className="mb-2 font-display text-xl">Guild chat</h4><div className="h-72 overflow-y-auto border-y border-border py-2">{messages.length === 0 && <p className="text-sm text-muted-foreground">No guild messages yet.</p>}{messages.map((m) => <p key={m.id} className="mb-2 break-words text-sm"><b className="text-gold">{m.sender_name}</b><span className="ml-2 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span><span className="block">{m.body}</span></p>)}</div>
             <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); void request.run(async () => { if (!heroId) return; const { error } = await supabase.rpc("send_chat", { _hero: heroId, _channel: "guild", _body: body, _to: "00000000-0000-0000-0000-000000000000" }); if (error) throw new Error(error.message); setBody(""); await load(); }); }}><input className="slot min-w-0 flex-1 px-3" aria-label="Guild message" maxLength={200} required value={body} onChange={(e) => setBody(e.target.value)} /><Button size="icon" aria-label="Send guild message" disabled={request.busy || !body.trim()}><Send /></Button></form>
           </div>
+        </div>
+
+        {/* The keep also keeps the hall's ledger and deeds. */}
+        <div className="mt-6 border-t border-border pt-5">
+          <h4 className="mb-2 font-display text-xl text-gold">Hall of Records</h4>
+          <GuildRecords guild={guild} members={members} memberHeroes={memberHeroes} heroId={heroId} />
         </div>
       </>}
     </>}
