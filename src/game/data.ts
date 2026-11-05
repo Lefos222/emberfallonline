@@ -357,14 +357,17 @@ export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
 }
 
 /** Levels past this point get steadily slower so reaching the cap takes months, not weeks. */
-export const LATE_LEVEL = 27;
-/** Extra XP multiplier per level: 1x up to Lv 27, then +8.5% compounding each level (~75x by Lv 80). */
+export const LATE_LEVEL = 20;
+/** Extra XP multiplier per level: 1x up to Lv 20, then +12% compounding each level (~895x by Lv 80).
+ *  This creates a real grind wall after level 20 — each level takes significantly longer than the last. */
 export function lateLevelFactor(level: number) {
-  return Math.pow(1.085, Math.max(0, level - LATE_LEVEL));
+  return Math.pow(1.12, Math.max(0, level - LATE_LEVEL));
 }
 
 /** Stages past this point are the hard half of the campaign: foes grow faster than the road below it. */
 export const HARD_STAGE = 30;
+/** Levels past this point are the deep grind: rewards taper so each level takes many sessions. */
+export const GRIND_LEVEL = 20;
 
 /** A hero fighting a stage far above their own level is under-levelled: the campaign pays up to
  *  double XP until they catch up, so a bad stretch never walls a player out of progression. */
@@ -552,10 +555,15 @@ export function earlyEase(stage: number) {
 /** Rewards rise with the stage but always stay well below what the next level costs (see xpToNext).
  *  Gold is deliberately scarce: a stage pays a few hundred coins, while one enhancement or barracks
  *  level costs many fights, so coin keeps its value from the first hour to the endgame. */
+/** Rewards rise with the stage but taper hard after the mid-game so the XP curve outpaces them.
+ *  Gold is deliberately scarce: a stage pays a few hundred coins, while one enhancement or barracks
+ *  level costs many fights, so coin keeps its value from the first hour to the endgame. */
 export function stageRewards(stage: number, mult = 1) {
   const late = Math.pow(1.01, Math.max(0, stage - HARD_STAGE));
+  // After stage 30 rewards grow more slowly than the XP curve, so levels take progressively longer.
+  const grindTaper = Math.pow(0.985, Math.max(0, stage - HARD_STAGE));
   return {
-    xp: Math.round(34 * Math.pow(stage, 1.6) * late * mult),
+    xp: Math.round(34 * Math.pow(stage, 1.6) * late * grindTaper * mult),
     gold: Math.round((6 + 1.5 * Math.pow(stage, 1.55)) * late * mult),
   };
 }

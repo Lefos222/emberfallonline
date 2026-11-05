@@ -66,7 +66,7 @@ export function questsForLevel(level: number): LevelQuest[] {
       desc: d.desc.replace("{n}", String(target)),
       target,
       gold: Math.round(50 + 12 * lv + 0.4 * lv * lv),
-      xp: Math.round(xpToNext({ level: lv, paragon: 0 }) * 0.08),
+      xp: Math.round(xpToNext({ level: lv, paragon: 0 }) * 0.05),
     };
   });
 }

@@ -1,6 +1,6 @@
 import { Cloud, CloudOff, IdCard, LogOut, Trophy, Users, Volume2, VolumeX } from "lucide-react";
-import cardFrame from "./assets/player-card-frame.png";
-import portraitFrame from "./assets/player-portrait-frame.png";
+import cardFrame from "../assets/player-card-frame.png";
+import portraitFrame from "../assets/player-portrait-frame.png";
 import { AvatarIcon } from "./AvatarIcon";
 import { Portrait, frameClass } from "./CharacterSelect";
 import { heroAppearance } from "./appearance";

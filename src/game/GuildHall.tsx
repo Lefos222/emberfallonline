@@ -37,12 +37,23 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
   // The courtyard is the way in: members land on their guild's banner and walk to a room.
   const [location, setLocation] = useState<GuildLocation>("headquarters");
   const load = async () => {
-    if (!heroId) return;
-    const [membership, invitation] = await Promise.all([
-      supabase.from("guild_members").select("*").eq("hero_id", heroId).maybeSingle(),
-      supabase.from("guild_invites").select("*").eq("hero_id", heroId),
-    ]);
-    if (membership.error || invitation.error) throw new Error(membership.error?.message ?? invitation.error?.message);
+    if (!heroId) { setLoaded(true); return; }
+    // If the Supabase guild tables are unreachable, still show the panel with a "no guild" view
+    // so the hall is never a blank screen — the user can still try to create or browse guilds.
+    const fail = (e: unknown) => {
+      setGuild(null); setMembers([]); setMessages([]); setApplications([]); setMemberHeroes({});
+      setAllGuilds([]); setInvites([]); setMyApps([]);
+      setLoaded(true);
+      throw e;
+    };
+    let membership, invitation;
+    try {
+      [membership, invitation] = await Promise.all([
+        supabase.from("guild_members").select("*").eq("hero_id", heroId).maybeSingle(),
+        supabase.from("guild_invites").select("*").eq("hero_id", heroId),
+      ]);
+      if (membership.error || invitation.error) throw new Error(membership.error?.message ?? invitation.error?.message);
+    } catch (e) { return fail(e); }
     setInvites(invitation.data ?? []);
     const ids = (invitation.data ?? []).map((i) => i.guild_id);
     if (ids.length) {
