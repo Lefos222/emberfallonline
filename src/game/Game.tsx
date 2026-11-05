@@ -7,6 +7,7 @@ import { ArtIcon, type ArtIconName } from "./ArtIcon";
 import { AvatarIcon } from "./AvatarIcon";
 import { GuildHall } from "./GuildHall";
 import { WorldChat } from "./WorldChat";
+import { announceOpenEvents, announceWorldEvent } from "./world-events";
 import { FriendsPanel, useFriendRequestCount } from "./FriendsPanel";
 import { ScrollShop } from "./ScrollShop";
 import { Bestiary } from "./Bestiary";
@@ -66,6 +67,14 @@ export function Game() {
     update((h) => { if (!h.levelQuests || h.levelQuests.level !== h.level) rollLevelQuests(h); });
   }, [hero?.level]);
 
+  // World chat announces each world event as it opens, so everyone sees the window go live.
+  useEffect(() => {
+    if (!heroId) return;
+    void announceOpenEvents(heroId);
+    const timer = setInterval(() => void announceOpenEvents(heroId), 10 * 60_000);
+    return () => clearInterval(timer);
+  }, [heroId]);
+
   // A sign-in that lands a beat late must not bounce the player out; re-check live state at fire time.
   useEffect(() => {
     if (!authReady || userId) return;
@@ -116,8 +125,13 @@ export function Game() {
     if (!battle || settled.current === battle) return;
     settled.current = battle;
     const before = useGameOverflow();
+    const levelBefore = getState().hero?.level ?? 1;
     const r0 = await battle.onResult(won, battle.left.scrolls?.includes("xp") ? 1.2 : 1);
     const r = { ...r0, lines: [...r0.lines] };
+    // World chat hears about the milestones worth bragging about, never about ordinary fights.
+    const after = getState().hero;
+    if (after && after.level > levelBefore) void announceWorldEvent(heroId, `reached level ${after.level}!`);
+    if (r.loot && r.loot.rarity >= 2) void announceWorldEvent(heroId, `looted ${r.loot.name}!`);
     if (useGameOverflow() > before && !r.lines.some((l) => /Overflow/.test(l))) r.lines.push("Bag full — loot placed in your Overflow Chest (Armory)");
     if (won) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m)); });
     update((h) => recordBattle(h, { title: battle.title, won, boss: !!battle.right.boss, arena: /arena/i.test(battle.title), rewards: [...r.lines, ...(r.loot ? [r.loot.name] : [])] }));
