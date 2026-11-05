@@ -19,8 +19,8 @@ vi.mock("@/integrations/supabase/client", () => {
   const query = (resolved: { data: unknown; error: null }) => {
     const q: Record<string, unknown> = {};
     for (const method of ["select", "eq", "order", "limit", "neq"]) q[method] = () => q;
-    q.maybeSingle = async () => resolved;
-    q.then = (ok: (v: unknown) => unknown, fail?: (e: unknown) => unknown) => Promise.resolve(resolved).then(ok, fail);
+    q["maybeSingle"] = async () => resolved;
+    q["then"] = (ok: (v: unknown) => unknown, fail?: (e: unknown) => unknown) => Promise.resolve(resolved).then(ok, fail);
     return q;
   };
   return {
