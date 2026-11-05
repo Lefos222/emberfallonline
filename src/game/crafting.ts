@@ -415,21 +415,26 @@ export interface Recipe {
 /** What a recipe's gold cost comes to for a hero of this level. */
 export const recipeGold = (r: Recipe, level = 1) => scaledGold(r.gold, level);
 
+/**
+ * Forge prices. Forged gear — armour above all — is a deliberate long-term sink: every recipe
+ * asks for roughly 60% more materials and 75% more gold than the original tuning, so a crafted
+ * set is a commitment rather than a shortcut past the drop tables.
+ */
 export const RECIPES: Recipe[] = [
-  { id: "rare", name: "Forged Rare piece", rarity: 2, mats: { ore: 20, essence: 2 }, gold: 500, minLevel: 1, desc: "A guaranteed Rare item for the chosen slot." },
-  { id: "epic", name: "Forged Epic piece", rarity: 3, mats: { ore: 90, essence: 16 }, gold: 2500, minLevel: 15, desc: "A guaranteed Epic item with 2 sockets." },
-  { id: "legend", name: "Boss-forged Legendary", rarity: 4, mats: { ore: 220, essence: 40, bossCore: 6 }, gold: 12000, minLevel: 40, desc: "Legendary gear forged from boss cores." },
-  { id: "mythic", name: "Mythic Masterwork", rarity: 5, mats: { ore: 520, essence: 110, bossCore: 20 }, gold: 60000, minLevel: 70, desc: "Mythic gear with 3 sockets." },
-  { id: "sentinel", name: "Iron Sentinel", rarity: 3, mats: { ore: 120, essence: 12, fragment: 18, sigil: 5 }, gold: 3200, minLevel: 20, desc: "An Epic sentinel piece forged from elite trophies. Two gem sockets." },
-  { id: "starweave", name: "Starweave Relic", rarity: 4, mats: { ore: 190, essence: 50, starshard: 40, bossCore: 6 }, gold: 15000, minLevel: 40, desc: "A Legendary Starweave piece for your chosen slot. Two gem sockets." },
-  { id: "voidforged", name: "Voidforged Sovereign", rarity: 5, mats: { ore: 620, essence: 150, starshard: 80, bossCore: 24, sigil: 30 }, gold: 80000, minLevel: 80, desc: "A Mythic sovereign piece for Ascension builds. Three gem sockets." },
+  { id: "rare", name: "Forged Rare piece", rarity: 2, mats: { ore: 32, essence: 4 }, gold: 900, minLevel: 1, desc: "A guaranteed Rare item for the chosen slot." },
+  { id: "epic", name: "Forged Epic piece", rarity: 3, mats: { ore: 145, essence: 26 }, gold: 4400, minLevel: 15, desc: "A guaranteed Epic item with 2 sockets." },
+  { id: "legend", name: "Boss-forged Legendary", rarity: 4, mats: { ore: 350, essence: 64, bossCore: 10 }, gold: 21000, minLevel: 40, desc: "Legendary gear forged from boss cores." },
+  { id: "mythic", name: "Mythic Masterwork", rarity: 5, mats: { ore: 830, essence: 176, bossCore: 32 }, gold: 105000, minLevel: 70, desc: "Mythic gear with 3 sockets." },
+  { id: "sentinel", name: "Iron Sentinel", rarity: 3, mats: { ore: 190, essence: 20, fragment: 29, sigil: 8 }, gold: 5600, minLevel: 20, desc: "An Epic sentinel piece forged from elite trophies. Two gem sockets." },
+  { id: "starweave", name: "Starweave Relic", rarity: 4, mats: { ore: 305, essence: 80, starshard: 64, bossCore: 10 }, gold: 26000, minLevel: 40, desc: "A Legendary Starweave piece for your chosen slot. Two gem sockets." },
+  { id: "voidforged", name: "Voidforged Sovereign", rarity: 5, mats: { ore: 990, essence: 240, starshard: 128, bossCore: 38, sigil: 48 }, gold: 140000, minLevel: 80, desc: "A Mythic sovereign piece for Ascension builds. Three gem sockets." },
 ];
 
 /** Armor slots: Rare and better armor exists only through crafting. */
 export const ARMOR_SLOTS: Slot[] = ["helmet", "armour", "boots", "belt"];
 export const isArmor = (s: Slot) => ARMOR_SLOTS.includes(s);
 /** Extra ingredients armor recipes need on top of the base recipe. */
-export const ARMOR_EXTRA: Record<string, Mats> = { rare: { fragment: 5 }, epic: { fragment: 22, sigil: 4 }, legend: { fragment: 45, sigil: 10 }, mythic: { fragment: 110, sigil: 24 }, sentinel: { fragment: 22, sigil: 4 }, starweave: { fragment: 45, sigil: 10 }, voidforged: { fragment: 110, sigil: 24 } };
+export const ARMOR_EXTRA: Record<string, Mats> = { rare: { fragment: 8 }, epic: { fragment: 35, sigil: 6 }, legend: { fragment: 72, sigil: 16 }, mythic: { fragment: 176, sigil: 38 }, sentinel: { fragment: 35, sigil: 6 }, starweave: { fragment: 72, sigil: 16 }, voidforged: { fragment: 176, sigil: 38 } };
 export const recipeMats = (r: Recipe, slot: Slot): Mats => {
   if (!isArmor(slot)) return r.mats;
   const out: Mats = { ...r.mats };

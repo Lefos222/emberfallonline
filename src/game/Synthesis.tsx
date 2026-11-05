@@ -207,7 +207,7 @@ function SetBill({ tier }: { tier: number }) {
           <span key={m} className="flex items-center gap-1"><MatIcon mat={m} size={12} />{MATS[m].name} <b className="text-gold">{n}</b></span>
         ))}
       </div>
-      <p className="mt-1 text-muted-foreground">Eight pieces, roughly a fortnight of steady grinding.</p>
+      <p className="mt-1 text-muted-foreground">Eight pieces, roughly three weeks of steady grinding.</p>
     </div>
   );
 }

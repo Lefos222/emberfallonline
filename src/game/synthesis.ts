@@ -92,23 +92,24 @@ export function appearanceTier(h: { synth?: SynthSave }): number | null {
 // ---------------------------------------------------------------------------
 // Costs
 //
-// A full set is tuned to about two weeks of consistent play. Battle income grows
-// with the hero's level, so the ore and hide totals climb with the set while the
-// rarer drops stay close to their drop rate; the piece-by-piece split keeps every
+// A full set is tuned to roughly three weeks of consistent play: synthesis was raised by
+// half across every material, so a finished set is the game's longest armour climb. Battle
+// income grows with the hero's level, so the ore and hide totals climb with the set while
+// the rarer drops stay close to their drop rate; the piece-by-piece split keeps every
 // piece's own requirements distinct without changing the set total.
 // ---------------------------------------------------------------------------
 type Mats = Partial<Record<Mat, number>>;
 
 const SET_TOTALS: Partial<Record<Mat, number[]>> = {
-  ore: [3440, 4065, 4690, 5315, 5940, 6565, 7190, 7815, 8440],
-  hide: [2500, 2915, 3330, 3745, 4160, 4575, 4990, 5405, 5820],
-  bloom: [185, 187, 189, 191, 193, 195, 197, 199, 201],
-  essence: [215, 218, 221, 224, 227, 230, 233, 236, 239],
-  fragment: [72, 74, 76, 78, 80, 82, 84, 86, 88],
-  crystal: [30, 31, 32, 33, 34, 35, 36, 37, 38],
-  sigil: [90, 93, 96, 99, 102, 105, 108, 111, 114],
-  bossCore: [60, 62, 64, 66, 68, 70, 72, 74, 76],
-  starshard: [90, 93, 96, 99, 102, 105, 108, 111, 114],
+  ore: [5160, 6100, 7035, 7975, 8910, 9850, 10785, 11725, 12660],
+  hide: [3750, 4375, 4995, 5615, 6240, 6865, 7485, 8110, 8730],
+  bloom: [278, 281, 284, 287, 290, 293, 296, 299, 302],
+  essence: [323, 327, 332, 336, 341, 345, 350, 354, 359],
+  fragment: [108, 111, 114, 117, 120, 123, 126, 129, 132],
+  crystal: [45, 47, 48, 50, 51, 53, 54, 56, 57],
+  sigil: [135, 140, 144, 149, 153, 158, 162, 167, 171],
+  bossCore: [90, 93, 96, 99, 102, 105, 108, 111, 114],
+  starshard: [135, 140, 144, 149, 153, 158, 162, 167, 171],
 };
 const MATS_USED = Object.keys(SET_TOTALS) as Mat[];
 
