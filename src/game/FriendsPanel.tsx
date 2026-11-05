@@ -5,7 +5,6 @@ import { InspectPanel } from "./InspectPanel";
 import { FriendChat } from "./FriendChat";
 import {
   cancelFriendRequest,
-  friendRequestsSupported,
   listFriendRequests,
   listFriends,
   listIncomingDirectMessages,
@@ -18,6 +17,7 @@ import {
   type FriendProfile,
   type FriendRequest,
   type HeroSearchResult,
+  type RequestOutcome,
   type SentFriendRequest,
 } from "./social";
 
@@ -239,10 +239,13 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
   };
 
   const addHero = async (hero: HeroSearchResult) => {
-    // The note depends on whether the server took a pending request or an instant friendship.
-    const ok = await mutate((id) => requestFriend(id, hero.name));
+    // The server answers "sent", or "friends" when they had already asked us.
+    const result: { outcome: RequestOutcome | null } = { outcome: null };
+    const ok = await mutate(async (id) => {
+      result.outcome = await requestFriend(id, hero.name);
+    });
     if (!ok) return;
-    const pendingRequest = friendRequestsSupported();
+    const pendingRequest = result.outcome !== "friends";
     setNote(
       pendingRequest
         ? `Friend request sent to ${hero.name}. They must accept it first.`

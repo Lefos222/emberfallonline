@@ -48,108 +48,103 @@ export interface HeroSearchResult {
   relation: HeroRelation;
 }
 
-// ============ Local storage friend system (no Supabase RPCs) ============
-// Friends and requests are stored in the browser so the feature works without
-// any database functions. Hero search and profile lookup use the public heroes
-// table (a regular PostgREST query, not an RPC).
+/** "sent" while the other hero still has to answer; "friends" when they had already asked us. */
+export type RequestOutcome = "sent" | "friends";
 
-const FRIENDS_KEY = (heroId: string) => `ef-local-friends:${heroId}`;
-const ALL_REQUESTS_KEY = "ef-local-all-requests";
+// ============ Server-side friend system (drizzle/migrations/0017 + 0022) ============
+// Requests and friendships live in the database so the other hero sees them on their
+// own device. Every read and write goes through a SECURITY DEFINER RPC, like the rest
+// of the social tables.
 
-interface StoredRequest {
-  id: string;
-  fromId: string;
-  fromName: string;
-  fromClass: string;
-  fromGender: string;
-  fromLevel: number;
-  fromPower: number;
-  toId: string;
-  toName: string;
-  status: "pending" | "accepted" | "denied";
-  createdAt: string;
+type FriendRPCs = {
+  request_friend: { args: { _hero: string; _name: string }; result: string | null };
+  list_friend_requests: { args: { _hero: string }; result: FriendRequest[] };
+  respond_friend_request: {
+    args: { _hero: string; _request: string; _accept: boolean };
+    result: null;
+  };
+  list_sent_requests: { args: { _hero: string }; result: SentFriendRequest[] };
+  cancel_friend_request: { args: { _hero: string; _request: string }; result: null };
+  list_friends: { args: { _hero: string }; result: FriendProfile[] };
+  remove_friend: { args: { _hero: string; _friend: string }; result: null };
+  search_heroes: { args: { _hero: string; _q: string }; result: HeroSearchResult[] };
+};
+
+type RPCError = { code?: string; message: string };
+
+// The generated Supabase types predate the friend-request functions; keep the existing
+// authenticated client and describe only the RPC contract this module uses.
+const client = supabase as unknown as {
+  rpc<K extends keyof FriendRPCs>(
+    name: K,
+    args: FriendRPCs[K]["args"],
+  ): PromiseLike<{ data: FriendRPCs[K]["result"] | null; error: RPCError | null }>;
+};
+
+/** Shown when the live database has not had the friend-request SQL applied yet. */
+export const FRIEND_REQUESTS_SQL_MISSING =
+  "Friend requests are not live on the game database yet - apply drizzle/migrations/0017_friend_requests.sql and 0022_friend_system.sql.";
+
+function missingFunction(error: RPCError) {
+  return error.code === "PGRST202" || /could not find the function/i.test(error.message ?? "");
 }
 
-function readFriends(heroId: string): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(FRIENDS_KEY(heroId)) ?? "[]") as string[];
-  } catch {
-    return [];
-  }
+function socialFailure(error: RPCError) {
+  return new Error(missingFunction(error) ? FRIEND_REQUESTS_SQL_MISSING : error.message);
 }
 
-function writeFriends(heroId: string, ids: string[]) {
-  try {
-    localStorage.setItem(FRIENDS_KEY(heroId), JSON.stringify(ids));
-  } catch {
-    // A blocked storage bucket only costs the friend list, never the game.
-  }
+async function call<K extends keyof FriendRPCs>(name: K, args: FriendRPCs[K]["args"]) {
+  const { data, error } = await client.rpc(name, args);
+  if (error) throw socialFailure(error);
+  return data;
 }
 
-function readAllRequests(): StoredRequest[] {
-  try {
-    return JSON.parse(localStorage.getItem(ALL_REQUESTS_KEY) ?? "[]") as StoredRequest[];
-  } catch {
-    return [];
-  }
-}
-
-function writeAllRequests(requests: StoredRequest[]) {
-  try {
-    localStorage.setItem(ALL_REQUESTS_KEY, JSON.stringify(requests));
-  } catch {
-    // same — storage failures must never crash the game.
-  }
-}
-
-/** Fetch full hero profiles from the heroes table by ID (not an RPC). */
-async function fetchHeroes(ids: string[]): Promise<Record<string, FriendProfile>> {
-  if (ids.length === 0) return {};
-  const { data, error } = await supabase
-    .from("heroes")
-    .select("id,name,hero_class,gender,level,power,arena_rating,title,frame,bio,last_played")
-    .in("id", ids);
-  if (error || !data) return {};
-  return Object.fromEntries(data.map((h) => [h.id, h as FriendProfile]));
-}
-
-/** Always true now — the local system supports the full request lifecycle. */
-export function friendRequestsSupported() {
-  return true;
-}
-
-export async function addFriend(heroId: string, name: string) {
+/**
+ * Sends a friend request to the hero with the given name. The request is stored on the
+ * server, so it shows up in the other hero's Requests tab. If they had already asked us,
+ * the friendship is created instantly (both asked for each other).
+ */
+export async function requestFriend(heroId: string, name: string): Promise<RequestOutcome> {
   const trimmed = name.trim();
   if (!trimmed) throw new Error("Enter a hero name.");
-  const { data, error } = await supabase
-    .from("heroes")
-    .select("id,name")
-    .ilike("name", trimmed)
-    .neq("id", heroId)
-    .limit(1);
-  if (error) throw new Error(error.message);
-  if (!data || data.length === 0) throw new Error(`No hero named "${trimmed}" found.`);
-  const target = data[0];
-  const myFriends = readFriends(heroId);
-  if (!myFriends.includes(target.id)) myFriends.push(target.id);
-  writeFriends(heroId, myFriends);
-  const theirFriends = readFriends(target.id);
-  if (!theirFriends.includes(heroId)) theirFriends.push(heroId);
-  writeFriends(target.id, theirFriends);
-  return `You are now friends with ${target.name}.`;
+  const requestId = await call("request_friend", { _hero: heroId, _name: trimmed });
+  // No request id back means their own request was waiting, so it was accepted instead.
+  return requestId ? "sent" : "friends";
 }
 
-export async function removeFriend(heroId: string, friendId: string) {
-  const myFriends = readFriends(heroId);
-  writeFriends(heroId, myFriends.filter((id) => id !== friendId));
-  const theirFriends = readFriends(friendId);
-  writeFriends(friendId, theirFriends.filter((id) => id !== heroId));
+export async function listFriendRequests(heroId: string): Promise<FriendRequest[]> {
+  return (await call("list_friend_requests", { _hero: heroId })) ?? [];
+}
+
+export async function respondFriendRequest(
+  heroId: string,
+  requestId: string,
+  accept: boolean,
+) {
+  await call("respond_friend_request", { _hero: heroId, _request: requestId, _accept: accept });
+}
+
+export async function listSentRequests(heroId: string): Promise<SentFriendRequest[]> {
+  return (await call("list_sent_requests", { _hero: heroId })) ?? [];
+}
+
+export async function cancelFriendRequest(heroId: string, requestId: string) {
+  await call("cancel_friend_request", { _hero: heroId, _request: requestId });
 }
 
 export async function listFriends(heroId: string): Promise<FriendProfile[]> {
-  const ids = readFriends(heroId);
-  const profiles = await fetchHeroes(ids);
-  return ids.map((id) => profiles[id]).filter(Boolean);
+  return (await call("list_friends", { _hero: heroId })) ?? [];
+}
+
+export async function removeFriend(heroId: string, friendId: string) {
+  await call("remove_friend", { _hero: heroId, _friend: friendId });
+}
+
+/** Heroes whose public name contains the query, already marked with how they relate to us. */
+export async function searchHeroes(heroId: string, query: string): Promise<HeroSearchResult[]> {
+  const q = query.trim().replace(/[^A-Za-z0-9 _-]/g, "");
+  if (q.length < 2) return [];
+  return (await call("search_heroes", { _hero: heroId, _q: q })) ?? [];
 }
 
 export async function inspectHero(heroId: string, targetId: string): Promise<InspectedProfile> {
@@ -163,165 +158,7 @@ export async function inspectHero(heroId: string, targetId: string): Promise<Ins
   return data as InspectedProfile;
 }
 
-/**
- * Sends a friend request to the hero with the given name. Searches the public
- * heroes table, stores the request in localStorage. If the target already sent
- * a request to us, the friendship is created instantly (both asked for each other).
- */
-export async function requestFriend(heroId: string, name: string) {
-  const trimmed = name.trim();
-  if (!trimmed) throw new Error("Enter a hero name.");
-  const { data, error } = await supabase
-    .from("heroes")
-    .select("id,name,hero_class,gender,level,power")
-    .ilike("name", trimmed)
-    .neq("id", heroId)
-    .limit(1);
-  if (error) throw new Error(error.message);
-  if (!data || data.length === 0) throw new Error(`No hero named "${trimmed}" found.`);
-  const target = data[0];
-
-  const friends = readFriends(heroId);
-  if (friends.includes(target.id)) throw new Error(`You are already friends with ${target.name}.`);
-
-  const requests = readAllRequests();
-  const existing = requests.find((r) => r.fromId === heroId && r.toId === target.id && r.status === "pending");
-  if (existing) throw new Error(`You already sent a request to ${target.name}.`);
-
-  // If the target already sent us a request, accept instantly — both heroes asked for each other.
-  const incomingExisting = requests.find((r) => r.fromId === target.id && r.toId === heroId && r.status === "pending");
-  if (incomingExisting) {
-    incomingExisting.status = "accepted";
-    writeAllRequests(requests);
-    const myFriends = readFriends(heroId);
-    if (!myFriends.includes(target.id)) myFriends.push(target.id);
-    writeFriends(heroId, myFriends);
-    const theirFriends = readFriends(target.id);
-    if (!theirFriends.includes(heroId)) theirFriends.push(heroId);
-    writeFriends(target.id, theirFriends);
-    return "auto-accepted";
-  }
-
-  const { data: myData } = await supabase
-    .from("heroes")
-    .select("name,hero_class,gender,level,power")
-    .eq("id", heroId)
-    .maybeSingle();
-
-  requests.push({
-    id: crypto.randomUUID(),
-    fromId: heroId,
-    fromName: myData?.name ?? "Unknown",
-    fromClass: myData?.hero_class ?? "warrior",
-    fromGender: myData?.gender ?? "male",
-    fromLevel: myData?.level ?? 1,
-    fromPower: myData?.power ?? 0,
-    toId: target.id,
-    toName: target.name,
-    status: "pending",
-    createdAt: new Date().toISOString(),
-  });
-  writeAllRequests(requests);
-  return null;
-}
-
-export async function listFriendRequests(heroId: string): Promise<FriendRequest[]> {
-  const requests = readAllRequests().filter((r) => r.toId === heroId && r.status === "pending");
-  if (requests.length === 0) return [];
-  const senderIds = [...new Set(requests.map((r) => r.fromId))];
-  const profiles = await fetchHeroes(senderIds);
-  return requests.map((r) => {
-    const p = profiles[r.fromId];
-    return {
-      id: r.id,
-      hero_id: r.fromId,
-      name: p?.name ?? r.fromName,
-      hero_class: p?.hero_class ?? r.fromClass,
-      gender: p?.gender ?? r.fromGender,
-      level: p?.level ?? r.fromLevel,
-      power: p?.power ?? r.fromPower,
-      created_at: r.createdAt,
-    };
-  });
-}
-
-export async function respondFriendRequest(heroId: string, requestId: string, accept: boolean) {
-  const requests = readAllRequests();
-  const req = requests.find((r) => r.id === requestId && r.toId === heroId && r.status === "pending");
-  if (!req) throw new Error("Request not found.");
-  req.status = accept ? "accepted" : "denied";
-  writeAllRequests(requests);
-  if (accept) {
-    const myFriends = readFriends(heroId);
-    if (!myFriends.includes(req.fromId)) myFriends.push(req.fromId);
-    writeFriends(heroId, myFriends);
-    const theirFriends = readFriends(req.fromId);
-    if (!theirFriends.includes(heroId)) theirFriends.push(heroId);
-    writeFriends(req.fromId, theirFriends);
-  }
-}
-
-/** Withdrawing is best-effort: a withdrawn request is marked denied so it disappears. */
-export async function listSentRequests(heroId: string): Promise<SentFriendRequest[]> {
-  const requests = readAllRequests().filter((r) => r.fromId === heroId && r.status === "pending");
-  if (requests.length === 0) return [];
-  const targetIds = [...new Set(requests.map((r) => r.toId))];
-  const profiles = await fetchHeroes(targetIds);
-  return requests.map((r) => {
-    const p = profiles[r.toId];
-    return {
-      id: r.id,
-      hero_id: r.toId,
-      name: p?.name ?? r.toName,
-      hero_class: p?.hero_class ?? "unknown",
-      gender: p?.gender ?? "male",
-      level: p?.level ?? 0,
-      power: p?.power ?? 0,
-      created_at: r.createdAt,
-    };
-  });
-}
-
-export async function cancelFriendRequest(heroId: string, requestId: string) {
-  const requests = readAllRequests();
-  const req = requests.find((r) => r.id === requestId && r.fromId === heroId && r.status === "pending");
-  if (!req) throw new Error("Request not found.");
-  req.status = "denied";
-  writeAllRequests(requests);
-}
-
-/**
- * Heroes whose public name contains the query. Uses the heroes table directly
- * (not an RPC), with the relationship marked from localStorage.
- */
-export async function searchHeroes(heroId: string, query: string): Promise<HeroSearchResult[]> {
-  const q = query.trim().replace(/[^A-Za-z0-9 _-]/g, "");
-  if (q.length < 2) return [];
-  const { data, error } = await supabase
-    .from("heroes")
-    .select("id,name,hero_class,gender,level,power,last_played")
-    .ilike("name", `%${q}%`)
-    .eq("is_public", true)
-    .neq("id", heroId)
-    .order("level", { ascending: false })
-    .limit(20);
-  if (error) throw new Error(error.message);
-
-  const friendIds = readFriends(heroId);
-  const allRequests = readAllRequests();
-  const sentRequests = allRequests.filter((r) => r.fromId === heroId && r.status === "pending");
-  const incomingRequests = allRequests.filter((r) => r.toId === heroId && r.status === "pending");
-
-  return (data ?? []).map((row) => {
-    let relation: HeroRelation = "none";
-    if (friendIds.includes(row.id)) relation = "friend";
-    else if (sentRequests.some((r) => r.toId === row.id)) relation = "sent";
-    else if (incomingRequests.some((r) => r.fromId === row.id)) relation = "incoming";
-    return { ...row, relation };
-  });
-}
-
-// ============ Direct messages (unchanged — use Supabase chat table) ============
+// ============ Direct messages (unchanged - use Supabase chat table) ============
 
 export interface DirectMessage {
   id: string;

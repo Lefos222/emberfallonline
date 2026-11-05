@@ -9,7 +9,6 @@ const social = vi.hoisted(() => ({
   listIncomingDirectMessages: vi.fn(),
   listSentRequests: vi.fn(),
   requestFriend: vi.fn(),
-  friendRequestsSupported: vi.fn(() => true),
   respondFriendRequest: vi.fn(),
   cancelFriendRequest: vi.fn(),
   removeFriend: vi.fn(),
@@ -80,8 +79,7 @@ beforeEach(() => {
   social.listSentRequests.mockResolvedValue([
     request({ id: "out1", hero_id: "s2", name: "Tamsin" }),
   ]);
-  social.requestFriend.mockResolvedValue("new-request");
-  social.friendRequestsSupported.mockReturnValue(true);
+  social.requestFriend.mockResolvedValue("sent");
   social.respondFriendRequest.mockResolvedValue(undefined);
   social.cancelFriendRequest.mockResolvedValue(undefined);
   social.searchHeroes.mockResolvedValue([]);
@@ -141,8 +139,8 @@ describe("friend system", () => {
     expect(social.requestFriend).toHaveBeenCalledWith("me", "Kael");
   });
 
-  it("reports an instant friendship when the server has no friend-request SQL", async () => {
-    social.friendRequestsSupported.mockReturnValue(false);
+  it("reports an instant friendship when the other hero had already asked", async () => {
+    social.requestFriend.mockResolvedValue("friends");
     social.searchHeroes.mockResolvedValue([hero({ id: "h1", name: "Kael", relation: "none" })]);
     render(<FriendsPanel heroId="me" />);
     const panel = screen.getByTestId("friends-panel");
