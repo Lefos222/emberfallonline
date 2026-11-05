@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Lock, RefreshCw, Swords, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { CLASSES, invCap, type HeroClass, type Stats } from "./data";
+import { CLASSES, type HeroClass, type Stats } from "./data";
 import { CharacterModel } from "./CharacterModel";
 import { update, useGame } from "./store";
-import { ArenaMarks, GameTabs, ItemCard, ItemSlot, Panel, fmt } from "./ui";
-import { arenaBuyBlocker, arenaMarks, arenaPreview, arenaStock, buyArenaGood, duelMarks } from "./arena";
+import { GameTabs, Panel, fmt } from "./ui";
 import type { StartBattle } from "./panels";
 
 interface Opp {
@@ -25,17 +24,15 @@ const asGender = (g: string): "male" | "female" => (g === "female" ? "female" : 
 /**
  * The Blood Arena. Every public hero is listed and every one of them can be challenged — there is
  * no rating bracket any more, so the pit is open to the whole realm — and the same panel carries
- * the full ladder and the arena armory that spends Arena Marks.
+ * the full ladder.
  */
 export function Arena({ onClose, start }: { onClose: () => void; start: StartBattle }) {
   const { hero, userId, heroId } = useGame();
   const [ladder, setLadder] = useState<Opp[]>([]);
   const [me, setMe] = useState<Opp | null>(null);
   const [history, setHistory] = useState<Match[]>([]);
-  const [tab, setTab] = useState<"duels" | "ranks" | "shop">("duels");
+  const [tab, setTab] = useState<"duels" | "ranks">("duels");
   const [loading, setLoading] = useState(true);
-  const [picked, setPicked] = useState<string | null>(null);
-  const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
 
   const load = async () => {
     if (!userId) return;
@@ -76,35 +73,21 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
         const lines = [won ? "Victory in the arena!" : "Defeated…"];
         if (!error && typeof data === "number") lines.push(`Rating ${data >= 0 ? "+" : ""}${data}`);
         const gold = won ? 15 + hero.level * 4 : 0;
-        const marks = duelMarks(won);
-        update((h) => { h.gold += gold; h.arenaMarks = arenaMarks(h) + marks; });
+        update((h) => { h.gold += gold; });
         if (gold) lines.push(`+${fmt(gold)} gold`);
-        lines.push(`+${marks} Arena Marks`);
         void load();
         return { lines };
       },
     });
   };
 
-  const buy = (id: string) => {
-    const good = arenaStock(hero).find((g) => g.id === id);
-    if (!good) return;
-    update((h) => {
-      const out = buyArenaGood(h, good, invCap(h));
-      setMsg(typeof out === "string" ? { ok: false, t: out } : { ok: true, t: `Acquired ${out.name}!` });
-    });
-  };
-
   const opponents = ladder.filter((o) => o.user_id !== userId);
   const myRank = heroId ? ladder.findIndex((o) => o.id === heroId) + 1 : 0;
-  const stock = arenaStock(hero);
-  const chosen = stock.find((g) => g.id === picked) ?? null;
 
   return (
     <Panel title="Blood Arena" onClose={onClose} wide>
       <div className="mb-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-display text-lg">
         <span className="flex items-center gap-2"><Trophy className="h-6 w-6 text-r4" /> Rating <span className="text-3xl text-gold">{me?.arena_rating ?? 1000}</span></span>
-        <ArenaMarks n={arenaMarks(hero)} className="text-xl" />
         {myRank > 0 && <span className="text-sm text-muted-foreground">Rank #{myRank} of {ladder.length}</span>}
         <button className="btn-blood px-3 py-1 text-sm" onClick={load} aria-label="Refresh arena"><RefreshCw className="inline h-4 w-4" /></button>
       </div>
@@ -112,10 +95,7 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
       <GameTabs label="Arena" value={tab} onChange={setTab} tabs={[
         { id: "duels", name: `Duels (${opponents.length})` },
         { id: "ranks", name: "Leaderboard" },
-        { id: "shop", name: "Armory" },
       ]} />
-
-      {msg && <div className={`anim-pop mb-2 text-center font-display ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</div>}
 
       {tab === "duels" && (
         <div className="grid max-h-[60vh] gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -169,48 +149,6 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
                 </div>
               );
             })}
-          </div>
-        </div>
-      )}
-
-      {tab === "shop" && (
-        <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
-          <div>
-            <p className="mb-2 text-sm text-muted-foreground">
-              The arena armory keeps one unique set for each class. Its pieces never drop and never forge — they are bought with Arena Marks alone.
-            </p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {stock.map((g) => {
-                const blocked = arenaBuyBlocker(hero, g, invCap(hero));
-                return (
-                  <div key={g.id} className={`slot flex items-center gap-3 p-2 ${picked === g.id ? "ring-2 ring-gold" : ""}`} style={{ borderColor: `var(--r${5})` }}>
-                    <div className="shrink-0">
-                      <ItemSlot item={arenaPreview(g)} size={44} onClick={() => setPicked(g.id)} selected={picked === g.id} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-display text-sm text-gold">{g.name}</div>
-                      <div className="text-[11px] text-muted-foreground">{g.slot} · iLvl {g.ilvl} · Mythic</div>
-                      <div className="text-xs"><ArenaMarks n={g.marks} /></div>
-                    </div>
-                    <button className="btn-gold shrink-0 px-2 py-1 text-xs" disabled={!!blocked} title={blocked ?? `Buy for ${g.marks} marks`} onClick={() => buy(g.id)}>
-                      Buy
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">Duels pay {duelMarks(true)} marks for a win and {duelMarks(false)} for a loss — the armory is the longest climb in the castle.</p>
-          </div>
-          <div>
-            {chosen ? (
-              <div className="space-y-2">
-                <ItemCard item={arenaPreview(chosen)} />
-                <p className="text-xs text-muted-foreground">{chosen.desc}</p>
-                <button className="btn-gold w-full py-2 text-sm" disabled={!!arenaBuyBlocker(hero, chosen, invCap(hero))} onClick={() => buy(chosen.id)}>
-                  <ArenaMarks n={chosen.marks} /> · Buy
-                </button>
-              </div>
-            ) : <p className="py-16 text-center text-sm text-muted-foreground">Pick a piece to see what the pit forged.</p>}
           </div>
         </div>
       )}

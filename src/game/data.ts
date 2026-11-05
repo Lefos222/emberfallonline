@@ -244,8 +244,6 @@ export interface Hero {
   gold: number;
   /** Void Crystals: the rare currency of level-ups and boss victories, spent on advanced barracks training. */
   voidCrystals?: number;
-  /** Arena Marks: won only by duelling in the Blood Arena, spent in its own armory (see arena.ts). */
-  arenaMarks?: number;
   attrs: Record<Attr, number>;
   equipment: GearRecord;
   inventory: Item[];
@@ -345,7 +343,7 @@ export function newHero(name: string, cls: HeroClass): Hero {
     talisman: starterItem(cls, "talisman"),
   };
   return {
-    name, cls, level: 1, xp: 0, paragon: 0, gold: 100, voidCrystals: 0, arenaMarks: 0,
+    name, cls, level: 1, xp: 0, paragon: 0, gold: 100, voidCrystals: 0,
     attrs: { str: 0, int: 0, agi: 0, vit: 0 },
     equipment: gear, inventory: [], stage: 1, spire: 1, merchant: [], wins: 0,
   };
