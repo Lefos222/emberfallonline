@@ -336,6 +336,22 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
             </p>
           )}
 
+          {incoming.length > 0 && tab !== "requests" && (
+            <div
+              role="status"
+              className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded border border-gold/40 bg-gold/10 p-2"
+            >
+              <p className="text-sm text-gold">
+                {incoming.length === 1
+                  ? `${incoming[0].name} asked to be your friend.`
+                  : `${incoming.length} heroes asked to be your friends.`}
+              </p>
+              <Button type="button" className="btn-gold" onClick={() => setTab("requests")}>
+                Review requests
+              </Button>
+            </div>
+          )}
+
           {tab === "friends" && (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">

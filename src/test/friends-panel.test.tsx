@@ -110,6 +110,21 @@ describe("friend system", () => {
     expect(social.cancelFriendRequest).toHaveBeenCalledWith("me", "out1");
   });
 
+  it("shows waiting requests on every tab and accepts one", async () => {
+    render(<FriendsPanel heroId="me" />);
+    const panel = screen.getByTestId("friends-panel");
+
+    // The default Friends tab announces the request instead of hiding it behind the tab badge.
+    expect(await within(panel).findByText("Sera asked to be your friend.")).toBeTruthy();
+    fireEvent.click(within(panel).getByRole("button", { name: "Review requests" }));
+
+    expect(within(panel).getByText("Incoming (1)")).toBeTruthy();
+    fireEvent.click(within(panel).getByRole("button", { name: /Accept/ }));
+
+    expect(await within(panel).findByText("You are now friends with Sera.")).toBeTruthy();
+    expect(social.respondFriendRequest).toHaveBeenCalledWith("me", "r1", true);
+  });
+
   it("searches heroes by name and sends a request from the result", async () => {
     social.listFriendRequests.mockResolvedValue([
       request({ id: "r9", hero_id: "h3", name: "Kaelan" }),
