@@ -319,13 +319,33 @@ export interface Hero {
 
 }
 
+const STARTER_NAMES: Partial<Record<Slot, string>> = {
+  helmet: "Recruit's Hood", armour: "Recruit's Garb", boots: "Recruit's Boots",
+  belt: "Recruit's Belt", talisman: "Recruit's Charm",
+};
+
+/** Basic starting gear: common, level 1, and named outside the gear families so a new hero never
+ *  begins with a set bonus they did not earn. */
+function starterItem(cls: HeroClass, slot: Slot): Item {
+  return { id: uid(), slot, cls, rarity: 0, ilvl: 1, icon: 0, enh: 0,
+    name: slot === "weapon" ? `Recruit's ${CLASSES[cls].weaponName}` : STARTER_NAMES[slot] ?? "Recruit's Gear" };
+}
+
 export function newHero(name: string, cls: HeroClass): Hero {
-  const weapon = makeItem(cls, 1, 0, "weapon");
-  const armour = makeItem(cls, 1, 0, "armour");
+  // A new hero walks out of the gate fully kitted in common gear: the first zones teach the game
+  // instead of demanding a grind. Better pieces still have to be earned (see rarityCap).
+  const gear: GearRecord = {
+    weapon: starterItem(cls, "weapon"),
+    armour: starterItem(cls, "armour"),
+    helmet: starterItem(cls, "helmet"),
+    boots: starterItem(cls, "boots"),
+    belt: starterItem(cls, "belt"),
+    talisman: starterItem(cls, "talisman"),
+  };
   return {
     name, cls, level: 1, xp: 0, paragon: 0, gold: 100, voidCrystals: 0,
     attrs: { str: 0, int: 0, agi: 0, vit: 0 },
-    equipment: { weapon, armour }, inventory: [], stage: 1, spire: 1, merchant: [], wins: 0,
+    equipment: gear, inventory: [], stage: 1, spire: 1, merchant: [], wins: 0,
   };
 }
 
@@ -496,13 +516,15 @@ export function stageFoe(stage: number, mult = 1, type?: EnemyType, name?: strin
   const rift = riftFactor(stage);
   const b = boss ? 1 : 0;
   const tough = boss ? 1 + (foeToughness(stage) - 1) * 0.4 : foeToughness(stage);
+  // The first levels are deliberately gentle (see earlyEase); from stage 18 this is exactly 1.
+  const ease = earlyEase(stage);
   return {
     name: name ?? (boss ? `${ENEMIES.dragon.name}` : ENEMIES[t].name),
     img: ENEMIES[t].img,
     level: stage,
     boss,
-    hp: Math.round((150 + stage * 150) * (1 + b * 0.8) * mult * rift * tough),
-    atk: Math.round((12 + stage * 8 + stage * stage * 0.2) * (1 + b * 0.25) * mult * rift * tough),
+    hp: Math.round((150 + stage * 150) * (1 + b * 0.8) * mult * rift * tough * ease),
+    atk: Math.round((12 + stage * 8 + stage * stage * 0.2) * (1 + b * 0.25) * mult * rift * tough * ease),
     def: Math.round((5 + stage * 1.4) * mult * Math.sqrt(rift)),
     crit: Math.min(40, 5 + stage * 0.15),
     dodge: Math.min(20, 2 + stage * 0.05),
@@ -515,6 +537,14 @@ export function stageFoe(stage: number, mult = 1, type?: EnemyType, name?: strin
 export function foeToughness(stage: number) {
   const steady = 1 + Math.max(0, stage - 5) * 0.006;
   return steady * Math.pow(1.008, Math.max(0, stage - HARD_STAGE));
+}
+
+/** The opening levels are the tutorial: until this level foes are softer so a new hero keeps moving. */
+export const EARLY_GAME_LEVEL = 17;
+/** Health/damage multiplier for a stage's foes: 72% at stage 1 climbing to a full 100% from stage 18. */
+export function earlyEase(stage: number) {
+  const climbed = Math.min(1, Math.max(0, (stage - 1) / EARLY_GAME_LEVEL));
+  return 0.72 + 0.28 * climbed;
 }
 
 /** Rewards rise with the stage but always stay well below what the next level costs (see xpToNext).
