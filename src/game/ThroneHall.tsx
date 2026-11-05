@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, Gift, Skull } from "lucide-react";
-import { ACHIEVEMENTS, ACH_CATEGORIES, SET_BONUSES, achProgress, activeSets, emptyRecord, isClaimable, type AchCategory } from "./progress";
+import { ACHIEVEMENTS, ACH_CATEGORIES, SET_BONUSES, achGold, achProgress, activeSets, emptyRecord, isClaimable, type AchCategory } from "./progress";
 import { CLASSES, heroSkills, heroStats, powerBreakdown, xpToNext } from "./data";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
@@ -23,7 +23,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
     const a = ACHIEVEMENTS.find((x) => x.id === id);
     if (!a || !isClaimable(h, a)) return; // one-time: re-checked against latest save
     h.achClaimed = [...(h.achClaimed ?? []), a.id];
-    h.gold += a.gold;
+    h.gold += achGold(a);
     // Achievements occasionally pay a bonus skill point alongside their Insight reward.
     if (Math.random() < QUEST_POINT_CHANCE) h.bonusPts = (h.bonusPts ?? 0) + 1;
   });
@@ -61,7 +61,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
                   <div>
                     <div className="font-bold">{a.name} <span className="text-xs text-muted-foreground">· {a.cat}</span></div>
                     <div className="text-xs text-muted-foreground">{a.desc}: {fmt(p)} / {fmt(a.goal)}</div>
-                    <div className="text-xs"><Gold n={a.gold} />{a.title && <span className="ml-2 text-gold">Title: {a.title}</span>}</div>
+                    <div className="text-xs"><Gold n={achGold(a)} />{a.title && <span className="ml-2 text-gold">Title: {a.title}</span>}</div>
                   </div>
                   {done ? <Check className="h-5 w-5 text-gold" aria-label="Claimed" /> : (
                     <button className="btn-gold flex items-center gap-1 px-3 py-1 text-sm" disabled={!isClaimable(hero, a)} onClick={() => claim(a.id)}

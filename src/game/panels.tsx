@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import { adviseStrategy } from "@/lib/quests.functions";
 import {
-  attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceStoneChance, enchantStoneCost, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
+  attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, ENHANCE_MAX, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
   CONQUEST_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, catchUpXpFactor, type Attr, type EnemyType, type Hero, type HeroClass, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import { STAMINA_PER_DAY, STAMINA_PER_FIGHT, settleCampaignStamina, staminaBlocker, staminaLeft } from "./stamina";
@@ -26,7 +26,7 @@ import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
 import { CharacterModel } from "./CharacterModel";
 import { QuestBoard } from "./QuestBoard";
-import { AttributeDrills, BarracksUpgrade, DrillTracks } from "./Barracks";
+import { AdvancedTraining, AttributeDrills, BarracksUpgrade, DrillTracks } from "./Barracks";
 import { batchSizes } from "./barracks";
 import { CharacterPose } from "./CharacterPose";
 import { heroAppearance } from "./appearance";
@@ -357,7 +357,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
     setMsg({ ok: true, t: "Unequipped and salvaged " + it.name + ": " + gain });
   };
   const enhance = () => {
-    if (!sel) return;
+    if (!sel || enhanceMaxed(sel)) return;
     if (useStone) {
       const stoneCost = enchantStoneCost(sel);
       if (matCount(hero, "enchantStone") < stoneCost) return;
@@ -420,13 +420,19 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                 <button className={`flex-1 py-1.5 text-xs ${useStone ? "btn-gold" : "btn-ghost"}`} onClick={() => setUseStone(true)}>Enchantment Stone</button>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span>Chance <b className="text-gold">{Math.round((useStone ? enhanceStoneChance(sel) : enhanceChance(sel)) * 100)}%</b>{useStone && <span className="ml-1 text-xs text-r1">+15% stone bonus</span>}</span>
-                {useStone
-                  ? <span className="flex items-center gap-1"><MatIcon mat="enchantStone" size={18} /> {matCount(hero, "enchantStone")}/{enchantStoneCost(sel)}</span>
-                  : <Gold n={enhanceCost(sel, hero.level)} />}
+                <span>Enhancement <b className="text-gold">+{sel.enh}</b> / +{ENHANCE_MAX}</span>
+                {!enhanceMaxed(sel) && <span>Chance <b className="text-gold">{Math.round((useStone ? enhanceStoneChance(sel) : enhanceChance(sel)) * 100)}%</b>{useStone && <span className="ml-1 text-xs text-r1">+15% stone bonus</span>}</span>}
               </div>
-              <button className="btn-gold w-full py-3 text-lg" disabled={useStone ? matCount(hero, "enchantStone") < enchantStoneCost(sel) : hero.gold < enhanceCost(sel, hero.level)} onClick={enhance}>
-                <Hammer className="mr-2 inline" />Enhance +{sel.enh + 1}
+              {!enhanceMaxed(sel) && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Next step</span>
+                  {useStone
+                    ? <span className="flex items-center gap-1"><MatIcon mat="enchantStone" size={18} /> {matCount(hero, "enchantStone")}/{enchantStoneCost(sel)}</span>
+                    : <Gold n={enhanceCost(sel, hero.level)} />}
+                </div>
+              )}
+              <button className="btn-gold w-full py-3 text-lg" disabled={enhanceMaxed(sel) || (useStone ? matCount(hero, "enchantStone") < enchantStoneCost(sel) : hero.gold < enhanceCost(sel, hero.level))} onClick={enhance}>
+                <Hammer className="mr-2 inline" />{enhanceMaxed(sel) ? `Fully enhanced · +${ENHANCE_MAX}` : `Enhance +${sel.enh + 1}`}
               </button>
 
               <div className="slot p-3">
@@ -524,6 +530,7 @@ export function Temple({ onClose }: { onClose: () => void }) {
         })}
       </div>
       <AttributeDrills hero={hero} />
+      <AdvancedTraining hero={hero} />
       <DrillTracks hero={hero} />
     </Panel>
   );
@@ -535,7 +542,7 @@ export function Market({ onClose }: { onClose: () => void }) {
   const [sel, setSel] = useState<string | null>(null);
   useEffect(() => { if (hero && hero.merchant.length === 0) update(refreshMerchant); }, [hero]);
   if (!hero) return null;
-  const refreshCost = 20 + hero.level * 15;
+  const refreshCost = 40 + hero.level * 20;
   const item = hero.merchant.find((i) => i.id === sel);
   return (
     <Panel title="Night Market" onClose={onClose}>
@@ -630,7 +637,7 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
         let lines = [won ? "Victory in the arena!" : "Defeated…"];
         if (!error && typeof data === "number") lines.push(`Rating ${data >= 0 ? "+" : ""}${data}`);
         if (won) {
-          const gold = 40 + hero.level * 12;
+          const gold = 15 + hero.level * 4;
           update((h) => { h.gold += gold; });
           lines.push(`+${fmt(gold)} gold`);
         }

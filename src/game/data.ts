@@ -31,6 +31,8 @@ export const wearOf = (s: Slot): WearSlot[] => (s === "ring" ? ["ring", "ring2"]
 export type GearRecord = Partial<Record<WearSlot, Item>>;
 
 export const MAX_LEVEL = 80;
+/** Gear can be enhanced this far. The climb is the game's long-term gold sink. */
+export const ENHANCE_MAX = 30;
 export const CONQUEST_LEVEL = 10;
 export const canEnterConquest = (level: number) => level >= CONQUEST_LEVEL;
 export const INVENTORY_CAP = 40;
@@ -118,10 +120,23 @@ const SUFFIX = ["", "", "of Ash", "of the Moon", "of Ruin", "of Kings", "of the 
 const rnd = (n: number) => Math.floor(Math.random() * n);
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
-export function rollRarity(stage: number, luck: number, minRarity = 0): number {
-  const r = Math.random() * 100 - Math.min(25, stage * 0.15 + luck * 0.05);
-  let rarity = r < 1 ? 5 : r < 4 ? 4 : r < 12 ? 3 : r < 30 ? 2 : r < 60 ? 1 : 0;
-  return Math.max(rarity, minRarity);
+/**
+ * The best rarity a hero of this level can obtain from the world. Luck alone never replaces the
+ * work: nothing above Rare drops before level 40, then Epic, Legendary and finally Mythic open up.
+ * Forge recipes are unaffected — those are deliberate, expensive crafts.
+ */
+export function rarityCap(level: number): number {
+  if (level < 40) return 2;
+  if (level < 55) return 3;
+  if (level < 70) return 4;
+  return 5;
+}
+
+/** Rarity rolls are deliberately stingy: most drops are common or uncommon at every level. */
+export function rollRarity(stage: number, luck: number, minRarity = 0, level = stage): number {
+  const r = Math.random() * 100 - Math.min(10, stage * 0.05 + luck * 0.025);
+  const rolled = r < 0.25 ? 5 : r < 1.5 ? 4 : r < 6 ? 3 : r < 16 ? 2 : r < 42 ? 1 : 0;
+  return Math.min(rarityCap(level), Math.max(rolled, minRarity));
 }
 
 export function makeItem(cls: HeroClass, ilvl: number, rarity: number, slot?: Slot): Item {
@@ -137,7 +152,7 @@ export function makeItem(cls: HeroClass, ilvl: number, rarity: number, slot?: Sl
 }
 
 export function itemStats(it: Item): ItemStats {
-  const base = (8 + it.ilvl * 4) * RARITIES[it.rarity].mult * (1 + it.enh * 0.12);
+  const base = (8 + it.ilvl * 4) * RARITIES[it.rarity].mult * (1 + it.enh * 0.1);
   const z = { atk: 0, def: 0, hp: 0, crit: 0 };
   switch (it.slot) {
     case "weapon": z.atk = base * 1.6; break;
@@ -157,11 +172,17 @@ export function itemScore(it: Item) {
 }
 
 export function sellValue(it: Item) { return Math.round(it.ilvl * 3 * RARITIES[it.rarity].mult * (1 + it.enh * 0.3)); }
-/** What the Night Market charges for a piece, rising with the buyer's level. */
-export function buyPrice(it: Item, level = 1) { return scaledGold(sellValue(it) * 4, level); }
-/** Enhancing at the Forge: the item's own level and the hero's level both raise the price. */
-export function enhanceCost(it: Item, level = 1) { return scaledGold(it.ilvl * 10 * Math.pow(it.enh + 1, 1.5), level); }
-export function enhanceChance(it: Item) { return Math.max(0.2, 1 - it.enh * 0.08); }
+/** What the Night Market charges for a piece: a steep markup over salvaging it, rising with the buyer's level. */
+export function buyPrice(it: Item, level = 1) { return scaledGold(sellValue(it) * 16, level); }
+/**
+ * Enhancing at the Forge: the item's own level and the hero's level both raise the price, and each
+ * further step costs more than the last. Reaching +30 is a long, deliberate gold sink.
+ */
+export function enhanceCost(it: Item, level = 1) { return scaledGold(it.ilvl * 2.4 * Math.pow(it.enh + 1, 1.4), level); }
+/** Success chance falls gently with the enhancement level, never below the master smith's floor. */
+export function enhanceChance(it: Item) { return Math.max(0.35, 1 - it.enh * 0.022); }
+/** True when the piece is already at the forge's highest enhancement. */
+export const enhanceMaxed = (it: Item) => it.enh >= ENHANCE_MAX;
 /** Enchantment Stones needed to enhance: 1 per 3 enhancement levels. */
 export const enchantStoneCost = (it: Item) => 1 + Math.floor(it.enh / 3);
 /** Using enchantment stones boosts success chance by 15%. */
@@ -221,6 +242,8 @@ export interface Hero {
   /** Chosen profile portrait, an index into the shared sheet (see AvatarIcon). */
   avatar?: number;
   gold: number;
+  /** Void Crystals: the rare currency of level-ups and boss victories, spent on advanced barracks training. */
+  voidCrystals?: number;
   attrs: Record<Attr, number>;
   equipment: GearRecord;
   inventory: Item[];
@@ -274,6 +297,8 @@ export interface Hero {
   drills?: Record<string, number>;
   /** Barracks attribute drill ranks by attribute — permanent bonuses to Str/Int/Agi/Vit (see drills.ts). */
   attrDrills?: Record<string, number>;
+  /** Advanced (Void Crystal) attribute ranks: endless, five points each (see drills.ts). */
+  advancedDrills?: Record<string, number>;
   /** Bestiary entries the character has defeated, by bestiary id. */
   kills?: Record<string, number>;
   weekly?: { week: number; kills: number; claimed: boolean };
@@ -298,7 +323,7 @@ export function newHero(name: string, cls: HeroClass): Hero {
   const weapon = makeItem(cls, 1, 0, "weapon");
   const armour = makeItem(cls, 1, 0, "armour");
   return {
-    name, cls, level: 1, xp: 0, paragon: 0, gold: 100,
+    name, cls, level: 1, xp: 0, paragon: 0, gold: 100, voidCrystals: 0,
     attrs: { str: 0, int: 0, agi: 0, vit: 0 },
     equipment: { weapon, armour }, inventory: [], stage: 1, spire: 1, merchant: [], wins: 0,
   };
@@ -309,11 +334,11 @@ export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
   return Math.round(75 * Math.pow(MAX_LEVEL, 1.75) * lateLevelFactor(MAX_LEVEL) * Math.pow(1.05, h.paragon));
 }
 
-/** Levels past this point get steadily slower so reaching the cap takes weeks, not days. */
-export const LATE_LEVEL = 30;
-/** Extra XP multiplier per level: 1x up to Lv 30, then +7.5% compounding each level (~37x by Lv 80). */
+/** Levels past this point get steadily slower so reaching the cap takes months, not weeks. */
+export const LATE_LEVEL = 27;
+/** Extra XP multiplier per level: 1x up to Lv 27, then +8.5% compounding each level (~75x by Lv 80). */
 export function lateLevelFactor(level: number) {
-  return Math.pow(1.075, Math.max(0, level - LATE_LEVEL));
+  return Math.pow(1.085, Math.max(0, level - LATE_LEVEL));
 }
 
 /** Stages past this point are the hard half of the campaign: foes grow faster than the road below it. */
@@ -344,6 +369,10 @@ export function normalizeHero(h: Hero): Hero {
   for (const pos of WEAR_SLOTS) {
     const worn = h.equipment[pos];
     if (worn && worn.rarity > maxRarity) delete h.equipment[pos];
+  }
+  // Enhancement is capped at +30 now: older saves that climbed past it are clamped down.
+  for (const it of [...h.inventory, ...WEAR_SLOTS.map((p) => h.equipment[p])]) {
+    if (it && it.enh > ENHANCE_MAX) it.enh = ENHANCE_MAX;
   }
   const legacy = h as unknown as { anc?: unknown; ancTower?: unknown };
   delete legacy.anc;
@@ -488,13 +517,14 @@ export function foeToughness(stage: number) {
   return steady * Math.pow(1.008, Math.max(0, stage - HARD_STAGE));
 }
 
-/** Rewards rise with the stage but always stay below what the next level costs (see xpToNext).
- *  Past stage 30 they keep climbing slowly (the foe curve climbs faster), backed by the catch-up XP. */
+/** Rewards rise with the stage but always stay well below what the next level costs (see xpToNext).
+ *  Gold is deliberately scarce: a stage pays a few hundred coins, while one enhancement or barracks
+ *  level costs many fights, so coin keeps its value from the first hour to the endgame. */
 export function stageRewards(stage: number, mult = 1) {
   const late = Math.pow(1.01, Math.max(0, stage - HARD_STAGE));
   return {
-    xp: Math.round(40 * Math.pow(stage, 1.6) * late * mult),
-    gold: Math.round((8 + 6 * Math.pow(stage, 1.75)) * late * mult),
+    xp: Math.round(34 * Math.pow(stage, 1.6) * late * mult),
+    gold: Math.round((6 + 1.5 * Math.pow(stage, 1.55)) * late * mult),
   };
 }
 

@@ -24,6 +24,7 @@ import { BUILDINGS, CASTLE_BUILDINGS, CLASSES, heroStats, type BuildingId, type 
 import { rewardChestReady } from "./chests";
 import { authHandoffPending, getState, leaveCharacter, update, useGame } from "./store";
 import { recordBattle } from "./progress";
+import { BOSS_CRYSTALS } from "./logic";
 import { heroAppearance } from "./appearance";
 import { CharacterSelect, Portrait, ProfilePanel, frameClass } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
@@ -33,7 +34,7 @@ import { Challenges } from "./Challenges";
 import { LongRoad } from "./LongRoad";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
-import { Diamonds, Gold, ItemCard, Panel, fmt } from "./ui";
+import { Diamonds, Gold, ItemCard, Panel, VoidCrystals, fmt } from "./ui";
 import { premiumState } from "./economy";
 import { CONQUEST_LEVEL, canEnterConquest, type Hero } from "./data";
 import { QuestsButton, QuestsPanel } from "./Quests";
@@ -120,6 +121,11 @@ export function Game() {
     if (useGameOverflow() > before && !r.lines.some((l) => /Overflow/.test(l))) r.lines.push("Bag full — loot placed in your Overflow Chest (Armory)");
     if (won) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m)); });
     update((h) => recordBattle(h, { title: battle.title, won, boss: !!battle.right.boss, arena: /arena/i.test(battle.title), rewards: [...r.lines, ...(r.loot ? [r.loot.name] : [])] }));
+    // Boss victories are the second source of Void Crystals beside level-ups (see logic.grant).
+    if (won && battle.right.boss) {
+      update((h) => { h.voidCrystals = (h.voidCrystals ?? 0) + BOSS_CRYSTALS; });
+      r.lines.push(`+${BOSS_CRYSTALS} Void Crystal`);
+    }
     setResult({ won, ...r });
   };
 
@@ -226,6 +232,7 @@ function Hud({ muted, setMuted, cloud, onProfile }: { muted: boolean; setMuted: 
             <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] lg:text-xs">
               <Gold n={hero.gold} />
               <Diamonds n={premiumState(hero).balance} />
+              <VoidCrystals n={hero.voidCrystals ?? 0} />
               <span className="font-bold"><Trophy className="mr-0.5 inline h-3.5 w-3.5 text-r4" />{fmt(s.power)}</span>
             </div>
           </div>

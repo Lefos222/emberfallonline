@@ -41,6 +41,7 @@
   --color-r4: var(--r4);
   --color-r5: var(--r5);
   --color-r6: var(--r6);
+  --color-void: var(--void);
 }
 
 :root {
@@ -75,6 +76,8 @@
   --r4: oklch(0.78 0.16 65);
   --r5: oklch(0.65 0.24 25);
   --r6: oklch(0.82 0.17 85);
+  /* Void Crystals — the rare advanced-training currency. */
+  --void: oklch(0.74 0.2 295);
   --panel-gradient: linear-gradient(180deg, oklch(0.2 0.04 22 / 0.97), oklch(0.12 0.03 20 / 0.98));
   --gold-gradient: linear-gradient(180deg, oklch(0.88 0.13 85), oklch(0.62 0.13 65));
   --blood-gradient: linear-gradient(180deg, oklch(0.55 0.21 27), oklch(0.32 0.15 25));

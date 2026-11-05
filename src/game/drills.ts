@@ -90,7 +90,7 @@ export function trainDrill(h: DrillState, id: string): string | null {
  * Unlike the one-off attribute training batches, a rank is a fixed step that stays bought,
  * so the barracks keeps offering something to upgrade long after a hero's gold is spent.
  */
-type AttrId = "str" | "int" | "agi" | "vit";
+export type AttrId = "str" | "int" | "agi" | "vit";
 
 export interface AttributeDrill {
   id: AttrId;
@@ -115,7 +115,7 @@ export const ATTRIBUTE_DRILLS: AttributeDrill[] = [
 /** Attribute drill ranks live beside the other barracks drills, keyed by attribute. */
 export interface AttrDrillState extends DrillState { attrDrills?: Record<string, number> }
 
-export const attrDrillRank = (h: Pick<AttrDrillState, "attrDrills">, id: string) => Math.max(0, h.attrDrills?.[id] ?? 0);
+export const attrDrillRank = (h: Pick<AttrDrillState, "attrDrills">, id: string) => Math.max(0, Math.floor(h.attrDrills?.[id] ?? 0));
 
 /** Gold for the next rank: each rank costs more, and the price scales with the hero's level. */
 export const attrDrillCost = (d: AttributeDrill, rank: number, level = 1) => scaledGold(d.base * Math.pow(rank + 1, 1.6), level);
@@ -123,10 +123,11 @@ export const attrDrillCost = (d: AttributeDrill, rank: number, level = 1) => sca
 /** What the banked ranks of one attribute drill are worth as text. */
 export const attrDrillText = (d: AttributeDrill, ranks = 1) => `+${d.per * ranks} ${d.name}`;
 
-/** Every attribute point the hero's drills have banked. */
-export function drillAttrs(h: Pick<AttrDrillState, "attrDrills">): Record<AttrId, number> {
+/** Every attribute point the hero's drills have banked, basic and advanced alike. */
+export function drillAttrs(h: { attrDrills?: Record<string, number>; advancedDrills?: Record<string, number> }): Record<AttrId, number> {
   const out: Record<AttrId, number> = { str: 0, int: 0, agi: 0, vit: 0 };
   for (const d of ATTRIBUTE_DRILLS) out[d.id] += d.per * attrDrillRank(h, d.id);
+  for (const d of ADVANCED_DRILLS) out[d.id] += d.per * advancedRank(h, d.id);
   return out;
 }
 
@@ -147,5 +148,67 @@ export function trainAttributeDrill(h: AttrDrillState, id: string): string | nul
   const d = ATTRIBUTE_DRILLS.find((x) => x.id === id)!;
   h.gold -= attrDrillCost(d, attrDrillRank(h, id), h.level);
   h.attrDrills = { ...(h.attrDrills ?? {}), [id]: attrDrillRank(h, id) + 1 };
+  return null;
+}
+
+// ---------- Advanced training (Void Crystals) ----------
+
+/**
+ * The barracks' advanced wing. Each rank is a far stronger step than a basic attribute drill —
+ * five attribute points — and is paid for in Void Crystals instead of gold. Ranks never end, so a
+ * hero always has somewhere to pour the crystals their level-ups and boss kills earn.
+ */
+export interface AdvancedDrill {
+  id: AttrId;
+  name: string;
+  /** Attribute points one rank grants. */
+  per: number;
+  /** Void Crystals of the first rank; every further rank costs more. */
+  base: number;
+  /** Barracks level that opens the advanced wing for this attribute. */
+  barracks: number;
+  desc: string;
+}
+
+export const ADVANCED_DRILLS: AdvancedDrill[] = [
+  { id: "str", name: "Strength", per: 5, base: 3, barracks: 15, desc: "Iron discipline: every rank banks five points of Strength." },
+  { id: "int", name: "Intelligence", per: 5, base: 3, barracks: 18, desc: "Void-sigil study: every rank banks five points of Intelligence." },
+  { id: "agi", name: "Agility", per: 5, base: 3, barracks: 21, desc: "Shadowfoot drills: every rank banks five points of Agility." },
+  { id: "vit", name: "Vitality", per: 5, base: 3, barracks: 24, desc: "Deep-void conditioning: every rank banks five points of Vitality." },
+];
+
+/** What advanced training needs to begin. */
+export interface AdvancedState {
+  advancedDrills?: Record<string, number>;
+  buildings?: Record<string, number>;
+  voidCrystals?: number;
+}
+
+export const advancedRank = (h: Pick<AdvancedState, "advancedDrills">, id: string) =>
+  Math.max(0, Math.floor(h.advancedDrills?.[id] ?? 0));
+
+/** Ranks a barracks this deep has drilled into its advanced wing (a small crystal discount from level 40). */
+export const advancedDiscount = (barracks: number) => (barracks >= 40 ? 0.85 : 1);
+
+/** Void Crystals for the next rank: every rank costs more than the last. */
+export const advancedCost = (d: AdvancedDrill, rank: number, barracks = 1) =>
+  Math.max(1, Math.round((d.base + rank * 2.2) * advancedDiscount(barracks)));
+
+/** Why the next advanced rank can't be trained, or null when it can. */
+export function advancedBlocker(h: AdvancedState, id: string): string | null {
+  const d = ADVANCED_DRILLS.find((x) => x.id === id);
+  if (!d) return "Unknown drill";
+  if (barracksLevel(h) < d.barracks) return `Requires barracks level ${d.barracks}`;
+  if ((h.voidCrystals ?? 0) < advancedCost(d, advancedRank(h, id), barracksLevel(h))) return "Not enough Void Crystals";
+  return null;
+}
+
+/** Spend Void Crystals on one advanced rank. Returns an error message, or null on success. */
+export function trainAdvanced(h: AdvancedState, id: string): string | null {
+  const blocked = advancedBlocker(h, id);
+  if (blocked) return blocked;
+  const d = ADVANCED_DRILLS.find((x) => x.id === id)!;
+  h.voidCrystals = (h.voidCrystals ?? 0) - advancedCost(d, advancedRank(h, id), barracksLevel(h));
+  h.advancedDrills = { ...(h.advancedDrills ?? {}), [id]: advancedRank(h, id) + 1 };
   return null;
 }

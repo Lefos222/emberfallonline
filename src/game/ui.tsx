@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { X, Gem } from "lucide-react";
+import { X, Gem, Diamond } from "lucide-react";
 import { GoldCoin } from "./CoinIcon";
 import { GearIcon } from "./GearIcon";
 import { itemStats, itemScore, RARITIES, type Item } from "./data";
@@ -36,6 +36,16 @@ export function Diamonds({ n, className = "" }: { n: number; className?: string 
   return (
     <span className={"inline-flex items-center gap-1 font-bold text-r3 " + className} title="Diamonds">
       <Gem className="h-4 w-4" />
+      {fmt(n)}
+    </span>
+  );
+}
+
+/** Void Crystals: earned from level-ups and boss victories, spent on advanced barracks training. */
+export function VoidCrystals({ n, className = "" }: { n: number; className?: string }) {
+  return (
+    <span className={"inline-flex items-center gap-1 font-bold text-void " + className} title="Void Crystals — earned from level-ups and boss victories">
+      <Diamond className="h-4 w-4" />
       {fmt(n)}
     </span>
   );

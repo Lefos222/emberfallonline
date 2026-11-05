@@ -46,13 +46,16 @@ export const ownedChests = (h: ChestSave) =>
 
 const pickGem = (): GemType => GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)];
 
+/** Coin inside one Gold Chest — a few fights' worth, in step with the scarce campaign purse. */
+export const goldChestValue = (level: number) => 600 + level * 45;
+
 /** Open one chest from the vault. Returns the reward lines shown to the player. */
 export function openChest(h: Hero, kind: ChestKind): string[] {
   if (chestCount(h, kind) < 1) throw new Error(`No ${CHESTS[kind].name} in your vault.`);
   addChests(h, kind, -1);
   const lines: string[] = [];
   if (kind === "gold") {
-    const gold = 2500 + h.level * 150;
+    const gold = goldChestValue(h.level);
     h.gold += gold;
     addMats(h, { ore: 5, fragment: 2 });
     lines.push(`+${gold.toLocaleString("en-GB")} gold`, "5 Ember Ore", "2 Armor Fragments");
@@ -63,13 +66,13 @@ export function openChest(h: Hero, kind: ChestKind): string[] {
     addGem(h, first, tier);
     addGem(h, second, tier);
     addMats(h, { essence: 3, crystal: 1 });
-    h.gold += 800;
+    h.gold += 150;
     lines.push(
       `${GEM_TIER_NAMES[tier - 1]} ${GEMS[first].name} gem`,
       `${GEM_TIER_NAMES[tier - 1]} ${GEMS[second].name} gem`,
       "3 Soul Essence",
       "1 Arcane Crystal",
-      "+800 gold",
+      "+150 gold",
     );
   }
   return lines;

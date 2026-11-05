@@ -3,6 +3,7 @@ import {
   MITIGATION_FLOOR,
   calcDamage,
   catchUpXpFactor,
+  enhanceCost,
   heroStats,
   makeItem,
   riftFactor,
@@ -111,18 +112,18 @@ function seeded(seed: number) {
 }
 
 describe("slower late-game progression", () => {
-  it("keeps the base curve to level 30, then charges far more per level", () => {
-    for (const lv of [1, 10, 25, 30]) {
+  it("keeps the base curve to level 27, then charges far more per level", () => {
+    for (const lv of [1, 10, 25, 27]) {
       expect(xpToNext({ level: lv, paragon: 0 })).toBe(Math.round(75 * Math.pow(lv, 1.75)));
     }
-    // Level 40 sits ten compounding steps past the late-game knee: near double the flat curve.
+    // Level 40 sits thirteen compounding steps past the late-game knee: near triple the flat curve.
     const flat40 = Math.round(75 * Math.pow(40, 1.75));
-    expect(xpToNext({ level: 40, paragon: 0 })).toBeGreaterThan(flat40 * 1.9);
-    expect(xpToNext({ level: 40, paragon: 0 })).toBe(Math.round(75 * Math.pow(40, 1.75) * Math.pow(1.075, 10)));
+    expect(xpToNext({ level: 40, paragon: 0 })).toBeGreaterThan(flat40 * 2.5);
+    expect(xpToNext({ level: 40, paragon: 0 })).toBe(Math.round(75 * Math.pow(40, 1.75) * Math.pow(1.085, 13)));
   });
-  it("levels past 30 compound extra XP on top (about 37x by level 80)", () => {
+  it("levels past 27 compound extra XP on top (about 70x by level 80)", () => {
     const noLate = Math.round(75 * Math.pow(79, 1.75));
-    expect(xpToNext({ level: 79, paragon: 0 }) / noLate).toBeGreaterThan(25);
+    expect(xpToNext({ level: 79, paragon: 0 }) / noLate).toBeGreaterThan(50);
   });
   it("pays catch-up XP when a hero fights above their level, capped at double", () => {
     expect(catchUpXpFactor(20, 20)).toBe(1);
@@ -183,10 +184,23 @@ describe("campaign balance", () => {
       const rw = stageRewards(stage);
       const need = xpToNext({ level: stage, paragon: 0 });
       expect(rw.xp).toBeLessThan(need);
-      if (stage <= 40) expect(rw.xp).toBeGreaterThan(need * 0.15);
+      // Never a single fight per level, and the endgame never collapses into hundreds of them.
+      expect(need / rw.xp).toBeGreaterThan(2.5);
+      expect(need / rw.xp).toBeLessThan(400);
     }
+    // The late levels are a long grind: level 70 costs dozens of cleared stages.
+    expect(xpToNext({ level: 70, paragon: 0 }) / stageRewards(70).xp).toBeGreaterThan(60);
     expect(stageRewards(51).xp).toBeGreaterThan(stageRewards(50).xp);
     expect(stageRewards(51).gold).toBeGreaterThan(stageRewards(50).gold);
+  });
+
+  it("keeps gold valuable: a stage pays a fraction of one enhancement", () => {
+    // One enhancement of current gear costs several cleared stages at every level.
+    for (const lv of [10, 30, 60, 80]) {
+      const piece = makeItem("warrior", lv, 2, "weapon");
+      piece.enh = 5;
+      expect(stageRewards(lv).gold).toBeLessThan(enhanceCost(piece, lv));
+    }
   });
 
   it("armor can never reduce a hit below the mitigation floor", () => {
