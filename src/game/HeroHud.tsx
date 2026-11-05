@@ -9,12 +9,9 @@ import { STAMINA_PER_DAY, staminaLeft } from "./stamina";
 import { Diamonds, Gold, VoidCrystals, fmt } from "./ui";
 import { leaveCharacter, useGame } from "./store";
 import { supabase } from "@/integrations/supabase/client";
-import frameArt from "@/assets/character-frame.webp";
 
 /**
- * The top-left player plate. The painted character-card border carries the portrait on
- * its left, the name banner, the four currency slots and the wide footer, so the HUD
- * content is pinned to those slots instead of being drawn as a separate panel.
+ * The top-left player card: portrait, name, class, XP, currencies, power and stamina.
  */
 export function Hud({
   muted,
@@ -34,11 +31,10 @@ export function Hud({
   const s = heroStats(hero);
   return (
     <div className="hud-top pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2">
-      <div className="pointer-events-auto">
-        <div className="hud-card">
-          <img src={frameArt} alt="" aria-hidden className="hud-card-art" draggable={false} />
+      <div className="player-card pointer-events-auto">
+        <div className="flex items-center gap-2.5">
           <button
-            className="hud-portrait"
+            className={`player-portrait ${frameClass(frame)}`}
             onClick={onProfile}
             aria-label="Profile"
             title="Open your profile"
@@ -46,43 +42,36 @@ export function Hud({
             {hero.avatar !== undefined ? (
               <AvatarIcon index={hero.avatar} fill className="block h-full w-full" />
             ) : (
-              <Portrait
-                cls={hero.cls}
-                gender={gender}
-                className="w-full"
-                {...heroAppearance(hero)}
-              />
+              <Portrait cls={hero.cls} gender={gender} className="w-full" {...heroAppearance(hero)} />
             )}
-            <span
-              className={`hud-portrait-ring pointer-events-none ${frameClass(frame)}`}
-              aria-hidden
-            />
-            <span className="hud-level">Lv {hero.level}</span>
+            <span className="player-level">Lv {hero.level}</span>
           </button>
-          <div className="hud-name">
-            <span className="hud-name-text">{hero.name}</span>
-            {hero.paragon > 0 && <span className="hud-asc">Asc {hero.paragon}</span>}
-          </div>
-          <div className="hud-stats" role="group" aria-label="Currencies and power">
-            <Gold n={hero.gold} />
-            <Diamonds n={premiumState(hero).balance} />
-            <VoidCrystals n={hero.voidCrystals ?? 0} />
-            <span className="inline-flex items-center gap-0.5 font-bold" title="Power">
-              <Trophy className="text-r4" />
-              {fmt(s.power)}
-            </span>
-          </div>
-          <div className="hud-foot">
-            <span className="hud-class">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline gap-1.5">
+              <span className="player-name">{hero.name}</span>
+              {hero.paragon > 0 && (
+                <span className="shrink-0 rounded bg-gold/20 px-1 text-[10px] font-bold text-gold">
+                  Asc {hero.paragon}
+                </span>
+              )}
+            </div>
+            <div className="mb-1 truncate text-[10px] uppercase tracking-wider text-muted-foreground">
               {CLASSES[hero.cls].name}
               {me?.title ? ` · ${me.title}` : ""}
-            </span>
+            </div>
             <XpBar hero={hero} />
           </div>
         </div>
-        <div className="hud-stamina">
-          <StaminaBar hero={hero} />
+        <div className="player-currencies" role="group" aria-label="Currencies and power">
+          <Gold n={hero.gold} />
+          <Diamonds n={premiumState(hero).balance} />
+          <VoidCrystals n={hero.voidCrystals ?? 0} />
+          <span className="font-bold" title="Power">
+            <Trophy className="text-r4" />
+            {fmt(s.power)}
+          </span>
         </div>
+        <StaminaBar hero={hero} />
       </div>
       <div className="game-panel pointer-events-auto flex items-center gap-1 p-2 lg:gap-2">
         <button
