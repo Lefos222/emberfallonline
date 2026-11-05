@@ -132,10 +132,13 @@ export function rarityCap(level: number): number {
   return 5;
 }
 
-/** Rarity rolls are deliberately stingy: most drops are common or uncommon at every level. */
+/**
+ * Rarity rolls are deliberately stingy: most drops are common or uncommon at every level, and
+ * rare-or-better loot lands about half as often as the old curve paid it out.
+ */
 export function rollRarity(stage: number, luck: number, minRarity = 0, level = stage): number {
   const r = Math.random() * 100 - Math.min(10, stage * 0.05 + luck * 0.025);
-  const rolled = r < 0.25 ? 5 : r < 1.5 ? 4 : r < 6 ? 3 : r < 16 ? 2 : r < 42 ? 1 : 0;
+  const rolled = r < 0.1 ? 5 : r < 0.6 ? 4 : r < 2.5 ? 3 : r < 8 ? 2 : r < 30 ? 1 : 0;
   return Math.min(rarityCap(level), Math.max(rolled, minRarity));
 }
 
