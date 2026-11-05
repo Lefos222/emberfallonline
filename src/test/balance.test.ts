@@ -26,6 +26,7 @@ import {
   skillReady,
 } from "@/game/combat";
 import { DRILLS, drillFx, trainDrill } from "@/game/drills";
+import { goldScale } from "@/game/gold";
 
 const SLOTS: Slot[] = ["helmet", "armour", "boots", "belt", "weapon", "ring", "talisman"];
 
@@ -112,18 +113,20 @@ function seeded(seed: number) {
 }
 
 describe("slower late-game progression", () => {
-  it("keeps the base curve to level 27, then charges far more per level", () => {
-    for (const lv of [1, 10, 25, 27]) {
+  it("keeps the base curve to level 20, then charges far more per level", () => {
+    for (const lv of [1, 10, 18, 20]) {
       expect(xpToNext({ level: lv, paragon: 0 })).toBe(Math.round(75 * Math.pow(lv, 1.75)));
     }
-    // Level 40 sits thirteen compounding steps past the late-game knee: near triple the flat curve.
+    // Level 40 sits twenty compounding steps past the late-game knee: five times the flat curve.
     const flat40 = Math.round(75 * Math.pow(40, 1.75));
-    expect(xpToNext({ level: 40, paragon: 0 })).toBeGreaterThan(flat40 * 2.5);
-    expect(xpToNext({ level: 40, paragon: 0 })).toBe(Math.round(75 * Math.pow(40, 1.75) * Math.pow(1.085, 13)));
+    expect(xpToNext({ level: 40, paragon: 0 })).toBeGreaterThan(flat40 * 5);
+    expect(xpToNext({ level: 40, paragon: 0 })).toBe(Math.round(75 * Math.pow(40, 1.75) * Math.pow(1.085, 20)));
+    // The tax now begins right after level 20, not at 27.
+    expect(xpToNext({ level: 21, paragon: 0 })).toBeGreaterThan(Math.round(75 * Math.pow(21, 1.75)));
   });
-  it("levels past 27 compound extra XP on top (about 70x by level 80)", () => {
+  it("levels past 20 compound extra XP on top (about 130x by level 80)", () => {
     const noLate = Math.round(75 * Math.pow(79, 1.75));
-    expect(xpToNext({ level: 79, paragon: 0 }) / noLate).toBeGreaterThan(50);
+    expect(xpToNext({ level: 79, paragon: 0 }) / noLate).toBeGreaterThan(100);
   });
   it("pays catch-up XP when a hero fights above their level, capped at double", () => {
     expect(catchUpXpFactor(20, 20)).toBe(1);
@@ -133,6 +136,11 @@ describe("slower late-game progression", () => {
   });
   it("gold rewards are nerfed versus the old formula", () => {
     for (const st of [10, 40, 80]) expect(stageRewards(st).gold).toBeLessThan((12 + 10 * Math.pow(st, 1.85)) * 0.7);
+  });
+  it("keeps level-1 prices untouched while high-level gold costs climb faster", () => {
+    expect(goldScale(1)).toBe(1);
+    expect(goldScale(50)).toBeCloseTo(1 + 49 * 0.022);
+    expect(goldScale(50)).toBeGreaterThan(1 + 49 * 0.02);
   });
   it("monsters get tougher with stage", () => {
     expect(stageFoe(79).hp).toBeGreaterThan(Math.round((150 + 79 * 150) * riftFactor(79) * 1.4));

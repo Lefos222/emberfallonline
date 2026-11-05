@@ -357,8 +357,9 @@ export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
 }
 
 /** Levels past this point get steadily slower so reaching the cap takes months, not weeks. */
-export const LATE_LEVEL = 27;
-/** Extra XP multiplier per level: 1x up to Lv 27, then +8.5% compounding each level (~75x by Lv 80). */
+export const LATE_LEVEL = 20;
+/** Extra XP multiplier per level: 1x up to Lv 20, then +8.5% compounding each level (~130x by Lv 80).
+ *  The tax now starts at level 20, so the mid-game lasts noticeably longer than it used to. */
 export function lateLevelFactor(level: number) {
   return Math.pow(1.085, Math.max(0, level - LATE_LEVEL));
 }
@@ -550,13 +551,14 @@ export function earlyEase(stage: number) {
 }
 
 /** Rewards rise with the stage but always stay well below what the next level costs (see xpToNext).
- *  Gold is deliberately scarce: a stage pays a few hundred coins, while one enhancement or barracks
- *  level costs many fights, so coin keeps its value from the first hour to the endgame. */
+ *  Gold and XP are deliberately scarce: a stage pays a few hundred coins and a sliver of the next
+ *  level, while one enhancement or barracks level costs many fights, so currency keeps its value
+ *  from the first hour to the endgame. */
 export function stageRewards(stage: number, mult = 1) {
   const late = Math.pow(1.01, Math.max(0, stage - HARD_STAGE));
   return {
-    xp: Math.round(34 * Math.pow(stage, 1.6) * late * mult),
-    gold: Math.round((6 + 1.5 * Math.pow(stage, 1.55)) * late * mult),
+    xp: Math.round(33 * Math.pow(stage, 1.6) * late * mult),
+    gold: Math.round((5.5 + 1.44 * Math.pow(stage, 1.55)) * late * mult),
   };
 }
 
