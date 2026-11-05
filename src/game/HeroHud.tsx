@@ -1,6 +1,4 @@
 import { Cloud, CloudOff, IdCard, LogOut, Trophy, Users, Volume2, VolumeX } from "lucide-react";
-import cardFrame from "../assets/player-card-frame.png";
-import portraitFrame from "../assets/player-portrait-frame.png";
 import { AvatarIcon } from "./AvatarIcon";
 import { Portrait, frameClass } from "./CharacterSelect";
 import { heroAppearance } from "./appearance";
@@ -33,28 +31,22 @@ export function Hud({
   const s = heroStats(hero);
   return (
     <div className="hud-top pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2">
-      <div
-        className="player-card pointer-events-auto"
-        style={{ backgroundImage: `url(${cardFrame})` }}
-      >
-        <div className="player-card-body">
+      <div className="player-card pointer-events-auto">
+        <div className="flex items-center gap-2.5">
           <button
-            className="player-portrait"
+            className={`player-portrait ${frameClass(frame)}`}
             onClick={onProfile}
             aria-label="Profile"
             title="Open your profile"
-            style={{ backgroundImage: `url(${portraitFrame})` }}
           >
-            <span className="player-portrait-window">
-              {hero.avatar !== undefined ? (
-                <AvatarIcon index={hero.avatar} fill className="block h-full w-full" />
-              ) : (
-                <Portrait cls={hero.cls} gender={gender} className="w-full" {...heroAppearance(hero)} />
-              )}
-              <span className="player-level">Lv {hero.level}</span>
-            </span>
+            {hero.avatar !== undefined ? (
+              <AvatarIcon index={hero.avatar} fill className="block h-full w-full" />
+            ) : (
+              <Portrait cls={hero.cls} gender={gender} className="w-full" {...heroAppearance(hero)} />
+            )}
+            <span className="player-level">Lv {hero.level}</span>
           </button>
-          <div className="player-details min-w-0 flex-1">
+          <div className="min-w-0 flex-1">
             <div className="flex items-baseline gap-1.5">
               <span className="player-name">{hero.name}</span>
               {hero.paragon > 0 && (
@@ -68,16 +60,16 @@ export function Hud({
               {me?.title ? ` · ${me.title}` : ""}
             </div>
             <XpBar hero={hero} />
-            <div className="player-currencies" role="group" aria-label="Currencies and power">
-              <Gold n={hero.gold} />
-              <Diamonds n={premiumState(hero).balance} />
-              <VoidCrystals n={hero.voidCrystals ?? 0} />
-              <span className="font-bold" title="Power">
-                <Trophy className="text-r4" />
-                {fmt(s.power)}
-              </span>
-            </div>
           </div>
+        </div>
+        <div className="player-currencies" role="group" aria-label="Currencies and power">
+          <Gold n={hero.gold} />
+          <Diamonds n={premiumState(hero).balance} />
+          <VoidCrystals n={hero.voidCrystals ?? 0} />
+          <span className="font-bold" title="Power">
+            <Trophy className="text-r4" />
+            {fmt(s.power)}
+          </span>
         </div>
         <StaminaBar hero={hero} />
       </div>
