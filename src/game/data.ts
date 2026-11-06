@@ -355,26 +355,25 @@ export function newHero(name: string, cls: HeroClass): Hero {
 }
 
 export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
-  if (h.level < MAX_LEVEL) return Math.round(XP_BASE * Math.pow(h.level, 1.9) * lateLevelFactor(h.level));
-  return Math.round(XP_BASE * Math.pow(MAX_LEVEL, 1.9) * lateLevelFactor(MAX_LEVEL) * Math.pow(1.10, h.paragon));
+  if (h.level < MAX_LEVEL) return Math.round(XP_BASE * Math.pow(h.level, 1.5) * lateLevelFactor(h.level));
+  return Math.round(XP_BASE * Math.pow(MAX_LEVEL, 1.5) * lateLevelFactor(MAX_LEVEL) * Math.pow(1.10, h.paragon));
 }
 
-/** Base XP for one level — deliberately high so even the earliest levels take many battles. */
-export const XP_BASE = 525;
-/** Levels past this point get steadily slower so reaching the cap takes months, not weeks. */
-export const LATE_LEVEL = 20;
-/** Extra XP multiplier per level: 1x up to Lv 20, then +18% compounding each level.
- *  This creates a heavy grind wall after level 20 — each level takes far longer than the last, so
- *  reaching the cap takes months of deliberate grinding. Requirements scale: ~16M at Lv 40,
- *  ~127M at Lv 50, ~942M at Lv 60, ~6.6B at Lv 70, ~45B at Lv 80. */
+/** Base XP for one level — kept low so levels 1–29 flow quickly and new players level up easily. */
+export const XP_BASE = 150;
+/** Levels past this point get steadily slower — the grind wall starts here, not in the early game. */
+export const LATE_LEVEL = 30;
+/** Extra XP multiplier per level: 1x up to Lv 30, then +20% compounding each level.
+ *  Levels 1–29 stay light so players race through the early game; from level 30 each level takes
+ *  noticeably longer than the last, making the mid-to-late game a deliberate grind. */
 export function lateLevelFactor(level: number) {
-  return Math.pow(1.18, Math.max(0, level - LATE_LEVEL));
+  return Math.pow(1.20, Math.max(0, level - LATE_LEVEL));
 }
 
 /** Stages past this point are the hard half of the campaign: foes grow faster than the road below it. */
 export const HARD_STAGE = 30;
 /** Levels past this point are the deep grind: rewards taper so each level takes many sessions. */
-export const GRIND_LEVEL = 20;
+export const GRIND_LEVEL = 30;
 
 /** A hero fighting a stage far above their own level is under-levelled: the campaign pays up to
  *  double XP until they catch up, so a bad stretch never walls a player out of progression. */
