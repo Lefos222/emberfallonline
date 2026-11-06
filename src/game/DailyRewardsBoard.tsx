@@ -1,12 +1,12 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Check, Gift, Lock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import emberArt from "@/assets/gathering-ember.jpg";
 import { update, useGame } from "./store";
-import { GemChestIcon, GoldChestIcon, GoldCoin } from "./CoinIcon";
-import { GemIcon, MatIcon } from "./MatIcon";
+import { GemChestIcon, GoldChestIcon } from "./CoinIcon";
 import { ArtIcon } from "./ArtIcon";
-import type { Mat } from "./crafting";
+import { DailyRewardArt } from "./DailyRewardArt";
+import { VipDailyBoard } from "./VipDailyBoard";
 import {
   CHESTS,
   REWARD_CHEST_HOURS,
@@ -24,30 +24,7 @@ import {
   claimBoardDay,
   claimedBoardDays,
   nextBoardDay,
-  type DailyReward,
 } from "./daily-rewards";
-
-/** The painted art that stands for one day's gift, so a tile reads at a glance. */
-function RewardArt({ rw, size = 24 }: { rw: DailyReward; size?: number }) {
-  const art: ReactNode[] = [];
-  if (rw.gold) art.push(<GoldCoin key="gold" size={size} />);
-  (rw.gems ?? []).forEach((g, i) =>
-    art.push(<GemIcon key={`gem-${i}-${g.gem}`} type={g.gem} size={size} />),
-  );
-  (Object.keys(rw.mats ?? {}) as Mat[]).forEach((m) =>
-    art.push(<MatIcon key={m} mat={m} size={size} />),
-  );
-  (rw.chests ?? []).forEach((c, i) =>
-    art.push(
-      c === "gem" ? (
-        <GemChestIcon key={`chest-${i}`} size={size} />
-      ) : (
-        <GoldChestIcon key={`chest-${i}`} size={size} />
-      ),
-    ),
-  );
-  return <span className="flex flex-wrap items-center justify-center gap-1">{art.slice(0, 3)}</span>;
-}
 
 /**
  * The free reward chest on a timer. Collecting puts a real chest in the Armory
@@ -242,7 +219,7 @@ export function DailyRewardsBoard() {
             </div>
             <div className="flex items-center gap-3">
               <div className="hidden items-center gap-2 rounded-lg border border-gold/40 bg-black/35 px-2.5 py-1.5 sm:flex">
-                <RewardArt rw={today} size={22} />
+                <DailyRewardArt rw={today} size={22} />
                 <div className="text-left">
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                     Today
@@ -310,7 +287,7 @@ export function DailyRewardsBoard() {
                   {(rw.chest || grand) && <Sparkles className="h-3 w-3 shrink-0 text-gold" />}
                 </div>
                 <span className="flex min-h-[26px] items-center">
-                  <RewardArt rw={rw} size={grand ? 28 : 24} />
+                  <DailyRewardArt rw={rw} size={grand ? 28 : 24} />
                 </span>
                 <span
                   className={`text-[11px] font-semibold leading-tight ${rw.chest || grand ? "text-gold" : "text-foreground/90"}`}
@@ -353,6 +330,7 @@ export function DailyRewardsBoard() {
           </p>
         )}
       </section>
+      <VipDailyBoard />
     </>
   );
 }

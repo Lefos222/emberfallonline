@@ -1,7 +1,7 @@
 import { addGem, addMats, GEM_MAX_TIER, type GemType, type Mat } from "./crafting";
 import { addChests, type ChestKind } from "./chests";
+import { BLITZ_RUNNING, blitzRunning, startBlitzRun } from "./blitz-run";
 import { stageRewards, type Hero } from "./data";
-import { grant } from "./logic";
 import { greekDayStart } from "./events";
 import { scaledGold } from "./gold";
 
@@ -106,22 +106,22 @@ export function blitzRewards(target: number): BlitzResult {
  * A blitz may only reach a floor the hero has already beaten, and only while today's
  * allowance lasts. Fighting the floors themselves is never limited.
  */
-export function blitzBlocker(h: Pick<Hero, "spire"> & BlitzState, target: number, now = Date.now()): string | null {
+export function blitzBlocker(h: Pick<Hero, "spire" | "blitzRun"> & BlitzState, target: number, now = Date.now()): string | null {
   const cap = floorsCleared(h);
   if (cap < 1) return "Clear your first floor before blitzing — there is nothing to skip yet.";
   if (!Number.isFinite(target) || target < 1) return "Choose how many floors to blitz.";
   if (target > cap) return `You can blitz up to floor ${cap} — the deepest floor you have cleared.`;
+  if (blitzRunning(h, now)) return BLITZ_RUNNING;
   if (blitzesLeft(h, now) < 1) return `No blitzes left today — ${BLITZ_PER_DAY} per day, back at Greek midnight. Floors themselves are unlimited.`;
   return null;
 }
 
-/** Instantly auto-clear floors 1..target using one of today's blitzes. Returns an error message, or null on success. */
+/** Send the hero out to auto-clear floors 1..target, spending one of today's blitzes. The run pays
+ *  when it lands ten minutes later (see blitz-run.ts). Returns an error message, or null once it starts. */
 export function blitz(h: Hero, target: number, now = Date.now()): string | null {
   const blocked = blitzBlocker(h, target, now);
   if (blocked) return blocked;
   const rw = blitzRewards(target);
   spendBlitz(h, now);
-  grant(h, rw.xp, rw.gold);
-  addConquestTokens(h, rw.tokens);
-  return null;
+  return startBlitzRun(h, { gate: "conquest", target, xp: rw.xp, gold: rw.gold, tokens: rw.tokens }, now);
 }

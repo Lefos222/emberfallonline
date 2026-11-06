@@ -1146,6 +1146,7 @@ export type Database = {
         Args: { _body: string; _channel: string; _hero: string; _to: string }
         Returns: string
       }
+      skip_blitz: { Args: { _hero: string; _req: string }; Returns: Json }
       track_activity: {
         Args: { _hero: string; _kind: string }
         Returns: undefined

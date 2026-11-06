@@ -1,6 +1,6 @@
+import { BLITZ_RUNNING, blitzRunning, startBlitzRun } from "./blitz-run";
 import { stageRewards, type Hero } from "./data";
 import { blitzesLeft, BLITZ_PER_DAY, spendBlitz, type BlitzState } from "./conquest";
-import { grant } from "./logic";
 
 /**
  * Campaign blitz. `hero.stage` is the next stage to fight, so everything below it is
@@ -34,7 +34,7 @@ export function campaignBlitzRewards(target: number): CampaignBlitzResult {
  * while today's shared allowance lasts.
  */
 export function campaignBlitzBlocker(
-  h: Pick<Hero, "stage"> & BlitzState,
+  h: Pick<Hero, "stage" | "blitzRun"> & BlitzState,
   target: number,
   now = Date.now(),
 ): string | null {
@@ -43,17 +43,21 @@ export function campaignBlitzBlocker(
     return "Clear your first campaign stage before blitzing — there is nothing to skip yet.";
   if (!Number.isFinite(target) || target < 1) return "Choose how many stages to blitz.";
   if (target > cap) return `You can blitz up to stage ${cap} — the deepest stage you have cleared.`;
+  if (blitzRunning(h, now)) return BLITZ_RUNNING;
   if (blitzesLeft(h, now) < 1)
     return `No blitzes left today — ${BLITZ_PER_DAY} per day for both gates, back at Greek midnight.`;
   return null;
 }
 
-/** Instantly auto-clear campaign stages 1..target using one of today's blitzes. Returns an error message, or null on success. */
+/**
+ * Send the hero out to auto-clear campaign stages 1..target, spending one of today's blitzes.
+ * The run pays when it lands ten minutes later (see blitz-run.ts). Returns an error message,
+ * or null once the run has started.
+ */
 export function campaignBlitz(h: Hero, target: number, now = Date.now()): string | null {
   const blocked = campaignBlitzBlocker(h, target, now);
   if (blocked) return blocked;
   const rw = campaignBlitzRewards(target);
   spendBlitz(h, now);
-  grant(h, rw.xp, rw.gold);
-  return null;
+  return startBlitzRun(h, { gate: "campaign", target, xp: rw.xp, gold: rw.gold }, now);
 }

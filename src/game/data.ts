@@ -292,6 +292,16 @@ export interface Hero {
   road?: { stage: number; wave: number; best: number; cleared: number };
   /** Endless Conquest: tokens earned from cleared floors and spent in the Conquest Gate (see conquest.ts). */
   conquest?: { tokens?: number; blitzDay?: string; blitzUsed?: number };
+  /** A blitz that is still out on its ten-minute run, with the rewards it will pay when it lands (see blitz-run.ts). */
+  blitzRun?: {
+    gate: "campaign" | "conquest";
+    startedAt: number;
+    endsAt: number;
+    target: number;
+    xp: number;
+    gold: number;
+    tokens?: number;
+  };
   /** Campaign Gate stamina for the Greek day (see stamina.ts). */
   stamina?: { day?: string; used?: number };
   /** Current level's quest board: counter snapshot taken when the level began, plus claimed ids (see level-quests.ts). */
@@ -315,8 +325,13 @@ export interface Hero {
   synth?: { crafted?: string[]; worn?: Record<string, number> };
   /** Boss-event participations toward the five-kill reward, by event id (see event-rewards.ts). */
   eventBoss?: Record<string, number>;
-  /** 30-day reward board: days claimed this cycle, the Greek day of the last claim, cycles finished (see daily-rewards.ts). */
-  dailyRewards?: { day?: number; last?: string; cycles?: number };
+  /** 30-day reward boards: the free board's progress, and the VIP board's own ledger (see daily-rewards.ts). */
+  dailyRewards?: {
+    day?: number;
+    last?: string;
+    cycles?: number;
+    vip?: { day?: number; last?: string; cycles?: number };
+  };
   /** Chest items waiting in the vault, by chest id (see chests.ts). */
   chests?: Partial<Record<"gold" | "gem", number>>;
   /** Periodic free reward chest: when it was last collected and how many have been collected (see chests.ts). */
