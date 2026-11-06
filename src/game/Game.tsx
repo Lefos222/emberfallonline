@@ -116,7 +116,7 @@ export function Game() {
         // The Campaign Gate, Conquest Gate and World Tree stay mounted under the battle, so the
         // player comes back to the exact screen they fought from instead of the castle.
         if (!keepsPanel) setOpen(null);
-        setBattle({ ...o, left: scrollFighter({ ...heroFighter(current.hero, heroStats(current.hero)), gender: current.gender }, active) });
+        setBattle({ ...o, left: scrollFighter({ ...heroFighter(current.hero, heroStats(current.hero), current.gender), gender: current.gender }, active) });
       } catch (e) { setEntryError(e instanceof Error ? e.message : "Battle entry failed."); }
       finally { starting.current = false; }
     })();

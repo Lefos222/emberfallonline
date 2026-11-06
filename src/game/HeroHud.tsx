@@ -42,7 +42,7 @@ export function Hud({
             {hero.avatar !== undefined ? (
               <AvatarIcon index={hero.avatar} fill className="block h-full w-full" />
             ) : (
-              <Portrait cls={hero.cls} gender={gender} className="w-full" {...heroAppearance(hero)} />
+              <Portrait cls={hero.cls} gender={gender} className="w-full" {...heroAppearance(hero, gender)} />
             )}
             <span className="player-level">Lv {hero.level}</span>
           </button>
