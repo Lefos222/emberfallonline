@@ -14,6 +14,7 @@ import {
   respondFriendRequest,
   searchHeroes,
   socialError,
+  subscribeFriendChanges,
   type FriendProfile,
   type FriendRequest,
   type HeroSearchResult,
@@ -75,8 +76,10 @@ export function useFriendRequestCount(heroId: string | null) {
     sync();
     const timer = setInterval(sync, 60000);
     window.addEventListener("focus", sync);
+    const stop = subscribeFriendChanges(heroId, sync);
     return () => {
       active = false;
+      stop();
       clearInterval(timer);
       window.removeEventListener("focus", sync);
     };
@@ -170,8 +173,10 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
       void reload().catch(() => undefined);
     };
     window.addEventListener("focus", onFocus);
+    const stop = heroId ? subscribeFriendChanges(heroId, onFocus) : () => undefined;
     return () => {
       alive.current = false;
+      stop();
       clearInterval(timer);
       window.removeEventListener("focus", onFocus);
     };

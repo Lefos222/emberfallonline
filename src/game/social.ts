@@ -212,6 +212,19 @@ export async function sendDirectMessage(heroId: string, friendId: string, body: 
   if (error) throw new Error(error.message);
 }
 
+/** Calls onChange whenever a friend request or friendship touching this hero changes. */
+export function subscribeFriendChanges(heroId: string, onChange: () => void) {
+  const channel = supabase.channel(`friends-${heroId}-${Math.random().toString(36).slice(2)}`);
+  for (const filter of [`to_hero=eq.${heroId}`, `from_hero=eq.${heroId}`]) {
+    channel.on("postgres_changes", { event: "*", schema: "public", table: "friend_requests", filter }, onChange);
+  }
+  channel.on("postgres_changes", { event: "*", schema: "public", table: "friendships", filter: `owner_hero=eq.${heroId}` }, onChange);
+  channel.subscribe();
+  return () => {
+    void supabase.removeChannel(channel);
+  };
+}
+
 export function socialError(error: unknown): string {
   return error instanceof Error
     ? error.message
