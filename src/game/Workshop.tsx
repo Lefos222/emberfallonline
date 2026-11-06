@@ -48,7 +48,7 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
 
   const act = (fn: Parameters<typeof update>[0]) => update(fn);
   return (
-    <Panel title="Gem Workshop" onClose={onClose} wide>
+    <Panel title="Gem Workshop" subtitle="Cut, socket and fuse gems" art="gem" onClose={onClose} wide>
       <MatsBar />
       {toast}
       <div className="grid gap-5 lg:grid-cols-3">
@@ -135,7 +135,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
   const fx = (a: Parameters<typeof astralValue>[0]) => `+${astralValue(a)} ${STAT_LABEL[ASTRAL_BASES[a.base].stat]}`;
 
   return (
-    <Panel title="Magic Tower" onClose={onClose} wide>
+    <Panel title="Magic Tower" subtitle="Summon and raise astrals" art="astral" onClose={onClose} wide>
       <MatsBar />
       {toast}
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -302,7 +302,7 @@ export function Crafting({ onClose }: { onClose: () => void }) {
     setTimeout(() => setBusy(false), 400);
   };
   return (
-    <Panel title="Forge · Crafting" onClose={onClose} wide>
+    <Panel title="Forge · Crafting" subtitle="Shape materials into armor" art="anvil" onClose={onClose} wide>
       <MatsBar />
       {toast}
       <GameTabs label="Forge recipes" value={tab} onChange={setTab} tabs={[

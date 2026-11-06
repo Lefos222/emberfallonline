@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Coins, Gem, Archive } from "lucide-react";
+import { Gem, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGame, update } from "./store";
 import { fmt, Gold } from "./ui";
+import { GoldCoin } from "./CoinIcon";
 import { MatIcon } from "./MatIcon";
 import { matCount } from "./crafting";
 import {
@@ -31,7 +32,7 @@ export function GuildContribute() {
   return (
     <div className="slot mb-4 p-4">
       <div className="mb-1 flex items-center justify-between gap-2 font-display text-gold">
-        <span className="flex items-center gap-2"><Coins className="h-4 w-4" />Guild Treasury</span>
+        <span className="flex items-center gap-2"><GoldCoin size={16} />Guild Treasury</span>
         <span className="text-lg">{fmt(coins)} coins</span>
       </div>
       <p className="text-xs text-muted-foreground">Contribute gold to earn guild coins (1 gold = 1 guild coin). Spend them in the shop, the vault and the skill tower.</p>

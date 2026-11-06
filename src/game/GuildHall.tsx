@@ -151,7 +151,7 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
       </div>
     </div>;
   };
-  return <Panel title="Guild Hall" onClose={onClose} wide>
+  return <Panel title="Guild Hall" subtitle="Your guild, tower and treasury" art="guild" onClose={onClose} wide>
     <div className="flex justify-end"><Button variant="outline" size="icon" aria-label="Refresh guild" disabled={request.busy} onClick={() => void request.run(load)}><RefreshCw /></Button></div>
     <RequestStatus {...request} />
     {loaded && !guild && <>

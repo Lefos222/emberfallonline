@@ -28,7 +28,7 @@ export function InspectPanel({ heroId, targetId, onClose }: InspectPanelProps) {
   const current = result?.key === key ? result : null;
   const profile = current?.profile;
   const error = !heroId ? "Select a character to inspect another hero." : !targetId ? "Select a hero to inspect." : current?.error;
-  return <Panel title="Inspect hero" onClose={onClose}>
+  return <Panel title="Inspect hero" subtitle="Gear, stats and titles" art="profile" onClose={onClose}>
     {error && <p role="alert" className="py-2 text-sm text-muted-foreground">{error}</p>}
     {!error && !profile && <p role="status" className="py-2 text-sm text-muted-foreground">Loading hero…</p>}
     {profile && <div className="space-y-4 anim-pop">

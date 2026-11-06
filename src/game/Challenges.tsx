@@ -25,7 +25,7 @@ export function Challenges({ onClose, start, onExpeditions }: { onClose: () => v
 
   if (hero.level < ENDGAME_LEVEL) {
     return (
-      <Panel title="Dungeon Gate" onClose={onClose}>
+      <Panel title="Dungeon Gate" subtitle="Boss challenges and elite hunts" art="star" onClose={onClose}>
         {onExpeditions&&<Button className="w-full" onClick={onExpeditions}><Swords/>Material expeditions · Level 1+</Button>}
         <div className="py-10 text-center"><Lock className="mx-auto mb-2 h-10 w-10 text-gold" />
           <p className="font-display text-xl text-gold">Locked</p>
@@ -90,7 +90,7 @@ export function Challenges({ onClose, start, onExpeditions }: { onClose: () => v
   });
 
   return (
-    <Panel title="Dungeon Gate · Challenges" onClose={onClose} wide>
+    <Panel title="Dungeon Gate · Challenges" subtitle="Escalating trials with rare rewards" art="star" onClose={onClose} wide>
       {onExpeditions&&<Button className="mb-4 w-full" onClick={onExpeditions}><Swords/>Material expeditions</Button>}
       <div className="mb-4 grid gap-2 md:grid-cols-2">
         <div className="slot p-3 text-sm">

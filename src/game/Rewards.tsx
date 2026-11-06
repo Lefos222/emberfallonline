@@ -48,7 +48,7 @@ export function Mailbox({ onClose }: { onClose: () => void }) {
   const current = mail?.find((m) => m.id === selected);
   const state = states.find((s) => s.mail_id === selected);
   const expired = current?.expires_at ? Date.parse(current.expires_at) <= Date.now() : false;
-  return <Panel title="Mailbox" onClose={onClose} wide>
+  return <Panel title="Mailbox" subtitle="Rewards and letters from the realm" art="mail" onClose={onClose} wide>
     <div className="mb-3 flex justify-end"><Button variant="outline" size="icon" aria-label="Refresh mailbox" disabled={request.busy} onClick={() => void request.run(load)}><RefreshCw /></Button></div>
     <RequestStatus {...request} />
     <div className="grid gap-5 md:grid-cols-[1fr_1.4fr]">
@@ -81,7 +81,7 @@ export function LuckyShots({ onClose }: { onClose: () => void }) {
   const [last, setLast] = useState<Astral | null>(null);
   const count = object(object(hero)['srv'])['luckyShots'];
   const shots = typeof count === "number" ? count : null;
-  return <Panel title="Lucky Shots" onClose={onClose}>
+  return <Panel title="Lucky Shots" subtitle="Spin for astrals and gems" art="lucky" onClose={onClose}>
     <div className="border-b border-border pb-5 text-center">
       <Sparkles className="mx-auto mb-3 h-12 w-12 text-gold" />
       <p className="font-display text-3xl">{shots === null ? "Shots unavailable" : `${shots} shots remaining`}</p>
@@ -109,7 +109,7 @@ export function ActivityBoard({ onClose }: { onClose: () => void }) {
     <div><h3 className="font-display text-lg">{KIND_LABEL[o.kind] ?? o.kind}{o.stage ? ` · Stage ${o.stage}` : ""}</h3><p className="text-sm text-muted-foreground">{Math.min(o.progress, o.target)} / {o.target}</p><progress className="mt-1 h-2 w-44 accent-primary" max={o.target} value={Math.min(o.progress, o.target)} /></div>
     <Button variant={o.claimed ? "ghost" : "default"} disabled={request.busy || o.claimed || o.progress < o.target} onClick={() => void request.run(() => claim(o.id))}>{o.claimed ? <Check /> : <Gift />}{o.claimed ? "Claimed" : "Claim"}</Button>
   </div>;
-  return <Panel title="Daily & Weekly Activities" onClose={onClose} wide>
+  return <Panel title="Daily & Weekly Activities" subtitle="Fresh tasks every reset" art="gift" onClose={onClose} wide>
     <DailyRewardsBoard />
     <div className="flex justify-end"><Button variant="outline" size="icon" aria-label="Refresh activities" disabled={request.busy} onClick={() => void request.run(load)}><RefreshCw /></Button></div>
     <RequestStatus {...request} />

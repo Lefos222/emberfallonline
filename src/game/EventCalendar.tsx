@@ -143,7 +143,7 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
   };
 
   return (
-    <Panel title="World Event Calendar" onClose={onClose} wide>
+    <Panel title="World Event Calendar" subtitle="Windows that open on the world clock" art="calendar" onClose={onClose} wide>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           Ember Fall runs on Greek time — every window opens on the same Greek hour for every player, no matter what your own device clock says. Times below are shown in{" "}

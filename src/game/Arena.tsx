@@ -52,7 +52,7 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
   if (!hero) return null;
   if (!userId) {
     return (
-      <Panel title="Blood Arena" onClose={onClose}>
+      <Panel title="Blood Arena" subtitle="Challenge any hero on the ladder" art="goblet" onClose={onClose}>
         <div className="py-10 text-center">
           <Lock className="mx-auto mb-3 h-12 w-12 text-gold" />
           <p className="mb-4 text-muted-foreground">Sign in to fight real players</p>
@@ -85,7 +85,7 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
   const myRank = heroId ? ladder.findIndex((o) => o.id === heroId) + 1 : 0;
 
   return (
-    <Panel title="Blood Arena" onClose={onClose} wide>
+    <Panel title="Blood Arena" subtitle="Ladder, duels and ratings" art="goblet" onClose={onClose} wide>
       <div className="mb-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-display text-lg">
         <span className="flex items-center gap-2"><Trophy className="h-6 w-6 text-r4" /> Rating <span className="text-3xl text-gold">{me?.arena_rating ?? 1000}</span></span>
         {myRank > 0 && <span className="text-sm text-muted-foreground">Rank #{myRank} of {ladder.length}</span>}

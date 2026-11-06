@@ -1,19 +1,27 @@
 import type { ReactNode } from "react";
-import { X, Gem, Diamond } from "lucide-react";
+import { X, Diamond } from "lucide-react";
+import { ArtIcon, type ArtIconName } from "./ArtIcon";
 import { GoldCoin } from "./CoinIcon";
 import { GearIcon } from "./GearIcon";
 import { itemStats, itemScore, RARITIES, type Item } from "./data";
 
-export function Panel({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+/** Every window wears the same painted crest in its header, so the castle's screens read as one game. */
+export function Panel({ title, subtitle, art, onClose, children, wide }: {
+  title: string; subtitle?: string; art?: ArtIconName; onClose: () => void; children: ReactNode; wide?: boolean;
+}) {
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-background/70 p-3 backdrop-blur-sm" onClick={onClose}>
       <div
         className={`game-panel anim-pop relative flex max-h-[92vh] w-full flex-col ${wide ? "max-w-6xl" : "max-w-3xl"}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3 md:px-6">
-          <h2 className="panel-title min-w-0 truncate text-xl font-bold md:text-3xl">{title}</h2>
-          <button onClick={onClose} className="btn-blood flex h-9 w-9 items-center justify-center" aria-label="Close">
+        <div className="flex items-center gap-3 border-b border-border px-4 py-3 md:px-6">
+          {art && <span className="panel-crest shrink-0"><ArtIcon name={art} size={26} /></span>}
+          <div className="min-w-0 flex-1">
+            <h2 className="panel-title truncate text-xl font-bold md:text-3xl">{title}</h2>
+            {subtitle && <p className="truncate text-xs text-muted-foreground md:text-sm">{subtitle}</p>}
+          </div>
+          <button onClick={onClose} className="btn-blood flex h-9 w-9 shrink-0 items-center justify-center" aria-label="Close">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -35,7 +43,7 @@ export function Gold({ n, className = "" }: { n: number; className?: string }) {
 export function Diamonds({ n, className = "" }: { n: number; className?: string }) {
   return (
     <span className={"inline-flex items-center gap-1 font-bold text-r3 " + className} title="Diamonds">
-      <Gem className="h-4 w-4" />
+      <ArtIcon name="diamond" size={15} />
       {fmt(n)}
     </span>
   );
