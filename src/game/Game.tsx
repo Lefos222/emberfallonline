@@ -25,7 +25,6 @@ import { authHandoffPending, getState, update, useGame } from "./store";
 import { recordBattle } from "./progress";
 import { BOSS_CRYSTALS } from "./logic";
 import { CharacterSelect, ProfilePanel } from "./CharacterSelect";
-import { BuildingCard } from "./building-cards";
 import { Battle, type Fighter } from "./Battle";
 import { Campaign, Forge, HeroHall, Market, Oracle, Temple, heroFighter, type StartBattle } from "./panels";
 import { Arena } from "./Arena";
@@ -50,8 +49,6 @@ export function Game() {
   const friendRequests = useFriendRequestCount(heroId);
   const nav = useNavigate();
   const [open, setOpen] = useState<ShortcutTarget | null>(null);
-  /** The castle door the player is standing at: its card, before the window opens. */
-  const [door, setDoor] = useState<BuildingId | null>(null);
   const [battle, setBattle] = useState<null | { right: Fighter; left: Fighter; auto?: boolean; title: string; onResult: Parameters<StartBattle>[0]["onResult"] }>(null);
   const [result, setResult] = useState<null | { won: boolean; lines: string[]; loot?: Item | null }>(null);
   const [crafting, setCrafting] = useState(false);
@@ -160,7 +157,7 @@ export function Game() {
         <CharacterSelect />
       ) : (
         <>
-          <CastleMap onOpen={setDoor} />
+          <CastleMap onOpen={setOpen} />
           <ShortcutBar open={open} onOpen={setOpen} friendRequests={friendRequests} chestReady={rewardChestReady(hero)} />
           <nav aria-label="Rewards" className="game-panel bottom-nav rewards-nav absolute bottom-3 left-3 z-20 flex gap-1 p-1.5">
             <Button variant="ghost" size="icon" aria-label="Mailbox" title="Mailbox" onClick={() => setOpen("mailbox")}><ArtIcon name="mail" size={24} /></Button>
@@ -173,15 +170,7 @@ export function Game() {
           <WorldChat heroId={heroId} />
           <QuestsButton count={claimableLevelQuests(hero)} onClick={() => setOpen("quests")} />
           <Hud muted={muted} setMuted={setMuted} cloud={cloud} onProfile={() => setOpen("profile")} />
-          <p className="castle-hint pointer-events-none absolute inset-x-0 top-32 z-20 text-center font-display text-xs text-gold drop-shadow-[0_1px_2px_black]">Tap a building to see what is inside · drag the castle to reach the rest</p>
-          {door && (
-            <BuildingCard
-              id={door}
-              hero={hero}
-              onClose={() => setDoor(null)}
-              onEnter={() => { const id = door; setDoor(null); setOpen(id); }}
-            />
-          )}
+          <p className="castle-hint pointer-events-none absolute inset-x-0 top-32 z-20 text-center font-display text-xs text-gold drop-shadow-[0_1px_2px_black]">Tap a building to open it · drag the castle to reach the rest</p>
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
           {open === "quests" && <QuestsPanel onClose={() => setOpen(null)} />}
           {open === "mailbox" && <Mailbox onClose={() => setOpen(null)} />}
