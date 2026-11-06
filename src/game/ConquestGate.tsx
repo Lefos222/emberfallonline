@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ConquestCoin, GemChestIcon, GoldChestIcon } from "./CoinIcon";
 import { GemIcon, MatIcon } from "./MatIcon";
 import { GEMS, GEM_MAX_TIER, GEM_STAT_LABEL, GEM_TYPES, MATS, gemKey, gemValue, type GemType } from "./crafting";
+import { BlitzRunCard } from "./BlitzRun";
 import { BLITZ_PER_DAY, blitz, blitzBlocker, blitzRewards, blitzesLeft, buyConquestGem, buyTokenOffer, conquestTokens, floorsCleared, gemGoldPrice, TOKEN_OFFERS } from "./conquest";
 import type { Hero } from "./data";
 import { update } from "./store";
@@ -35,9 +36,11 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
           <span className="text-xs font-bold">Blitzes today {Math.min(left, BLITZ_PER_DAY)}/{BLITZ_PER_DAY}</span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Instantly clear floors 1 to a floor you have already beaten. Your record is floor {cap};
-          blitzing pays the same XP, gold and tokens as fighting those floors again.
-          The blitz is the only limit — the floors themselves never stop, and the allowance returns at Greek midnight.
+          Clear floors 1 to a floor you have already beaten without fighting them again. Your record
+          is floor {cap}; a blitz pays the same XP, gold and tokens as those floors, but it takes ten
+          minutes to run — no battle can start until it lands, and 25 Diamonds finish it on the spot.
+          The blitz is the only limit — the floors themselves never stop, and the allowance returns at
+          Greek midnight.
         </p>
         <div className="mt-3 flex flex-wrap items-end gap-2">
           <label className="text-xs">Blitz to floor
@@ -47,12 +50,13 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
           </label>
           <Button disabled={!!blocked || left < 1} onClick={() => update((h) => {
             const err = blitz(h, usable);
-            setMsg(err ? { ok: false, t: err } : { ok: true, t: `Blitzed ${usable} floor${usable === 1 ? "" : "s"} — +${fmt(preview?.xp ?? 0)} XP, +${fmt(preview?.gold ?? 0)} gold, +${fmt(preview?.tokens ?? 0)} tokens` });
+            setMsg(err ? { ok: false, t: err } : { ok: true, t: `Blitz started — floors 1-${usable} will pay +${fmt(preview?.xp ?? 0)} XP, +${fmt(preview?.gold ?? 0)} gold and +${fmt(preview?.tokens ?? 0)} tokens in ten minutes` });
           })}>Blitz</Button>
           <button className="btn-ghost px-3 py-1.5 text-xs" disabled={cap < 1} onClick={() => jump(Math.max(1, cap))}>
             Deepest ({cap})
           </button>
         </div>
+        <BlitzRunCard />
         {blocked ? <p className="mt-2 text-xs text-muted-foreground">{blocked}</p> : preview && (
           <p className="mt-2 text-xs">Pays <span className="font-bold text-xp">+{fmt(preview.xp)} XP</span>, <Gold n={preview.gold} />, <span className="font-bold text-gold">+{fmt(preview.tokens)} tokens</span>.</p>
         )}

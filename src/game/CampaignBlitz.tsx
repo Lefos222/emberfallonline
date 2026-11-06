@@ -8,6 +8,7 @@ import {
   campaignBlitzRewards,
   campaignStagesCleared,
 } from "./campaign-blitz";
+import { BlitzRunCard } from "./BlitzRun";
 import type { Hero } from "./data";
 import { update } from "./store";
 import { Gold, fmt } from "./ui";
@@ -41,9 +42,10 @@ export function CampaignBlitz({ hero }: { hero: Hero }) {
         </span>
       </div>
       <p className="text-xs text-muted-foreground">
-        Instantly clear stages 1 to a stage you have already beaten. Your record is stage {cap};
-        blitzing pays the same XP and gold as fighting those stages again. It shares the daily blitz
-        allowance with the Conquest Gate, and the allowance returns at Greek midnight.
+        Clear stages 1 to a stage you have already beaten without fighting them again. Your record
+        is stage {cap}; a blitz pays the same XP and gold as those stages, but it takes ten minutes
+        to run — no battle can start until it lands, and 25 Diamonds finish it on the spot. It
+        shares the daily blitz allowance with the Conquest Gate, which returns at Greek midnight.
       </p>
       <div className="mt-3 flex flex-wrap items-end gap-2">
         <label className="text-xs">
@@ -68,7 +70,7 @@ export function CampaignBlitz({ hero }: { hero: Hero }) {
                   ? { ok: false, t: err }
                   : {
                       ok: true,
-                      t: `Blitzed ${usable} stage${usable === 1 ? "" : "s"} — +${fmt(preview?.xp ?? 0)} XP, +${fmt(preview?.gold ?? 0)} gold`,
+                      t: `Blitz started — stages 1-${usable} will pay +${fmt(preview?.xp ?? 0)} XP and +${fmt(preview?.gold ?? 0)} gold in ten minutes`,
                     },
               );
             })
@@ -94,6 +96,7 @@ export function CampaignBlitz({ hero }: { hero: Hero }) {
           </p>
         )
       )}
+      <BlitzRunCard />
       {msg && (
         <p role="status" className={`anim-pop mt-2 text-sm ${msg.ok ? "text-r1" : "text-hp"}`}>
           {msg.t}

@@ -16,6 +16,7 @@ import { PremiumShop } from './PremiumShop';
 import { AuctionHouse } from './AuctionHouse';
 import { WorldMap } from './WorldMap';
 import { beginScrollBattle } from "./services";
+import { battleLockedByBlitz, settleBlitzRun } from "./blitz-run";
 import { scrollFighter } from "./scrolls";
 import castle from "@/assets/castle.jpg.asset.json";
 import theme from "@/assets/theme.mp3.asset.json";
@@ -102,6 +103,10 @@ export function Game() {
 
   const start: StartBattle = (o) => {
     if (!hero || starting.current || battle) return;
+    // A blitz keeps the hero out in the field: nothing fights until the run lands (see blitz-run.ts).
+    const blitzLock = battleLockedByBlitz(hero);
+    if (blitzLock) { setEntryError(blitzLock); return; }
+    if (hero.blitzRun) update((h) => { settleBlitzRun(h); });
     starting.current = true; setEntryError("");
     void (async () => {
       try {

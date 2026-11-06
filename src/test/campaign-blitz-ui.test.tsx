@@ -19,7 +19,7 @@ describe("campaign gate blitz", () => {
     expect(screen.getByRole("button", { name: "Deepest (10)" })).toBeEnabled();
   });
 
-  it("blitzes the cleared stages and spends one daily blitz", () => {
+  it("starts a ten-minute run and spends one daily blitz", () => {
     const hero = { ...newHero("Gate Tester", "warrior"), stage: 11 };
     const gold = hero.gold;
     setHero(hero);
@@ -28,10 +28,12 @@ describe("campaign gate blitz", () => {
     fireEvent.click(screen.getByRole("button", { name: "Blitz" }));
 
     const after = getState().hero!;
-    expect(after.gold).toBeGreaterThan(gold);
+    expect(after.gold).toBe(gold); // the run pays when it lands, not on the button press
+    expect(after.blitzRun).toMatchObject({ gate: "campaign", target: 10 });
     expect(campaignStagesCleared(after)).toBe(10);
     expect(after.conquest?.blitzUsed).toBe(1);
-    expect(screen.getByRole("status").textContent).toMatch(/Blitzed 10 stages/);
+    expect(screen.getByRole("status").textContent).toMatch(/Blitz started/);
+    expect(screen.getByRole("group", { name: "Running blitz" })).toBeInTheDocument();
     expect(blitzesLeft(after)).toBe(BLITZ_PER_DAY - 1);
   });
 
