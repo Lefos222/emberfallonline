@@ -14,7 +14,6 @@ import {
   GOLD_PACKS,
   MATERIAL_ORDER,
   MATERIAL_PRICES,
-  PREMIUM_TEST_MODE,
   VIP_PLANS,
   diamondPackTotal,
   premiumState,
@@ -22,16 +21,6 @@ import {
   vipPlanFor,
   vipXpBonusPct,
 } from "./economy";
-import {
-  buyChest,
-  buyDiamondPack,
-  buyGem,
-  buyGoldPack,
-  buyMaterial,
-  buyVip,
-  claimVipDaily,
-} from "./premium-shop";
-
 const TABS = [
   { id: "diamonds", name: "Diamonds" },
   { id: "gold", name: "Gold" },
@@ -48,18 +37,11 @@ const money = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 export function PremiumShop({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
   const [tab, setTab] = useState<Tab>("diamonds");
-  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
   if (!hero) return null;
   const p = premiumState(hero);
   const activePlan = vipPlanFor(p.vip.level);
   const activeXp = vipXpBonusPct(p.vip.level);
   const activeGold = vipDailyGold(hero);
-
-  const run = (okText: string, action: () => string | null) => {
-    const error = action();
-    setNotice(error ? { ok: false, text: error } : { ok: true, text: okText });
-  };
-  const canBuy = (cost: number) => PREMIUM_TEST_MODE && p.balance >= cost;
 
   return (
     <Panel
@@ -73,10 +55,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
         <GameTabs
           label="Premium Shop"
           value={tab}
-          onChange={(id) => {
-            setTab(id);
-            setNotice(null);
-          }}
+          onChange={setTab}
           tabs={TABS.map((t) => ({ id: t.id, name: t.name }))}
         />
         <div className="slot flex items-center gap-1.5 px-3 py-1.5 font-display text-lg text-r4">
@@ -85,28 +64,13 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
         </div>
       </div>
 
-      {PREMIUM_TEST_MODE ? (
-        <p
-          role="status"
-          className="mb-3 rounded-md border border-gold/40 bg-gold/10 px-3 py-2 text-xs text-gold"
-        >
-          Test mode — no payment provider is connected. Diamond packs are granted instantly so you
-          can test the full shop; nothing is charged.
-        </p>
-      ) : (
-        <p
-          role="status"
-          className="mb-3 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
-        >
-          Checkout is not connected yet. The catalogue is visible, but purchases stay locked until
-          payments and server verification are live.
-        </p>
-      )}
-      {notice && (
-        <p role="status" className={`mb-3 text-sm ${notice.ok ? "text-r1" : "text-blood"}`}>
-          {notice.text}
-        </p>
-      )}
+      <p
+        role="status"
+        className="mb-3 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
+      >
+        Coming soon — Diamonds and every premium purchase are still being set up. Nothing in this
+        shop can be bought or granted yet.
+      </p>
 
       {tab === "diamonds" && (
         <div>
@@ -135,16 +99,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                     <p className="text-xs text-muted-foreground">One-time Diamond pack</p>
                   )}
                   <p className="mt-auto font-display text-lg text-gold">{money(pack.priceCents)}</p>
-                  <Button
-                    disabled={!PREMIUM_TEST_MODE}
-                    onClick={() =>
-                      run(`${fmt(total)} Diamonds added to your test wallet.`, () =>
-                        buyDiamondPack(pack.id),
-                      )
-                    }
-                  >
-                    {PREMIUM_TEST_MODE ? "Test purchase" : "Coming soon"}
-                  </Button>
+                  <Button disabled>Coming soon</Button>
                 </article>
               );
             })}
@@ -170,25 +125,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                     <Diamonds n={pack.diamonds} />
                   </p>
                 </div>
-                <Button
-                  disabled={!canBuy(pack.diamonds)}
-                  title={
-                    !PREMIUM_TEST_MODE
-                      ? "Payments not connected yet"
-                      : p.balance < pack.diamonds
-                        ? "Not enough Diamonds"
-                        : undefined
-                  }
-                  onClick={() =>
-                    run(`${pack.name}: ${fmt(pack.gold)} gold added.`, () => buyGoldPack(pack.id))
-                  }
-                >
-                  {!PREMIUM_TEST_MODE
-                    ? "Coming soon"
-                    : p.balance < pack.diamonds
-                      ? "Not enough"
-                      : "Buy"}
-                </Button>
+                <Button disabled>Coming soon</Button>
               </article>
             ))}
           </div>
@@ -215,27 +152,12 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                     <p className="text-[11px] text-muted-foreground">{GEMS[type].note}</p>
                   </div>
                 </div>
-                <div className="mt-auto grid grid-cols-3 gap-1">
-                  {GEM_TIER_PRICES.map((cost, i) => (
-                    <Button
-                      key={cost}
-                      size="sm"
-                      variant="ghost"
-                      className="flex-col gap-0 px-1 py-1 text-[11px]"
-                      disabled={!canBuy(cost)}
-                      title={`${GEM_TIER_NAMES[i]} ${GEMS[type].name} — ${cost} Diamonds`}
-                      onClick={() =>
-                        run(
-                          `${GEM_TIER_NAMES[i]} ${GEMS[type].name} added to your gem pouch.`,
-                          () => buyGem(type, i + 1),
-                        )
-                      }
-                    >
-                      <span className="font-bold">{["I", "II", "III"][i]}</span>
-                      <span className="text-r4">{cost}◆</span>
-                    </Button>
-                  ))}
-                </div>
+                <Button className="mt-auto w-full" size="sm" disabled>
+                  Coming soon
+                </Button>
+                <p className="text-center text-[10px] text-muted-foreground">
+                  {GEM_TIER_PRICES.map((cost, i) => `${GEM_TIER_NAMES[i]} ${cost}◆`).join(" · ")}
+                </p>
               </article>
             ))}
           </div>
@@ -257,24 +179,12 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                     <h3 className="font-display leading-tight">{MATS[mat].name}</h3>
                   </div>
                   <p className="flex-1 text-[11px] text-muted-foreground">{MATS[mat].desc}</p>
-                  <div className="grid grid-cols-2 gap-1">
-                    <Button
-                      size="sm"
-                      disabled={!canBuy(prices.one)}
-                      onClick={() => run(`1× ${MATS[mat].name} added.`, () => buyMaterial(mat, 1))}
-                    >
-                      <span>1×</span>
-                      <Diamonds n={prices.one} />
-                    </Button>
-                    <Button
-                      size="sm"
-                      disabled={!canBuy(prices.five)}
-                      onClick={() => run(`5× ${MATS[mat].name} added.`, () => buyMaterial(mat, 5))}
-                    >
-                      <span>5×</span>
-                      <Diamonds n={prices.five} />
-                    </Button>
-                  </div>
+                  <Button className="mt-auto w-full" size="sm" disabled>
+                    Coming soon
+                  </Button>
+                  <p className="text-center text-[10px] text-muted-foreground">
+                    1× {prices.one}◆ · 5× {prices.five}◆
+                  </p>
                 </article>
               );
             })}
@@ -301,14 +211,8 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                   In your vault:{" "}
                   <span className="font-bold text-foreground">{chestCount(hero, offer.kind)}</span>
                 </p>
-                <Button
-                  disabled={!canBuy(offer.diamonds)}
-                  onClick={() =>
-                    run(`${offer.name} sent to your Armory vault.`, () => buyChest(offer.kind))
-                  }
-                >
-                  Buy · <Diamonds n={offer.diamonds} />
-                </Button>
+                <p className="text-[11px] text-muted-foreground">{fmt(offer.diamonds)}◆</p>
+                <Button disabled>Coming soon</Button>
               </article>
             ))}
           </div>
@@ -336,12 +240,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                   +{activeXp}% battle XP · {fmt(activeGold)} gold every day
                 </p>
               </div>
-              <Button
-                disabled={!PREMIUM_TEST_MODE || p.claimedToday}
-                onClick={() => run(`Claimed ${fmt(activeGold)} VIP gold.`, claimVipDaily)}
-              >
-                {p.claimedToday ? "Claimed today" : `Claim ${fmt(activeGold)} gold`}
-              </Button>
+              <Button disabled>Coming soon</Button>
             </div>
           )}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -372,24 +271,8 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                         ≈{Math.ceil(plan.diamonds / plan.days)}◆ / day
                       </span>
                     </p>
-                    <Button
-                      className="mt-2 w-full"
-                      size="sm"
-                      disabled={!canBuy(plan.diamonds)}
-                      onClick={() =>
-                        run(
-                          `VIP ${plan.level} active until ${new Date(Date.now() + plan.days * 86_400_000).toLocaleDateString()}.`,
-                          () => buyVip(plan.level),
-                        )
-                      }
-                    >
-                      {!PREMIUM_TEST_MODE
-                        ? "Coming soon"
-                        : p.balance < plan.diamonds
-                          ? "Not enough Diamonds"
-                          : current
-                            ? "Extend membership"
-                            : "Buy membership"}
+                    <Button className="mt-2 w-full" size="sm" disabled>
+                      Coming soon
                     </Button>
                   </div>
                 </article>

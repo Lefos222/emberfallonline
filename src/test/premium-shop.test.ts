@@ -1,49 +1,36 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { newHero } from "@/game/data";
+import { premiumState } from "@/game/economy";
+import {
+  buyChest,
+  buyDiamondPack,
+  buyGem,
+  buyGoldPack,
+  buyMaterial,
+  buyVip,
+  claimVipDaily,
+} from "@/game/premium-shop";
+import { getState, setHero } from "@/game/store";
 
-afterEach(() => {
-  vi.unstubAllEnvs();
-  vi.resetModules();
-});
+afterEach(() => setHero(null));
 
-describe("premium shop test wallet", () => {
-  it("grants a pack, then spends diamonds on gold, stones, materials, chests and VIP", async () => {
-    vi.resetModules();
-    vi.stubEnv("VITE_PREMIUM_TEST_MODE", "1");
-    const shop = await import("@/game/premium-shop");
-    const store = await import("@/game/store");
-    const { newHero } = await import("@/game/data");
-    const { premiumState } = await import("@/game/economy");
+describe("premium shop is closed", () => {
+  it("refuses every purchase and never grants diamonds", () => {
+    setHero(newHero("Shopper", "warrior"));
+    const before = JSON.stringify(getState().hero);
 
-    store.setHero(newHero("Shopper", "warrior"));
+    const errors = [
+      buyDiamondPack("pouch"),
+      buyGoldPack("pouch"),
+      buyGem("ruby", 1),
+      buyMaterial("ore", 5),
+      buyChest("gold"),
+      buyVip(1),
+      claimVipDaily(),
+    ];
 
-    expect(shop.buyDiamondPack("pouch")).toBeNull();
-    expect(premiumState(store.getState().hero).balance).toBe(1200);
-
-    expect(shop.buyGoldPack("pouch")).toBeNull();
-    expect(store.getState().hero?.gold).toBe(10100);
-    expect(premiumState(store.getState().hero).balance).toBe(1150);
-
-    expect(shop.buyGem("ruby", 1)).toBeNull();
-    expect(store.getState().hero?.gems?.["ruby:1"]).toBe(1);
-    expect(premiumState(store.getState().hero).balance).toBe(1145);
-
-    expect(shop.buyMaterial("ore", 5)).toBeNull();
-    expect(store.getState().hero?.mats?.ore).toBe(5);
-    expect(premiumState(store.getState().hero).balance).toBe(1125);
-
-    expect(shop.buyChest("gold")).toBeNull();
-    expect(store.getState().hero?.chests?.gold).toBe(1);
-    expect(premiumState(store.getState().hero).balance).toBe(1065);
-
-    expect(shop.buyVip(1)).toBeNull();
-    expect(premiumState(store.getState().hero).vip.level).toBe(1);
-    expect(premiumState(store.getState().hero).balance).toBe(966);
-
-    expect(shop.claimVipDaily()).toBeNull();
-    expect(store.getState().hero?.gold).toBe(11600);
-    expect(premiumState(store.getState().hero).claimedToday).toBe(true);
-    expect(shop.claimVipDaily()).toMatch(/already claimed/i);
-
-    store.setHero(null);
+    for (const error of errors) expect(error).toMatch(/coming soon/i);
+    expect(premiumState(getState().hero).balance).toBe(0);
+    expect(JSON.stringify(getState().hero)).toBe(before);
   });
 });
