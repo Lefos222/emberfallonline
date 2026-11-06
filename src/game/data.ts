@@ -12,7 +12,6 @@ import { scaledGold } from "./gold";
 import { drillAttrs, drillFx } from "./drills";
 import { guildFx } from "./guild-tower";
 import { normalizeSynth, synthFx } from "./synthesis";
-import type { PremiumWallet } from "./economy";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -320,8 +319,6 @@ export interface Hero {
   dailyRewards?: { day?: number; last?: string; cycles?: number };
   /** Chest items waiting in the vault, by chest id (see chests.ts). */
   chests?: Partial<Record<"gold" | "gem", number>>;
-  /** Preview test wallet (see economy.ts). Ignored unless premium test mode is on. */
-  premiumTest?: PremiumWallet;
   /** Periodic free reward chest: when it was last collected and how many have been collected (see chests.ts). */
   rewardChest?: { last?: number; claims?: number };
 
