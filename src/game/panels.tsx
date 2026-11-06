@@ -9,7 +9,7 @@ import { recordEnhance } from "./progress";
 import { adviseStrategy } from "@/lib/quests.functions";
 import {
   attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, ENHANCE_MAX, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
-  CONQUEST_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, catchUpXpFactor, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
+  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, catchUpXpFactor, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import { STAMINA_PER_DAY, STAMINA_PER_FIGHT, settleCampaignStamina, staminaBlocker, staminaLeft } from "./stamina";
 import { refreshMerchant } from "./logic";
@@ -114,7 +114,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             {powerBreakdown(hero).map((p) => (
               <div key={p.label} className="flex justify-between"><span>{p.label}</span><span>+{fmt(p.power)}</span></div>
             ))}
-            <div className="mt-1 text-muted-foreground">{hero.level < CONQUEST_LEVEL ? `Conquest unlocks at level ${CONQUEST_LEVEL}` : hero.level < 80 ? `Ascension begins at level 80` : `Ascending — each level grants +2% to all stats`}</div>
+            <div className="mt-1 text-muted-foreground">{hero.level < CONQUEST_LEVEL ? `Conquest unlocks at level ${CONQUEST_LEVEL}` : hero.level < MAX_LEVEL ? `Ascension begins at level ${MAX_LEVEL}` : `Ascending — each level grants +2% to all stats`}</div>
           </div>
         </div>
         <div>

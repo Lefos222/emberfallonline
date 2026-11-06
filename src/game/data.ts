@@ -30,7 +30,7 @@ export const wearOf = (s: Slot): WearSlot[] => (s === "ring" ? ["ring", "ring2"]
 /** What a character is wearing, keyed by wear position. */
 export type GearRecord = Partial<Record<WearSlot, Item>>;
 
-export const MAX_LEVEL = 80;
+export const MAX_LEVEL = 140;
 /** Gear can be enhanced this far. The climb is the game's long-term gold sink. */
 export const ENHANCE_MAX = 30;
 export const CONQUEST_LEVEL = 10;
@@ -355,18 +355,20 @@ export function newHero(name: string, cls: HeroClass): Hero {
 }
 
 export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
-  if (h.level < MAX_LEVEL) return Math.round(75 * Math.pow(h.level, 1.75) * lateLevelFactor(h.level));
-  return Math.round(75 * Math.pow(MAX_LEVEL, 1.75) * lateLevelFactor(MAX_LEVEL) * Math.pow(1.05, h.paragon));
+  if (h.level < MAX_LEVEL) return Math.round(XP_BASE * Math.pow(h.level, 1.9) * lateLevelFactor(h.level));
+  return Math.round(XP_BASE * Math.pow(MAX_LEVEL, 1.9) * lateLevelFactor(MAX_LEVEL) * Math.pow(1.10, h.paragon));
 }
 
+/** Base XP for one level — deliberately high so even the earliest levels take many battles. */
+export const XP_BASE = 525;
 /** Levels past this point get steadily slower so reaching the cap takes months, not weeks. */
 export const LATE_LEVEL = 20;
-/** Extra XP multiplier per level: 1x up to Lv 20, then +15% compounding each level (~4384x by Lv 80).
- *  This creates a brutal grind wall after level 20 — each level takes far longer than the last, so
- *  reaching the cap takes months of deliberate play. Requirements scale: ~460k at Lv 40, ~4.7M at Lv 50,
- *  ~26M at Lv 60, ~137M at Lv 70, ~700M at Lv 80. */
+/** Extra XP multiplier per level: 1x up to Lv 20, then +18% compounding each level.
+ *  This creates a heavy grind wall after level 20 — each level takes far longer than the last, so
+ *  reaching the cap takes months of deliberate grinding. Requirements scale: ~16M at Lv 40,
+ *  ~127M at Lv 50, ~942M at Lv 60, ~6.6B at Lv 70, ~45B at Lv 80. */
 export function lateLevelFactor(level: number) {
-  return Math.pow(1.15, Math.max(0, level - LATE_LEVEL));
+  return Math.pow(1.18, Math.max(0, level - LATE_LEVEL));
 }
 
 /** Stages past this point are the hard half of the campaign: foes grow faster than the road below it. */
@@ -564,11 +566,11 @@ export function earlyEase(stage: number) {
  *  Gold is deliberately scarce: a stage pays a few hundred coins, while one enhancement or barracks
  *  level costs many fights, so coin keeps its value from the first hour to the endgame. */
 export function stageRewards(stage: number, mult = 1) {
-  const late = Math.pow(1.01, Math.max(0, stage - HARD_STAGE));
-  // After stage 30 rewards grow more slowly than the XP curve, so levels take progressively longer.
-  const grindTaper = Math.pow(0.985, Math.max(0, stage - HARD_STAGE));
+  const late = Math.pow(1.012, Math.max(0, stage - HARD_STAGE));
+  // After stage 30 rewards grow more slowly than the XP curve, so each level takes many sessions.
+  const grindTaper = Math.pow(0.992, Math.max(0, stage - HARD_STAGE));
   return {
-    xp: Math.round(34 * Math.pow(stage, 1.6) * late * grindTaper * mult),
+    xp: Math.round(22 * Math.pow(stage, 1.5) * late * grindTaper * mult),
     gold: Math.round((6 + 1.5 * Math.pow(stage, 1.55)) * late * mult),
   };
 }
