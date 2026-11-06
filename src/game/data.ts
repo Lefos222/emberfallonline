@@ -30,7 +30,7 @@ export const wearOf = (s: Slot): WearSlot[] => (s === "ring" ? ["ring", "ring2"]
 /** What a character is wearing, keyed by wear position. */
 export type GearRecord = Partial<Record<WearSlot, Item>>;
 
-export const MAX_LEVEL = 80;
+export const MAX_LEVEL = 140;
 /** Gear can be enhanced this far. The climb is the game's long-term gold sink. */
 export const ENHANCE_MAX = 30;
 export const CONQUEST_LEVEL = 10;
