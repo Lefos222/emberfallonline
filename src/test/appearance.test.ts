@@ -12,7 +12,7 @@ describe("armour appearance", () => {
     expect(lookCount("archer", "male")).toBeGreaterThan(8);
     expect(lookCount("archer", "female")).toBeGreaterThan(8);
     expect(lookCount("mage", "male")).toBeGreaterThan(8);
-    expect(lookCount("mage", "female")).toBe(8);
+    expect(lookCount("mage", "female")).toBe(14);
   });
 
   it("resolves art for every look in the pool and nothing outside it", () => {
