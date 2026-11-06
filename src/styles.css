@@ -545,3 +545,8 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   font-style: italic;
   color: color-mix(in oklab, var(--gold) 88%, white);
 }
+
+/* Resolution scaling: the whole interface is sized in rem, so on 1440p/4K/ultrawide
+   screens the root size grows with screen height (width-capped for very tall screens)
+   instead of leaving tiny windows on a huge background. Phones/laptops keep 16px. */
+html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
