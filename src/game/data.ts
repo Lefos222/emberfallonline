@@ -12,7 +12,6 @@ import { scaledGold } from "./gold";
 import { drillAttrs, drillFx } from "./drills";
 import { guildFx } from "./guild-tower";
 import { normalizeSynth, synthFx } from "./synthesis";
-import type { PremiumWallet } from "./economy";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -320,8 +319,6 @@ export interface Hero {
   dailyRewards?: { day?: number; last?: string; cycles?: number };
   /** Chest items waiting in the vault, by chest id (see chests.ts). */
   chests?: Partial<Record<"gold" | "gem", number>>;
-  /** Preview test wallet (see economy.ts). Ignored unless premium test mode is on. */
-  premiumTest?: PremiumWallet;
   /** Periodic free reward chest: when it was last collected and how many have been collected (see chests.ts). */
   rewardChest?: { last?: number; claims?: number };
 
@@ -427,9 +424,11 @@ export function normalizeHero(h: Hero): Hero {
   for (const it of [...h.inventory, ...WEAR_SLOTS.map((p) => h.equipment[p])]) {
     if (it && it.enh > ENHANCE_MAX) it.enh = ENHANCE_MAX;
   }
-  const legacy = h as unknown as { anc?: unknown; ancTower?: unknown };
+  const legacy = h as unknown as { anc?: unknown; ancTower?: unknown; premiumTest?: unknown };
   delete legacy.anc;
   delete legacy.ancTower;
+  // The shop's preview test wallet is retired: drop any test diamonds a save still carries.
+  delete legacy.premiumTest;
   // Gems from older saves are remapped onto the eight chart families (see crafting.ts).
   migrateGems(h);
   // Astrals are clamped onto the six-colour, ten-level ladder (see crafting.ts).

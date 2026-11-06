@@ -3,17 +3,12 @@ import type { GemType, Mat } from "./crafting";
 
 /** Premium shop catalogue and wallet parsing.
  *
- *  The payment provider and the server-side purchase RPCs are not connected yet. Until they are,
- *  the shop runs in test mode in dev builds (Vite `DEV`: the Base44 preview and local dev), optionally
- *  forced with `VITE_PREMIUM_TEST_MODE=1`. Diamond packs grant their diamonds instantly so the whole
- *  chain (money → diamonds → goods → VIP) can be tested. Production builds keep purchases locked.
+ *  The payment provider and the server-side purchase RPCs are not connected yet, so the shop is a
+ *  catalogue only: every item shows its price and reads "Coming soon". The server-owned `srv.premium`
+ *  state (the `premium_diamonds_vip` RPCs) stays authoritative for diamonds and VIP.
  *
  *  When checkout and the SQL purchase functions are wired, move the catalogue prices below into
  *  the matching RPCs as well — the server must stay authoritative for real money. */
-
-const env = import.meta.env as Record<string, string | undefined>;
-/** Dev builds are the preview surface; production builds keep everyone on the locked catalogue. */
-export const PREMIUM_TEST_MODE = import.meta.env.DEV || env["VITE_PREMIUM_TEST_MODE"] === "1";
 
 export interface DiamondPack {
   id: string;
@@ -259,10 +254,6 @@ export interface PremiumState {
 
 const walletOf = (hero: unknown): PremiumWallet => {
   const root = object(hero);
-  if (PREMIUM_TEST_MODE) {
-    const test = object(root["premiumTest"]);
-    if (Object.keys(test).length > 0) return test as PremiumWallet;
-  }
   return object(object(root["srv"])["premium"]) as PremiumWallet;
 };
 

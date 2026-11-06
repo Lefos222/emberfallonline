@@ -11,6 +11,7 @@ import {
   premiumState,
   vipXpMultiplier,
 } from "../game/economy";
+import { newHero, normalizeHero, type Hero } from "../game/data";
 
 describe("premium economy configuration", () => {
   it("offers the five money tiers $10, $20, $30, $50 and $99.99", () => {
@@ -58,6 +59,16 @@ describe("premium economy configuration", () => {
 
   it("shop item ids are unique", () => {
     expect(new Set(DIAMOND_SHOP.map((i) => i.id)).size).toBe(DIAMOND_SHOP.length);
+  });
+});
+
+describe("retired test wallet", () => {
+  it("ignores and strips leftover test diamonds from old saves", () => {
+    const hero = newHero("Shopper", "warrior") as Hero & { premiumTest?: unknown };
+    hero.premiumTest = { balance: 1200 };
+    expect(premiumState(hero).balance).toBe(0);
+    normalizeHero(hero);
+    expect(hero.premiumTest).toBeUndefined();
   });
 });
 
