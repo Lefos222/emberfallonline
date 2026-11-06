@@ -36,10 +36,10 @@ export type StartBattle = (opts: {
   onResult: (won: boolean, xpMultiplier?: number) => { lines: string[]; loot?: Item | null } | Promise<{ lines: string[]; loot?: Item | null }>;
 }) => void;
 
-export const heroFighter = (h: Hero, s: Stats): Fighter => ({
+export const heroFighter = (h: Hero, s: Stats, gender: "male" | "female"): Fighter => ({
   name: h.name, img: CLASSES[h.cls].img, hp: s.hp, atk: s.atk, def: s.def, crit: s.crit, dodge: s.dodge,
   critDmg: s.critDmg, pen: s.pen, acc: s.acc, block: s.block, heal: s.heal,
-  level: h.level + h.paragon, cls: h.cls, skills: heroSkills(h), skillLoadout: h.skillLoadout, ...heroAppearance(h),
+  level: h.level + h.paragon, cls: h.cls, gender, skills: heroSkills(h), skillLoadout: h.skillLoadout, ...heroAppearance(h, gender),
 });
 
 const SLOT_LABEL: Record<Slot, string> = { helmet: "Head", armour: "Chest", boots: "Feet", belt: "Waist", weapon: "Weapon", ring: "Ring", talisman: "Amulet" };
@@ -80,7 +80,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               ))}
             </div>
             <div className="relative mx-auto h-[320px] w-full max-w-[320px] self-center">
-              <CharacterPose cls={hero.cls} gender={gender} className="inventory-character h-full w-full" {...heroAppearance(hero)} />
+              <CharacterPose cls={hero.cls} gender={gender} className="inventory-character h-full w-full" {...heroAppearance(hero, gender)} />
             </div>
             <div className="flex flex-col gap-2">
               {RIGHT_DOLL.map((sl) => (
