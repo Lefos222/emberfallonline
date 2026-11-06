@@ -360,13 +360,13 @@ export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
 }
 
 /** Base XP for one level — deliberately high so even the earliest levels take many battles. */
-export const XP_BASE = 600;
+export const XP_BASE = 525;
 /** Levels past this point get steadily slower so reaching the cap takes months, not weeks. */
 export const LATE_LEVEL = 20;
 /** Extra XP multiplier per level: 1x up to Lv 20, then +18% compounding each level.
  *  This creates a heavy grind wall after level 20 — each level takes far longer than the last, so
- *  reaching the cap takes months of deliberate grinding. Requirements scale: ~18M at Lv 40,
- *  ~145M at Lv 50, ~1.1B at Lv 60, ~7.5B at Lv 70, ~51B at Lv 80. */
+ *  reaching the cap takes months of deliberate grinding. Requirements scale: ~16M at Lv 40,
+ *  ~127M at Lv 50, ~942M at Lv 60, ~6.6B at Lv 70, ~45B at Lv 80. */
 export function lateLevelFactor(level: number) {
   return Math.pow(1.18, Math.max(0, level - LATE_LEVEL));
 }
@@ -570,7 +570,7 @@ export function stageRewards(stage: number, mult = 1) {
   // After stage 30 rewards grow more slowly than the XP curve, so each level takes many sessions.
   const grindTaper = Math.pow(0.992, Math.max(0, stage - HARD_STAGE));
   return {
-    xp: Math.round(18 * Math.pow(stage, 1.5) * late * grindTaper * mult),
+    xp: Math.round(22 * Math.pow(stage, 1.5) * late * grindTaper * mult),
     gold: Math.round((6 + 1.5 * Math.pow(stage, 1.55)) * late * mult),
   };
 }
