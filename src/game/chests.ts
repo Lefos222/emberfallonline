@@ -51,8 +51,8 @@ export const goldChestValue = (level: number) => 600 + level * 45;
 
 // ---------- Chests found in battle ----------
 
-/** Chance a won fight leaves a chest behind. Gem chests are the rarer find. */
-export const BATTLE_CHEST_ODDS: Record<ChestKind, number> = { gold: 0.1, gem: 0.04 };
+/** Chance a won fight leaves a chest behind. Gem chests are the rarer find, but they do turn up. */
+export const BATTLE_CHEST_ODDS: Record<ChestKind, number> = { gold: 0.12, gem: 0.08 };
 
 /** Roll the chest a won battle drops, or null when the field stays empty. */
 export function rollBattleChest(random: () => number = Math.random): ChestKind | null {
