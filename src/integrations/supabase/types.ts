@@ -304,6 +304,42 @@ export type Database = {
           },
         ]
       }
+      friend_requests: {
+        Row: {
+          created_at: string
+          from_hero: string
+          id: string
+          to_hero: string
+        }
+        Insert: {
+          created_at?: string
+          from_hero: string
+          id?: string
+          to_hero: string
+        }
+        Update: {
+          created_at?: string
+          from_hero?: string
+          id?: string
+          to_hero?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friend_requests_from_hero_fkey"
+            columns: ["from_hero"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_requests_to_hero_fkey"
+            columns: ["to_hero"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friendships: {
         Row: {
           created_at: string
@@ -910,6 +946,10 @@ export type Database = {
         Args: { _hero: string; _kind: string; _req: string }
         Returns: Json
       }
+      cancel_friend_request: {
+        Args: { _hero: string; _request: string }
+        Returns: undefined
+      }
       claim_activity: {
         Args: { _hero: string; _objective: string }
         Returns: Json
@@ -1013,6 +1053,19 @@ export type Database = {
         }[]
       }
       leave_guild: { Args: { _hero: string }; Returns: undefined }
+      list_friend_requests: {
+        Args: { _hero: string }
+        Returns: {
+          created_at: string
+          gender: string
+          hero_class: string
+          hero_id: string
+          id: string
+          level: number
+          name: string
+          power: number
+        }[]
+      }
       list_friends: {
         Args: { _hero: string }
         Returns: {
@@ -1027,6 +1080,19 @@ export type Database = {
           name: string
           power: number
           title: string
+        }[]
+      }
+      list_sent_requests: {
+        Args: { _hero: string }
+        Returns: {
+          created_at: string
+          gender: string
+          hero_class: string
+          hero_id: string
+          id: string
+          level: number
+          name: string
+          power: number
         }[]
       }
       lucky_shot: { Args: { _hero: string; _req: string }; Returns: Json }
@@ -1051,9 +1117,30 @@ export type Database = {
         Args: { _hero: string; _message: string; _reason: string }
         Returns: undefined
       }
+      request_friend: {
+        Args: { _hero: string; _name: string }
+        Returns: string
+      }
+      respond_friend_request: {
+        Args: { _accept: boolean; _hero: string; _request: string }
+        Returns: undefined
+      }
       respond_invite: {
         Args: { _accept: boolean; _hero: string; _invite: string }
         Returns: undefined
+      }
+      search_heroes: {
+        Args: { _hero: string; _q: string }
+        Returns: {
+          gender: string
+          hero_class: string
+          id: string
+          last_played: string
+          level: number
+          name: string
+          power: number
+          relation: string
+        }[]
       }
       send_chat: {
         Args: { _body: string; _channel: string; _hero: string; _to: string }
