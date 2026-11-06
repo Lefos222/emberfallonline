@@ -21,6 +21,7 @@ import castle from "@/assets/castle.jpg.asset.json";
 import theme from "@/assets/theme.mp3.asset.json";
 import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } from "./data";
 import { CHESTS, addChests, rewardChestReady, rollBattleChest } from "./chests";
+import { vipXpMultiplier } from "./economy";
 import { authHandoffPending, getState, update, useGame } from "./store";
 import { recordBattle } from "./progress";
 import { BOSS_CRYSTALS } from "./logic";
@@ -123,7 +124,9 @@ export function Game() {
     settled.current = battle;
     const before = useGameOverflow();
     const levelBefore = getState().hero?.level ?? 1;
-    const r0 = await battle.onResult(won, battle.left.scrolls?.includes("xp") ? 1.2 : 1);
+    // VIP raises battle XP only; scrolls stack with it.
+    const scrollXp = battle.left.scrolls?.includes("xp") ? 1.2 : 1;
+    const r0 = await battle.onResult(won, scrollXp * vipXpMultiplier(getState().hero));
     const r = { ...r0, lines: [...r0.lines] };
     // World chat hears about the milestones worth bragging about, never about ordinary fights.
     const after = getState().hero;
