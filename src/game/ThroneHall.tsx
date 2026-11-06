@@ -4,6 +4,7 @@ import { ACHIEVEMENTS, ACH_CATEGORIES, SET_BONUSES, achGold, achProgress, active
 import { CLASSES, heroSkills, heroStats, powerBreakdown, xpToNext } from "./data";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
+import { LevelProgress } from "./LevelCurve";
 import { QUEST_POINT_CHANCE } from "./quest-board";
 import { TREES } from "./talents";
 import { SkillLoadout } from './SkillLoadout';
@@ -29,7 +30,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
   });
 
   return (
-    <Panel title="Throne Hall" onClose={onClose} wide>
+    <Panel title="Throne Hall" subtitle="Skill tree, passives and achievements" art="crown" onClose={onClose} wide>
       <GameTabs label="Throne Hall" value={tab} onChange={setTab} tabs={[
         { id: "skills", name: "Skill Tree" },
         { id: "passives", name: "Passives" },
@@ -94,6 +95,11 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       ) : tab === "overview" ? (
+        <div className="space-y-4">
+        <div>
+          <div className="mb-1 font-display text-lg text-gold">Level curve</div>
+          <LevelProgress hero={hero} rows={5} />
+        </div>
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-1">
             <div className="font-display text-2xl">{hero.name}</div>
@@ -120,6 +126,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
               </div>
             ))}
           </div>
+        </div>
         </div>
       ) : tab === "passives" ? (
         <PassiveTreeContent />

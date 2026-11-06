@@ -9,7 +9,7 @@ export function Bestiary({ h, onClose }: { h: Hero; onClose: () => void }) {
   const [kind, setKind] = useState('all');
   const [state, setState] = useState('all');
   const entries = ROSTER.filter(e => (kind === 'all' || e.kind === kind) && (state === 'all' || rosterProgress(h, e.id).state === state));
-  return <Panel title="Bestiary & Boss Roster" onClose={onClose} wide>
+  return <Panel title="Bestiary & Boss Roster" subtitle="Every foe you have felled" art="spellbook" onClose={onClose} wide>
     <p className="mb-4 text-sm text-muted-foreground">60 enemy designs · 44 boss designs. Seven bosses use cropped head portraits. Unknown entries unlock only through recorded encounters; old saves are not given invented kills.</p>
     <div className="mb-5 flex flex-wrap gap-4">
       <label>Roster <select className="rounded border border-border bg-background p-2" value={kind} onChange={e => setKind(e.target.value)}>

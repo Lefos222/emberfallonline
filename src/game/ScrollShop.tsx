@@ -19,7 +19,7 @@ export function ScrollShop({ onClose }: { onClose: () => void }) {
     catch (e) { setError(e instanceof Error ? e.message : 'The scroll request failed.'); }
     finally { setBusy(false); }
   }
-  return <Panel title="Battle Scrolls" onClose={onClose}>
+  return <Panel title="Battle Scrolls" subtitle="One-fight boosts and effects" art="scroll" onClose={onClose}>
     <div className="mb-4"><Gold n={hero.gold} /></div>
     <div className="space-y-3">{(Object.keys(SCROLLS) as ScrollKind[]).map(kind => {
       const scroll = SCROLLS[kind]; const col = kind === 'dmg' ? 0 : kind === 'def' ? 1 : 2;

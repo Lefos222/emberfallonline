@@ -9,13 +9,14 @@ import { recordEnhance } from "./progress";
 import { adviseStrategy } from "@/lib/quests.functions";
 import {
   attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, ENHANCE_MAX, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
-  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, zoneOf, catchUpXpFactor, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
+  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, fightsToNextLevel, zoneOf, catchUpXpFactor, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import { STAMINA_PER_DAY, STAMINA_PER_FIGHT, settleCampaignStamina, staminaBlocker, staminaLeft } from "./stamina";
 import { refreshMerchant } from "./logic";
 import { addConquestTokens, floorTokens } from "./conquest";
 import { ConquestTokens } from "./ConquestGate";
 import { CampaignBlitz } from "./CampaignBlitz";
+import { LevelProgress } from "./LevelCurve";
 import { update, useGame } from "./store";
 import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { MatIcon } from "./MatIcon";
@@ -68,7 +69,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
   const sell = (it: Item) => update((h) => { h.inventory = h.inventory.filter((i) => i.id !== it.id); h.gold += sellValue(it); });
 
   return (
-    <Panel title={title} onClose={onClose} wide>
+    <Panel title={title} subtitle="Bag, equipment and sets" art="bag" onClose={onClose} wide>
       <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
         <div>
           <div className="relative mx-auto grid max-w-xl grid-cols-[auto_minmax(0,1fr)_auto] items-stretch gap-2">
@@ -266,7 +267,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   };
 
   return (
-    <Panel title={spire ? "Endless Conquest" : "Campaign Gate"} onClose={onClose}>
+    <Panel title={spire ? "Endless Conquest" : "Campaign Gate"} subtitle={spire ? "Every floor higher than the last" : "Push the road, level up and loot"} art="quest" onClose={onClose}>
       <div className="grid items-center gap-6 md:grid-cols-2">
         <div className="relative h-72 overflow-hidden rounded-lg">
           <img src={worldMap} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-40" />
@@ -309,6 +310,10 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
             </div>
           )}
         </div>
+      </div>
+      <div className="mt-5">
+        <div className="mb-1 font-display text-lg text-gold">Level up</div>
+        <LevelProgress hero={hero} rows={3} />
       </div>
       {spire && <ConquestTokens hero={hero} />}
       {!spire && <CampaignBlitz hero={hero} />}
@@ -384,7 +389,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
     }
   };
   return (
-    <Panel title="Forge" onClose={onClose}>
+    <Panel title="Forge" subtitle="Enhance and salvage gear" art="hammer" onClose={onClose}>
       {onCraft && <button className="btn-gold mb-4 w-full py-2" onClick={onCraft}><Hammer className="mr-2 inline h-4 w-4" />Open crafting recipes · Standard &amp; Synthesis</button>}
       <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
         <div className="space-y-4">
@@ -500,7 +505,7 @@ export function Temple({ onClose }: { onClose: () => void }) {
   if (!hero) return null;
   const s = heroStats(hero);
   return (
-    <Panel title="Barracks — Attribute Training" onClose={onClose}>
+    <Panel title="Barracks — Attribute Training" subtitle="Turn gold into permanent stats" art="profile" onClose={onClose}>
       <BarracksUpgrade hero={hero} />
       <div className="mb-4 grid grid-cols-3 gap-2 text-center">
         {([["Health", fmt(s.hp), "text-hp"], ["Attack", fmt(s.atk), "text-gold"], ["Defense", fmt(s.def), ""]] as const).map(([label, v, cls]) => (
@@ -544,7 +549,7 @@ export function Market({ onClose }: { onClose: () => void }) {
   const refreshCost = 40 + hero.level * 20;
   const item = hero.merchant.find((i) => i.id === sel);
   return (
-    <Panel title="Night Market" onClose={onClose}>
+    <Panel title="Night Market" subtitle="Six wares, refreshed as you fight" art="auction" onClose={onClose}>
       <div className="grid gap-5 md:grid-cols-2">
         <div>
           <div className="grid grid-cols-3 gap-3">
@@ -582,8 +587,12 @@ export function Oracle(props: { onClose: () => void; start?: StartBattle }) {
 
 export function XpBar({ hero }: { hero: Hero }) {
   const need = xpToNext(hero);
+  const left = fightsToNextLevel(hero);
   return (
-    <div className="bar-track h-2.5 w-full">
+    <div
+      className="bar-track h-2.5 w-full"
+      title={`${fmt(hero.xp)} / ${fmt(need)} XP · ${left} fight${left === 1 ? "" : "s"} to level ${hero.level + 1}`}
+    >
       <div className="bar-xp h-full" style={{ width: `${Math.min(100, (hero.xp / need) * 100)}%` }} />
     </div>
   );

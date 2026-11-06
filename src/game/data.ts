@@ -354,20 +354,39 @@ export function newHero(name: string, cls: HeroClass): Hero {
   };
 }
 
-export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
-  if (h.level < MAX_LEVEL) return Math.round(XP_BASE * Math.pow(h.level, 1.5) * lateLevelFactor(h.level));
-  return Math.round(XP_BASE * Math.pow(MAX_LEVEL, 1.5) * lateLevelFactor(MAX_LEVEL) * Math.pow(1.10, h.paragon));
+/** Levels past this point are where the grind starts — the opening acts stay quick on purpose. */
+export const LATE_LEVEL = 30;
+/** Fights a level costs below LATE_LEVEL: two, so levels 1–29 race by. */
+export const EASY_FIGHTS = 2;
+/** Extra fights every level past LATE_LEVEL adds on top of the one below it (+10 each). */
+export const GRIND_FIGHTS = 10;
+
+/** Fights one level costs, counted in cleared fights at the hero's own level.
+ *  Levels 1–29 cost two fights each; from level 30 every level asks for ten fights more than the
+ *  one before it (12, 22, 32 … 112 at level 40), which is the wall the whole late game is built on. */
+export function fightsToLevel(level: number) {
+  const lv = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
+  if (lv < LATE_LEVEL) return EASY_FIGHTS;
+  return EASY_FIGHTS + GRIND_FIGHTS * (lv - LATE_LEVEL + 1);
 }
 
-/** Base XP for one level — kept low so levels 1–29 flow quickly and new players level up easily. */
-export const XP_BASE = 150;
-/** Levels past this point get steadily slower — the grind wall starts here, not in the early game. */
-export const LATE_LEVEL = 30;
-/** Extra XP multiplier per level: 1x up to Lv 30, then +20% compounding each level.
- *  Levels 1–29 stay light so players race through the early game; from level 30 each level takes
- *  noticeably longer than the last, making the mid-to-late game a deliberate grind. */
-export function lateLevelFactor(level: number) {
-  return Math.pow(1.20, Math.max(0, level - LATE_LEVEL));
+/** XP one fight at this level pays before scrolls and catch-up bonuses (see stageRewards). */
+export function xpPerFight(level: number) {
+  return stageRewards(Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)))).xp;
+}
+
+/** XP the current level still owes, and how many fights at the hero's own level that is. */
+export function fightsToNextLevel(h: Pick<Hero, "level" | "paragon" | "xp">) {
+  const left = Math.max(0, xpToNext(h) - h.xp);
+  return Math.max(1, Math.ceil(left / Math.max(1, xpPerFight(h.level))));
+}
+
+export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
+  const lv = Math.min(MAX_LEVEL, h.level);
+  // One level is worth exactly `fightsToLevel` fights at the hero's own stage, so the campaign
+  // pays the same XP per fight at every level and only the fight count moves.
+  const base = fightsToLevel(lv) * xpPerFight(lv);
+  return h.level < MAX_LEVEL ? base : Math.round(base * Math.pow(1.10, h.paragon));
 }
 
 /** Stages past this point are the hard half of the campaign: foes grow faster than the road below it. */

@@ -131,11 +131,11 @@ export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => v
             <Hammer className="mr-1 inline h-4 w-4" />Forge {GEMS[type].name}
           </button>
           <button className="btn-ghost flex-1 py-2" disabled={hero.gold < price} title={hero.gold < price ? `Needs ${fmt(price)} gold` : "Buy with gold at the Conquest Gate"} onClick={buy}>
-            <ShoppingBag className="mr-1 inline h-4 w-4" />Buy · {fmt(price)} gold
+            <ShoppingBag className="mr-1 inline h-4 w-4" />Buy · <Gold n={price} />
           </button>
         </div>
         <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground">
-          <span>Gold held: <b className="text-gold">{fmt(hero.gold)}</b></span>
+          <span>Gold held: <Gold n={hero.gold} /></span>
           <span>{blocked ? blocked : "Ready to forge."}</span>
         </div>
         {msg && <p role="status" className={`anim-pop mt-2 text-center text-sm ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</p>}

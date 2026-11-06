@@ -46,7 +46,7 @@ export function AuctionHouse({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <Panel title="Auction House" onClose={onClose} wide>
+    <Panel title="Auction House" subtitle="Trade gear for gold" art="auction" onClose={onClose} wide>
       <RequestStatus {...request} />
       {notice && <p role="status" className="mb-3 text-sm text-r1">{notice}</p>}
 

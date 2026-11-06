@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Gem } from 'lucide-react';
 import { ArtIcon } from './ArtIcon';
-import { GameTabs, Panel, fmt } from './ui';
+import { GameTabs, Gold, Panel, fmt } from './ui';
 import { useGame } from './store';
 import { DIAMOND_PACKS, DIAMOND_SHOP, GOLD_PACKS, VIP_LEVELS, premiumState } from './economy';
 import { activateVip, buyDiamondItem, buyGoldPack, claimVipDaily } from './economy-services';
@@ -29,7 +29,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
   const run = (label: string, fn: () => Promise<void>) => void request.run(async () => { await fn(); setNotice(label); });
 
   return (
-    <Panel title="Premium Shop" onClose={onClose} wide>
+    <Panel title="Premium Shop" subtitle="Diamonds, gold packs and VIP" art="diamond" onClose={onClose} wide>
       <RequestStatus {...request} />
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <GameTabs label="Premium Shop" value={tab} onChange={(id) => { setTab(id); setNotice(''); }} tabs={TABS.map(t => ({ id: t.id, name: t.name }))} />
@@ -65,7 +65,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
             <article key={pack.id} className="slot flex items-center justify-between gap-3 p-4">
               <div>
                 <h3 className="font-display text-lg">{pack.name}</h3>
-                <p className="text-sm text-gold">{fmt(pack.gold)} Gold</p>
+                <p className="text-sm"><Gold n={pack.gold} /></p>
                 <p className="text-xs text-muted-foreground">{fmt(pack.diamonds)} Diamonds</p>
               </div>
               <Button disabled={request.busy || p.balance < pack.diamonds}

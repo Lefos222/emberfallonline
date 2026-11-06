@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, Gift, Lock, ScrollText } from "lucide-react";
-import { Panel, fmt } from "./ui";
+import { Gold, Panel, fmt } from "./ui";
 import { update, useGame } from "./store";
 import { claimLevelQuest, levelQuestRows, questsForLevel } from "./level-quests";
 
@@ -37,7 +37,7 @@ export function QuestsPanel({ onClose }: { onClose: () => void }) {
   const done = rows.filter((r) => r.done).length;
 
   return (
-    <Panel title={`Level ${hero.level} Quests`} onClose={onClose} wide>
+    <Panel title={`Level ${hero.level} Quests`} subtitle="One board per level, paid in gold and XP" art="quest" onClose={onClose} wide>
       <p className="mb-4 text-sm text-muted-foreground">
         Every level brings its own three quests. {done}/{rows.length} finished on this board —
         rewards scale with your level, and a new set opens the moment you level up.
@@ -66,7 +66,7 @@ export function QuestsPanel({ onClose }: { onClose: () => void }) {
             </div>
             <p className="text-xs">
               <span className="font-bold text-xp">+{fmt(quest.xp)} XP</span> ·{" "}
-              <span className="font-bold text-gold">+{fmt(quest.gold)} gold</span>
+              <Gold n={quest.gold} />
             </p>
             <button
               className={

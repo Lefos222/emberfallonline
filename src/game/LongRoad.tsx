@@ -33,7 +33,7 @@ export function LongRoad({ onClose, start }: { onClose: () => void; start: Start
       },
     });
   };
-  return <Panel title="The Long Road · Unending Endgame" onClose={onClose} wide>
+  return <Panel title="The Long Road · Unending Endgame" subtitle="Endless regions past the campaign" art="star" onClose={onClose} wide>
     <p className="mb-3 text-sm text-muted-foreground">Daily destination: {dailyRoad(now).name} · Weekly destination: {weeklyRoad(roadWeekIndex(now)).name}. UTC midnight / Monday rotations; destinations are guides, not bonus payouts.</p>
     <div className="relative mb-4 overflow-hidden border-y border-border px-4 py-6">
       <img src={worldMap} alt="The lands beyond the Ember Fall campaign" className="absolute inset-0 h-full w-full object-cover" />

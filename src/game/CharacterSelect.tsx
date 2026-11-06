@@ -206,7 +206,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
   if (!hero) return null;
   const lvl = hero.level + hero.paragon;
   return (
-    <Panel title="Profile" onClose={onClose}>
+    <Panel title="Profile" subtitle="Your hero, title and cosmetics" art="profile" onClose={onClose}>
       <div className="flex flex-col gap-4 md:flex-row">
         <div className="flex w-40 shrink-0 flex-col items-center gap-1 self-center">
           <button className={`slot w-40 overflow-hidden p-0 ${frameClass(frame)}`} onClick={() => setGallery(true)} aria-label="Open full-screen portraits" title="Open full-screen portraits">

@@ -7,6 +7,11 @@ import {
   heroStats,
   makeItem,
   riftFactor,
+  EASY_FIGHTS,
+  GRIND_FIGHTS,
+  MAX_LEVEL,
+  fightsToLevel,
+  fightsToNextLevel,
   newHero,
   stageFoe,
   stageRewards,
@@ -111,19 +116,27 @@ function seeded(seed: number) {
   return () => (x = (x * 1664525 + 1013904223) % 4294967296) / 4294967296;
 }
 
-describe("slower late-game progression", () => {
-  it("keeps the base curve light to level 29, then compounds far more per level", () => {
-    for (const lv of [1, 10, 25, 29]) {
-      expect(xpToNext({ level: lv, paragon: 0 })).toBe(Math.round(150 * Math.pow(lv, 1.5)));
+describe("two fights a level, then ten more every level", () => {
+  it("costs exactly two fights a level up to level 29", () => {
+    for (const lv of [1, 5, 10, 17, 25, 29]) {
+      expect(fightsToLevel(lv)).toBe(EASY_FIGHTS);
+      expect(xpToNext({ level: lv, paragon: 0 })).toBe(EASY_FIGHTS * stageRewards(lv).xp);
     }
-    // Level 40 sits ten compounding steps past the late-game knee at level 30.
-    const flat40 = Math.round(150 * Math.pow(40, 1.5));
-    expect(xpToNext({ level: 40, paragon: 0 })).toBeGreaterThan(flat40 * 2.5);
-    expect(xpToNext({ level: 40, paragon: 0 })).toBe(Math.round(150 * Math.pow(40, 1.5) * Math.pow(1.20, 10)));
   });
-  it("levels past 30 compound extra XP on top (steeply by level 79)", () => {
-    const noLate = Math.round(150 * Math.pow(79, 1.5));
-    expect(xpToNext({ level: 79, paragon: 0 }) / noLate).toBeGreaterThan(50);
+  it("adds ten fights to each level past 30", () => {
+    expect(fightsToLevel(30)).toBe(EASY_FIGHTS + GRIND_FIGHTS);
+    for (let lv = 30; lv < MAX_LEVEL; lv++) {
+      expect(fightsToLevel(lv + 1) - fightsToLevel(lv)).toBe(GRIND_FIGHTS);
+      expect(xpToNext({ level: lv, paragon: 0 })).toBe(fightsToLevel(lv) * stageRewards(lv).xp);
+    }
+    // By level 80 a single level is hundreds of fights: the late game is a real grind.
+    expect(fightsToLevel(80)).toBeGreaterThan(500);
+  });
+  it("counts the fights left in the current level from saved XP", () => {
+    const hero = newHero("Balanced", "warrior");
+    expect(fightsToNextLevel({ level: hero.level, paragon: 0, xp: 0 })).toBe(EASY_FIGHTS);
+    expect(fightsToNextLevel({ level: hero.level, paragon: 0, xp: xpToNext(hero) - 1 })).toBe(1);
+    expect(fightsToNextLevel({ level: hero.level, paragon: 0, xp: xpToNext(hero) })).toBe(1);
   });
   it("pays catch-up XP when a hero fights above their level, capped at double", () => {
     expect(catchUpXpFactor(20, 20)).toBe(1);
@@ -180,23 +193,14 @@ describe("campaign balance", () => {
   });
 
   it("pays rewards on the same curve the next level costs", () => {
-    // Early levels (1–29) are light: a handful of fights per level.
+    // One cleared stage is one fight: the level bill divided by a stage's XP is the fight count.
     for (const stage of [5, 20, 29]) {
-      const rw = stageRewards(stage);
-      const need = xpToNext({ level: stage, paragon: 0 });
-      expect(rw.xp).toBeLessThan(need);
-      expect(need / rw.xp).toBeGreaterThan(2.5);
-      expect(need / rw.xp).toBeLessThan(20);
+      expect(xpToNext({ level: stage, paragon: 0 }) / stageRewards(stage).xp).toBe(EASY_FIGHTS);
     }
-    // Late levels (30+) are a demanding grind: each level costs many sessions.
-    for (const stage of [40, 60, 80]) {
-      const rw = stageRewards(stage);
-      const need = xpToNext({ level: stage, paragon: 0 });
-      expect(rw.xp).toBeLessThan(need);
-      expect(need / rw.xp).toBeGreaterThan(30);
+    // Past level 30 that count climbs by ten every level.
+    for (const stage of [40, 50, 60, 80]) {
+      expect(xpToNext({ level: stage, paragon: 0 }) / stageRewards(stage).xp).toBe(fightsToLevel(stage));
     }
-    // The late levels are a long grind: level 70 costs dozens of cleared stages.
-    expect(xpToNext({ level: 70, paragon: 0 }) / stageRewards(70).xp).toBeGreaterThan(60);
     expect(stageRewards(51).xp).toBeGreaterThan(stageRewards(50).xp);
     expect(stageRewards(51).gold).toBeGreaterThan(stageRewards(50).gold);
   });

@@ -1,4 +1,4 @@
-import type { Hero } from "./data";
+import { xpToNext, type Hero } from "./data";
 import type { Mat } from "./crafting";
 import { greekDayStart } from "./events";
 
@@ -6,7 +6,7 @@ import { greekDayStart } from "./events";
  *  Greek day, so every counter below is a lifetime value read straight from the hero save. */
 export interface DailyQuest {
   id: string; name: string; desc: string; target: number;
-  mat: Mat; mats: number; gold: number; xp: number;
+  mat: Mat; mats: number; gold: number;
   count: (h: Hero) => number;
 }
 
@@ -14,13 +14,17 @@ const gemTotal = (h: Hero) => Object.values(h.gems ?? {}).reduce((a, n) => a + n
 const attrTotal = (h: Hero) => Object.values(h.attrs).reduce((a, n) => a + n, 0);
 
 export const DAILY_QUESTS: DailyQuest[] = [
-  { id: "level", name: "Rise Through the Ranks", desc: "Gain a character level", target: 1, mat: "essence", mats: 2, gold: 180, xp: 250, count: (h) => h.level + h.paragon * 10 },
-  { id: "astral", name: "Bind New Astrals", desc: "Summon or capture 2 Astrals", target: 2, mat: "starshard", mats: 2, gold: 220, xp: 400, count: (h) => (h.astrals ?? []).length },
-  { id: "gems", name: "Cut Three Gems", desc: "Cut 3 gems from Ember Ore", target: 3, mat: "ore", mats: 3, gold: 150, xp: 300, count: gemTotal },
-  { id: "train", name: "Drill the Troops", desc: "Train 5 attribute points", target: 5, mat: "essence", mats: 2, gold: 130, xp: 350, count: attrTotal },
-  { id: "battle", name: "Win Five Battles", desc: "Win 5 fights anywhere", target: 5, mat: "fragment", mats: 1, gold: 200, xp: 500, count: (h) => h.record?.wins ?? 0 },
-  { id: "enhance", name: "Temper the Steel", desc: "Succeed at 3 enhancements", target: 3, mat: "essence", mats: 2, gold: 170, xp: 300, count: (h) => h.record?.enhances ?? 0 },
+  { id: "level", name: "Rise Through the Ranks", desc: "Gain a character level", target: 1, mat: "essence", mats: 2, gold: 180, count: (h) => h.level + h.paragon * 10 },
+  { id: "astral", name: "Bind New Astrals", desc: "Summon or capture 2 Astrals", target: 2, mat: "starshard", mats: 2, gold: 220, count: (h) => (h.astrals ?? []).length },
+  { id: "gems", name: "Cut Three Gems", desc: "Cut 3 gems from Ember Ore", target: 3, mat: "ore", mats: 3, gold: 150, count: gemTotal },
+  { id: "train", name: "Drill the Troops", desc: "Train 5 attribute points", target: 5, mat: "essence", mats: 2, gold: 130, count: attrTotal },
+  { id: "battle", name: "Win Five Battles", desc: "Win 5 fights anywhere", target: 5, mat: "fragment", mats: 1, gold: 200, count: (h) => h.record?.wins ?? 0 },
+  { id: "enhance", name: "Temper the Steel", desc: "Succeed at 3 enhancements", target: 3, mat: "essence", mats: 2, gold: 170, count: (h) => h.record?.enhances ?? 0 },
 ];
+
+/** A commission pays a share of a whole level, so the board is worth the same at level 1 and level 120. */
+export const QUEST_XP_SHARE = 0.06;
+export const questXp = (h: Pick<Hero, "level" | "paragon">) => Math.max(1, Math.round(xpToNext(h) * QUEST_XP_SHARE));
 
 /** Quests occasionally pay bonus progression: a skill-tree point or an Insight point. */
 export const QUEST_POINT_CHANCE = 0.25;

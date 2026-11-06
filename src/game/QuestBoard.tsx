@@ -5,7 +5,7 @@ import { countdown } from "./events";
 import { grant } from "./logic";
 import { update, useGame } from "./store";
 import { Gold, Panel, fmt } from "./ui";
-import { DAILY_QUESTS, boardResetAt, boardRows, questPointBonus, questPointHint, rollBoard } from "./quest-board";
+import { DAILY_QUESTS, boardResetAt, boardRows, questPointBonus, questPointHint, questXp, rollBoard } from "./quest-board";
 
 /** Six fixed commissions a day. No AI, nothing random: every quest tracks real progress on your save. */
 export function QuestBoard({ onClose }: { onClose: () => void }) {
@@ -24,7 +24,7 @@ export function QuestBoard({ onClose }: { onClose: () => void }) {
       const row = boardRows(h).find((r) => r.quest.id === id);
       if (!row || row.claimed || !row.done) return;
       state.claimed.push(id);
-      grant(h, row.quest.xp, row.quest.gold);
+      grant(h, questXp(h), row.quest.gold);
       h.mats = { ...(h.mats ?? {}), [row.quest.mat]: matCount(h, row.quest.mat) + row.quest.mats };
       const bonus = questPointBonus();
       if (bonus.skill) { h.bonusPts = (h.bonusPts ?? 0) + 1; note = "+1 skill point! "; }
@@ -34,7 +34,7 @@ export function QuestBoard({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <Panel title="Quest Board" onClose={onClose} wide>
+    <Panel title="Quest Board" subtitle="Daily commissions, reset at midnight" art="quest" onClose={onClose} wide>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
           {DAILY_QUESTS.length} commissions, {claimed} claimed · every one pays gold, XP and materials ·
@@ -51,7 +51,7 @@ export function QuestBoard({ onClose }: { onClose: () => void }) {
             <div className="text-xs text-muted-foreground">Progress {progress}/{quest.target}</div>
             <div className="flex flex-wrap items-center gap-1.5 text-xs">
               <span className="slot px-2 py-0.5"><Gold n={quest.gold} className="text-xs" /></span>
-              <span className="slot px-2 py-0.5 font-bold text-xp">{fmt(quest.xp)} XP</span>
+              <span className="slot px-2 py-0.5 font-bold text-xp">{fmt(questXp(hero))} XP</span>
               <span className="slot px-2 py-0.5"><MatIcon mat={quest.mat} size={14} /> {MATS[quest.mat].name} ×{quest.mats}</span>
             </div>
             <button className="btn-gold mt-auto py-1.5" disabled={done || !complete} onClick={() => claim(quest.id)}>
