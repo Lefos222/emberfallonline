@@ -30,9 +30,9 @@ export type HeroPose = 'auto' | 'idle' | 'action';
 export function CharacterModel({ cls, gender, className = '', pose = 'auto', synth, look }: { cls: HeroClass; gender: 'male' | 'female'; className?: string; pose?: HeroPose; synth?: number | null; look?: number | null }) {
   const label = `${gender === 'female' ? 'Female' : 'Male'} ${cls === 'warrior' ? 'Knight' : cls === 'mage' ? 'Mage' : 'Archer'}`;
   const art = synth ? synthArt(cls, gender, synth) : undefined;
-  if (art) {
+  if (art && synth) {
     return <div className={`hero-model synth-card ${className}`} data-character-model={`${cls}-${gender}-synthesis`} data-synthesis-tier={synth}>
-      <img src={art} alt={`${label} in ${tierName(synth!)} armour`} draggable={false} className="synth-card-art hero-model-flip" />
+      <img src={art} alt={`${label} in ${tierName(synth)} armour`} draggable={false} className="synth-card-art hero-model-flip" />
     </div>;
   }
   const gearArt = look !== null && look !== undefined ? armourArt(cls, gender, look) : undefined;
@@ -43,7 +43,7 @@ export function CharacterModel({ cls, gender, className = '', pose = 'auto', syn
   }
   const [idle, action] = MODELS[cls][gender];
   return <div className={`hero-model ${className}`} data-character-model={`${cls}-${gender}`} data-hero-pose={pose}>
-    <img src={idle} alt={label} draggable={false} className="hero-model-idle" />
-    <img src={action} alt="" aria-hidden="true" draggable={false} className="hero-model-action" />
+    <img src={idle} alt={label} draggable={false} className={`hero-model-idle${cls === 'warrior' ? ' hero-model-flip' : ''}`} />
+    <img src={action} alt="" aria-hidden="true" draggable={false} className={`hero-model-action${cls === 'warrior' ? ' hero-model-flip' : ''}`} />
   </div>;
 }

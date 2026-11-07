@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Current request
+- [x] Clean 54 newly added outfit/set cutouts and knight set backgrounds; 78 artwork images verified in isolated desktop/phone presentation checks, Knight source directions normalized for shared mirroring. No player saves changed.
 - [ ] Replace all six hero appearances from the supplied reference, add variable poses, redesign selection and verify shared artwork on desktop/phone.
 - [ ] Make phone navigation, inventory, battles, chat, quests and trading usable; preserve character-selection artwork.
 - Netlify work paused at the user's request; leave existing hosting configuration untouched.

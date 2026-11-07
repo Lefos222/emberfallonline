@@ -6,6 +6,8 @@ type PremiumRpc =
   "buy_gold_pack" | "buy_diamond_item" | "activate_vip" | "claim_vip_daily" | "skip_blitz";
 
 async function premiumCall(op: string, rpc: PremiumRpc, args: Record<string, unknown>) {
+  // The deployed schema does not yet expose this purchase. Fail before syncing or charging.
+  if (rpc === "skip_blitz") throw new Error("Finishing a blitz early is not available yet. Wait for the run to finish.");
   const id = getState().heroId;
   if (!id) throw new Error("Select a character first.");
   const req = requestKey(localStorage, id, op, () => crypto.randomUUID());
