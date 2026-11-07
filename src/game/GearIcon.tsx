@@ -1,4 +1,4 @@
-import gear from "@/assets/equipment_for_classes.jpg.asset.json";
+import gear from "@/assets/relic-gear.jpg";
 import { ATLAS_H, ATLAS_W, iconRect, type Item } from "./data";
 
 export function GearIcon({ item, size = 56 }: { item: Pick<Item, "slot" | "cls" | "icon">; size?: number }) {
@@ -10,7 +10,7 @@ export function GearIcon({ item, size = 56 }: { item: Pick<Item, "slot" | "cls" 
         style={{
           width: r.w * s,
           height: r.h * s,
-          backgroundImage: `url(${gear.url})`,
+          backgroundImage: `url(${gear})`,
           backgroundSize: `${ATLAS_W * s}px ${ATLAS_H * s}px`,
           backgroundPosition: `-${r.x * s}px -${r.y * s}px`,
           borderRadius: 6,

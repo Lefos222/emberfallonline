@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { scrollXp } from "./scrolls";
-import { Crown, Lock, Skull, Swords } from "lucide-react";
+import { Crown, Lock, Skull, Sparkles, Swords } from "lucide-react";
 import { invCap, heroStats, makeItem, type Item } from "./data";
 import { update, useGame } from "./store";
 import { Gold, Panel, fmt } from "./ui";
@@ -14,7 +14,7 @@ import {
   cleared, currentWeekly, eliteFoe, weekIndex, weeklyModifier,
 } from "./endgame";
 
-export function Challenges({ onClose, start, onExpeditions }: { onClose: () => void; start: StartBattle; onExpeditions?:()=>void }) {
+export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClose: () => void; start: StartBattle; onExpeditions?:()=>void; onRelics?:()=>void }) {
   const { hero } = useGame();
   const [diff, setDiff] = useState<Record<string, number>>({});
   if (!hero) return null;
@@ -27,6 +27,7 @@ export function Challenges({ onClose, start, onExpeditions }: { onClose: () => v
     return (
       <Panel title="Dungeon Gate" subtitle="Boss challenges and elite hunts" art="star" onClose={onClose}>
         {onExpeditions&&<Button className="w-full" onClick={onExpeditions}><Swords/>Material expeditions · Level 1+</Button>}
+        {onRelics&&<Button className="mt-2 w-full" variant="outline" onClick={onRelics}><Sparkles/>Relic Trials · Level 10+</Button>}
         <div className="py-10 text-center"><Lock className="mx-auto mb-2 h-10 w-10 text-gold" />
           <p className="font-display text-xl text-gold">Locked</p>
           <p className="text-muted-foreground">Boss challenges open at level {ENDGAME_LEVEL}. You are level {hero.level}.</p></div>
@@ -91,7 +92,10 @@ export function Challenges({ onClose, start, onExpeditions }: { onClose: () => v
 
   return (
     <Panel title="Dungeon Gate · Challenges" subtitle="Escalating trials with rare rewards" art="star" onClose={onClose} wide>
-      {onExpeditions&&<Button className="mb-4 w-full" onClick={onExpeditions}><Swords/>Material expeditions</Button>}
+      <div className="mb-4 grid gap-2 md:grid-cols-2">
+        {onRelics&&<Button className="w-full" onClick={onRelics}><Sparkles/>Relic Trials · collect your class relics</Button>}
+        {onExpeditions&&<Button className="w-full" variant="outline" onClick={onExpeditions}><Swords/>Material expeditions</Button>}
+      </div>
       <div className="mb-4 grid gap-2 md:grid-cols-2">
         <div className="slot p-3 text-sm">
           <div className="font-display text-gold">This week's modifier: {mod.name}</div>

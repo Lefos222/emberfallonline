@@ -32,6 +32,7 @@ import { Campaign, Forge, HeroHall, Market, Oracle, Temple, heroFighter, type St
 import { Arena } from "./Arena";
 import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
+import { RelicTrials } from "./RelicTrials";
 import { LongRoad } from "./LongRoad";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
@@ -55,6 +56,7 @@ export function Game() {
   const [result, setResult] = useState<null | { won: boolean; lines: string[]; loot?: Item | null }>(null);
   const [crafting, setCrafting] = useState(false);
   const [expeditions, setExpeditions] = useState(false);
+  const [relics, setRelics] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem("bm-muted") === "1");
   const audio = useRef<HTMLAudioElement>(null);
   const starting = useRef(false);
@@ -206,8 +208,9 @@ export function Game() {
           {open === "spire" && (canEnterConquest(hero.level) ? <Campaign spire onClose={() => setOpen(null)} start={start} /> : <ComingSoon id="spire" locked onClose={() => setOpen(null)} />)}
           {open === "forge" && <Forge onClose={() => setOpen(null)} onCraft={() => setCrafting(true)} />}
           {crafting && <Crafting onClose={() => setCrafting(false)} />}
-          {open === "dungeon" && <Challenges onClose={() => setOpen(null)} start={start} onExpeditions={()=>{setOpen(null);setExpeditions(true);}} />}
+          {open === "dungeon" && <Challenges onClose={() => setOpen(null)} start={start} onExpeditions={()=>{setOpen(null);setExpeditions(true);}} onRelics={()=>{setOpen(null);setRelics(true);}} />}
           {expeditions && <Expeditions onClose={()=>setExpeditions(false)} start={o=>{setExpeditions(false);start(o);}} />}
+          {relics && <RelicTrials onClose={()=>setRelics(false)} start={o=>{setRelics(false);start(o);}} />}
           {open === "gems" && <GemWorkshop onClose={() => setOpen(null)} />}
           {open === "tower" && <MagicTower onClose={() => setOpen(null)} />}
           {open === "temple" && <Temple onClose={() => setOpen(null)} />}
