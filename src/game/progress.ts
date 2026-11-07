@@ -31,6 +31,8 @@ export interface ProgressState {
   rewardChest?: { claims?: number };
   dailyRewards?: { cycles?: number };
   eventBoss?: Record<string, number>;
+  /** Relic collection: pieces recovered from the class trials, by piece id (see relics.ts). */
+  relics?: { found?: Record<string, number>; clears?: Record<string, number> };
 }
 
 export const emptyRecord = (): CombatRecord => ({ battles: 0, wins: 0, losses: 0, bosses: 0, arenaWins: 0, enhances: 0, bestEnh: 0 });
@@ -52,9 +54,9 @@ export function recordEnhance(h: ProgressState, newEnh: number) {
 }
 
 // ---------- Achievements ----------
-export type AchCategory = "Combat" | "Bosses" | "Progression" | "Crafting" | "Arena" | "Collection" | "Conquest" | "Enchanting" | "Bestiary" | "Exploration" | "Guild" | "Training" | "Astrals" | "Gems" | "Synthesis" | "Treasure" | "Wealth";
+export type AchCategory = "Combat" | "Bosses" | "Progression" | "Crafting" | "Arena" | "Collection" | "Conquest" | "Enchanting" | "Bestiary" | "Exploration" | "Guild" | "Training" | "Astrals" | "Gems" | "Synthesis" | "Relics" | "Treasure" | "Wealth";
 /** Every category in the order the Throne Hall lists them. */
-export const ACH_CATEGORIES: AchCategory[] = ["Combat", "Bosses", "Progression", "Crafting", "Arena", "Collection", "Astrals", "Gems", "Synthesis", "Conquest", "Enchanting", "Bestiary", "Exploration", "Guild", "Training", "Treasure", "Wealth"];
+export const ACH_CATEGORIES: AchCategory[] = ["Combat", "Bosses", "Progression", "Crafting", "Arena", "Collection", "Astrals", "Gems", "Synthesis", "Relics", "Conquest", "Enchanting", "Bestiary", "Exploration", "Guild", "Training", "Treasure", "Wealth"];
 export interface Achievement { id: string; cat: AchCategory; name: string; desc: string; goal: number; gold: number; title?: string; value: (h: ProgressState) => number }
 
 const rec = (h: ProgressState) => ({ ...emptyRecord(), ...(h.record ?? {}) });
@@ -81,6 +83,9 @@ const synthSets = (h: ProgressState) => {
   return Object.values(perTier).filter((n) => n >= 8).length;
 };
 const synthWorn = (h: ProgressState) => Object.keys(h.synth?.worn ?? {}).length;
+/** Relic pieces recovered at least once, and total trial wins (see relics.ts). */
+const relicPieces = (h: ProgressState) => Object.values(h.relics?.found ?? {}).filter((n) => n > 0).length;
+const relicClears = (h: ProgressState) => sum(h.relics?.clears);
 
 export const ACHIEVEMENTS: Achievement[] = [
   ...tiers({ cat: "Combat", desc: "Win battles", value: (h) => rec(h).wins }, "wins", ["Blooded", "Veteran", "Warmaster"], [10, 100, 1000], [200, 2000, 20000], [undefined, "Veteran", "Warmaster"]),
@@ -145,6 +150,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   ...tiers({ cat: "Synthesis", desc: "Complete whole synthesis sets", value: (h) => synthSets(h) }, "synthsets", ["One Complete Set", "Three Complete Sets", "Six Complete Sets", "Every Set Forged"], [1, 3, 6, 9], [10000, 40000, 120000, 300000], [undefined, undefined, undefined, "Synthesis Sovereign"]),
   ...tiers({ cat: "Synthesis", desc: "Wear synthesis pieces at once", value: (h) => synthWorn(h) }, "synthworn", ["Matching Steel", "Synthesis Knight"], [4, 8], [6000, 30000], [undefined, "Synthesis Knight"]),
 
+  // ---- Relic Trials ----
+  ...tiers({ cat: "Relics", desc: "Recover distinct relic pieces", value: (h) => relicPieces(h) }, "relics", ["Relic Seeker", "Relic Hunter", "Relic Master"], [3, 12, 36], [2000, 15000, 80000], [undefined, "Relic Hunter", "Keeper of Relics"]),
+  ...tiers({ cat: "Relics", desc: "Win relic trials", value: (h) => relicClears(h) }, "relicclears", ["Trial Aspirant", "Trial Adept", "Trial Sovereign"], [5, 30, 120], [1500, 12000, 60000], [undefined, undefined, "Trial Sovereign"]),
+
   // ---- Arena, extended ----
   ...tiers({ cat: "Arena", desc: "Win arena fights", value: (h) => rec(h).arenaWins }, "arena3", ["Arena Immortal", "Blood Sovereign"], [500, 1000], [80000, 200000], ["Arena Immortal", "Blood Sovereign"]),
 
@@ -196,14 +205,23 @@ export const earnedTitles = (h: Pick<ProgressState, "achClaimed">) =>
   ACHIEVEMENTS.filter((a) => a.title && (h.achClaimed ?? []).includes(a.id)).map((a) => a.title!);
 
 // ---------- Equipment sets ----------
-/** Gear sets are the item families named by their prefix (e.g. "Bloodforged"). */
-export const SET_NAMES = ["Worn", "Iron", "Bloodforged", "Moonlit", "Dread", "Abyssal", "Crimson", "Soulbound", "Eclipse", "Ancient"];
+/** Gear sets are the item families named by their prefix (e.g. "Bloodforged"). The last three are
+ *  the relic collections of the class trials (see relics.ts), which never roll on random drops. */
+export const SET_NAMES = ["Worn", "Iron", "Bloodforged", "Moonlit", "Dread", "Abyssal", "Crimson", "Soulbound", "Eclipse", "Ancient", "Emberforged", "Starweave", "Verdant"];
 export interface SetFx { atkPct: number; defPct: number; hpPct: number; crit: number }
 export const SET_BONUSES: { pieces: number; fx: Partial<SetFx>; label: string }[] = [
   { pieces: 2, fx: { atkPct: 4 }, label: "+4% attack" },
   { pieces: 4, fx: { defPct: 6, hpPct: 6 }, label: "+6% defense & health" },
   { pieces: 6, fx: { atkPct: 8, crit: 3 }, label: "+8% attack & +3% crit" },
 ];
+
+/** Signature bonus a relic collection adds on top of the shared bonuses once six pieces are worn. */
+export const SET_SIGNATURE: Record<string, { fx: Partial<SetFx>; label: string }> = {
+  Emberforged: { fx: { atkPct: 5, crit: 2 }, label: "Ember Fury · +5% attack, +2% crit" },
+  Starweave: { fx: { atkPct: 4, hpPct: 4 }, label: "Star Mantle · +4% attack & health" },
+  Verdant: { fx: { defPct: 5, crit: 3 }, label: "Wildstep · +5% defense, +3% crit" },
+};
+export const signatureOf = (set: string) => SET_SIGNATURE[set] ?? null;
 
 export function setOf(item: Pick<Item, "name">): string | null {
   const first = item.name.split(" ")[0];
@@ -218,8 +236,12 @@ export function activeSets(eq: Partial<Record<Slot, Item>>): { name: string; cou
 
 export function setFx(eq: Partial<Record<Slot, Item>>): SetFx {
   const out: SetFx = { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
-  for (const s of activeSets(eq)) for (const b of SET_BONUSES) if (s.count >= b.pieces) {
-    for (const k of Object.keys(b.fx) as (keyof SetFx)[]) out[k] += b.fx[k] ?? 0;
+  for (const s of activeSets(eq)) {
+    for (const b of SET_BONUSES) if (s.count >= b.pieces) {
+      for (const k of Object.keys(b.fx) as (keyof SetFx)[]) out[k] += b.fx[k] ?? 0;
+    }
+    const sig = s.count >= 6 ? SET_SIGNATURE[s.name] : undefined;
+    if (sig) for (const k of Object.keys(sig.fx) as (keyof SetFx)[]) out[k] += sig.fx[k] ?? 0;
   }
   return out;
 }

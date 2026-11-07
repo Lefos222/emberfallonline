@@ -336,6 +336,8 @@ export interface Hero {
   chests?: Partial<Record<"gold" | "gem", number>>;
   /** Periodic free reward chest: when it was last collected and how many have been collected (see chests.ts). */
   rewardChest?: { last?: number; claims?: number };
+  /** Relic collection: pieces recovered from the class trials, by piece id (see relics.ts). */
+  relics?: { found?: Record<string, number>; clears?: Record<string, number> };
 
 }
 
