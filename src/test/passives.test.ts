@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { newHero } from "@/game/data";
-import { PASSIVES, insightFrom, learnPassive, mergePassiveFx, passiveBlocker, passiveFx, passiveRank, totalInsight } from "@/game/passives";
+import { PASSIVES, insightFrom, learnPassive, mergePassiveFx, passiveBlocker, passiveFx, passiveIcon, passiveRank, totalInsight } from "@/game/passives";
+import { SKILL_ICON_KEYS } from "@/game/SkillIcon";
+import { TREES, talentIcon } from "@/game/talents";
 
 describe("passive tree", () => {
   it("Field Medicine grants exactly 2 Healing Power per rank", () => {
@@ -50,6 +52,15 @@ describe("passive tree", () => {
   });
   it("every passive offers exactly four upgrades", () => {
     expect(PASSIVES.every((p) => p.max === 4)).toBe(true);
+  });
+  it("every passive carries a real painted icon", () => {
+    for (const p of PASSIVES) expect(SKILL_ICON_KEYS, p.id).toContain(passiveIcon(p));
+  });
+  it("every talent node carries a real painted icon", () => {
+    for (const cls of ["warrior", "mage", "archer"] as const)
+      for (const spec of TREES[cls])
+        for (const talent of spec.talents)
+          expect(SKILL_ICON_KEYS, talent.id).toContain(talentIcon(talent));
   });
   it("saved over-max ranks cannot inflate effects", () => {
     const h = newHero("Tester", "mage"); h.passives = { field_medicine: 99 };

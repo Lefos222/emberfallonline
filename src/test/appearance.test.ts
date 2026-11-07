@@ -6,13 +6,14 @@ const CLASSES: HeroClass[] = ["warrior", "mage", "archer"];
 const GENDERS: ("male" | "female")[] = ["male", "female"];
 
 describe("armour appearance", () => {
-  it("counts every shipped outfit of a class and gender", () => {
-    expect(lookCount("warrior", "male")).toBeGreaterThan(8);
-    expect(lookCount("warrior", "female")).toBeGreaterThan(8);
-    expect(lookCount("archer", "male")).toBeGreaterThan(8);
-    expect(lookCount("archer", "female")).toBeGreaterThan(8);
-    expect(lookCount("mage", "male")).toBeGreaterThan(8);
-    expect(lookCount("mage", "female")).toBe(14);
+  it("keeps both the current and the restored legacy outfits in every pool", () => {
+    // Current art plus the pre-merge outfits recovered into armour/legacy.
+    expect(lookCount("warrior", "male")).toBe(34);
+    expect(lookCount("warrior", "female")).toBe(28);
+    expect(lookCount("mage", "male")).toBe(14);
+    expect(lookCount("mage", "female")).toBe(20);
+    expect(lookCount("archer", "male")).toBe(20);
+    expect(lookCount("archer", "female")).toBe(20);
   });
 
   it("resolves art for every look in the pool and nothing outside it", () => {

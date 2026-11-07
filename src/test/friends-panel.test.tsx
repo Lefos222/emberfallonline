@@ -13,6 +13,7 @@ const social = vi.hoisted(() => ({
   cancelFriendRequest: vi.fn(),
   removeFriend: vi.fn(),
   searchHeroes: vi.fn(),
+  subscribeFriendChanges: vi.fn(() => () => {}),
 }));
 
 vi.mock("@/game/social", () => ({

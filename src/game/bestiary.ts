@@ -5,6 +5,8 @@ export interface RosterEntry {
   id: string; name: string; kind: 'enemy' | 'boss'; tier: number;
   levelBand: readonly [number, number]; cell: string; sprite: SpriteRect;
   signatureAbilityId: string;
+  /** True for the clipped head portraits in row 5: codex art only, never a battle figure. */
+  portrait?: boolean;
 }
 const abilities = ['cleave', 'nova', 'meteor', 'bolt', 'rage'] as const;
 export const ENEMY_ROSTER: RosterEntry[] = BESTIARY.flatMap((row, r) => row.map((name, c) => ({
@@ -16,7 +18,9 @@ export const ENEMY_ROSTER: RosterEntry[] = BESTIARY.flatMap((row, r) => row.map(
 /** Visual audit of the original 1920×1072 sheet, zero-based row/column.
  * Six visible rows, not five; row 5 is clipped by the painted UI at y=1037.
  * Repeated labels are NOT repeated designs. Only the following two portraits repeat.
- * The seven clipped row-5 portraits are distinct, usable head portraits (not full bodies).
+ * The seven clipped row-5 cells are distinct head portraits (not full bodies) and are
+ * kept for the codex only: they never enter a battle roster, because a framed portrait
+ * on the battlefield reads as a picture instead of a standing monster.
  * No visible cells are empty. There are no additional hidden/scrollable image pixels.
  */
 export const BOSS_ART_AUDIT = {
@@ -40,12 +44,15 @@ export const BOSS_ROSTER: RosterEntry[] = bossNames.flatMap((row, r) => row.flat
     levelBand: [r * 10 + 1, r * 10 + 10], cell,
     // The sixth row has only 79 pixels of portrait above the frame; never sample the frame.
     sprite: r === 5 ? { ...bossSprite(r, c), h: 79 } : bossSprite(r, c),
+    ...(r === 5 ? { portrait: true } : {}),
     signatureAbilityId: abilities[r % abilities.length]! }];
 })).concat(Object.entries(TIER_BOSSES).map(([id, boss], i) => ({
   id: `boss-${id}`, name: boss.name, kind: 'boss' as const, tier: i + 2,
   levelBand: [(i + 1) * 15, (i + 1) * 15 + 14] as const,
   cell: `bosses:featured:${id}`, sprite: boss.sprite, signatureAbilityId: abilities[i]!,
 })));
+/** Bosses that may stand on a battlefield — every full-body cell, never a framed portrait. */
+export const BATTLE_BOSSES = BOSS_ROSTER.filter((e) => !e.portrait);
 export const ROSTER = [...ENEMY_ROSTER, ...BOSS_ROSTER];
 export function validateRoster(entries: readonly RosterEntry[]) {
   const ids = new Set<string>(), names = new Set<string>(), cells = new Set<string>(), rects = new Set<string>();
@@ -62,8 +69,8 @@ export const ROSTER_BY_ID = Object.fromEntries(ROSTER.map(e => [e.id, e]));
 export const ENCOUNTER_TABLES = {
   road: ENEMY_ROSTER.map(e => e.id),
   elite: ENEMY_ROSTER.map(e => e.id),
-  dungeon: BOSS_ROSTER.map(e => e.id),
-  spire: ROSTER.map(e => e.id),
+  dungeon: BATTLE_BOSSES.map(e => e.id),
+  spire: [...ENEMY_ROSTER, ...BATTLE_BOSSES].map(e => e.id),
 };
 export function encounterEntry(hook: keyof typeof ENCOUNTER_TABLES, cursor: number): RosterEntry {
   if (!Number.isSafeInteger(cursor) || cursor < 0) throw new Error('Encounter cursor must be a nonnegative integer');

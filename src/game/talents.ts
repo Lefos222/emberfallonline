@@ -99,6 +99,22 @@ export const TREES: Record<HeroClass, Spec[]> = {
   ],
 };
 
+/** Painted icon (see SkillIcon) for talent nodes that don't unlock an ability of their own. */
+const TALENT_ICONS: Record<string, string> = {
+  w_g1: "shield", w_g2: "axe", w_g4: "shield",
+  w_b1: "flame", w_b2: "flame", w_b4: "flame",
+  w_w1: "target", w_w2: "crosshair", w_w4: "swords",
+  m_f1: "flame", m_f2: "flame", m_f4: "flame",
+  m_c1: "snowflake", m_c2: "snowflake", m_c4: "snowflake",
+  m_a1: "sparkles", m_a2: "sparkles", m_a4: "sparkles",
+  a_s1: "target", a_s2: "crosshair", a_s4: "crosshair",
+  a_r1: "wind", a_r2: "wind", a_r4: "wind",
+  a_h1: "wind", a_h2: "heart", a_h4: "shield",
+};
+
+/** Every talent has a real painted icon: its unlocked ability's icon, else its stat theme. */
+export const talentIcon = (t: Talent): string => t.ability?.icon ?? TALENT_ICONS[t.id] ?? "star";
+
 export interface TalentState { level: number; paragon: number; cls: HeroClass; gold?: number; talents?: Record<string, number>; spec?: string; road?: { cleared: number; best: number }; /** Extra skill points earned from quests and achievements. */ bonusPts?: number }
 
 /** One skill point per level after 1, plus one per Ascension level. */

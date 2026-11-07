@@ -21,6 +21,7 @@ import { update, useGame } from "./store";
 import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { MatIcon } from "./MatIcon";
 import { Vault } from "./Vault";
+import { GearCodex } from "./GearCodex";
 import { MATS, REFINE, matCount, refine, scrapItem, scrapYield, sockets, type Mat } from "./crafting";
 import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
@@ -164,6 +165,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             })}
           </div>
           <Vault />
+          <GearCodex cls={hero.cls} />
           {(() => {
             const all = Object.keys(MATS) as Mat[];
             const owned = all.filter((m) => matCount(hero, m) > 0);

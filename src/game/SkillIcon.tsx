@@ -8,6 +8,9 @@ const CELLS: Record<string, number> = {
   heart: 12, potion: 13, skull: 14, star: 15,
 };
 
+/** Every painted icon key in the atlas; used by tests to keep ability/passive art valid. */
+export const SKILL_ICON_KEYS = Object.freeze(Object.keys(CELLS));
+
 export function SkillIcon({ icon, className = '' }: { icon: string; className?: string }) {
   const cell = CELLS[icon] ?? 0;
   const col = cell % 4, row = Math.floor(cell / 4);

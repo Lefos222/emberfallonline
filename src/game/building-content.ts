@@ -1,5 +1,5 @@
 import { attrCost, type Attr, type Hero } from './data';
-import { BOSS_ROSTER, ENEMY_ROSTER } from './bestiary';
+import { BATTLE_BOSSES, ENEMY_ROSTER } from './bestiary';
 import { SKILLS, stageFoe } from './data';
 import { trainingDiscount } from './barracks';
 import { scaledGold } from './gold';
@@ -30,7 +30,7 @@ export function expeditionFoe(h: Hero, index: number) {
   const expedition = EXPEDITIONS[index];
   if (!expedition) throw new Error('Unknown expedition');
   const cursor = h.wins ?? 0;
-  const roster = index >= 4 ? BOSS_ROSTER : ENEMY_ROSTER;
+  const roster = index >= 4 ? BATTLE_BOSSES : ENEMY_ROSTER;
   const entry = roster[(cursor + index * 7) % roster.length];
   if (!entry) throw new Error('Encounter unavailable');
   const level = Math.max(expedition.level, h.level + h.paragon);

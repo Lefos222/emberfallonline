@@ -3,8 +3,9 @@ import { Eye, Lock, RotateCcw, Star } from "lucide-react";
 import { CLASSES } from "./data";
 import { update, useGame } from "./store";
 import { fmt, Gold } from "./ui";
-import { SPEC_LEVEL, TREES, freePoints, learnBlocker, rankCost, resetCost, spentIn, totalPoints, type Talent, type TalentFx } from "./talents";
+import { SPEC_LEVEL, TREES, freePoints, learnBlocker, rankCost, resetCost, spentIn, talentIcon, totalPoints, type Talent, type TalentFx } from "./talents";
 import { SkillPreview } from "./SkillPreview";
+import { SkillIcon } from "./SkillIcon";
 
 const fxLabels: Record<keyof TalentFx, string> = {
   hpPct: "Max HP", atkPct: "Attack", defPct: "Defense", crit: "Crit Chance",
@@ -184,8 +185,10 @@ export function SkillTreeContent() {
                       }} />
                     ))}
                   </div>
-                  {/* Tier number */}
-                  <span className="font-display text-sm font-bold" style={{
+                  {/* Painted talent icon */}
+                  <SkillIcon icon={talentIcon(t)} className={`h-9 w-9 ${locked ? "grayscale" : ""}`} />
+                  {/* Tier badge */}
+                  <span className="absolute left-0.5 top-0.5 rounded bg-background/80 px-1 font-display text-[9px] font-bold" style={{
                     color: maxed ? "var(--gold)" : r > 0 ? "var(--foreground)" : "var(--muted-foreground)",
                   }}>{t.tier}</span>
                   {/* Ability marker */}
@@ -202,7 +205,10 @@ export function SkillTreeContent() {
 
         {/* ── Detail panel ── */}
         <section className="slot flex flex-col p-4" aria-live="polite">
-          <h3 className="font-display text-lg text-gold">{detail.ability ? "◆ " : ""}{detail.name}</h3>
+          <h3 className="flex items-center gap-2 font-display text-lg text-gold">
+            <SkillIcon icon={talentIcon(detail)} className="h-8 w-8 shrink-0" />
+            <span>{detail.ability ? "◆ " : ""}{detail.name}</span>
+          </h3>
           <div className="mb-1 text-sm text-muted-foreground">
             {detailSpec.name} specialization · Tier {detail.tier}
           </div>
