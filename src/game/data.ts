@@ -363,7 +363,7 @@ export interface Hero {
   rewardChest?: { last?: number; claims?: number };
   /** Relic collection: pieces recovered from the class trials, by piece id (see relics.ts). */
   relics?: { found?: Record<string, number>; clears?: Record<string, number> };
-  /** World-reset stamp. A client draft without this value is stale and never overwrites the reset. */
+  /** World-reset stamp (see world-reset.ts). A save without the current stamp restarts at level 0. */
   resetAt?: string;
 
 }

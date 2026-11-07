@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { heroStats, newHero, normalizeHero, type Hero, type HeroClass } from "./data";
+import { isPreResetSave, resetHero, WORLD_RESET_ID } from "./world-reset";
 
 export type Gender = "male" | "female";
 export interface CharacterRow {
@@ -136,17 +137,33 @@ export async function setUser(userId: string | null, email: string | null, sourc
   if (userId) await loadCharacters();
 }
 
+/** Rewrite a character row as its fresh post-reset save (level 0, no gold, starter kit only). */
+async function persistResetHero(id: string, hero: Hero) {
+  const s = heroStats(hero);
+  const now = new Date().toISOString();
+  const { error } = await supabase.from("heroes").update({
+    level: hero.level, power: s.power, stats: { ...s, paragon: hero.paragon } as never,
+    save: hero as never, updated_at: now, last_played: now,
+  }).eq("id", id);
+  if (state.heroId === id) set({ cloud: error ? "error" : "saved" });
+}
+
 export async function selectCharacter(id: string): Promise<string | null> {
   if (serverOperation) return "Wait for the current reward request to finish.";
   set({ cloud: "loading" });
   const { data, error } = await supabase.from("heroes").select("save,gender").eq("id", id).maybeSingle();
   if (error || !data) { set({ cloud: "error" }); return error?.message ?? "Character not found"; }
-  const hero = data.save as unknown as Hero;
-  if (hero?.name) normalizeHero(hero);
-  if (!hero?.name) { set({ cloud: "error" }); return "Save data is corrupted"; }
+  const raw = data.save as unknown as Hero;
+  if (!raw?.name) { set({ cloud: "error" }); return "Save data is corrupted"; }
+  const hero = normalizeHero(raw);
+  // World reset runs here, in the app: a save from before the current reset (or a stale
+  // browser draft) starts over from level 0 and is written back before play begins.
+  const stale = isPreResetSave(hero);
+  const active = stale ? resetHero(hero) : hero;
   localStorage.setItem(LAST, id);
   needsServerReload = false;
-  set({ hero, heroId: id, gender: (data.gender as Gender) ?? "male", cloud: "saved" });
+  set({ hero: active, heroId: id, gender: (data.gender as Gender) ?? "male", cloud: "saved" });
+  if (stale) { await persistResetHero(id, active); void loadCharacters(); }
   void supabase.from("heroes").update({ last_played: new Date().toISOString() }).eq("id", id);
   return null;
 }
@@ -154,6 +171,8 @@ export async function selectCharacter(id: string): Promise<string | null> {
 export async function createCharacter(name: string, cls: HeroClass, gender: Gender): Promise<string | null> {
   if (!state.userId) return "Not signed in";
   const hero = newHero(name, cls);
+  // A character created after the reset is already current - never reset on its next load.
+  hero.resetAt = WORLD_RESET_ID;
   const s = heroStats(hero);
   const { data, error } = await supabase.from("heroes").insert({
     user_id: state.userId, name, hero_class: cls, gender, level: 1, power: s.power,

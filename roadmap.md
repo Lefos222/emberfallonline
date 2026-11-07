@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Current request
-- [x] World reset to level 0 / 0 gold with a stale-save guard (`supabase/reset-characters.sql`); steeper enemy curve after level 30; pre-merge armour outfits restored beside the current pool; codex-only boss portraits kept out of battle; painted icons for every skill-tree and passive node; Armory gear codex for both painted gear updates.
+- [x] World reset to level 0 / 0 gold, run in the app (`src/game/world-reset.ts`): every character loaded with an older save is rebuilt and saved back, with no database script; steeper enemy curve after level 30; pre-merge armour outfits restored beside the current pool; codex-only boss portraits kept out of battle; painted icons for every skill-tree and passive node; Armory gear codex for both painted gear updates.
 - [x] Clean 54 newly added outfit/set cutouts and knight set backgrounds; 78 artwork images verified in isolated desktop/phone presentation checks, Knight source directions normalized for shared mirroring. No player saves changed.
 - [ ] Replace all six hero appearances from the supplied reference, add variable poses, redesign selection and verify shared artwork on desktop/phone.
 - [ ] Make phone navigation, inventory, battles, chat, quests and trading usable; preserve character-selection artwork.
