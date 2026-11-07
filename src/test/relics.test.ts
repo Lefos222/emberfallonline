@@ -75,14 +75,20 @@ describe("relic collections", () => {
     expect(fx.crit).toBe(6);
   });
 
-  it("keeps relic art separate from the original class art, for every class", () => {
+  it("draws relic pieces from the relic band of the shared atlas, for every class", () => {
     for (const cls of CLASSES) {
-      for (const piece of RELIC_SETS[cls].pieces) expect(isRelicItem(piece.name)).toBe(true);
-      // Ordinary gear of the same class keeps the original sheet.
+      for (const piece of RELIC_SETS[cls].pieces) {
+        expect(isRelicItem(piece.name)).toBe(true);
+        expect(relicItem(piece, cls, 30).art).toBe(1);
+      }
+      // The starter kit of the same class is cut from the original band.
       const h = newHero("Arms", cls);
       const worn = Object.values(h.equipment).flatMap((it) => (it ? [it] : []));
       expect(worn.length).toBeGreaterThan(0);
-      for (const it of worn) expect(isRelicItem(it.name)).toBe(false);
+      for (const it of worn) {
+        expect(isRelicItem(it.name)).toBe(false);
+        expect(it.art ?? 0).toBe(0);
+      }
     }
   });
 

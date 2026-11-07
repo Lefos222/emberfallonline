@@ -68,6 +68,8 @@ export interface Item {
   rarity: number;
   ilvl: number;
   icon: number;
+  /** Painted band of the gear atlas the icon comes from (see ATLAS_BANDS); absent = 0. */
+  art?: number;
   enh: number;
   name: string;
   /** True when produced by the Forge (the only source of Rare+ armor). */
@@ -78,7 +80,7 @@ export interface Item {
 
 export interface ItemStats { atk: number; def: number; hp: number; crit: number }
 
-// ---------- Gear atlas (the uploaded gear sheet, 1920x1072) ----------
+// ---------- Gear atlas (one 1920x2144 painting of stacked 1920x1072 bands) ----------
 const C6: Record<HeroClass, number[]> = {
   warrior: [62, 156, 250, 343, 437, 530],
   mage: [692, 785, 878, 971, 1064, 1157],
@@ -93,20 +95,39 @@ const ROW6: Partial<Record<Slot, [number, number]>> = {
   helmet: [142, 80], armour: [266, 82], boots: [395, 80], belt: [517, 76], weapon: [633, 115],
 };
 export const ATLAS_W = 1920;
-export const ATLAS_H = 1072;
+/** Height of one painted band of the atlas: every gear update is a full class sheet this tall. */
+export const ATLAS_BAND_H = 1072;
+/** Bands stacked in `src/assets/gear-atlas.jpg`: 0 = original class gear, 1 = relic collection art. */
+export const ATLAS_BANDS = 2;
+export const ATLAS_H = ATLAS_BAND_H * ATLAS_BANDS;
 
-export function iconRect(item: Pick<Item, "slot" | "cls" | "icon">): { x: number; y: number; w: number; h: number } {
+/** Where one icon sits inside its band; `band` picks the painted sheet the icon is drawn from. */
+export function iconRect(item: Pick<Item, "slot" | "cls" | "icon">, band = 0): { x: number; y: number; w: number; h: number } {
+  const top = Math.max(0, Math.min(ATLAS_BANDS - 1, Math.floor(band))) * ATLAS_BAND_H;
   if (item.slot === "ring") {
     const i = item.icon % 16;
-    return { x: C8[item.cls][i % 8], y: i >= 8 ? 856 : 792, w: 58, h: 56 };
+    return { x: C8[item.cls][i % 8], y: top + (i >= 8 ? 856 : 792), w: 58, h: 56 };
   }
   if (item.slot === "talisman") {
-    return { x: C8[item.cls][item.icon % 8], y: 958, w: 58, h: 58 };
+    return { x: C8[item.cls][item.icon % 8], y: top + 958, w: 58, h: 58 };
   }
   const [y, h] = ROW6[item.slot]!;
-  return { x: C6[item.cls][item.icon % 6], y, w: 84, h };
+  return { x: C6[item.cls][item.icon % 6], y: top + y, w: 84, h };
 }
 export function iconCount(slot: Slot) { return slot === "ring" ? 16 : slot === "talisman" ? 8 : 6; }
+
+/**
+ * The icon a piece of this rarity rolls within its band. Every painted icon of a slot is reachable:
+ * the pool is swept once across the rarity ladder, so the full atlas — both bands — is worn in game.
+ */
+export function iconTier(slot: Slot, rarity: number, rand = Math.random) {
+  const count = iconCount(slot);
+  const step = count / RARITIES.length;
+  return Math.min(count - 1, Math.floor(rarity * step + rand() * (step + 1)));
+}
+
+/** A random painted band: ordinary drops and crafts wear art from every gear update. */
+export const rollArt = (rand = Math.random) => Math.min(ATLAS_BANDS - 1, Math.floor(rand() * ATLAS_BANDS));
 
 // ---------- Names ----------
 const PREFIX = ["Worn", "Iron", "Bloodforged", "Moonlit", "Dread", "Abyssal", "Crimson", "Soulbound", "Eclipse", "Ancient"];
@@ -144,12 +165,11 @@ export function rollRarity(stage: number, luck: number, minRarity = 0, level = s
 
 export function makeItem(cls: HeroClass, ilvl: number, rarity: number, slot?: Slot): Item {
   const s = slot ?? SLOTS[rnd(SLOTS.length)];
-  const count = iconCount(s);
-  const tier = Math.min(count - 1, Math.floor((rarity / 5) * (count - 1)) + rnd(2));
   const prefix = PREFIX[Math.min(PREFIX.length - 1, rarity * 2 + rnd(2))];
   const suffix = rarity >= 2 ? SUFFIX[rnd(SUFFIX.length)] : "";
   return {
-    id: uid(), slot: s, cls, rarity, ilvl: Math.max(1, Math.floor(ilvl)), icon: tier, enh: 0,
+    id: uid(), slot: s, cls, rarity, ilvl: Math.max(1, Math.floor(ilvl)),
+    icon: iconTier(s, rarity), art: rollArt(), enh: 0,
     name: `${prefix} ${SLOT_NAMES[cls][s]} ${suffix}`.trim(),
   };
 }

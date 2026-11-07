@@ -9,7 +9,7 @@ import { RARITIES, invCap, type Item } from "./data";
 import { SET_BONUSES, activeSets, signatureOf } from "./progress";
 import { scrollXp } from "./scrolls";
 import type { StartBattle } from "./panels";
-import relicSheet from "@/assets/relic-gear.jpg";
+import gearAtlas from "@/assets/gear-atlas.jpg";
 import {
   RELIC_RANKS, equipBestRelics, noteRelic, noteRelicClear, recoveredRelics, relicClears, relicFoe, relicFound,
   relicItem, relicLevel, relicRank, relicRewards, relicSet, relicUnlocked, rollRelic, wornRelics,
@@ -66,7 +66,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
         <div
           aria-hidden="true"
           className="h-32 w-full md:h-40"
-          style={{ backgroundImage: `url(${relicSheet})`, backgroundSize: "300% auto", backgroundPosition: set.crop }}
+          style={{ backgroundImage: `url(${gearAtlas})`, backgroundSize: "300% auto", backgroundPosition: set.crop }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" aria-hidden="true" />
         <div className="absolute inset-0 flex flex-col justify-center gap-0.5 p-4">

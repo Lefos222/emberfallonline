@@ -2,6 +2,10 @@
   "style": "Original hand-painted fantasy art; existing castle, standalone class/gender characters and encounter sheets preserved.",
   "assets": [
     {
+      "path": "src/assets/gear-atlas.jpg",
+      "feature": "Unified gear icon atlas: band 0 original class gear sheet, band 1 relic collection sheet, both rolled by drops and crafts"
+    },
+    {
       "path": "src/assets/mat-fragment.png",
       "feature": "Armor crafting materials; Forge and material bars"
     },
