@@ -1,18 +1,20 @@
-import classGear from "@/assets/equipment_for_classes.jpg";
-import relicGear from "@/assets/relic-gear.jpg";
+import gearAtlas from "@/assets/gear-atlas.jpg";
 import { ATLAS_H, ATLAS_W, iconRect, type Item } from "./data";
 import { isRelicItem } from "./relics";
 
 /**
- * Both sheets are committed 1920x1072 paintings sharing one icon grid, so a class keeps its old
- * art and gains the relic collection: `equipment_for_classes.jpg` draws every ordinary drop,
- * forge piece and synthesis piece, `relic-gear.jpg` draws the Relic Trials pieces (named by their
- * set prefix). Pass `relic` for callers that only hold a slot/class/icon preview.
+ * Every gear icon is cut from one committed atlas painting: two 1920x1072 class sheets stacked into
+ * a single image (see ATLAS_BANDS in data.ts). Band 0 is the original class gear — ordinary drops,
+ * forge pieces, synthesis pieces and starter kit; band 1 is the relic collection art, worn by the
+ * Relic Trials pieces and also rolled by ordinary drops and crafts, so both updates live in one set.
+ * The band is read from the item's own `art`, falling back to its relic set prefix, and `relic`
+ * forces band 1 for callers that only hold a slot/class/icon preview.
  */
-export function GearIcon({ item, size = 56, relic = isRelicItem(item.name) }: {
-  item: Pick<Item, "slot" | "cls" | "icon"> & { name?: string }; size?: number; relic?: boolean;
+export function GearIcon({ item, size = 56, relic = false }: {
+  item: Pick<Item, "slot" | "cls" | "icon"> & { name?: string; art?: number }; size?: number; relic?: boolean;
 }) {
-  const r = iconRect(item);
+  const band = relic ? 1 : item.art ?? (isRelicItem(item.name) ? 1 : 0);
+  const r = iconRect(item, band);
   const s = size / Math.max(r.w, r.h);
   return (
     <div style={{ width: size, height: size }} className="flex items-center justify-center overflow-hidden">
@@ -20,7 +22,7 @@ export function GearIcon({ item, size = 56, relic = isRelicItem(item.name) }: {
         style={{
           width: r.w * s,
           height: r.h * s,
-          backgroundImage: `url(${relic ? relicGear : classGear})`,
+          backgroundImage: `url(${gearAtlas})`,
           backgroundSize: `${ATLAS_W * s}px ${ATLAS_H * s}px`,
           backgroundPosition: `-${r.x * s}px -${r.y * s}px`,
           borderRadius: 6,

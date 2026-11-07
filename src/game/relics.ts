@@ -44,7 +44,7 @@ export interface RelicSet {
   blurb: string;
   /** Trial name shown on the rank cards. */
   trial: string;
-  /** Crop of the shared gear sheet that shows this class's panel. */
+  /** Crop of the gear atlas that shows this class's panel in the relic band. */
   crop: string;
   boss: { name: string; sprite: SpriteRect };
   pieces: RelicPiece[];
@@ -107,7 +107,7 @@ export const RELIC_SETS: Record<HeroClass, RelicSet> = {
     theme: "Fire",
     blurb: "Spiked iron, magma seams and the skulls of tyrants — the armour of the burning legion.",
     trial: "Ember Trial",
-    crop: "0% 30%",
+    crop: "0% 66%",
     boss: { name: "Vulkan, the Ember Titan", sprite: TIER_BOSSES.vulkan.sprite },
     pieces: WARRIOR_RELICS,
   },
@@ -117,7 +117,7 @@ export const RELIC_SETS: Record<HeroClass, RelicSet> = {
     theme: "Arcana",
     blurb: "Royal purple, starlight and drifting runes — robes cut from the sky between the stars.",
     trial: "Astral Trial",
-    crop: "50% 30%",
+    crop: "50% 66%",
     boss: { name: "Tenebris, the Void Empress", sprite: TIER_BOSSES.tenebris.sprite },
     pieces: MAGE_RELICS,
   },
@@ -127,7 +127,7 @@ export const RELIC_SETS: Record<HeroClass, RelicSet> = {
     theme: "Wildwood",
     blurb: "Vines, feathers and elder wood — the hunting garb of the old forest.",
     trial: "Wildwood Trial",
-    crop: "100% 30%",
+    crop: "100% 66%",
     boss: { name: "Oakenheart, the Ancient Treant", sprite: enemySprite(0, 11) },
     pieces: ARCHER_RELICS,
   },
@@ -184,7 +184,7 @@ export function wornRelics(h: Pick<RelicHero, "cls" | "equipment">) {
 export function relicItem(piece: RelicPiece, cls: HeroClass, ilvl: number): Item {
   return {
     id: uid(), slot: piece.slot, cls, rarity: piece.rarity,
-    ilvl: Math.max(1, Math.floor(ilvl)), icon: piece.icon, enh: 0, name: piece.name,
+    ilvl: Math.max(1, Math.floor(ilvl)), icon: piece.icon, art: 1, enh: 0, name: piece.name,
   };
 }
 
