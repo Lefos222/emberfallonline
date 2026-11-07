@@ -3,15 +3,15 @@ import { newHero, type Hero } from "./data";
 /**
  * World reset stamp.
  *
- * The reset runs in the app instead of a database script: every character loaded with a
- * save that does not carry this exact stamp is rebuilt from scratch and written back on the
- * spot, so a player starts again from level 0 the next time they open the game.
+ * The reset runs in the app instead of a database script: every character whose save does not
+ * carry this exact stamp is deleted the next time its owner opens the game, so every account
+ * starts again by creating a fresh hero.
  *
  * Bump this value to wipe the world again. Browser drafts from before the reset carry an
  * older stamp (or none at all), so the next load discards them instead of restoring old
  * progress.
  */
-export const WORLD_RESET_ID = "2026-11-07-world-reset";
+export const WORLD_RESET_ID = "2026-11-07-character-wipe";
 
 /** True for a save written before the current reset, or for a stale browser draft. */
 export const isPreResetSave = (h: Pick<Hero, "resetAt">) => h.resetAt !== WORLD_RESET_ID;

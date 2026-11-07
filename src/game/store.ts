@@ -114,11 +114,24 @@ export function adoptServerSave(id: string, hero: Hero) {
 export async function loadCharacters() {
   if (!state.userId) return;
   set({ chars: null, charsError: null });
-  const { data, error } = await supabase.from("heroes").select(COLS).eq("user_id", state.userId).order("last_played", { ascending: false });
+  const { data, error } = await supabase.from("heroes").select(`${COLS},save`).eq("user_id", state.userId).order("last_played", { ascending: false });
   if (error) { set({ charsError: error.message, chars: [] }); return; }
-  const rows = (data ?? []) as unknown as CharacterRow[];
-  if (rows.length === 0) clearCharacterCache();
-  set({ chars: rows });
+  const all = (data ?? []) as unknown as (CharacterRow & { save: Hero | null })[];
+  // World reset: a character from before the current reset is deleted, not rebuilt, so the
+  // account starts again by creating a fresh hero (creation stamps the current reset id).
+  const legacy = all.filter((row) => !row.save || isPreResetSave(row.save));
+  if (legacy.length) {
+    const ids = legacy.map((row) => row.id);
+    const { error: wipeError } = await supabase.from("heroes").delete().in("id", ids);
+    if (wipeError) { set({ charsError: wipeError.message, chars: [] }); return; }
+    const wiped = new Set(ids);
+    const rows = all.filter((row) => !wiped.has(row.id));
+    if (rows.length === 0) clearCharacterCache();
+    set({ chars: rows });
+    return;
+  }
+  if (all.length === 0) clearCharacterCache();
+  set({ chars: all });
 }
 
 let authEventSeen = false;
