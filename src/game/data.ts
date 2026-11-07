@@ -100,6 +100,11 @@ export const ATLAS_BAND_H = 1072;
 /** Bands stacked in `src/assets/gear-atlas.jpg`: 0 = original class gear, 1 = relic collection art. */
 export const ATLAS_BANDS = 2;
 export const ATLAS_H = ATLAS_BAND_H * ATLAS_BANDS;
+/** Both painted gear updates, kept side by side so old and new equipment always coexist. */
+export const GEAR_ERAS = [
+  { band: 0, name: "Classic", note: "Original class gear sheet" },
+  { band: 1, name: "Relic", note: "Relic collection sheet" },
+] as const;
 
 /** Where one icon sits inside its band; `band` picks the painted sheet the icon is drawn from. */
 export function iconRect(item: Pick<Item, "slot" | "cls" | "icon">, band = 0): { x: number; y: number; w: number; h: number } {
@@ -358,6 +363,8 @@ export interface Hero {
   rewardChest?: { last?: number; claims?: number };
   /** Relic collection: pieces recovered from the class trials, by piece id (see relics.ts). */
   relics?: { found?: Record<string, number>; clears?: Record<string, number> };
+  /** World-reset stamp. A client draft without this value is stale and never overwrites the reset. */
+  resetAt?: string;
 
 }
 
@@ -598,12 +605,15 @@ export function stageFoe(stage: number, mult = 1, type?: EnemyType, name?: strin
   };
 }
 
+/** Extra compounding health/damage every stage past HARD_STAGE. */
+export const LATE_GAME_TOUGHNESS = 1.015;
 /** Monsters get tougher as you progress: +0.6% health/damage per stage after stage 5 (bosses get 40% of that, they already spike).
- *  From stage 31 the curve steepens by +0.8% compounding each stage (~+49% by stage 80), so the late
- *  campaign is a real wall the hero answers with levels, enhancements, gems and talents. */
+ *  From stage 31 the curve steepens hard: +1.5% compounding each stage (~+2.1× by stage 80 and
+ *  ~+5.1× by stage 140), so the late campaign is a real wall the hero answers with levels,
+ *  enhancements, gems and talents rather than free progression. */
 export function foeToughness(stage: number) {
   const steady = 1 + Math.max(0, stage - 5) * 0.006;
-  return steady * Math.pow(1.008, Math.max(0, stage - HARD_STAGE));
+  return steady * Math.pow(LATE_GAME_TOUGHNESS, Math.max(0, stage - HARD_STAGE));
 }
 
 /** The opening levels are the tutorial: until this level foes are softer so a new hero keeps moving. */

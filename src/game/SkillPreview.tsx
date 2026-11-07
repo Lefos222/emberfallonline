@@ -5,6 +5,7 @@ import { CharacterModel } from './CharacterModel';
 import { CombatEffect, WeaponArc } from './BattleArt';
 import { buildKit } from './combat';
 import { effectFor, moveFor } from './skillAnim';
+import { SkillIcon } from './SkillIcon';
 import type { HeroClass } from './data';
 import type { Talent } from './talents';
 
@@ -20,7 +21,7 @@ export function SkillPreview({ talent, cls, gender, locked }: { talent: Talent; 
   const range = skill.target === 'all' ? 'All enemies' : skill.target === 'self' ? 'Self' : skill.target === 'multi' ? `Up to ${skill.maxTargets} enemies` : 'One enemy';
   return <section className="mt-4 border-t border-border pt-4" aria-label="Ability preview">
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <h3 className="font-display text-lg text-gold">{ability.name}</h3>
+      <h3 className="flex items-center gap-2 font-display text-lg text-gold"><SkillIcon icon={ability.icon} className="h-8 w-8 shrink-0" />{ability.name}</h3>
       <Button variant="outline" size="sm" onClick={() => setReplay(n => n + 1)}><Play className="h-4 w-4" />Replay animation</Button>
     </div>
     <div className="mt-3 grid items-center gap-4 sm:grid-cols-[240px_1fr]">

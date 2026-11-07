@@ -9,9 +9,13 @@ import { appearanceTier } from "./synthesis";
  * the appearance always follows the equipment, never the level. The pool is read from
  * the artwork itself (see src/assets/armour), so shipping another painted outfit simply
  * widens what future drops can roll.
+ *
+ * The armour folder holds both art updates: the current outfits and the original
+ * pre-merge outfits kept under `armour/legacy/`. Both are in the pool, so old and new
+ * drops can wear either era; synthesis sets stay on their own separate sheet.
  */
 
-const VARIANT_ART = import.meta.glob("../assets/armour/*.webp", {
+const VARIANT_ART = import.meta.glob("../assets/armour/**/*.webp", {
   eager: true,
   query: "?url",
   import: "default",
@@ -19,21 +23,29 @@ const VARIANT_ART = import.meta.glob("../assets/armour/*.webp", {
 
 type Gender = "male" | "female";
 
-/** How many painted variants each class and gender carries, read from the shipped artwork. */
-const VARIANT_COUNT: Record<string, number> = (() => {
-  const counts: Record<string, number> = {};
-  for (const key of Object.keys(VARIANT_ART)) {
+interface Variant { url: string; index: number; legacy: boolean }
+
+/** Every painted variant each class and gender can roll, current art first then legacy art. */
+const VARIANTS: Record<string, string[]> = (() => {
+  const groups: Record<string, Variant[]> = {};
+  for (const [key, url] of Object.entries(VARIANT_ART)) {
     const m = /(warrior|mage|archer)-(male|female)-(\d+)\.webp$/.exec(key);
     if (!m) continue;
     const id = `${m[1]}-${m[2]}`;
-    counts[id] = Math.max(counts[id] ?? 0, Number(m[3]) + 1);
+    (groups[id] ??= []).push({ url, index: Number(m[3]), legacy: /\/legacy\//.test(key) });
   }
-  return counts;
+  const out: Record<string, string[]> = {};
+  for (const [id, list] of Object.entries(groups)) {
+    out[id] = list
+      .sort((a, b) => Number(a.legacy) - Number(b.legacy) || a.index - b.index)
+      .map((v) => v.url);
+  }
+  return out;
 })();
 
-/** The painted variants a class and gender can roll. */
+/** How many painted variants each class and gender carries, including restored legacy outfits. */
 export function lookCount(cls: HeroClass, gender: Gender): number {
-  return VARIANT_COUNT[`${cls}-${gender}`] ?? 0;
+  return VARIANTS[`${cls}-${gender}`]?.length ?? 0;
 }
 
 /** The stable look of one piece, or null when it has no id. */
@@ -72,12 +84,6 @@ export function heroAppearance(
  * whose art has not shipped resolves to undefined and the model keeps the class art.
  */
 export function armourArt(cls: HeroClass, gender: Gender, look: number): string | undefined {
-  if (!Number.isFinite(look) || look < 0 || look >= lookCount(cls, gender)) return undefined;
-  const base = `../assets/armour/${cls}-${gender}-${Math.floor(look)}.webp`;
-  return (
-    VARIANT_ART[base] ??
-    Object.entries(VARIANT_ART).find(([k]) =>
-      k.endsWith(`/${cls}-${gender}-${Math.floor(look)}.webp`),
-    )?.[1]
-  );
+  if (!Number.isFinite(look) || look < 0) return undefined;
+  return VARIANTS[`${cls}-${gender}`]?.[Math.floor(look)];
 }

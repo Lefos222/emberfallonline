@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { buildKit } from '../game/combat';
-import { BOSS_ART_AUDIT, BOSS_ROSTER, ENEMY_ROSTER, ROSTER, ENCOUNTER_TABLES, encounterEntry, recordRosterEncounter, rosterProgress, validateRoster } from '../game/bestiary';
+import { BATTLE_BOSSES, BOSS_ART_AUDIT, BOSS_ROSTER, ENEMY_ROSTER, ROSTER, ENCOUNTER_TABLES, encounterEntry, recordRosterEncounter, rosterProgress, validateRoster } from '../game/bestiary';
 
 describe('audited bestiary', () => {
   it('ships exactly 60 enemy and 44 unique boss designs', () => {
     expect(ENEMY_ROSTER).toHaveLength(60);
     expect(BOSS_ROSTER).toHaveLength(44);
+    // The seven clipped row-5 head portraits stay in the codex but never stand in a battle.
+    expect(BATTLE_BOSSES).toHaveLength(37);
+    expect(BATTLE_BOSSES.every((e) => !e.portrait)).toBe(true);
     expect(BOSS_ART_AUDIT.duplicates.map(d => d.cell)).toEqual(['bosses:4:5', 'bosses:4:6']);
     expect(BOSS_ART_AUDIT.empty).toEqual([]);
     expect(BOSS_ART_AUDIT.clipped).toHaveLength(7);
@@ -27,7 +30,10 @@ describe('audited bestiary', () => {
     const ids = new Set(ROSTER.map(e => e.id));
     for (const table of Object.values(ENCOUNTER_TABLES)) for (const id of table) expect(ids.has(id)).toBe(true);
     expect(encounterEntry('road', 60).id).toBe('enemy-0-0');
-    expect(encounterEntry('dungeon', 43).id).toBe('boss-vulkan');
+    expect(encounterEntry('dungeon', BATTLE_BOSSES.length - 1).id).toBe('boss-vulkan');
+    for (const table of [ENCOUNTER_TABLES.dungeon, ENCOUNTER_TABLES.spire]) {
+      for (const id of table) expect(ROSTER.find((e) => e.id === id)?.portrait).not.toBe(true);
+    }
     expect(() => encounterEntry('road', -1)).toThrow();
   });
   it('never invents discovery or defeats', () => {

@@ -43,6 +43,19 @@ export const PASSIVES: readonly Passive[] = [
   node("archer", "a_gap", "Gap Reader", "Place arrows through armor even against evasive prey.", 3, { acc: 2, pen: 1 }, "a_retreat"),
   node("archer", "a_return", "Safe Return", "Prioritize survival and healing on long hunts.", 3, { dodge: 1, heal: 3 }, "a_camp"),
 ];
+/** Painted ability icon (see SkillIcon) for every passive node. */
+const PASSIVE_ICONS: Record<string, string> = {
+  field_medicine: "heart", brace: "shield", trail_sense: "scan", provisions: "potion",
+  footwork: "wind", anatomy: "skull", watch: "star", reserve: "heart",
+  triage: "heart", veteran: "target",
+  w_staunch: "heart", w_angle: "shield", w_march: "shield", w_scar: "shield",
+  w_reprisal: "sword", w_refuge: "shield",
+  m_restorative: "heart", m_geometry: "shield", m_vessel: "heart", m_sight: "scan",
+  m_recuperate: "heart", m_refraction: "sparkles",
+  a_herbal: "potion", a_range: "target", a_retreat: "wind", a_camp: "heart",
+  a_gap: "crosshair", a_return: "wind",
+};
+export const passiveIcon = (p: Passive | string) => PASSIVE_ICONS[typeof p === "string" ? p : p.id] ?? "star";
 export const PASSIVE_FX_ZERO: Required<PassiveFx> = { hpPct: 0, atkPct: 0, defPct: 0, crit: 0, dodge: 0, critDmg: 0, pen: 0, heal: 0, block: 0, acc: 0 };
 const whole = (n: number | undefined) => Number.isFinite(n) ? Math.max(0, Math.floor(n!)) : 0;
 const available = (h: Hero, p: Passive) => p.group === "general" || p.group === h.cls;

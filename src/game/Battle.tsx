@@ -296,7 +296,10 @@ function UnitView({ u, anim, effect, move, victory, floats, active, targetable, 
         )}
       </div>
       {/* Figure */}
-      <div className={`relative ${h} w-full shrink-0 ${u.cls ? "aspect-square" : u.sprite ? "aspect-[3/4]" : "aspect-[480/1024]"}`}>
+      <div
+        className={`relative ${h} w-full shrink-0 ${u.cls ? "aspect-square" : u.sprite ? "" : "aspect-[480/1024]"}`}
+        style={u.sprite ? { aspectRatio: `${u.sprite.w} / ${u.sprite.h}` } : undefined}
+      >
         {targetable && <div className={`absolute inset-x-4 bottom-0 h-6 rounded-full blur-md ${selected ? "bg-gold" : "bg-r1/70 animate-pulse"}`} />}
         {active && <div className="absolute inset-x-8 bottom-1 h-4 rounded-full bg-gold/50 blur-md" />}
         <div key={anim ?? "idle"} className={`h-full w-full ${anim?.split("#")[0] ?? ""}`}>

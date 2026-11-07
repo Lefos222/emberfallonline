@@ -2,7 +2,8 @@ import { useState, useRef, useMemo } from "react";
 import { CLASSES } from "./data";
 import { update, useGame } from "./store";
 import { fmt } from "./ui";
-import { PASSIVES, insightBank, learnPassive, passiveBlocker, passiveRank, spentInsight, totalInsight, type PassiveFx } from "./passives";
+import { PASSIVES, insightBank, learnPassive, passiveBlocker, passiveIcon, passiveRank, spentInsight, totalInsight, type PassiveFx } from "./passives";
+import { SkillIcon } from "./SkillIcon";
 
 const labels: Record<keyof PassiveFx, string> = { hpPct: "Max HP", atkPct: "Attack", defPct: "Defense", crit: "Crit Chance", dodge: "Dodge", critDmg: "Crit Damage", pen: "Penetration", heal: "Healing Power", block: "Block", acc: "Accuracy" };
 const effects = (fx: PassiveFx, rank: number) => (Object.keys(fx) as (keyof PassiveFx)[]).map(k => `+${Number(((fx[k] ?? 0) * rank).toFixed(2))}% ${labels[k]}`).join(" · ");
@@ -141,8 +142,10 @@ export function PassiveTreeContent() {
                       }} />
                     ))}
                   </div>
-                  {/* Tier number */}
-                  <span className="font-display text-sm font-bold" style={{
+                  {/* Painted passive icon */}
+                  <SkillIcon icon={passiveIcon(p)} className={`h-9 w-9 ${locked ? "grayscale" : ""}`} />
+                  {/* Tier badge */}
+                  <span className="absolute left-0.5 top-0.5 rounded bg-background/80 px-1 font-display text-[9px] font-bold" style={{
                     color: maxed ? "var(--gold)" : r > 0 ? "var(--foreground)" : "var(--muted-foreground)",
                   }}>{p.tier}</span>
                   {/* Ready glow ring */}
@@ -157,7 +160,10 @@ export function PassiveTreeContent() {
 
         {/* ── Detail panel ── */}
         <section className="slot flex flex-col p-4" aria-live="polite">
-          <h3 className="font-display text-lg text-gold">{detail.name}</h3>
+          <h3 className="flex items-center gap-2 font-display text-lg text-gold">
+            <SkillIcon icon={passiveIcon(detail)} className="h-8 w-8 shrink-0" />
+            <span>{detail.name}</span>
+          </h3>
           <div className="mb-1 text-sm text-muted-foreground">
             {detail.group === "general" ? "General" : CLASSES[detail.group as keyof typeof CLASSES]?.name ?? detail.group} · Tier {detail.tier}
           </div>

@@ -2,6 +2,7 @@ import { Check,Sword } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { buildKit,resourceName } from './combat';
 import { heroSkills } from './data';
+import { SkillIcon } from './SkillIcon';
 import { update,useGame } from './store';
 
 export function SkillLoadout(){
@@ -13,6 +14,6 @@ export function SkillLoadout(){
  return <label key={sk.id} className={`slot flex cursor-pointer items-start gap-3 p-3 ${on?'border-gold':''}`}><input type="checkbox" aria-label={`Battle skill: ${sk.name}`} checked={on} disabled={i===0} className="mt-1 accent-primary" onChange={()=>update(h=>{
  const available=buildKit(h.cls,heroSkills(h));const current=buildKit(h.cls,heroSkills(h),h.skillLoadout).map(s=>s.id);
  h.skillLoadout=available.filter((s,index)=>index===0||(s.id===sk.id?!current.includes(s.id):current.includes(s.id))).map(s=>s.id);
- })}/><div className="min-w-0"><p className="font-display text-gold">{on?<Check className="mr-1 inline h-3 w-3"/>:<Sword className="mr-1 inline h-3 w-3"/>}{sk.name}</p><p className="text-xs text-muted-foreground">{sk.desc}</p><p className="mt-1 text-xs">{i===0?'Basic attack':`${sk.cost} ${resourceName(hero.cls)} · ${sk.cd} turn cooldown`}</p></div></label>;
+ })}/><div className="min-w-0"><p className="flex items-center gap-1.5 font-display text-gold"><SkillIcon icon={sk.icon} className="h-6 w-6 shrink-0" />{on?<Check className="h-3 w-3"/>:<Sword className="h-3 w-3"/>}{sk.name}</p><p className="text-xs text-muted-foreground">{sk.desc}</p><p className="mt-1 text-xs">{i===0?'Basic attack':`${sk.cost} ${resourceName(hero.cls)} · ${sk.cd} turn cooldown`}</p></div></label>;
  })}</div></section>;
 }

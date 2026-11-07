@@ -1,6 +1,6 @@
 import { ENEMIES, invCap, MAX_LEVEL, xpToNext, type Foe, type Hero, type Item, type Skill } from './data';
 import { CAMPAIGN_STAGES, type SpriteRect } from './world';
-import { BOSS_ROSTER, ENEMY_ROSTER } from './bestiary';
+import { BATTLE_BOSSES, ENEMY_ROSTER } from './bestiary';
 import type { Mat } from './crafting';
 
 export const ROAD_START = 91;
@@ -37,7 +37,7 @@ export function roadFoe(stage: number): RoadFoe {
   const boss = stage % 10 === 0;
   const elite = stage % 10 === 5;
   const scale = (1 + offset / 40) ** 2 * (boss ? 2 : elite ? 1.3 : 1);
-  const roster = boss ? BOSS_ROSTER : ENEMY_ROSTER;
+  const roster = boss ? BATTLE_BOSSES : ENEMY_ROSTER;
   const cursor = boss ? Math.floor((stage - 100) / 10) : offset;
   const entry = roster[cursor % roster.length];
   if (!entry) throw new Error('The encounter roster is empty');

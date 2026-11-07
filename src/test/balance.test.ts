@@ -12,6 +12,7 @@ import {
   MAX_LEVEL,
   fightsToLevel,
   fightsToNextLevel,
+  foeToughness,
   newHero,
   stageFoe,
   stageRewards,
@@ -149,6 +150,15 @@ describe("two fights a level, then ten more every level", () => {
   });
   it("monsters get tougher with stage", () => {
     expect(stageFoe(79).hp).toBeGreaterThan(Math.round((150 + 79 * 150) * riftFactor(79) * 1.4));
+  });
+  it("steepens the enemy curve after level 30 and keeps climbing past it", () => {
+    // The late multiplier only starts past HARD_STAGE, then compounds every stage.
+    expect(foeToughness(80)).toBeGreaterThan(3);
+    expect(foeToughness(140)).toBeGreaterThan(5);
+    for (const stage of [40, 60, 80, 120]) {
+      const steady = 1 + (stage - 5) * 0.006;
+      expect(foeToughness(stage), `stage ${stage}`).toBeGreaterThan(steady * 1.1);
+    }
   });
 });
 
