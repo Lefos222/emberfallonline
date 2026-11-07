@@ -13,8 +13,16 @@ import { newHero, type Hero } from "./data";
  */
 export const WORLD_RESET_ID = "2026-11-07-world-reset";
 
-/** True for a save written before the current reset, or for a stale browser draft. */
-export const isPreResetSave = (h: Pick<Hero, "resetAt">) => h.resetAt !== WORLD_RESET_ID;
+/**
+ * True for a save written before the current reset, or for a stale browser draft.
+ *
+ * Disabled: the reset was wiping characters to level 0 on every login because the
+ * post-reset stamp was not persisting (cloud save errors left the old stamp in the
+ * database, so the next login treated the character as pre-reset again).  Returning
+ * false here stops the reset entirely so existing characters keep their progress.
+ * Re-enable by restoring the `h.resetAt !== WORLD_RESET_ID` comparison.
+ */
+export const isPreResetSave = (_h: Pick<Hero, "resetAt">) => false;
 
 /**
  * Rebuild a saved hero as a clean level-0 character: only name and class survive, with the

@@ -3,9 +3,9 @@ import { newHero, heroStats } from "@/game/data";
 import { isPreResetSave, resetHero, WORLD_RESET_ID } from "@/game/world-reset";
 
 describe("world reset", () => {
-  it("treats a save without the current stamp as pre-reset", () => {
-    expect(isPreResetSave({})).toBe(true);
-    expect(isPreResetSave({ resetAt: "old-stamp" })).toBe(true);
+  it("never treats a save as pre-reset (world reset disabled)", () => {
+    expect(isPreResetSave({})).toBe(false);
+    expect(isPreResetSave({ resetAt: "old-stamp" })).toBe(false);
     expect(isPreResetSave({ resetAt: WORLD_RESET_ID })).toBe(false);
   });
 
