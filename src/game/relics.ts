@@ -133,6 +133,12 @@ export const RELIC_SETS: Record<HeroClass, RelicSet> = {
   },
 };
 
+/** Set prefixes of the relic collections, e.g. `Emberforged` (see `SET_NAMES` in progress.ts). */
+export const RELIC_PREFIXES = Object.values(RELIC_SETS).map((s) => s.set);
+
+/** True for a piece of a class relic collection — the only items drawn from the relic art sheet. */
+export const isRelicItem = (name?: string) => !!name && RELIC_PREFIXES.includes(name.split(" ")[0]!);
+
 /** Trial ranks: their level gates and how the warden is scaled on top of a stage at that level. */
 export const RELIC_RANKS: { rank: RelicRank; label: string; level: number; hp: number; atk: number }[] = [
   { rank: 1, label: ROMAN[0]!, level: 10, hp: 1.8, atk: 1 },

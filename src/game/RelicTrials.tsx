@@ -132,7 +132,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
               onClick={() => setSel(piece)}
               className={`slot flex flex-col items-center gap-1 p-2 text-center transition hover:scale-[1.03] ${owned ? "" : "opacity-40"}`}
             >
-              <GearIcon item={{ slot: piece.slot, cls: hero.cls, icon: piece.icon }} size={40} />
+              <GearIcon item={{ slot: piece.slot, cls: hero.cls, icon: piece.icon, name: piece.name }} size={40} />
               <span className="text-[10px] leading-tight">{piece.name.replace(`${set.set} `, "")}</span>
               <span className="text-[10px]" style={{ color: `var(--r${piece.rarity})` }}>
                 {RARITIES[piece.rarity].name} · {RELIC_RANKS[piece.rank - 1]!.label}

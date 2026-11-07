@@ -1,8 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { newHero, type Hero } from "@/game/data";
 import {
-  RELIC_RANKS, RELIC_SETS, equipBestRelics, noteRelic, recoveredRelics, relicFoe, relicItem, relicUnlocked,
-  rollRelic, wornRelics,
+  RELIC_RANKS,
+  RELIC_SETS,
+  equipBestRelics,
+  isRelicItem,
+  noteRelic,
+  recoveredRelics,
+  relicFoe,
+  relicItem,
+  relicUnlocked,
+  rollRelic,
+  wornRelics,
 } from "@/game/relics";
 import { SET_NAMES, activeSets, setFx } from "@/game/progress";
 
@@ -64,6 +73,17 @@ describe("relic collections", () => {
     expect(fx.atkPct).toBe(12);
     expect(fx.defPct).toBe(11);
     expect(fx.crit).toBe(6);
+  });
+
+  it("keeps relic art separate from the original class art, for every class", () => {
+    for (const cls of CLASSES) {
+      for (const piece of RELIC_SETS[cls].pieces) expect(isRelicItem(piece.name)).toBe(true);
+      // Ordinary gear of the same class keeps the original sheet.
+      const h = newHero("Arms", cls);
+      const worn = Object.values(h.equipment).flatMap((it) => (it ? [it] : []));
+      expect(worn.length).toBeGreaterThan(0);
+      for (const it of worn) expect(isRelicItem(it.name)).toBe(false);
+    }
   });
 
   it("scales the trial warden with the hero's level", () => {
