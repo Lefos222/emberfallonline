@@ -16,6 +16,7 @@ import { enlightenmentFx, soulFx } from "./enlightenment";
 import { renownFx } from "./renown";
 import { potionFx } from "./potions";
 import { titleFx } from "./titles";
+import { normalizeFarm, type FarmState } from "./farm";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -35,8 +36,10 @@ export const wearOf = (s: Slot): WearSlot[] => (s === "ring" ? ["ring", "ring2"]
 export type GearRecord = Partial<Record<WearSlot, Item>>;
 
 export const MAX_LEVEL = 140;
-/** Gear can be enhanced this far. The climb is the game's long-term gold sink. */
-export const ENHANCE_MAX = 30;
+/** Gear can be enchanted this far. The climb is the game's long-term gold sink. */
+export const ENHANCE_MAX = 70;
+/** Gold enhancement stops here: beyond +13 the forge only answers to Enchantment Stones. */
+export const ENHANCE_GOLD_LIMIT = 13;
 export const CONQUEST_LEVEL = 10;
 export const canEnterConquest = (level: number) => level >= CONQUEST_LEVEL;
 export const INVENTORY_CAP = 40;
@@ -210,15 +213,28 @@ export function sellValue(it: Item) { return Math.round(it.ilvl * 3 * RARITIES[i
 export function buyPrice(it: Item, level = 1) { return scaledGold(sellValue(it) * 16, level); }
 /**
  * Enhancing at the Forge: the item's own level and the hero's level both raise the price, and each
- * further step costs more than the last. Reaching +30 is a long, deliberate gold sink.
+ * further step costs more than the last. Gold carries a piece to +13; the climb to +70 is a long,
+ * deliberate sink of Enchantment Stones on top of the gold.
  */
 export function enhanceCost(it: Item, level = 1) { return scaledGold(it.ilvl * 2.4 * Math.pow(it.enh + 1, 1.4), level); }
-/** Success chance falls gently with the enhancement level, never below the master smith's floor. */
-export function enhanceChance(it: Item) { return Math.max(0.37, 1 - it.enh * 0.021); }
-/** True when the piece is already at the forge's highest enhancement. */
+/**
+ * Success chance falls with the enhancement level. The opening steps are near-certain, but past
+ * the gold limit the roll keeps dropping (nothing below the master smith's 12% floor), so the
+ * deep enchantments need Enchantment Stones to stay worth attempting.
+ */
+export function enhanceChance(it: Item) { return Math.max(0.12, 1 - it.enh * 0.021); }
+/** True when gold alone may still buy the next step (+13 is the last one). */
+export const goldEnhanceAllowed = (it: Item) => it.enh < ENHANCE_GOLD_LIMIT;
+/** True when the piece is already at the forge's highest enchantment. */
 export const enhanceMaxed = (it: Item) => it.enh >= ENHANCE_MAX;
 /** Enchantment Stones needed to enhance: 1 per 3 enhancement levels. */
 export const enchantStoneCost = (it: Item) => 1 + Math.floor(it.enh / 3);
+/**
+ * The stone grade the next step demands. Grade 1 carries a piece from +13 to +19, then every six
+ * steps call for one grade higher, up to a Lv 9 stone for the deepest enchantments.
+ */
+export const enchantStoneGrade = (it: Item) =>
+  Math.max(1, Math.min(9, 1 + Math.floor(Math.max(0, it.enh - (ENHANCE_GOLD_LIMIT - 1)) / 6)));
 /**
  * Enchanting with a stone: the stone grade (1-9, see enchant.ts) adds 10% per grade to the roll.
  * The chance never reaches certainty, so even a Lv 9 stone keeps a sliver of bad luck.
@@ -414,6 +430,8 @@ export interface Hero {
   dailyChest?: { last?: number; claims?: number };
   /** Astral summon counter for RNG gating (see crafting.ts). */
   astralSummons?: number;
+  /** The Farm: its own level, Farm XP, eighteen plots and the seed pouch (see farm.ts). */
+  farm?: FarmState;
 
 }
 
@@ -545,6 +563,8 @@ export function normalizeHero(h: Hero): Hero {
   normalizeAstrals(h);
   // Synthesis gear survives every save round-trip; unknown or un-forged pieces are dropped.
   normalizeSynth(h);
+  // Every character has a farm: older saves get level 1, three tilled plots and no crops.
+  normalizeFarm(h);
   return h;
 }
 
@@ -806,6 +826,9 @@ export const BUILDINGS = [
   { id: "forge", name: "Blacksmith", x: 63.5, y: 44, r: 4.5, desc: "Enhance & salvage gear", soon: false },
   { id: "oracle", name: "Quest Board", x: 42, y: 52, r: 3.5, desc: "AI-generated quests", soon: false , shortcut: true },
   { id: "portal", name: "Campaign Gate", x: 72, y: 54, r: 5.5, desc: "Campaign stages", soon: false },
+  // The Farm lives in the tree immediately right of the Campaign Gate — the plot is painted into
+  // the castle art, so this hotspot only makes that tree the Farm's door.
+  { id: "farm", name: "Farm", x: 82.5, y: 53, r: 4.3, desc: "Seeds, crops & farm levels", soon: false },
   { id: "spire", name: "Conquest Gate", x: 17, y: 46, r: 5, desc: "Endless Conquest · Lv 10+", soon: false },
   { id: "arena", name: "Arena", x: 50, y: 31, r: 6.5, desc: "Fight real players", soon: false },
   { id: "market", name: "Auction House", x: 44, y: 82, r: 5, desc: "Catalogue, shop & player auctions", soon: false },

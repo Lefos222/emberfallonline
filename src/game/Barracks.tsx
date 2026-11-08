@@ -69,7 +69,8 @@ export function StatTrainings({ hero }: { hero: Hero }) {
       <div className="mb-1 flex items-center gap-2 font-display text-sm text-gold"><Swords className="h-4 w-4" />Stat training</div>
       <p className="mb-3 text-xs text-muted-foreground">
         Permanent upgrades for every combat stat, trained separately: each rank banks its bonus for good,
-        costs more than the last, and the deeper ranks need the barracks itself upgraded. Gold scaling caps at rank 5.
+        costs more than the last, and the deeper ranks need the barracks itself upgraded. There is no final
+        rank — only Gold Scaling stops at rank 5, because an endless gold multiplier would break the economy.
       </p>
       <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {STAT_TRAININGS.map((d) => {
@@ -82,14 +83,14 @@ export function StatTrainings({ hero }: { hero: Hero }) {
             <div key={d.id} className={"slot p-3 text-center " + (locked ? "opacity-60" : "")}>
               <div className="flex items-center justify-between gap-2">
                 <span className="flex items-center gap-1.5 font-display"><Icon className="h-4 w-4 text-gold" />{d.name}</span>
-                <span className="shrink-0 text-xs text-muted-foreground">Rank {rank}/{d.max}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">Rank {rank}{d.max !== undefined ? `/${d.max}` : ""}</span>
               </div>
               <div className="mt-1 font-display text-2xl text-gold">+{d.per * rank}{d.stat === "goldScale" || d.stat === "loot" || d.stat.endsWith("Pct") || d.stat === "hpPct" ? "%" : ""}</div>
               <div className="text-xs text-muted-foreground">{d.desc}</div>
               <div className="mt-1 text-xs">Next rank <b className="text-gold">+{d.per}% {d.name}</b></div>
               <button className="btn-gold mt-2 w-full py-1.5 text-sm" disabled={!!blocked} title={blocked ?? `Train rank ${rank + 1}`}
                 onClick={() => update((h) => { trainStat(h, d.id); })}>
-                {rank >= d.max ? "Fully trained" : locked ? <>Barracks level {d.barracks}</> : <>Train rank {rank + 1} <Gold n={cost} className="text-primary-foreground" /></>}
+                {d.max !== undefined && rank >= d.max ? "Fully trained" : locked ? <>Barracks level {d.barracks}</> : <>Train rank {rank + 1} <Gold n={cost} className="text-primary-foreground" /></>}
               </button>
             </div>
           );

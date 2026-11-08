@@ -4,14 +4,22 @@ import type { Tables } from "@/integrations/supabase/types";
 import { isEventLine, stripEventSigil } from "./world-events";
 import { InspectPanel } from "./InspectPanel";
 
-/** The three public rooms: everyone shares World, General is for player chat only, guild members share their Guild. */
+/**
+ * The public rooms: World shows the shared room plus the game's event announcements, General is
+ * the same room with the announcements filtered out (player chatter only), and guild members
+ * share their Guild.
+ *
+ * General used to be a separate `general` channel, but the live database only accepts
+ * world/guild/private messages — every General message was rejected with "Unknown channel", so
+ * nobody could type there. It now speaks through the shared world room, which keeps both tabs
+ * working on the existing schema.
+ */
 type Channel = "world" | "general" | "guild";
 const NO_RECIPIENT = "00000000-0000-0000-0000-000000000000";
 
 export function WorldChat({ heroId }: { heroId: string | null }) {
   const [channel, setChannel] = useState<Channel>("world");
   const [world, setWorld] = useState<Tables<"chat_messages">[]>([]);
-  const [general, setGeneral] = useState<Tables<"chat_messages">[]>([]);
   const [guild, setGuild] = useState<Tables<"chat_messages">[]>([]);
   const [guildId, setGuildId] = useState<string | null>(null);
   const [body, setBody] = useState("");
@@ -21,8 +29,14 @@ export function WorldChat({ heroId }: { heroId: string | null }) {
   const [inspectTarget, setInspectTarget] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const feed = channel === "world" ? world : channel === "general" ? general : guild;
+  /** Player lines from the shared room — the General tab's whole feed. */
+  const chatter = world.filter((m) => !isEventLine(m.body));
+  const feed = channel === "world" ? world : channel === "general" ? chatter : guild;
   const canSend = channel !== "guild" || !!guildId;
+  // A busy room can fill the 5-per-15-seconds allowance: count my own recent lines so the
+  // composer can say why nothing is going out instead of silently failing.
+  const myRecent = world.filter((m) => m.sender_id === heroId && Date.now() - new Date(m.created_at).getTime() < 15_000).length;
+  const throttled = myRecent >= 5;
 
   // Guild chat is readable by members only, so the feed follows the hero's membership.
   useEffect(() => {
@@ -46,23 +60,6 @@ export function WorldChat({ heroId }: { heroId: string | null }) {
     const room = supabase.channel(`world-chat:${heroId}`).on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: "channel=eq.world" }, (payload) => {
       const row = payload.new as Tables<"chat_messages">;
       setWorld((current) => current.some((m) => m.id === row.id) ? current : [...current, row].slice(-50));
-    }).subscribe();
-    return () => { active = false; void supabase.removeChannel(room); };
-  }, [heroId]);
-
-  // General room: player chat only (no system/event messages). Last 50 lines plus realtime.
-  useEffect(() => {
-    if (!heroId) return;
-    let active = true;
-    void (async () => {
-      const { data, error: loadError } = await supabase.from("chat_messages").select("*").eq("channel", "general").order("created_at", { ascending: false }).limit(50);
-      if (!active) return;
-      if (loadError) setError(loadError.message);
-      else setGeneral((data ?? []).reverse());
-    })();
-    const room = supabase.channel(`general-chat:${heroId}`).on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: "channel=eq.general" }, (payload) => {
-      const row = payload.new as Tables<"chat_messages">;
-      setGeneral((current) => current.some((m) => m.id === row.id) ? current : [...current, row].slice(-50));
     }).subscribe();
     return () => { active = false; void supabase.removeChannel(room); };
   }, [heroId]);
@@ -96,7 +93,10 @@ export function WorldChat({ heroId }: { heroId: string | null }) {
     if (channel === "guild" && !guildId) { setError("Join a guild to use guild chat."); return; }
     setSending(true); setError("");
     try {
-      const { error: sendError } = await supabase.rpc("send_chat", { _hero: heroId, _channel: channel, _body: trimmed, _to: NO_RECIPIENT });
+      // General and World share the one public room the database accepts; the tabs differ only
+      // in whether event announcements are shown.
+      const room = channel === "guild" ? "guild" : "world";
+      const { error: sendError } = await supabase.rpc("send_chat", { _hero: heroId, _channel: room, _body: trimmed, _to: NO_RECIPIENT });
       if (sendError) throw new Error(sendError.message);
       setBody("");
     } catch (e) { setError(e instanceof Error ? e.message : "Could not send message."); }
@@ -144,12 +144,21 @@ export function WorldChat({ heroId }: { heroId: string | null }) {
         </div>
         <form className="mt-1 flex gap-1" onSubmit={(e) => { e.preventDefault(); void send(); }}>
           <input className="slot min-w-0 flex-1 px-2 py-1 text-sm" aria-label={`${channel} message`}
-            placeholder={canSend ? undefined : "Join a guild to chat"} disabled={!canSend}
+            placeholder={canSend ? (channel === "guild" ? "Message your guild…" : "Say something to the realm…") : "Join a guild to chat"} disabled={!canSend}
+            maxLength={240}
             value={body} onChange={(e) => setBody(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void send(); } }} />
-          <button className="btn-gold px-3 text-sm" disabled={sending || !body.trim() || body.trim().length > 200 || !canSend}>Send</button>
+          <button type="submit" className="btn-gold px-3 text-sm" disabled={sending || !body.trim() || body.trim().length > 200 || !canSend}>Send</button>
         </form>
         {body.trim().length > 200 && <p className="mt-1 text-xs text-muted-foreground">Messages must be 200 characters or fewer.</p>}
-        <p className="mt-1 text-[10px] text-muted-foreground">{channel === "guild" && !guildId ? "Guild chat opens once you join a guild." : "1 message per second · max 5 per 15 seconds. Muted senders cannot chat."}</p>
+        <p className="mt-1 text-[10px] text-muted-foreground">
+          {channel === "guild" && !guildId
+            ? "Guild chat opens once you join a guild."
+            : throttled
+              ? "Slow down a moment — five messages every 15 seconds."
+              : channel === "general"
+                ? "General shows player messages only; event announcements appear under World."
+                : "1 message per second · max 5 per 15 seconds. Muted senders cannot chat."}
+        </p>
         {error && <p role="alert" className="mt-1 break-words text-xs text-hp">{error}</p>}
       </>}
     </section>

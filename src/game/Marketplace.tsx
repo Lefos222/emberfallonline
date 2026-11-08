@@ -13,11 +13,15 @@ import { MatIcon, StoneIcon } from "./MatIcon";
 import { ScrollGoods } from "./ScrollShop";
 import { STONE_LEVELS, addStones, clampStone, stoneBonus, stoneCount, stonePrice } from "./enchant";
 import { FATE_STONE_PRICE, FATE_SUCCESS_BONUS, addFateStones, fateStoneCost, fateStoneCount } from "./fate";
+import { FarmShopTab } from "./Farm";
 
-type Tab = "catalogue" | "shop" | "auction";
+type Tab = "catalogue" | "shop" | "farm" | "auction";
 
-/** The Auction House undercuts every other stall: its shop goods sell 70% cheaper than before. */
-export const SHOP_DISCOUNT = 0.7;
+/**
+ * The Auction House undercuts every other stall: its shop goods sell 73% cheaper than the old
+ * stalls (the previous 70% plus a further 10% off every price).
+ */
+export const SHOP_DISCOUNT = 0.73;
 /** Apply the shop's permanent discount to a gold price. */
 const cutPrice = (gold: number) => Math.max(1, Math.round(gold * (1 - SHOP_DISCOUNT)));
 
@@ -122,7 +126,7 @@ function ShopTab({ hero }: { hero: Hero }) {
     <div>
       <p className="mb-3 text-xs text-muted-foreground">
         Game goods for gold, every one of them {Math.round(SHOP_DISCOUNT * 100)}% under the old stalls. Potions land straight in
-        your pouch; the HUD pouch beside the stamina bar drinks them.
+        your pouch; the HUD pouch beside the stamina bar drinks them. (Battle Scrolls are priced by the game server and are the one exception.)
       </p>
       {notice && <p role="status" className={`mb-2 text-sm ${notice.ok ? "text-r1" : "text-hp"}`}>{notice.t}</p>}
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -216,7 +220,7 @@ export function AuctionHousePanel({ onClose }: { onClose: () => void }) {
   }, [hero?.catalogue?.hour]);
   if (!hero) return null;
   return (
-    <Panel title="Auction House" subtitle="Catalogue · Shop · Player auctions" art="auction" onClose={onClose} wide>
+    <Panel title="Auction House" subtitle="Catalogue · Shop · Farm · Player auctions" art="auction" onClose={onClose} wide>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
         <span className="font-display text-gold">Auction House</span>
         <span className="flex items-center gap-3">
@@ -227,10 +231,12 @@ export function AuctionHousePanel({ onClose }: { onClose: () => void }) {
       <GameTabs label="Auction House sections" value={tab} onChange={setTab} tabs={[
         { id: "catalogue", name: "Catalogue" },
         { id: "shop", name: "Shop" },
+        { id: "farm", name: "Farm" },
         { id: "auction", name: "Auction" },
       ]} />
       {tab === "catalogue" && <CatalogueTab hero={hero} />}
       {tab === "shop" && <ShopTab hero={hero} />}
+      {tab === "farm" && <FarmShopTab hero={hero} />}
       {tab === "auction" && <AuctionBoard />}
       <p className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
         <Store className="h-3.5 w-3.5" />The catalogue restocks every hour.
