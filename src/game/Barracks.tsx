@@ -155,7 +155,7 @@ export function DrillTracks({ hero }: { hero: Hero }) {
         Permanent training beside the attributes: every rank is bought with gold, costs more than the last,
         and the deeper drills need the barracks itself upgraded.
       </p>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
         {DRILLS.map((d) => {
           const Icon = DRILL_ICONS[d.id] ?? Swords;
           const rank = drillRank(hero, d.id);

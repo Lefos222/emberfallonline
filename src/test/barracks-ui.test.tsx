@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { AttributeDrills, DrillTracks } from "@/game/Barracks";
 import { newHero } from "@/game/data";
@@ -32,10 +32,15 @@ describe("the barracks panel", () => {
     setHero(hero);
     render(<Temple onClose={() => {}} />);
 
+    // The panel opens on the gold attribute training and its drill ranks, with the drill yard one tab away.
     expect(screen.getByText("Barracks — Attribute Training")).toBeInTheDocument();
+    expect(screen.getByText("Attribute training")).toBeInTheDocument();
     expect(screen.getByText("Attribute drills")).toBeInTheDocument();
-    expect(screen.getByText("Barracks drills")).toBeInTheDocument();
     for (const d of ATTRIBUTE_DRILLS) expect(screen.getAllByText(d.name).length).toBeGreaterThanOrEqual(1);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Drills" }));
+    expect(screen.getByText("Barracks drills")).toBeInTheDocument();
+    for (const d of DRILLS) expect(screen.getByText(d.name)).toBeInTheDocument();
   });
 });
 

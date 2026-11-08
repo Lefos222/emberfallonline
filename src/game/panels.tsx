@@ -17,7 +17,7 @@ import { ConquestTokens } from "./ConquestGate";
 import { CampaignBlitz } from "./CampaignBlitz";
 import { LevelProgress } from "./LevelCurve";
 import { update, useGame } from "./store";
-import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
+import { GameTabs, Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { GemIcon, MatIcon, StoneIcon } from "./MatIcon";
 import { Vault } from "./Vault";
 import { GearCodex } from "./GearCodex";
@@ -30,7 +30,7 @@ import { scrollXp } from "./scrolls";
 import { QuestBoard } from "./QuestBoard";
 import { AdvancedTraining, AttributeDrills, BarracksUpgrade, DrillTracks } from "./Barracks";
 import { EnlightenmentTraining, SoulForge } from "./EnlightenmentPanel";
-import { batchSizes } from "./barracks";
+import { barracksCost, barracksLevel, batchSizes } from "./barracks";
 import { CharacterPose } from "./CharacterPose";
 import { heroAppearance } from "./appearance";
 
@@ -677,43 +677,62 @@ const ATTRS: { k: Attr; name: string; icon: React.ReactNode; d: string }[] = [
 ];
 export function Temple({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
+  const [tab, setTab] = useState<"attributes" | "drills" | "mastery" | "upgrade">("attributes");
   const [count,setCount]=useState(1);
   if (!hero) return null;
   const s = heroStats(hero);
   return (
-    <Panel title="Barracks — Attribute Training" subtitle="Turn gold into permanent stats" art="profile" onClose={onClose}>
-      <BarracksUpgrade hero={hero} />
-      <div className="mb-4 grid grid-cols-3 gap-2 text-center">
-        {([["Health", fmt(s.hp), "text-hp"], ["Attack", fmt(s.atk), "text-gold"], ["Defense", fmt(s.def), ""]] as const).map(([label, v, cls]) => (
-          <div key={label} className="slot p-2">
-            <div className={`font-display text-lg ${cls}`}>{v}</div>
-            <div className="text-xs text-muted-foreground">{label}</div>
+    <Panel title="Barracks — Attribute Training" subtitle="Turn gold into permanent stats" art="profile" onClose={onClose} wide>
+      <GameTabs label="Barracks sections" value={tab} onChange={setTab} tabs={[
+        { id: "attributes", name: "Attributes" },
+        { id: "drills", name: "Drills" },
+        { id: "mastery", name: "Mastery" },
+        { id: "upgrade", name: "Upgrade", badge: hero.gold >= barracksCost(barracksLevel(hero), hero.level) ? 1 : undefined },
+      ]} />
+
+      {tab === "attributes" && (
+        <div>
+          <div className="mb-4 grid grid-cols-3 gap-2 text-center">
+            {([["Health", fmt(s.hp), "text-hp"], ["Attack", fmt(s.atk), "text-gold"], ["Defense", fmt(s.def), ""]] as const).map(([label, v, cls]) => (
+              <div key={label} className="slot p-2">
+                <div className={`font-display text-lg ${cls}`}>{v}</div>
+                <div className="text-xs text-muted-foreground">{label}</div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div className="mb-1 font-display text-sm text-gold">Attribute training</div>
-      <div role="group" aria-label="Training batch" className="mb-4 flex flex-wrap gap-2">{batchSizes(hero).map(n=><Button key={n} size="sm" variant={count===n?'default':'outline'} aria-pressed={count===n} onClick={()=>setCount(n)}>+{n} points</Button>)}</div>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {ATTRS.map((a) => {
-          const cost = trainingCost(hero,a.k,count);
-          return (
-            <div key={a.k} className="slot flex flex-col items-center gap-2 p-4 text-center">
-              {a.icon}
-              <div className="font-display">{a.name}</div>
-              <div className="font-display text-3xl text-gold">{hero.attrs[a.k]}</div>
-              <div className="text-xs text-muted-foreground">{a.d}</div>
-              <Button className="w-full" disabled={hero.gold < cost} onClick={() => update((h) => { trainAttribute(h,a.k,count); })}>
-                <Gold n={cost} className="text-primary-foreground" />
-              </Button>
-            </div>
-          );
-        })}
-      </div>
-      <AttributeDrills hero={hero} />
-      <AdvancedTraining hero={hero} />
-      <DrillTracks hero={hero} />
-      <EnlightenmentTraining hero={hero} />
-      <SoulForge hero={hero} />
+          <div className="mb-1 font-display text-sm text-gold">Attribute training</div>
+          <div role="group" aria-label="Training batch" className="mb-4 flex flex-wrap gap-2">{batchSizes(hero).map(n=><Button key={n} size="sm" variant={count===n?'default':'outline'} aria-pressed={count===n} onClick={()=>setCount(n)}>+{n} points</Button>)}</div>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {ATTRS.map((a) => {
+              const cost = trainingCost(hero,a.k,count);
+              return (
+                <div key={a.k} className="slot flex flex-col items-center gap-2 p-4 text-center">
+                  {a.icon}
+                  <div className="font-display">{a.name}</div>
+                  <div className="font-display text-3xl text-gold">{hero.attrs[a.k]}</div>
+                  <div className="text-xs text-muted-foreground">{a.d}</div>
+                  <Button className="w-full" disabled={hero.gold < cost} onClick={() => update((h) => { trainAttribute(h,a.k,count); })}>
+                    <Gold n={cost} className="text-primary-foreground" />
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+          <AttributeDrills hero={hero} />
+        </div>
+      )}
+
+      {tab === "drills" && <DrillTracks hero={hero} />}
+
+      {tab === "mastery" && (
+        <div>
+          <AdvancedTraining hero={hero} />
+          <EnlightenmentTraining hero={hero} />
+          <SoulForge hero={hero} />
+        </div>
+      )}
+
+      {tab === "upgrade" && <BarracksUpgrade hero={hero} />}
     </Panel>
   );
 }

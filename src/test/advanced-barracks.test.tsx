@@ -86,8 +86,9 @@ describe("advanced barracks training", () => {
     setHero(hero);
     render(<Temple onClose={() => {}} />);
 
+    fireEvent.click(screen.getByRole("tab", { name: "Mastery" }));
     expect(screen.getByText("Advanced training")).toBeInTheDocument();
-    expect(screen.getByText("Attribute drills")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Drills" }));
     expect(screen.getByText("Barracks drills")).toBeInTheDocument();
   });
 });
