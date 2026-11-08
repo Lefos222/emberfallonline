@@ -348,6 +348,8 @@ export interface Hero {
   };
   /** Daily stamina for the Greek day and the potions in the pouch (see stamina.ts). */
   stamina?: { day?: string; used?: number; potions?: number };
+  /** Blood Arena duels: the 12-hour window that began with the first duel and how many it has spent (see arena-limits.ts). */
+  arena?: { windowStart?: number; used?: number };
   /** Stamina Potions in the pouch (its own field since the first stamina system). */
   staminaPotions?: number;
   /** Other consumable potions by id (see potions.ts). */
