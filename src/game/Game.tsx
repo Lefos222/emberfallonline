@@ -26,6 +26,7 @@ import { vipXpMultiplier } from "./economy";
 import { authHandoffPending, getState, update, useGame } from "./store";
 import { recordBattle } from "./progress";
 import { BOSS_CRYSTALS } from "./logic";
+import { battleEssenceGain, enlightenmentUnlocked, rollSoulShards } from "./enlightenment";
 import { CharacterSelect, ProfilePanel } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
 import { Campaign, Forge, HeroHall, Market, Oracle, Temple, heroFighter, type StartBattle } from "./panels";
@@ -154,6 +155,19 @@ export function Game() {
     if (won && battle.right.boss) {
       update((h) => { h.voidCrystals = (h.voidCrystals ?? 0) + BOSS_CRYSTALS; });
       r.lines.push(`+${BOSS_CRYSTALS} Void Crystal`);
+    }
+    // Battle Essence feeds the Enlightenment track (unlocked at level 20); Soul Shards are a chance drop.
+    if (won && enlightenmentUnlocked(getState().hero ?? { level: 0 })) {
+      const essence = battleEssenceGain((getState().hero?.level ?? 1) + (getState().hero?.paragon ?? 0), !!battle.right.boss);
+      update((h) => { h.battleEssence = (h.battleEssence ?? 0) + essence; });
+      r.lines.push(`+${essence} Battle Essence`);
+    }
+    if (won) {
+      const shards = rollSoulShards(!!battle.right.boss);
+      if (shards > 0) {
+        update((h) => { h.soulShards = (h.soulShards ?? 0) + shards; });
+        r.lines.push(`+${shards} Soul Shard${shards > 1 ? "s" : ""} ✦`);
+      }
     }
     setResult({ won, ...r });
   };

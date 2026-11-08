@@ -12,6 +12,7 @@ import { scaledGold } from "./gold";
 import { drillAttrs, drillFx } from "./drills";
 import { guildFx } from "./guild-tower";
 import { normalizeSynth, synthFx } from "./synthesis";
+import { enlightenmentFx, soulFx } from "./enlightenment";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -272,6 +273,14 @@ export interface Hero {
   gold: number;
   /** Void Crystals: the rare currency of level-ups and boss victories, spent on advanced barracks training. */
   voidCrystals?: number;
+  /** Battle Essence: earned from battles after level 20, spent on Enlightenment (see enlightenment.ts). */
+  battleEssence?: number;
+  /** Enlightenment level: each level grants +1% to attack, defense and health (see enlightenment.ts). */
+  enlightenment?: number;
+  /** Soul Shards: chance-based drops from battles, spent on permanent stat infusions (see enlightenment.ts). */
+  soulShards?: number;
+  /** Soul infusion ranks by stat id (see enlightenment.ts). */
+  soulInfusions?: Record<string, number>;
   attrs: Record<Attr, number>;
   equipment: GearRecord;
   inventory: Item[];
@@ -399,15 +408,16 @@ export function newHero(name: string, cls: HeroClass): Hero {
 }
 
 /** Levels past this point are where the grind starts — the opening acts stay quick on purpose. */
-export const LATE_LEVEL = 30;
-/** Fights a level costs below LATE_LEVEL: two, so levels 1–29 race by. */
+export const LATE_LEVEL = 20;
+/** Fights a level costs below LATE_LEVEL: two, so levels 1–19 race by. */
 export const EASY_FIGHTS = 2;
-/** Extra fights every level past LATE_LEVEL adds on top of the one below it (+10 each). */
-export const GRIND_FIGHTS = 10;
+/** Extra fights every level past LATE_LEVEL adds on top of the one below it (+15 each). */
+export const GRIND_FIGHTS = 15;
 
 /** Fights one level costs, counted in cleared fights at the hero's own level.
- *  Levels 1–29 cost two fights each; from level 30 every level asks for ten fights more than the
- *  one before it (12, 22, 32 … 112 at level 40), which is the wall the whole late game is built on. */
+ *  Levels 1–19 cost two fights each; from level 20 every level asks for fifteen fights more than
+ *  the one before it (17, 32, 47 … 167 at level 30), which is the wall the whole late game is
+ *  built on and the reason daily play matters. */
 export function fightsToLevel(level: number) {
   const lv = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
   if (lv < LATE_LEVEL) return EASY_FIGHTS;
@@ -436,7 +446,7 @@ export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
 /** Stages past this point are the hard half of the campaign: foes grow faster than the road below it. */
 export const HARD_STAGE = 30;
 /** Levels past this point are the deep grind: rewards taper so each level takes many sessions. */
-export const GRIND_LEVEL = 30;
+export const GRIND_LEVEL = 20;
 
 /** A hero fighting a stage far above their own level is under-levelled: the campaign pays up to
  *  double XP until they catch up, so a bad stretch never walls a player out of progression. */
@@ -492,18 +502,21 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   const gf2 = opts.talents ? guildFx(h) : null;
   // Synthesis armour joins the same percentage pipeline as the other long-term tracks.
   const sy = opts.talents ? synthFx(h) : zeroFx();
-  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + sy[k];
+  // Enlightenment and Soul infusions are the post-20 permanent tracks (see enlightenment.ts).
+  const en = opts.talents ? enlightenmentFx(h) : zeroFx();
+  const so = opts.talents ? soulFx(h) : zeroFx();
+  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + sy[k] + so[k] + en[k];
   const sf0 = opts.gear ? setFx(h.equipment) : { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
   const af = opts.talents ? astralFx(h) : null;
   const sf = {
-    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct,
-    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct,
-    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct,
-    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit,
+    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct + en.atkPct + so.atkPct,
+    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct + en.defPct + so.defPct,
+    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct + en.hpPct + so.hpPct,
+    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit + en.crit + so.crit,
   };
-  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge;
+  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge + so.dodge;
   tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + sy.critDmg;
-  tf.pen += sy.pen;
+  tf.pen += sy.pen + so.pen;
   const pa = 1 + (tf.atkPct + sf.atkPct) / 100, ph = 1 + (tf.hpPct + sf.hpPct) / 100, pd = 1 + (tf.defPct + sf.defPct) / 100;
   const c = CLASSES[h.cls];
   const items = opts.gear ? (Object.values(h.equipment).filter(Boolean) as Item[]) : [];
@@ -549,7 +562,7 @@ export function powerBreakdown(h: Hero): PowerSource[] {
     { label: "Attributes", power: withAttrs - base },
     { label: "Equipment", power: withGear - withAttrs },
     { label: `Ascension ${h.paragon}`, power: withAsc - withGear },
-    { label: "Skill tree, drills, Astrals & Synthesis", power: total - withAsc },
+    { label: "Skills, drills, Astrals, Synthesis & Enlightenment", power: total - withAsc },
   ];
 }
 export const powerOf = (s: { hp: number; atk: number; def: number; crit: number }) => Math.round(s.atk * 2 + s.def * 1.5 + s.hp * 0.2 + s.crit * 10);

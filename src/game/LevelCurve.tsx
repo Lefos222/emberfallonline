@@ -3,7 +3,7 @@ import { fmt } from "./ui";
 
 /**
  * The level bill, spelled out: how far the hero is, how many fights the level still costs and
- * what the next few levels ask for. Two fights a level up to 30, then ten more fights each level.
+ * what the next few levels ask for. Two fights a level up to 20, then fifteen more fights each level.
  */
 export function LevelProgress({ hero, rows = 0 }: { hero: Hero; rows?: number }) {
   const need = xpToNext(hero);
@@ -46,7 +46,7 @@ function LevelLadder({ level, rows }: { level: number; rows: number }) {
         ))}
       </div>
       <p className="mt-2 text-[11px] text-muted-foreground">
-        Levels 1–{LATE_LEVEL - 1} cost {EASY_FIGHTS} fights each; from level {LATE_LEVEL} every level asks for {GRIND_FIGHTS} fights more than the one before it.
+        Levels 1–{LATE_LEVEL - 1} cost {EASY_FIGHTS} fights each; from level {LATE_LEVEL} every level asks for {GRIND_FIGHTS} fights more than the one before it — the daily grind that keeps you coming back.
       </p>
     </div>
   );
