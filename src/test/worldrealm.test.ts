@@ -14,6 +14,7 @@ import {
   regionAt,
   sitesInView,
   zoomCamera,
+  type SiteKind,
 } from "@/game/worldmap";
 
 const size = { w: 1200, h: 800 };
@@ -37,11 +38,17 @@ describe("the bounded realm", () => {
 
   it("fills the map with far more than a handful of places", () => {
     const kinds = new Set(WORLD_SITES.map((s) => s.kind));
-    expect(WORLD_SITES.length).toBeGreaterThan(150);
-    for (const kind of ["gold", "ore", "boss", "keep", "ruin", "landmark"]) {
-      expect(kinds.has(kind as never)).toBe(true);
-    }
-    expect(WORLD_SITES.filter((s) => s.id.startsWith("landmark:"))).toHaveLength(12);
+    expect(WORLD_SITES.length).toBeGreaterThan(300);
+    const expected: SiteKind[] = ["gold", "ore", "boss", "keep", "ruin", "landmark", "cache"];
+    for (const kind of expected) expect(kinds.has(kind)).toBe(true);
+    expect(WORLD_SITES.filter((s) => s.id.startsWith("landmark:"))).toHaveLength(22);
+  });
+
+  it("scatters one-time sealed vaults across the realm", () => {
+    const vaults = WORLD_SITES.filter((s) => s.kind === "cache");
+    expect(vaults.length).toBeGreaterThanOrEqual(20);
+    // A vault pays a hoard, not a raid allowance, so it carries no raid node.
+    for (const vault of vaults) expect(vault.node).toBeUndefined();
   });
 
   it("gives each site a unique id and a raid node where one pays out", () => {

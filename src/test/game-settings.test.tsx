@@ -55,9 +55,9 @@ describe("economy tuning", () => {
     expect(cataloguePrice(piece, 1)).toBe(Math.round(full * 0.3));
   });
 
-  it("pays 21% more gold for battles, scaling with level", () => {
-    expect(GOLD_GAIN_BONUS).toBe(0.21);
-    expect(goldGain(1000)).toBe(1210);
+  it("pays 29% more gold for battles, scaling with level", () => {
+    expect(GOLD_GAIN_BONUS).toBe(0.29);
+    expect(goldGain(1000)).toBe(1290);
     expect(stageRewards(1).gold).toBe(goldGain(Math.round(6 + 1.5)));
     expect(newHero("Tuner", "mage").gold).toBe(100);
   });

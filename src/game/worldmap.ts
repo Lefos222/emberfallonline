@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CLASSES, battleRating, stageFoe, type Foe, type HeroClass } from "./data";
 import { dungeonFoe, DUNGEONS, enemySprite, type SpriteRect } from "./world";
+import { goldGain } from "./gold";
 
 /** World map raid kinds and their server-enforced daily allowances (UTC day). */
 export const RAID_LIMITS = { gold: 30, ore: 24, boss: 12 } as const;
@@ -77,15 +78,16 @@ export function mapFoe(node: MapNode, heroLevel: number): Foe & { sprite?: Retur
  * ------------------------------------------------------------------------- */
 
 /** The world in units; the painted art keeps its 1376×768 aspect. */
-export const WORLD_W = 4096;
+export const WORLD_W = 6144;
 export const WORLD_H = Math.round((WORLD_W * 768) / 1376);
 /** How many times a day another lord's castle may be raided. */
 export const CASTLE_RAIDS_PER_DAY = 9;
 /** Banners the realm can hold: one per hero, thousands of them. */
 export const CASTLE_CAPACITY = 5000;
 
-/** Deepest and closest the camera may go, in world units per pixel. */
-export const MAX_ZOOM = 4;
+/** Deepest and closest the camera may go, in world units per pixel. Zoomed in this far
+ *  a single banner still fills the stage now that the realm is half again as wide. */
+export const MAX_ZOOM = 6;
 
 export type Terrain = "plains" | "forest" | "desert" | "swamp" | "volcanic" | "snow" | "coast" | "astral";
 
@@ -102,7 +104,7 @@ export const TERRAIN: Record<Terrain, { name: string; tint: [number, number, num
 
 export const terrainName = (t: Terrain) => TERRAIN[t].name;
 
-export type SiteKind = RaidKind | "ruin" | "keep" | "landmark";
+export type SiteKind = RaidKind | "ruin" | "keep" | "landmark" | "cache";
 
 export interface CastleLord {
   name: string;
@@ -176,6 +178,16 @@ const LANDMARKS: { name: string; x: number; y: number; desc: string; terrain: Te
   { name: "Sunken Kingdom", x: 19, y: 88, desc: "Ruined towers in waist-deep archipelago water.", terrain: "swamp" },
   { name: "The Shattered Coast", x: 71, y: 86, desc: "Jagged islands lit by veins of violet glow.", terrain: "volcanic" },
   { name: "Aurora Gate", x: 94, y: 5, desc: "Where the northern lights touch the ice.", terrain: "snow" },
+  { name: "The Bell of Autumnwood", x: 85, y: 18, desc: "A copper bell the size of a keep, rung by the wind.", terrain: "forest" },
+  { name: "The Drowned Chapel", x: 8, y: 78, desc: "Its spire breaks the water at every low tide.", terrain: "coast" },
+  { name: "The Salt Road", x: 46, y: 24, desc: "Old paving stones running arrow-straight across the Heartlands.", terrain: "plains" },
+  { name: "The Loom of Stars", x: 88, y: 33, desc: "A ring of pillars that weaves the night sky into thread.", terrain: "astral" },
+  { name: "Frostspine Monolith", x: 20, y: 5, desc: "A single black stone that the snow will not settle on.", terrain: "snow" },
+  { name: "Cinderfall Bridge", x: 63, y: 25, desc: "An arch of cooled lava over a river of fire.", terrain: "volcanic" },
+  { name: "The Quiet Thicket", x: 33, y: 63, desc: "A grove where even the bees fly without a sound.", terrain: "plains" },
+  { name: "Graven Stones", x: 12, y: 60, desc: "Nine standing stones cut with the names of dead kings.", terrain: "coast" },
+  { name: "Tower of the Ninth Bell", x: 30, y: 84, desc: "A leaning tower half-swallowed by the fen.", terrain: "swamp" },
+  { name: "The Emberfall Gate", x: 52, y: 61, desc: "The old southern road out of the Heartlands, still burning.", terrain: "volcanic" },
 ];
 
 const GOLD_NAMES = [
@@ -189,6 +201,10 @@ const GOLD_NAMES = [
   "Copperfall Mine",
   "The Weeping Vault",
   "Dragonhoard Cellar",
+  "Widow's Purse",
+  "The Pale Mint",
+  "Goldwater Sink",
+  "Lantern Vault",
 ];
 const ORE_NAMES = [
   "Verdant Warrens",
@@ -201,6 +217,10 @@ const ORE_NAMES = [
   "Cinderworks",
   "Stonewake Mine",
   "The Long Cut",
+  "Greyfall Pit",
+  "The Sunken Seam",
+  "Ironbell Quarry",
+  "Hollowvein Works",
 ];
 const BOSS_NAMES = [
   "Iron Overlord",
@@ -213,6 +233,11 @@ const BOSS_NAMES = [
   "Warlord Vex",
   "The Pale Matron",
   "Grinder of Skulls",
+  "The Iron Choir",
+  "Vaultkeeper Ossun",
+  "Mother Cinder",
+  "The Ninth Bell",
+  "Hollowmaw",
 ];
 const RUIN_NAMES = [
   "Ruined Keep",
@@ -225,6 +250,23 @@ const RUIN_NAMES = [
   "Ashen Watch",
   "Hollow Hall",
   "Graven Keep",
+  "Rookery Fall",
+  "The Grey Bastion",
+  "Saltstone Hold",
+  "The Weeping Court",
+  "Nine Bell Ruin",
+];
+const CACHE_NAMES = [
+  "Sealed Vault",
+  "The Old Mint",
+  "Forgotten Treasury",
+  "Vault of the Ninth Bell",
+  "The Grey Coffer",
+  "Star-locked Crypt",
+  "Cinder Vault",
+  "The Root Cellar",
+  "Tidebound Hoard",
+  "The Quiet Cache",
 ];
 const LORD_FIRST = [
   "Aldric", "Bryn", "Cassia", "Dorian", "Eira", "Fenrir", "Gwen", "Halvard", "Ilsa", "Jorund",
@@ -289,18 +331,18 @@ function makeLord(rand: () => number, level: number): CastleLord {
   };
 }
 
-/** Sites each painted region carries: raid targets, rival keeps and claiming ruins. */
+/** Sites each painted region carries: raid targets, rival keeps, claiming ruins and sealed vaults. */
 const REGION_CONTENT = [
-  { gold: 3, ore: 3, boss: 1, keep: 4, ruin: 8 },
-  { gold: 3, ore: 4, boss: 2, keep: 4, ruin: 7 },
-  { gold: 2, ore: 2, boss: 1, keep: 3, ruin: 6 },
-  { gold: 4, ore: 3, boss: 1, keep: 3, ruin: 8 },
-  { gold: 4, ore: 4, boss: 2, keep: 5, ruin: 9 },
-  { gold: 3, ore: 3, boss: 1, keep: 4, ruin: 7 },
-  { gold: 2, ore: 2, boss: 1, keep: 3, ruin: 5 },
-  { gold: 3, ore: 2, boss: 1, keep: 3, ruin: 9 },
-  { gold: 2, ore: 2, boss: 1, keep: 3, ruin: 7 },
-  { gold: 4, ore: 3, boss: 2, keep: 5, ruin: 9 },
+  { gold: 5, ore: 5, boss: 2, keep: 6, ruin: 13, cache: 2 },
+  { gold: 5, ore: 6, boss: 3, keep: 6, ruin: 11, cache: 2 },
+  { gold: 3, ore: 3, boss: 2, keep: 5, ruin: 10, cache: 2 },
+  { gold: 6, ore: 5, boss: 2, keep: 5, ruin: 13, cache: 2 },
+  { gold: 6, ore: 6, boss: 3, keep: 8, ruin: 14, cache: 2 },
+  { gold: 5, ore: 5, boss: 2, keep: 6, ruin: 11, cache: 2 },
+  { gold: 3, ore: 3, boss: 2, keep: 5, ruin: 8, cache: 2 },
+  { gold: 5, ore: 3, boss: 2, keep: 5, ruin: 14, cache: 2 },
+  { gold: 3, ore: 3, boss: 2, keep: 5, ruin: 11, cache: 2 },
+  { gold: 6, ore: 5, boss: 3, keep: 8, ruin: 14, cache: 2 },
 ];
 
 function buildRealm(): WorldSite[] {
@@ -382,6 +424,18 @@ function buildRealm(): WorldSite[] {
         y,
         name: pick(rand, RUIN_NAMES),
         desc: "An abandoned castle. Plant your banner here, or claim it as a raiding camp.",
+        terrain: region.terrain,
+      });
+    }
+    for (let i = 0; i < content.cache; i += 1) {
+      const { x, y } = place();
+      add({
+        id: `${region.id}:cache:${i}`,
+        kind: "cache",
+        x,
+        y,
+        name: pick(rand, CACHE_NAMES),
+        desc: "A vault sealed by the old realm. Break its warden, and the hoard inside is yours — once.",
         terrain: region.terrain,
       });
     }
@@ -526,6 +580,13 @@ export function siteFoe(site: WorldSite, heroLevel: number): WorldFoe {
     const idx = Math.max(0, Number(site.node?.split("-")[1] ?? 1) - 1);
     return dungeonFoe(DUNGEONS[idx % DUNGEONS.length]!, level);
   }
+  if (site.kind === "cache") {
+    const idx = Math.max(0, Number(site.id.split(":").pop() ?? 0));
+    return {
+      ...stageFoe(stage, 1.15, undefined, "Vault Warden"),
+      sprite: enemySprite(2, idx % 4),
+    };
+  }
   if (site.kind === "keep" && site.lord) {
     const lord = site.lord;
     const base = stageFoe(stage, 1.1, undefined, lord.name);
@@ -543,5 +604,15 @@ export function siteFoe(site: WorldSite, heroLevel: number): WorldFoe {
   return {
     ...stageFoe(stage, gold ? 0.95 : 1.05, undefined, gold ? "Mine Guardian" : "Ore Gnasher"),
     sprite: enemySprite(gold ? 1 : 0, idx % 4),
+  };
+}
+
+/** What a broken vault pays: gold and forge stock, richer the deadlier the ground it was sealed on.
+ *  It pays once per hero — the seal does not mend. */
+export function cacheReward(site: WorldSite, heroLevel: number) {
+  const danger = Math.max(site.level, Math.round(heroLevel));
+  return {
+    gold: goldGain(70 + danger * 16, heroLevel),
+    mats: { ore: 4 + Math.floor(danger / 8), essence: danger >= 25 ? 2 : 1 },
   };
 }

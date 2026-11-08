@@ -14,8 +14,8 @@ export const scaledGold = (base: number, level = 1) => Math.round(base * goldSca
 /** Every gold reward earned in play — battles, arenas, events and chests — pays this much
  *  more than its table prints, so the hero's purse fills a little faster. The bonus scales gently
  *  with the hero's level so endgame gold keeps pace with the rising costs. */
-export const GOLD_GAIN_BONUS = 0.21;
-/** Extra gold gain per level, so higher-level heroes see the +8% scaling pay out. */
+export const GOLD_GAIN_BONUS = 0.29;
+/** Extra gold gain per level, so higher-level heroes see the +29% scaling pay out. */
 export const GOLD_GAIN_PER_LEVEL = 0.002;
 
 /** A gold reward with the game's level-scaled gold-gain bonus applied. */
