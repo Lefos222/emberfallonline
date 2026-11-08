@@ -16,22 +16,21 @@ describe('endless specialization branches', () => {
         expect(learnBlocker({ ...h, road: { cleared: 90, best: 0 } }, branch.id)).toBeNull();
         expect(learnBlocker(h, branch.id)).toBeNull();
         expect(learnBlocker({ ...h, spec: undefined }, branch.id)).toBeNull();
-        // Talent data still exists for save compatibility, but combat uses only the basic attack.
         expect(talentSkills(SKILLS[cls], h).some(s => s.id === ability.id)).toBe(false);
         const learned = { ...h, talents: { ...talents, [branch.id]: 1 } };
         const kit = buildKit(cls, talentSkills(SKILLS[cls], learned));
-        expect(kit).toHaveLength(1);
-        expect(kit[0].id).toBe('hit');
-        // Animation entries still exist for the ability (used by SkillPreview etc.).
+        expect(kit.filter(s => s.id === ability.id)).toHaveLength(1);
+        expect(kit.find(s => s.id === ability.id)?.cd).toBe(ability.cd);
         expect(effectFor(ability.id)).not.toBeNull();
         expect(moveFor({ cls }, ability.id)).toBeDefined();
       });
     }
   }
-  it('combat kit is always just the basic attack regardless of talents', () => {
+  it('keeps area attacks, armor penetration and evasion in the real combat kit', () => {
     const skills = Object.values(TREES).flat().flatMap(s => s.talents.flatMap(t => t.ability ? [t.ability] : []));
     const kit = buildKit(undefined, skills);
-    expect(kit).toHaveLength(1);
-    expect(kit[0].id).toBe('hit');
+    for (const id of ['cyclone', 'solar', 'winter', 'tempest']) expect(kit.find(s => s.id === id)?.target).toBe('all');
+    expect(kit.find(s => s.id === 'horizon')?.penBonus).toBe(40);
+    expect(kit.find(s => s.id === 'eclipse')?.selfApplies).toEqual({ kind: 'evade', turns: 2, value: 30 });
   });
 });
