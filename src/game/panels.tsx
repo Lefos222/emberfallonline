@@ -613,7 +613,7 @@ export function Advisor({ hero, stats, foe }: { hero: Hero; stats: Stats; foe: F
         heroClass: hero.cls, level: hero.level + hero.paragon,
         hero: { hp: stats.hp, atk: stats.atk, def: stats.def, crit: stats.crit, dodge: stats.dodge },
         enemy: { name: foe.name, level: foe.level, boss: !!foe.boss, hp: foe.hp, atk: foe.atk, def: foe.def, crit: foe.crit, dodge: foe.dodge },
-        skills: heroSkills(hero).map((k) => `${k.name}: ${Math.round(k.mult * (k.hits ?? 1) * 100)}% dmg, cooldown ${k.cd}${k.heal ? ", heals 15%" : ""}${k.stun ? ", freezes enemy 1 turn" : ""}${k.crit ? ", always crits" : ""}`),
+        skills: ["Basic Attack: 100% dmg"],
       } });
       if (r.error) setErr(r.error); else setAdvice(r.advice);
     } catch { setErr("The tactician is silent, try again"); }

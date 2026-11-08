@@ -1,19 +1,16 @@
 import { useState } from "react";
 import { Check, Gift, Skull } from "lucide-react";
 import { ACHIEVEMENTS, ACH_CATEGORIES, SET_BONUSES, achGold, achProgress, activeSets, emptyRecord, isClaimable, type AchCategory } from "./progress";
-import { CLASSES, heroSkills, heroStats, powerBreakdown, xpToNext } from "./data";
+import { CLASSES, heroStats, powerBreakdown, xpToNext } from "./data";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
 import { LevelProgress } from "./LevelCurve";
 import { QUEST_POINT_CHANCE } from "./quest-board";
 import { TREES } from "./talents";
-import { SkillLoadout } from './SkillLoadout';
-import { SkillTreeContent } from "./SkillTree";
-import { PassiveTreeContent } from "./PassiveTree";
 
 export function ThroneHall({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
-  const [tab, setTab] = useState<"overview" | "skills" | "passives" | "ach" | "history">("skills");
+  const [tab, setTab] = useState<"overview" | "ach" | "history">("overview");
   const [achCat, setAchCat] = useState<AchCategory | "All">("All");
   if (!hero) return null;
   const s = heroStats(hero);
@@ -32,8 +29,6 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
   return (
     <Panel title="Throne Hall" subtitle="Skill tree, passives and achievements" art="crown" onClose={onClose} wide>
       <GameTabs label="Throne Hall" value={tab} onChange={setTab} tabs={[
-        { id: "skills", name: "Skill Tree" },
-        { id: "passives", name: "Passives" },
         { id: "overview", name: "Progression" },
         { id: "ach", name: "Achievements", badge: claimable },
         { id: "history", name: "Battle History" },
@@ -94,7 +89,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
             ))}
           </div>
         </div>
-      ) : tab === "overview" ? (
+      ) : (
         <div className="space-y-4">
         <div>
           <div className="mb-1 font-display text-lg text-gold">Level curve</div>
@@ -118,23 +113,9 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
                 <b>{x.name}</b> ({x.count}/6): {SET_BONUSES.map((b) => <span key={b.pieces} className={x.count >= b.pieces ? "text-gold" : "text-muted-foreground"}> {b.pieces}pc {b.label};</span>)}
               </div>
             ))}
-            <div className="mb-2 mt-4 font-display">Abilities</div>
-            {heroSkills(hero).map((k) => (
-              <div key={k.id} className="slot mb-1 px-3 py-1.5 text-sm">
-                <b>{k.name}</b> — {Math.round(k.mult * (k.hits ?? 1) * 100)}% dmg{k.hits ? ` (${k.hits} hits)` : ""}, cooldown {k.cd}
-                {k.heal ? `, heals ${Math.round(k.heal * 100)}%` : ""}{k.stun ? ", stuns" : ""}{k.crit ? ", always crits" : ""}
-              </div>
-            ))}
           </div>
         </div>
         </div>
-      ) : tab === "passives" ? (
-        <PassiveTreeContent />
-      ) : (
-        <>
-          <SkillLoadout />
-          <SkillTreeContent />
-        </>
       )}
     </Panel>
   );

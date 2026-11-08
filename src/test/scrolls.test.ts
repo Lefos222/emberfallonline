@@ -10,7 +10,7 @@ describe('confirmed scroll battle rules', () => {
     const s = initBattle(scrollFighter(f, ['dmg']), [{ ...f, name: 'Enemy', cls: undefined, hp: 10000, def: 0, atk: 1 }]);
     expect(heroUnit(s).atk).toBe(120);
     vi.spyOn(Math, 'random').mockReturnValue(.5);
-    const r = playerAct(s, 'strike', ['F0']);
+    const r = playerAct(s, 'hit', []);
     expect(r.ok).toBe(true);
     expect(heroUnit(s).atk).toBe(120);
     if (r.ok) expect(r.events.find(e => e.kind === 'dmg')?.value).toBeGreaterThan(100);
