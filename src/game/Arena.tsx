@@ -6,6 +6,7 @@ import { CLASSES, type HeroClass, type Stats } from "./data";
 import { CharacterModel } from "./CharacterModel";
 import { update, useGame } from "./store";
 import { GameTabs, Panel, fmt } from "./ui";
+import { goldGain } from "./gold";
 import type { StartBattle } from "./panels";
 
 interface Opp {
@@ -72,7 +73,7 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
         const { data, error } = await supabase.rpc("record_arena_result", { _attacker: heroId ?? "", _defender: o.id, _won: won });
         const lines = [won ? "Victory in the arena!" : "Defeated…"];
         if (!error && typeof data === "number") lines.push(`Rating ${data >= 0 ? "+" : ""}${data}`);
-        const gold = won ? 15 + hero.level * 4 : 0;
+        const gold = won ? goldGain(15 + hero.level * 4) : 0;
         update((h) => { h.gold += gold; });
         if (gold) lines.push(`+${fmt(gold)} gold`);
         void load();

@@ -5,6 +5,7 @@
 
 import { GEMS, GEM_TIER_NAMES, GEM_TYPES, addGem, addMats, type GemType } from "./crafting";
 import type { Hero } from "./data";
+import { goldGain } from "./gold";
 
 export type ChestKind = "gold" | "gem";
 
@@ -47,7 +48,7 @@ export const ownedChests = (h: ChestSave) =>
 const pickGem = (): GemType => GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)];
 
 /** Coin inside one Gold Chest — a few fights' worth, in step with the scarce campaign purse. */
-export const goldChestValue = (level: number) => 600 + level * 45;
+export const goldChestValue = (level: number) => goldGain(600 + level * 45);
 
 // ---------- Chests found in battle ----------
 
@@ -79,13 +80,14 @@ export function openChest(h: Hero, kind: ChestKind): string[] {
     addGem(h, first, tier);
     addGem(h, second, tier);
     addMats(h, { essence: 3, crystal: 1 });
-    h.gold += 150;
+    const gold = goldGain(150);
+    h.gold += gold;
     lines.push(
       `${GEM_TIER_NAMES[tier - 1]} ${GEMS[first].name} gem`,
       `${GEM_TIER_NAMES[tier - 1]} ${GEMS[second].name} gem`,
       "3 Soul Essence",
       "1 Arcane Crystal",
-      "+150 gold",
+      `+${gold} gold`,
     );
   }
   return lines;

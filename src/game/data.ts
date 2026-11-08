@@ -8,7 +8,7 @@ import dragonImg from "@/assets/enemy-dragon.png";
 import { talentFx, talentSkills } from "./talents";
 import { MAX_SOCKETS, astralFx, gemFx, migrateGems, normalizeAstrals, zeroFx, zeroGemFx, type Astral, type BonusFx, type Mat } from "./crafting";
 import { setFx, type BattleEntry, type CombatRecord } from "./progress";
-import { scaledGold } from "./gold";
+import { goldGain, scaledGold } from "./gold";
 import { drillAttrs, drillFx } from "./drills";
 import { guildFx } from "./guild-tower";
 import { normalizeSynth, synthFx } from "./synthesis";
@@ -691,7 +691,7 @@ export function stageRewards(stage: number, mult = 1) {
   const grindTaper = Math.pow(0.992, Math.max(0, stage - HARD_STAGE));
   return {
     xp: Math.round(22 * Math.pow(stage, 1.5) * late * grindTaper * mult),
-    gold: Math.round((6 + 1.5 * Math.pow(stage, 1.55)) * late * mult),
+    gold: goldGain(Math.round((6 + 1.5 * Math.pow(stage, 1.55)) * late * mult)),
   };
 }
 

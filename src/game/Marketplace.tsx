@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Clock, Gavel, Store, Trash2 } from "lucide-react";
 import { AuctionBoard } from "./AuctionHouse";
-import { buyCatalogueItem, catalogueHour, cataloguePrice, catalogueRefreshAt, catalogueStock } from "./catalogue";
+import { CATALOGUE_DISCOUNT, buyCatalogueItem, catalogueHour, cataloguePrice, catalogueRefreshAt, catalogueStock } from "./catalogue";
 import { invCap, RARITIES, type Hero } from "./data";
 import { scaledGold } from "./gold";
 import { POTIONS, addPotion, potionHeld, type PotionId } from "./potions";
@@ -79,8 +79,9 @@ function CatalogueTab({ hero }: { hero: Hero }) {
     <div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="max-w-lg text-xs text-muted-foreground">
-          Ordinary armour and weapons, open to every player. The catalogue is deliberately modest gear at a
-          steep price — useful while you are starting out, never a match for the Forge or a boss drop.
+          Ordinary armour and weapons, open to every player — every piece {Math.round(CATALOGUE_DISCOUNT * 100)}% off.
+          The catalogue is deliberately modest gear — useful while you are starting out, never a match for the
+          Forge or a boss drop.
         </p>
         <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock className="h-3.5 w-3.5" />Restocks in {minutes} min</span>
       </div>
