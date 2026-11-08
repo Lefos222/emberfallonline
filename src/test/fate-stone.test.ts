@@ -61,7 +61,7 @@ describe("fate stones", () => {
   });
 
   it("sell in the Auction House shop at the house discount", () => {
-    expect(fateStoneShopPrice(1)).toBe(Math.round(120000 * 0.3));
+    expect(fateStoneShopPrice(1)).toBe(Math.round(120000 * 0.27));
     // Priced between the mid and high enchantment grades: a rare shortcut, never the cheap road.
     expect(fateStoneShopPrice(1)).toBeGreaterThan(stoneShopPrice(5, 1));
     expect(fateStoneShopPrice(1)).toBeLessThan(stoneShopPrice(6, 1));

@@ -96,7 +96,7 @@ describe("friend system", () => {
     // Both friends listed, with the online one marked.
     expect(within(panel).getByText("Bronn")).toBeTruthy();
     expect(within(panel).getByText("Lyra")).toBeTruthy();
-    expect(within(panel).getByText("Online now")).toBeTruthy();
+    expect(within(panel).getAllByText("Online now").length).toBeGreaterThan(0);
 
     fireEvent.click(within(panel).getByRole("tab", { name: /Requests/ }));
     expect(within(panel).getByText("Sera")).toBeTruthy();

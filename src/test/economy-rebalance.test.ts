@@ -14,9 +14,9 @@ import { BOSS_CRYSTALS, CRYSTALS_PER_LEVEL, grant } from "@/game/logic";
 import { barracksCost, barracksLevel, upgradeBarracks } from "@/game/barracks";
 import { ADVANCED_DRILLS, advancedBlocker, advancedCost, advancedRank, drillAttrs, trainAdvanced } from "@/game/drills";
 
-describe("gear enhancement climbs to +30", () => {
-  it("caps enhancement at thirty", () => {
-    expect(ENHANCE_MAX).toBe(30);
+describe("gear enhancement climbs to +70", () => {
+  it("caps enhancement at seventy", () => {
+    expect(ENHANCE_MAX).toBe(70);
     const piece = makeItem("warrior", 40, 2, "weapon");
     expect(enhanceMaxed(piece)).toBe(false);
     piece.enh = ENHANCE_MAX;

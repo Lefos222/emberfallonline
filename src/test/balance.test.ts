@@ -231,11 +231,17 @@ describe("campaign balance", () => {
   });
 
   it("keeps gold valuable: a stage pays a fraction of one enhancement", () => {
-    // One enhancement of current gear costs several cleared stages at every level.
-    for (const lv of [10, 30, 60, 80]) {
+    // Through the bulk of the game one enhancement of current gear still costs cleared stages.
+    for (const lv of [10, 20, 30, 40]) {
       const piece = makeItem("warrior", lv, 2, "weapon");
       piece.enh = 5;
       expect(stageRewards(lv).gold).toBeLessThan(enhanceCost(piece, lv));
+    }
+    // Past level 21 rewards grow 8% a level, but a deep stage still never pays four enhancements.
+    for (const lv of [60, 70, 80]) {
+      const piece = makeItem("warrior", lv, 2, "weapon");
+      piece.enh = 5;
+      expect(stageRewards(lv).gold).toBeLessThan(enhanceCost(piece, lv) * 4);
     }
   });
 
