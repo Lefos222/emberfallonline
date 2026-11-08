@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { heroStats, makeItem, newHero, INVENTORY_CAP } from "@/game/data";
 import {
-  ASTRAL_MAX_LVL, ASTRAL_RARITY, RECIPES, astralLabel, astralUpgradeCost, astralValue,
+  ASTRAL_BASES, ASTRAL_RARITY, RECIPES, astralLabel, astralStatText, astralStats, astralUpgradeCost, astralValue,
   battleMats, craft, equipAstral, fuseGem, gemValue, insertGem, normalizeAstrals, refine, removeGem, recipeGold,
   recipeMats, scrapItem, scrapYield, summonAstral, upgradeAstral,
 } from "@/game/crafting";
@@ -65,29 +65,34 @@ describe("gems, astrals, crafting", () => {
     expect(h.gold).toBe(0);
     expect(h.mats.ore).toBe(0);
   });
-  it("astrals carry the six-colour ladder and climb ten levels", () => {
+  it("astrals carry the six-colour ladder and climb without end for gold", () => {
     const h = newHero("T", "warrior");
     h.mats = { starshard: 9999 };
+    h.gold = 50_000_000;
     const a = summonAstral(h, () => 0.999) as Exclude<ReturnType<typeof summonAstral>, string>;
     expect(ASTRAL_RARITY).toEqual(["White", "Green", "Blue", "Purple", "Gold", "Red"]);
     expect(a.rarity).toBe(0);
     expect(a.lvl).toBe(1);
-    expect(ASTRAL_MAX_LVL).toBe(10);
-    // Rarity outranks levels: a fresh Red Astral beats a fully upgraded White one.
-    expect(astralValue({ ...a, rarity: 5, lvl: 1 })).toBeGreaterThan(astralValue({ ...a, rarity: 0, lvl: ASTRAL_MAX_LVL }));
-    expect(astralLabel({ ...a, lvl: ASTRAL_MAX_LVL })).toMatch(/Lv10$/);
-    // Ten upgrades, the eleventh is refused.
-    const first = astralUpgradeCost(a);
-    for (let i = 0; i < ASTRAL_MAX_LVL - 1; i++) expect(upgradeAstral(h, a.id)).toBeNull();
-    expect(a.lvl).toBe(ASTRAL_MAX_LVL);
-    expect(upgradeAstral(h, a.id)).toBe("Max level");
-    expect(astralUpgradeCost(a)).toBeGreaterThan(first);
+    // Rarity outranks levels: a fresh Red Astral beats a White one at the old ten-level ceiling.
+    expect(astralValue({ ...a, rarity: 5, lvl: 1 })).toBeGreaterThan(astralValue({ ...a, rarity: 0, lvl: 10 }));
+    expect(astralLabel({ ...a, lvl: 10 })).toMatch(/Lv10$/);
+    // Upgrades cost gold and never stop: past the old level 10 they keep going.
+    const first = astralUpgradeCost(a, h.level);
+    for (let i = 0; i < 15; i++) expect(upgradeAstral(h, a.id)).toBeNull();
+    expect(a.lvl).toBe(16);
+    expect(astralUpgradeCost(a, h.level)).toBeGreaterThan(first);
+    // Every species carries its own mix of bonuses.
+    const mixes = Object.values(ASTRAL_BASES).map((sp) => JSON.stringify(sp.stats));
+    expect(new Set(mixes).size).toBe(mixes.length);
+    for (const sp of Object.values(ASTRAL_BASES)) expect(sp.stats.length).toBeGreaterThanOrEqual(1);
+    expect(astralStats(a).length).toBeGreaterThanOrEqual(2);
+    expect(astralStatText(a)).toMatch(/\+/);
   });
 
-  it("clamps old saves and server Astrals onto the new ladder", () => {
+  it("clamps old saves onto valid colours and keeps deep levels", () => {
     const h = { astrals: [{ id: "a", base: "ember", rarity: 9, lvl: 0 }, { id: "b", base: "owl", rarity: -2, lvl: 40 }] };
     normalizeAstrals(h);
-    expect(h.astrals.map((x) => [x.rarity, x.lvl])).toEqual([[5, 1], [0, 10]]);
+    expect(h.astrals.map((x) => [x.rarity, x.lvl])).toEqual([[5, 1], [0, 40]]);
   });
 
   it("equipped astrals add stats; summoning costs 10 starshards", () => {

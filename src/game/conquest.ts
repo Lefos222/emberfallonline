@@ -1,6 +1,6 @@
 import { addGem, addMats, GEM_MAX_TIER, type GemType, type Mat } from "./crafting";
 import { addChests, type ChestKind } from "./chests";
-import { BLITZ_RUNNING, blitzRunning, startBlitzRun } from "./blitz-run";
+import { BLITZ_RUNNING, BLITZ_XP_SHARE, blitzRunning, startBlitzRun } from "./blitz-run";
 import { stageRewards, type Hero } from "./data";
 import { greekDayStart } from "./events";
 import { scaledGold } from "./gold";
@@ -92,14 +92,14 @@ export function buyTokenOffer(h: Hero, id: string): string | null {
 
 export interface BlitzResult { floors: number; xp: number; gold: number; tokens: number }
 
-/** What a blitz to `target` pays in total: the same rewards those floors pay when fought. */
+/** What a blitz to `target` pays in total: those floors' gold and tokens, but only 30% of their XP. */
 export function blitzRewards(target: number): BlitzResult {
   let xp = 0, gold = 0, tokens = 0;
   for (let f = 1; f <= target; f++) {
     const r = stageRewards(f, 2);
     xp += r.xp; gold += r.gold; tokens += floorTokens(f);
   }
-  return { floors: target, xp, gold, tokens };
+  return { floors: target, xp: Math.round(xp * BLITZ_XP_SHARE), gold, tokens };
 }
 
 /**

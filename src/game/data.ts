@@ -14,6 +14,7 @@ import { guildFx } from "./guild-tower";
 import { normalizeSynth, synthFx } from "./synthesis";
 import { enlightenmentFx, soulFx } from "./enlightenment";
 import { renownFx } from "./renown";
+import { potionFx } from "./potions";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -337,9 +338,16 @@ export interface Hero {
     gold: number;
     tokens?: number;
   };
-  /** Dungeon Gate stamina for the Greek day and the potions in the pouch (see stamina.ts). */
-  stamina?: { day?: string; used?: number };
+  /** Daily stamina for the Greek day and the potions in the pouch (see stamina.ts). */
+  stamina?: { day?: string; used?: number; potions?: number };
+  /** Stamina Potions in the pouch (its own field since the first stamina system). */
   staminaPotions?: number;
+  /** Other consumable potions by id (see potions.ts). */
+  potions?: Record<string, number>;
+  /** Running elixir buffs: potion id → when the buff ends (see potions.ts). */
+  potionBuffs?: Record<string, number>;
+  /** Hourly Auction House catalogue stock (see catalogue.ts). */
+  catalogue?: { hour: string; items: Item[] };
   /** Current level's quest board: counter snapshot taken when the level began, plus claimed ids (see level-quests.ts). */
   levelQuests?: { level: number; base: Record<string, number>; claimed: string[] };
   /** Barracks drill ranks by drill id (see drills.ts). */
@@ -415,15 +423,16 @@ export function newHero(name: string, cls: HeroClass): Hero {
 
 /** Levels past this point are where the grind starts — the opening acts stay quick on purpose. */
 export const LATE_LEVEL = 20;
-/** Fights a level costs below LATE_LEVEL: two, so levels 1–19 race by. */
-export const EASY_FIGHTS = 2;
-/** Extra fights every level past LATE_LEVEL adds on top of the one below it (+15 each). */
-export const GRIND_FIGHTS = 15;
+/** Fights a level costs below LATE_LEVEL. Raised for version 1.00: five fights a level, so the
+ *  opening still teaches the game but no longer showers levels. */
+export const EASY_FIGHTS = 5;
+/** Extra fights every level past LATE_LEVEL adds on top of the one below it (+26 each). */
+export const GRIND_FIGHTS = 26;
 
 /** Fights one level costs, counted in cleared fights at the hero's own level.
- *  Levels 1–19 cost two fights each; from level 20 every level asks for fifteen fights more than
- *  the one before it (17, 32, 47 … 167 at level 30), which is the wall the whole late game is
- *  built on and the reason daily play matters. */
+ *  Levels 1–19 cost five fights each; from level 20 every level asks for twenty-six fights more
+ *  than the one before it (31, 57, 83 …), which is the wall the whole late game is built on and
+ *  the reason daily play matters. Level 1.00 deliberately made this climb far longer. */
 export function fightsToLevel(level: number) {
   const lv = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
   if (lv < LATE_LEVEL) return EASY_FIGHTS;
@@ -513,18 +522,20 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   const so = opts.talents ? soulFx(h) : zeroFx();
   // Renown upgrades are earned by winning fights and belong to the hero alone (see renown.ts).
   const rw = opts.talents ? renownFx(h) : zeroFx();
-  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + sy[k] + so[k] + en[k];
+  // Potion elixirs are timed battle buffs and join the same pipeline (see potions.ts).
+  const pb = opts.talents ? potionFx(h) : zeroFx();
+  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + sy[k] + so[k] + en[k] + pb[k];
   const sf0 = opts.gear ? setFx(h.equipment) : { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
   const af = opts.talents ? astralFx(h) : null;
   const sf = {
-    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct + en.atkPct + so.atkPct + rw.atkPct,
-    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct + en.defPct + so.defPct + rw.defPct,
-    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct + en.hpPct + so.hpPct + rw.hpPct,
-    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit + en.crit + so.crit + rw.crit,
+    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct + en.atkPct + so.atkPct + rw.atkPct + pb.atkPct,
+    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct + en.defPct + so.defPct + rw.defPct + pb.defPct,
+    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct + en.hpPct + so.hpPct + rw.hpPct + pb.hpPct,
+    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit + en.crit + so.crit + rw.crit + pb.crit,
   };
-  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge + so.dodge + rw.dodge;
-  tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + sy.critDmg + rw.critDmg;
-  tf.pen += sy.pen + so.pen;
+  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge + so.dodge + rw.dodge + pb.dodge;
+  tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + sy.critDmg + rw.critDmg + pb.critDmg;
+  tf.pen += sy.pen + so.pen + pb.pen;
   const pa = 1 + (tf.atkPct + sf.atkPct) / 100, ph = 1 + (tf.hpPct + sf.hpPct) / 100, pd = 1 + (tf.defPct + sf.defPct) / 100;
   const c = CLASSES[h.cls];
   const items = opts.gear ? (Object.values(h.equipment).filter(Boolean) as Item[]) : [];
@@ -706,9 +717,9 @@ export const BUILDINGS = [
   { id: "portal", name: "Campaign Gate", x: 72, y: 54, r: 5.5, desc: "Campaign stages", soon: false },
   { id: "spire", name: "Conquest Gate", x: 17, y: 46, r: 5, desc: "Endless Conquest · Lv 10+", soon: false },
   { id: "arena", name: "Arena", x: 50, y: 31, r: 6.5, desc: "Fight real players", soon: false },
-  { id: "market", name: "Royal Treasury", x: 44, y: 82, r: 5, desc: "Gold & merchant", soon: false },
+  { id: "market", name: "Auction House", x: 44, y: 82, r: 5, desc: "Catalogue, shop & player auctions", soon: false },
   { id: "dungeon", name: "Dungeon Gate", x: 24, y: 80, r: 4, desc: "Boss challenges & elites · Lv 20+", soon: false },
-  { id: "tower", name: "Magic Tower", x: 66, y: 74, r: 4, desc: "Summon & upgrade Astrals", soon: false },
+  { id: "tower", name: "Magic Tower", x: 66, y: 74, r: 4, desc: "Astral vault · infinite upgrades", soon: false },
   { id: "gems", name: "Gem Workshop", x: 54.5, y: 71, r: 4, desc: "Cut, socket & fuse gems", soon: false },
   { id: "guild", name: "Guild Hall", x: 35, y: 55, r: 4, desc: "Guilds & guild chat", soon: false },
   { id: "friends", name: "Friends", x: 0, y: 0, r: 0, desc: "Friends & messages", soon: false, shortcut: true },

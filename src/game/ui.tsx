@@ -87,6 +87,7 @@ export function ItemSlot({ item, size = 56, onClick, selected, empty }: { item?:
   return (
     <button
       onClick={onClick}
+      aria-label={item ? `${item.name}${item.enh > 0 ? ` +${item.enh}` : ""} — ${RARITIES[item.rarity].name} item level ${item.ilvl}` : typeof empty === "string" ? `Empty ${empty.toLowerCase()} slot` : "Empty slot"}
       className={`slot relative flex shrink-0 items-center justify-center transition hover:scale-105 ${item ? `rarity-${item.rarity}` : ""} ${selected ? "ring-2 ring-gold" : ""}`}
       style={{ width: size + 8, height: size + 8 }}
     >

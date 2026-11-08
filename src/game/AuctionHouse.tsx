@@ -11,7 +11,8 @@ import { GameTabs, Gold, Panel, fmt } from './ui';
 
 type Category = 'equipment' | 'gems';
 
-export function AuctionHouse({ onClose }: { onClose: () => void }) {
+/** The player-to-player market, without its window, so the Auction House's tabs can host it. */
+export function AuctionBoard() {
   const { hero, heroId } = useGame();
   const [listings, setListings] = useState<Listing[]>([]);
   const [notice, setNotice] = useState('');
@@ -46,7 +47,7 @@ export function AuctionHouse({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <Panel title="Auction House" subtitle="Trade gear for gold" art="auction" onClose={onClose} wide>
+    <>
       <RequestStatus {...request} />
       {notice && <p role="status" className="mb-3 text-sm text-r1">{notice}</p>}
 
@@ -136,6 +137,15 @@ export function AuctionHouse({ onClose }: { onClose: () => void }) {
         })}
       </div>
       <p className="mt-3 text-xs text-muted-foreground">Trades settle instantly and are recorded on the server — gold and goods move atomically, and a sold listing can never be sold twice. Cancelling returns the goods to your bag or pouch.</p>
+    </>
+  );
+}
+
+/** Stand-alone window around the player auctions (also reachable from the HUD). */
+export function AuctionHouse({ onClose }: { onClose: () => void }) {
+  return (
+    <Panel title="Auction House" subtitle="Player auctions — trade gear for gold" art="auction" onClose={onClose} wide>
+      <AuctionBoard />
     </Panel>
   );
 }

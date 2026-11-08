@@ -73,13 +73,28 @@ export const GemIcon = ({ type, size = 18 }: { type: GemType; size?: number }) =
 /** Painted portrait for every Astral species, sliced from one 4x4 sprite sheet. */
 const ASTRAL_KEYS = Object.keys(ASTRAL_BASES);
 const ASTRAL_SHEET_COLS = 4;
+/** The sheet paints the first thirteen species; the deeper vault stones are drawn as tinted orbs. */
+const ASTRAL_PAINTED = 13;
 export const AstralIcon = ({ base, rarity = 0, size = 48 }: { base: string; rarity?: number; size?: number }) => {
   const cell = Math.max(0, ASTRAL_KEYS.indexOf(base));
+  const species = ASTRAL_BASES[base];
+  const glow = ASTRAL_COLORS[rarity] ?? "#9a9a9a";
+  const label = species?.name ?? "Astral";
+  if (cell >= ASTRAL_PAINTED) {
+    const c = species?.color ?? "#8a7fd6";
+    return (
+      <span role="img" aria-label={label} title={label} className="inline-block shrink-0 rounded-full"
+        style={{
+          width: size, height: size,
+          boxShadow: `0 0 0 2px ${glow}, 0 0 12px ${glow}66`,
+          background: `radial-gradient(circle at 32% 26%, #ffffffdd 0%, ${c} 38%, #05060c 100%)`,
+        }} />
+    );
+  }
   const col = cell % ASTRAL_SHEET_COLS;
   const row = Math.floor(cell / ASTRAL_SHEET_COLS);
-  const glow = ASTRAL_COLORS[rarity] ?? "#9a9a9a";
   return (
-    <span role="img" aria-label={ASTRAL_BASES[base]?.name ?? "Astral"} title={ASTRAL_BASES[base]?.name ?? "Astral"}
+    <span role="img" aria-label={label} title={label}
       className="inline-block shrink-0 rounded-lg" style={{ width: size, height: size, overflow: "hidden",
         boxShadow: `0 0 0 2px ${glow}, 0 0 10px ${glow}66`,
         backgroundImage: `url(${astralSheet.url})`,

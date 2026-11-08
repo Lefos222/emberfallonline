@@ -10,6 +10,10 @@ import { grant } from "./logic";
 /** How long a blitz run takes. */
 export const BLITZ_DURATION_MS = 10 * 60_000;
 
+/** Version 1.00: a blitz pays 70% less XP than fighting those stages, so it is a gold and clear
+ *  shortcut rather than the fastest way to level. Shared by both gates' reward tables. */
+export const BLITZ_XP_SHARE = 0.3;
+
 /** Diamonds a player pays to end a running blitz immediately. */
 export const BLITZ_SKIP_DIAMONDS = 25;
 

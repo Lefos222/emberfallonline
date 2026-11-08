@@ -5,7 +5,7 @@ import {
   campaignBlitzRewards,
   campaignStagesCleared,
 } from "@/game/campaign-blitz";
-import { BLITZ_DURATION_MS, blitzRunning, finishBlitzRun } from "@/game/blitz-run";
+import { BLITZ_DURATION_MS, BLITZ_XP_SHARE, blitzRunning, finishBlitzRun } from "@/game/blitz-run";
 import { blitz, blitzDay, blitzesLeft, blitzesUsed, BLITZ_PER_DAY } from "@/game/conquest";
 import { newHero, stageRewards, type Hero } from "@/game/data";
 
@@ -37,10 +37,12 @@ describe("campaign blitz", () => {
   it("sends the hero on a ten-minute run and pays it when it lands", () => {
     const h = hero(4); // stages 1..3 cleared
     const rw = campaignBlitzRewards(3);
-    const expected = [1, 2, 3].reduce(
+    const total = [1, 2, 3].reduce(
       (a, s) => ({ xp: a.xp + stageRewards(s).xp, gold: a.gold + stageRewards(s).gold }),
       { xp: 0, gold: 0 },
     );
+    // Version 1.00: blitzes pay only 30% of those stages' XP.
+    const expected = { xp: Math.round(total.xp * BLITZ_XP_SHARE), gold: total.gold };
     expect(rw).toEqual({ stages: 3, ...expected });
 
     expect(campaignBlitz(h, 3, NOW)).toBeNull();
@@ -56,7 +58,7 @@ describe("campaign blitz", () => {
       gold: rw.gold,
     });
     expect(h.gold).toBe(100 + rw.gold);
-    expect(h.level).toBeGreaterThan(1);
+    expect(h.gold).toBeGreaterThan(100);
     expect(h.blitzRun).toBeUndefined();
   });
 

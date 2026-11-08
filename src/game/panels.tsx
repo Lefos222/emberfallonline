@@ -1,18 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from '@/components/ui/button';
-import { trainingCost, trainAttribute } from './building-content';
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Shield, Heart, Swords, Clover, Sparkles, Trophy, Hammer, RefreshCw, Trash2, Skull, Backpack } from "lucide-react";
+import { Shield, Heart, Swords, Clover, Sparkles, Trophy, Hammer, Trash2, Skull, Backpack } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import { adviseStrategy } from "@/lib/quests.functions";
 import {
-  attrCost, buyPrice, SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, ENHANCE_MAX, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
+  SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, ENHANCE_MAX, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
   CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, fightsToNextLevel, zoneOf, catchUpXpFactor, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
-import { refreshMerchant } from "./logic";
 import { addConquestTokens, floorTokens } from "./conquest";
+import { CAMPAIGN_STAMINA, STAMINA_PER_DAY, staminaBlocker, staminaLeft } from "./stamina";
 import { ConquestTokens } from "./ConquestGate";
 import { CampaignBlitz } from "./CampaignBlitz";
 import { LevelProgress } from "./LevelCurve";
@@ -26,16 +25,16 @@ import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
 import { QuestBoard } from "./QuestBoard";
-import { AdvancedTraining, AttributeDrills, BarracksUpgrade, DrillTracks } from "./Barracks";
-import { EnlightenmentTraining, SoulForge } from "./EnlightenmentPanel";
-import { batchSizes } from "./barracks";
+import { BarracksTraining } from "./Barracks";
 import { CharacterPose } from "./CharacterPose";
 import { heroAppearance } from "./appearance";
 
 export type StartBattle = (opts: {
   right: Fighter; auto?: boolean; title: string;
-  /** A Dungeon Gate run: it costs stamina on entry, win or lose (see stamina.ts). */
+  /** A Dungeon Gate run: it costs its stamina on entry, win or lose (see stamina.ts). */
   dungeon?: boolean;
+  /** Stamina this battle costs on entry, charged win or lose. */
+  stamina?: number;
   onResult: (won: boolean, xpMultiplier?: number) => { lines: string[]; loot?: Item | null } | Promise<{ lines: string[]; loot?: Item | null }>;
 }) => void;
 
@@ -189,26 +188,31 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               </div>
             );
           })()}
-          <div className="mt-4 min-h-40">
-            {selItem ? (
-              <ItemCard
-                item={selItem}
-                compare={!sel?.equipped ? wornCompare(hero, selItem) : undefined}
-                actions={sel?.equipped ? (
-                  <button className="btn-blood px-4 py-1.5 text-sm" onClick={() => { unequip(selItem); setSel(null); }}>Unequip</button>
-                ) : (
-                  <>
-                    <button className="btn-gold px-4 py-1.5 text-sm" onClick={() => { equip(selItem); setSel({ id: selItem.id, equipped: true }); }}>Equip</button>
-                    <button className="btn-blood px-4 py-1.5 text-sm" onClick={() => { sell(selItem); setSel(null); }}>Sell <Gold n={sellValue(selItem)} /></button>
-                  </>
-                )}
-              />
-            ) : (
-              <div className="py-10 text-center text-muted-foreground">Tap an item</div>
-            )}
+          <div className="mt-4 rounded border border-dashed border-border/60 px-3 py-3 text-center text-xs text-muted-foreground">
+            Tap any bag or worn item and it opens on the spot — compare, equip, unequip or sell without scrolling down.
           </div>
         </div>
       </div>
+      {selItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" role="dialog" aria-modal="true"
+          aria-label={`${selItem.name} details`} onClick={() => setSel(null)}>
+          <div className="game-panel anim-pop w-full max-w-md p-4" onClick={(e) => e.stopPropagation()}>
+            <ItemCard
+              item={selItem}
+              compare={!sel?.equipped ? wornCompare(hero, selItem) : undefined}
+              actions={sel?.equipped ? (
+                <button className="btn-blood px-4 py-1.5 text-sm" onClick={() => { unequip(selItem); setSel(null); }}>Unequip</button>
+              ) : (
+                <>
+                  <button className="btn-gold px-4 py-1.5 text-sm" onClick={() => { equip(selItem); setSel(null); }}>Equip</button>
+                  <button className="btn-blood px-4 py-1.5 text-sm" onClick={() => { sell(selItem); setSel(null); }}>Sell <Gold n={sellValue(selItem)} /></button>
+                </>
+              )}
+            />
+            <button className="btn-ghost mt-3 w-full py-1.5 text-sm" onClick={() => setSel(null)}>Close</button>
+          </div>
+        </div>
+      )}
     </Panel>
   );
 }
@@ -232,11 +236,16 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   const ratio = s.power / foePower;
   const danger = ratio > 1.3 ? { t: "Easy", c: "text-r1" } : ratio > 0.95 ? { t: "Fair", c: "text-r4" } : ratio > 0.7 ? { t: "Hard", c: "text-hp" } : { t: "Deadly", c: "text-blood" };
   const zone = zoneOf(stage);
+  // Campaign Gate battles cost 20 stamina, spent on entry win or lose (see stamina.ts).
+  const staminaCost = spire ? 0 : CAMPAIGN_STAMINA;
+  const staminaLock = staminaCost ? staminaBlocker(hero, staminaCost) : null;
 
   const fight = () => {
+    if (staminaLock) return;
     start({
       title: spire ? `Endless Conquest · Floor ${stage}` : `${zone.name} · Stage ${stage}`,
       auto,
+      stamina: staminaCost || undefined,
       right: { ...foe, name: foe.boss ? `${foe.name}` : foe.name },
       onResult: async (won, xpMultiplier = 1) => {
         if (!won) return { lines: ["Defeated… grow stronger and return."] };
@@ -293,7 +302,15 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
           <label className="flex items-center justify-center gap-2 text-sm">
             <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} className="accent-[var(--gold)]" /> Auto-battle
           </label>
-          <button className="btn-gold w-full py-3 text-xl" onClick={fight}><Swords className="mr-2 inline" />FIGHT</button>
+          {!!staminaCost && (
+            <div className={`text-xs ${staminaLock ? "text-hp" : "text-muted-foreground"}`}>
+              <b className="text-foreground">{staminaCost} stamina</b> per battle · {staminaLeft(hero)}/{STAMINA_PER_DAY} left ({Math.floor(staminaLeft(hero) / staminaCost)} battles)
+            </div>
+          )}
+          <button className="btn-gold w-full py-3 text-xl" onClick={fight} disabled={!!staminaLock} title={staminaLock ?? "Fight"}>
+            <Swords className="mr-2 inline" />{staminaLock ? "OUT OF STAMINA" : "FIGHT"}
+          </button>
+          {staminaLock && <p className="text-xs text-hp">{staminaLock}</p>}
         </div>
       </div>
       <div className="mt-5">
@@ -477,90 +494,22 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   );
 }
 
-// ---------------- Temple ----------------
-const ATTRS: { k: Attr; name: string; icon: React.ReactNode; d: string }[] = [
-  { k: "str", name: "Strength", icon: <Swords className="h-8 w-8 text-gold" />, d: "+Phys attack, phys def, crit dmg, pen" },
-  { k: "int", name: "Intelligence", icon: <Sparkles className="h-8 w-8 text-r3" />, d: "+Magic attack, magic def, pen" },
-  { k: "agi", name: "Agility", icon: <Clover className="h-8 w-8 text-r1" />, d: "+Crit, dodge, accuracy, loot" },
-  { k: "vit", name: "Vitality", icon: <Heart className="h-8 w-8 text-hp" />, d: "+Most health, both defenses" },
-];
+// ---------------- Temple (Barracks) ----------------
+/** The Barracks: exactly the four attributes, each a permanent gold upgrade track. */
 export function Temple({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
-  const [count,setCount]=useState(1);
   if (!hero) return null;
   const s = heroStats(hero);
   return (
-    <Panel title="Barracks — Attribute Training" subtitle="Turn gold into permanent stats" art="profile" onClose={onClose}>
-      <BarracksUpgrade hero={hero} />
-      <div className="mb-4 grid grid-cols-3 gap-2 text-center">
+    <Panel title="Barracks" subtitle="Four attributes · permanent training" art="profile" onClose={onClose} wide>
+      <BarracksTraining hero={hero} />
+      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
         {([["Health", fmt(s.hp), "text-hp"], ["Attack", fmt(s.atk), "text-gold"], ["Defense", fmt(s.def), ""]] as const).map(([label, v, cls]) => (
           <div key={label} className="slot p-2">
             <div className={`font-display text-lg ${cls}`}>{v}</div>
             <div className="text-xs text-muted-foreground">{label}</div>
           </div>
         ))}
-      </div>
-      <div className="mb-1 font-display text-sm text-gold">Attribute training</div>
-      <div role="group" aria-label="Training batch" className="mb-4 flex flex-wrap gap-2">{batchSizes(hero).map(n=><Button key={n} size="sm" variant={count===n?'default':'outline'} aria-pressed={count===n} onClick={()=>setCount(n)}>+{n} points</Button>)}</div>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {ATTRS.map((a) => {
-          const cost = trainingCost(hero,a.k,count);
-          return (
-            <div key={a.k} className="slot flex flex-col items-center gap-2 p-4 text-center">
-              {a.icon}
-              <div className="font-display">{a.name}</div>
-              <div className="font-display text-3xl text-gold">{hero.attrs[a.k]}</div>
-              <div className="text-xs text-muted-foreground">{a.d}</div>
-              <Button className="w-full" disabled={hero.gold < cost} onClick={() => update((h) => { trainAttribute(h,a.k,count); })}>
-                <Gold n={cost} className="text-primary-foreground" />
-              </Button>
-            </div>
-          );
-        })}
-      </div>
-      <AttributeDrills hero={hero} />
-      <AdvancedTraining hero={hero} />
-      <DrillTracks hero={hero} />
-      <EnlightenmentTraining hero={hero} />
-      <SoulForge hero={hero} />
-    </Panel>
-  );
-}
-
-// ---------------- Market ----------------
-export function Market({ onClose }: { onClose: () => void }) {
-  const { hero } = useGame();
-  const [sel, setSel] = useState<string | null>(null);
-  useEffect(() => { if (hero && hero.merchant.length === 0) update(refreshMerchant); }, [hero]);
-  if (!hero) return null;
-  const refreshCost = 40 + hero.level * 20;
-  const item = hero.merchant.find((i) => i.id === sel);
-  return (
-    <Panel title="Night Market" subtitle="Six wares, refreshed as you fight" art="auction" onClose={onClose}>
-      <div className="grid gap-5 md:grid-cols-2">
-        <div>
-          <div className="grid grid-cols-3 gap-3">
-            {hero.merchant.map((it) => (
-              <div key={it.id} className="flex flex-col items-center gap-1">
-                <ItemSlot item={it} size={64} selected={sel === it.id} onClick={() => setSel(it.id)} />
-                <Gold n={buyPrice(it, hero.level)} className="text-xs" />
-              </div>
-            ))}
-          </div>
-          <button className="btn-blood mt-4 w-full py-2" disabled={hero.gold < refreshCost} onClick={() => { update((h) => { h.gold -= refreshCost; refreshMerchant(h); }); setSel(null); }}>
-            <RefreshCw className="mr-2 inline h-4 w-4" />New stock <Gold n={refreshCost} />
-          </button>
-        </div>
-        <div>
-          {item ? (
-            <ItemCard item={item} compare={wornCompare(hero, item)} actions={
-              <button className="btn-gold px-4 py-1.5" disabled={hero.gold < buyPrice(item, hero.level) || hero.inventory.length >= invCap(hero)}
-                onClick={() => { update((h) => { h.gold -= buyPrice(item, h.level); h.merchant = h.merchant.filter((m) => m.id !== item.id); h.inventory.unshift(item); }); setSel(null); }}>
-                Buy <Gold n={buyPrice(item, hero.level)} className="text-primary-foreground" />
-              </button>
-            } />
-          ) : <div className="py-16 text-center text-muted-foreground">Pick a ware</div>}
-        </div>
       </div>
     </Panel>
   );
