@@ -1,9 +1,10 @@
-import { EASY_FIGHTS, GRIND_FIGHTS, LATE_LEVEL, fightsToLevel, fightsToNextLevel, xpPerFight, xpToNext, type Hero } from "./data";
+import { AWAKENING_LEVEL, EASY_FIGHTS, GRIND_FIGHTS, LATE_LEVEL, fightsToLevel, fightsToNextLevel, xpPerFight, xpToNext, type Hero } from "./data";
 import { fmt } from "./ui";
 
 /**
  * The level bill, spelled out: how far the hero is, how many fights the level still costs and
- * what the next few levels ask for. Two fights a level up to 20, then fifteen more fights each level.
+ * what the next few levels ask for. Five fights a level up to 20, twenty-six more each level after
+ * it, then a compounding bill from level 30 (see fightsToLevel).
  */
 export function LevelProgress({ hero, rows = 0 }: { hero: Hero; rows?: number }) {
   const need = xpToNext(hero);
@@ -46,7 +47,7 @@ function LevelLadder({ level, rows }: { level: number; rows: number }) {
         ))}
       </div>
       <p className="mt-2 text-[11px] text-muted-foreground">
-        Levels 1–{LATE_LEVEL - 1} cost {EASY_FIGHTS} fights each; from level {LATE_LEVEL} every level asks for {GRIND_FIGHTS} fights more than the one before it — the daily grind that keeps you coming back.
+        Levels 1–{LATE_LEVEL - 1} cost {EASY_FIGHTS} fights each; from level {LATE_LEVEL} every level asks for {GRIND_FIGHTS} fights more than the one before it, and from level {AWAKENING_LEVEL} the bill grows by 10% every level — the deep grind that keeps you coming back.
       </p>
     </div>
   );

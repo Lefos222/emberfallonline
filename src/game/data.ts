@@ -428,15 +428,21 @@ export const LATE_LEVEL = 20;
 export const EASY_FIGHTS = 5;
 /** Extra fights every level past LATE_LEVEL adds on top of the one below it (+26 each). */
 export const GRIND_FIGHTS = 26;
-
+/** The Awakening: past this level the bill stops being linear and compounds every level, which is
+ *  what turns level 80 from a week of play into an eight-month goal. */
+export const AWAKENING_LEVEL = 30;
 /** Fights one level costs, counted in cleared fights at the hero's own level.
  *  Levels 1–19 cost five fights each; from level 20 every level asks for twenty-six fights more
- *  than the one before it (31, 57, 83 …), which is the wall the whole late game is built on and
- *  the reason daily play matters. Level 1.00 deliberately made this climb far longer. */
+ *  than the one before it (31, 57, 83 …). From level 30 the bill instead grows by 10% a level, so
+ *  level 50 costs ~2,000 fights, level 60 ~5,000 and level 80 ~34,000 — a months-long climb that
+ *  only dedicated play finishes. */
 export function fightsToLevel(level: number) {
   const lv = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
   if (lv < LATE_LEVEL) return EASY_FIGHTS;
-  return EASY_FIGHTS + GRIND_FIGHTS * (lv - LATE_LEVEL + 1);
+  const linear = EASY_FIGHTS + GRIND_FIGHTS * (lv - LATE_LEVEL + 1);
+  if (lv < AWAKENING_LEVEL) return linear;
+  const atAwakening = EASY_FIGHTS + GRIND_FIGHTS * (AWAKENING_LEVEL - LATE_LEVEL + 1);
+  return Math.round(atAwakening * Math.pow(1.1, lv - AWAKENING_LEVEL));
 }
 
 /** XP one fight at this level pays before scrolls and catch-up bonuses (see stageRewards). */

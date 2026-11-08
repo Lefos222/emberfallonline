@@ -7,6 +7,7 @@ import {
   heroStats,
   makeItem,
   riftFactor,
+  AWAKENING_LEVEL,
   EASY_FIGHTS,
   GRIND_FIGHTS,
   MAX_LEVEL,
@@ -94,21 +95,31 @@ function seeded(seed: number) {
   return () => (x = (x * 1664525 + 1013904223) % 4294967296) / 4294967296;
 }
 
-describe("five fights a level, then twenty-six more every level", () => {
+describe("five fights a level, then a compounding wall after level 30", () => {
   it("costs exactly five fights a level up to level 19", () => {
     for (const lv of [1, 5, 10, 17, 19]) {
       expect(fightsToLevel(lv)).toBe(EASY_FIGHTS);
       expect(xpToNext({ level: lv, paragon: 0 })).toBe(EASY_FIGHTS * stageRewards(lv).xp);
     }
   });
-  it("adds twenty-six fights to each level past 20", () => {
+  it("adds twenty-six fights to each level from 20 to 29", () => {
     expect(fightsToLevel(20)).toBe(EASY_FIGHTS + GRIND_FIGHTS);
-    for (let lv = 20; lv < MAX_LEVEL; lv++) {
+    for (let lv = 20; lv < AWAKENING_LEVEL; lv++) {
       expect(fightsToLevel(lv + 1) - fightsToLevel(lv)).toBe(GRIND_FIGHTS);
       expect(xpToNext({ level: lv, paragon: 0 })).toBe(fightsToLevel(lv) * stageRewards(lv).xp);
     }
-    // By level 80 a single level is hundreds of fights: the late game is a real grind.
-    expect(fightsToLevel(80)).toBeGreaterThan(500);
+  });
+  it("compounds the bill by 10% a level from the Awakening at 30", () => {
+    // Level 30 itself is untouched: the wall starts after it.
+    expect(fightsToLevel(30)).toBe(EASY_FIGHTS + GRIND_FIGHTS * 11);
+    for (let lv = 30; lv < MAX_LEVEL; lv++) {
+      const ratio = fightsToLevel(lv + 1) / fightsToLevel(lv);
+      expect(ratio, `level ${lv + 1}`).toBeCloseTo(1.1, 1);
+      expect(xpToNext({ level: lv, paragon: 0 })).toBe(fightsToLevel(lv) * stageRewards(lv).xp);
+    }
+    // The wall is real: a level 80 hero needs tens of thousands of fights, not hundreds.
+    expect(fightsToLevel(60)).toBeGreaterThan(fightsToLevel(50) * 2);
+    expect(fightsToLevel(80)).toBeGreaterThan(20_000);
   });
   it("counts the fights left in the current level from saved XP", () => {
     const hero = newHero("Balanced", "warrior");
