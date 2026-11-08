@@ -19,7 +19,8 @@ import { beginScrollBattle } from "./services";
 import { battleLockedByBlitz, settleBlitzRun } from "./blitz-run";
 import { scrollFighter } from "./scrolls";
 import castle from "@/assets/castle.jpg.asset.json";
-import theme from "@/assets/theme.mp3.asset.json";
+import { readAudioSettings, saveAudioSettings, soundtrackUrl, type AudioSettings } from "./audio";
+import { SettingsPanel } from "./Settings";
 import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } from "./data";
 import { CHESTS, addChests, rewardChestReady, rollBattleChest } from "./chests";
 import { vipXpMultiplier } from "./economy";
@@ -63,7 +64,9 @@ export function Game() {
   const [crafting, setCrafting] = useState(false);
   const [expeditions, setExpeditions] = useState(false);
   const [relics, setRelics] = useState(false);
-  const [muted, setMuted] = useState(() => localStorage.getItem("bm-muted") === "1");
+  // Music settings (volume, soundtrack, mute) live on the device, behind the HUD's settings button.
+  const [sound, setSound] = useState<AudioSettings>(() => readAudioSettings());
+  const changeSound = (patch: Partial<AudioSettings>) => setSound((s) => saveAudioSettings({ ...s, ...patch }));
   const audio = useRef<HTMLAudioElement>(null);
   const starting = useRef(false);
   const [entryError, setEntryError] = useState("");
@@ -94,18 +97,18 @@ export function Game() {
 
   // One soundtrack for the whole game: it starts on the first gesture and only
   // pauses while the player has the game muted. Opening the world map or entering
-  // a battle never swaps it for another track.
+  // a battle never swaps it for another track; only the settings panel changes the
+  // volume or picks the other soundtrack (see audio.ts).
   useEffect(() => {
     const main = audio.current;
     if (!main) return;
-    main.volume = 0.35;
-    localStorage.setItem("bm-muted", muted ? "1" : "0");
-    if (muted) { main.pause(); return; }
-    const play = () => { if (!muted) void main.play().catch(() => {}); };
+    main.volume = sound.volume;
+    if (sound.muted) { main.pause(); return; }
+    const play = () => { if (!sound.muted) void main.play().catch(() => {}); };
     play();
     window.addEventListener("pointerdown", play, { once: true });
     return () => window.removeEventListener("pointerdown", play);
-  }, [muted]);
+  }, [sound]);
 
   const keepsPanel = open !== null && (BATTLE_PANELS as readonly string[]).includes(open);
 
@@ -218,7 +221,7 @@ export function Game() {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-background">
-      <audio ref={audio} src={theme.url} loop preload="auto" />
+      <audio key={sound.track} ref={audio} src={soundtrackUrl(sound.track)} loop preload="auto" />
       {!authReady || !userId ? (
         <div className="flex h-full items-center justify-center gap-2 font-display text-lg"><Loader2 className="h-5 w-5 animate-spin" />Loading…</div>
       ) : !hero ? (
@@ -237,7 +240,7 @@ export function Game() {
           </nav>
           <WorldChat heroId={heroId} />
           <QuestsButton count={claimableLevelQuests(hero)} onClick={() => setOpen("quests")} />
-          <Hud muted={muted} setMuted={setMuted} cloud={cloud} onProfile={() => setOpen("profile")} />
+          <Hud muted={sound.muted} setMuted={(m) => changeSound({ muted: m })} cloud={cloud} onProfile={() => setOpen("profile")} onSettings={() => setOpen("settings")} />
           <button onClick={() => setOpen("notes")} title="Version 1.00 patch notes"
             className="game-panel absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded px-2.5 py-1 font-display text-[11px] font-bold text-gold">
             v{VERSION}
@@ -245,6 +248,7 @@ export function Game() {
           <p className="castle-hint pointer-events-none absolute inset-x-0 top-32 z-20 text-center font-display text-xs text-gold drop-shadow-[0_1px_2px_black]">Tap a building to open it · drag the castle to reach the rest</p>
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
           {open === "notes" && <UpdateNotes onClose={() => setOpen(null)} />}
+          {open === "settings" && <SettingsPanel settings={sound} onChange={changeSound} onClose={() => setOpen(null)} />}
           {open === "quests" && <QuestsPanel onClose={() => setOpen(null)} />}
           {open === "mailbox" && <Mailbox onClose={() => setOpen(null)} />}
           {open === "lucky" && <LuckyShots onClose={() => setOpen(null)} />}
@@ -414,7 +418,7 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "road" | "calendar" | 'premium' | 'auction' | 'quests' | 'notes';
+type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "road" | "calendar" | 'premium' | 'auction' | 'quests' | 'notes' | 'settings';
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIconName }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", icon: "bag" },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", icon: "hammer" },

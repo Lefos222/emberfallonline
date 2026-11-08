@@ -7,11 +7,12 @@ describe('Long Road', () => {
   it('stage 91 has 90 million health', () => expect(roadFoe(91).hp).toBe(90000000));
   it('stage 91 has 800000 attack', () => expect(roadFoe(91).atk).toBe(800000));
   it('stage 91 has 300000 defense', () => expect(roadFoe(91).def).toBe(300000));
-  it('first stage awards 5250 gold', () => expect(roadRewards(91, true).gold).toBe(5250));
+  // Tables are paid with the 13% gold-gain bonus applied (see goldGain in gold.ts).
+  it('first stage awards 5,932 gold with the gain bonus', () => expect(roadRewards(91, true).gold).toBe(5932));
   it('replay reward table awards zero gold', () => expect(roadRewards(91, false).gold).toBe(0));
   it('duplicate result cannot grant gold twice', () => {
     const once = recordRoadClear(hero(), { mode: 'road', value: 91 });
-    expect(recordRoadClear(once, { mode: 'road', value: 91 }).gold).toBe(5350);
+    expect(recordRoadClear(once, { mode: 'road', value: 91 }).gold).toBe(6032);
   });
   it('clear does not mutate the source hero', () => {
     const h = hero(); recordRoadClear(h, { mode: 'road', value: 91 }); expect(h.gold).toBe(100);
@@ -19,7 +20,7 @@ describe('Long Road', () => {
   it('clearing road unlocks next stage', () => expect(recordRoadClear(hero(), { mode: 'road', value: 91 }).road?.stage).toBe(92));
   it('Spire replay cannot pay twice', () => {
     const h = recordRoadClear(recordRoadClear(hero(), { mode: 'road', value: 91 }), { mode: 'spire', value: 1 });
-    expect(recordRoadClear(h, { mode: 'spire', value: 1 }).gold).toBe(7550);
+    expect(recordRoadClear(h, { mode: 'spire', value: 1 }).gold).toBe(8518);
   });
   it('Spire difficulty keeps increasing beyond the first circuit', () => {
     expect(spireWave(91, 101).hp).toBeGreaterThan(spireWave(91, 1).hp);

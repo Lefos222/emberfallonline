@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Cloud, CloudOff, IdCard, LogOut, Trophy, Users, Volume2, VolumeX } from "lucide-react";
+import { Cloud, CloudOff, IdCard, LogOut, Settings, Trophy, Users, Volume2, VolumeX } from "lucide-react";
 import { AvatarIcon } from "./AvatarIcon";
 import { Portrait, frameClass } from "./CharacterSelect";
 import { heroAppearance } from "./appearance";
@@ -37,11 +37,13 @@ export function Hud({
   setMuted,
   cloud,
   onProfile,
+  onSettings,
 }: {
   muted: boolean;
   setMuted: (m: boolean) => void;
   cloud: string;
   onProfile: () => void;
+  onSettings: () => void;
 }) {
   const { hero, gender, chars, heroId } = useGame();
   const me = chars?.find((c) => c.id === heroId);
@@ -98,8 +100,17 @@ export function Hud({
           className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10"
           onClick={() => setMuted(!muted)}
           aria-label="Music"
+          title={muted ? "Unmute music" : "Mute music"}
         >
           {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5 text-gold" />}
+        </button>
+        <button
+          className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10"
+          onClick={onSettings}
+          aria-label="Game settings"
+          title="Game settings"
+        >
+          <Settings className="h-5 w-5" />
         </button>
         <span
           className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10"

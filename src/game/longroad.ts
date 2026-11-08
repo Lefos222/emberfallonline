@@ -2,6 +2,7 @@ import { ENEMIES, invCap, MAX_LEVEL, xpToNext, type Foe, type Hero, type Item, t
 import { CAMPAIGN_STAGES, type SpriteRect } from './world';
 import { BATTLE_BOSSES, ENEMY_ROSTER } from './bestiary';
 import type { Mat } from './crafting';
+import { goldGain } from './gold';
 
 export const ROAD_START = 91;
 /** Ten stages per region; after these twelve, new circuits raise all level bands by 120. */
@@ -67,13 +68,13 @@ export interface RoadReward { gold: number; xp: number; materials: Partial<Recor
 export function roadRewards(stage: number, firstClear: boolean): RoadReward {
   integer(stage, ROAD_START);
   const n = stage - 90;
-  return { gold: firstClear ? 5000 + n * 250 : 0, xp: firstClear ? 10000 + n * 500 : 0,
+  return { gold: firstClear ? goldGain(5000 + n * 250) : 0, xp: firstClear ? 10000 + n * 500 : 0,
     materials: firstClear ? { ore: 10 + n, fragment: stage % 10 === 0 ? 5 : 1, ...(stage % 10 === 0 ? { bossCore: 1 } : {}) } : {},
     items: firstClear && stage % 10 === 0 ? 1 : 0, itemLevel: stage, rarity: 2, firstClear };
 }
 export function spireRewards(wave: number, firstClear = true): RoadReward {
   integer(wave, 1);
-  return { gold: firstClear ? 2000 + wave * 200 : 0, xp: firstClear ? 4000 + wave * 400 : 0,
+  return { gold: firstClear ? goldGain(2000 + wave * 200) : 0, xp: firstClear ? 4000 + wave * 400 : 0,
     materials: firstClear ? { essence: 1 + Math.floor(wave / 10), ...(wave % 10 === 0 ? { starshard: 3 } : {}) } : {},
     items: 0, itemLevel: 90 + wave, rarity: 0, firstClear };
 }

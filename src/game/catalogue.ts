@@ -42,12 +42,20 @@ export function catalogueStock(h: Hero, now = Date.now()): Item[] {
   return h.catalogue.items;
 }
 
+/** The house's cut on gear: every armour and weapon in the catalogue sells 70% off its old price. */
+export const CATALOGUE_DISCOUNT = 0.7;
+
 /**
- * What the catalogue charges: a heavy premium over what the piece is worth, scaled by the hero's
- * level like every other gold price. Expensive, and the gear is still barely worth wearing.
+ * What the catalogue charges: a premium over what the piece is worth, scaled by the hero's level
+ * like every other gold price, then cut by the house's 70% discount on gear.
  */
 export const cataloguePrice = (it: Item, level = 1) =>
-  scaledGold(Math.round((12000 + it.ilvl * 1400) * (1 + it.rarity * 0.9)), level);
+  Math.max(
+    1,
+    Math.round(
+      scaledGold(Math.round((12000 + it.ilvl * 1400) * (1 + it.rarity * 0.9)), level) * (1 - CATALOGUE_DISCOUNT),
+    ),
+  );
 
 /** Buy one catalogue piece. Returns an error message, or null on success. */
 export function buyCatalogueItem(h: Hero, id: string, now = Date.now()): string | null {

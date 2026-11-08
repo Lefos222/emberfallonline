@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import "@lovable.dev/cloud-auth-js/styles.css";
 import castle from "@/assets/castle.jpg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -30,7 +29,7 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
 
-  const [socialBusy, setSocialBusy] = useState<null | "google" | "lovable">(null);
+  const [socialBusy, setSocialBusy] = useState<null | "google">(null);
 
   const enterGame = async (user: { id: string; email?: string | null } | null | undefined) => {
     if (!user) return;
@@ -69,7 +68,8 @@ function AuthPage() {
     setBusy(false);
   };
 
-  const social = async (p: "google" | "lovable") => {
+  // Google is the only social sign-in offered (see the buttons below the form).
+  const social = async (p: "google") => {
     if (socialBusy) return;
     setSocialBusy(p); setMsg(null);
     try {
@@ -106,7 +106,6 @@ function AuthPage() {
         <div className="my-4 text-center text-xs text-muted-foreground">or</div>
         <div className="space-y-2">
           <button type="button" className="btn-blood w-full py-2.5" disabled={!!socialBusy} onClick={() => social("google")}>{socialBusy === "google" ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Continue with Google"}</button>
-          <button type="button" className="lovable-auth-button w-full" disabled={!!socialBusy} onClick={() => social("lovable")}>{socialBusy === "lovable" ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Continue with Lovable"}</button>
         </div>
         {msg && <p className="mt-3 text-center text-sm text-gold">{msg}</p>}
         <div className="mt-4 flex justify-between text-sm">
