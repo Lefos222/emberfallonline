@@ -120,24 +120,22 @@ export function SoulForge({ hero }: { hero: Hero }) {
       </div>
       <p className="mb-3 text-xs text-muted-foreground">
         Fallen foes sometimes leave Soul Shards. Infuse them here for permanent stat bonuses that never
-        reset — every rank is a small step toward a much stronger hero.
+        reset — every rank is a small step toward a much stronger hero, and the ladder never ends.
       </p>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {SOUL_INFUSIONS.map((inf) => {
           const rank = soulRank(hero, inf.id);
           const cost = soulCost(rank);
           const blocked = soulBlocker(hero, inf.id);
-          const maxed = rank >= inf.max;
           return (
             <div key={inf.id} className="slot p-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="font-display text-sm text-[#67e8f9]">{inf.name}</span>
-                <span className="shrink-0 text-xs text-muted-foreground">Rank {rank}/{inf.max}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">Rank {rank}</span>
               </div>
               <div className="mt-1 text-xs text-muted-foreground">{inf.desc}</div>
               <div className="mt-1 text-xs">
-                Now <b className="text-[#67e8f9]">+{(inf.per * rank).toFixed(1)}</b>
-                {!maxed && <> · next <b>+{inf.per}</b></>}
+                Now <b className="text-[#67e8f9]">+{(inf.per * rank).toFixed(1)}</b> · next <b>+{inf.per}</b>
               </div>
               <button
                 className="btn-gold mt-2 w-full py-1.5 text-sm"
@@ -145,7 +143,7 @@ export function SoulForge({ hero }: { hero: Hero }) {
                 title={blocked ?? `Infuse rank ${rank + 1}`}
                 onClick={() => update((h) => { buySoulInfusion(h, inf.id); })}
               >
-                {maxed ? "Maxed" : <>Infuse rank {rank + 1} · <ShardBadge n={cost} /></>}
+                <>Infuse rank {rank + 1} · <ShardBadge n={cost} /></>
               </button>
             </div>
           );

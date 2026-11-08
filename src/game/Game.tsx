@@ -6,6 +6,7 @@ import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
 import { ArtIcon, type ArtIconName } from "./ArtIcon";
 import { GuildHall } from "./GuildHall";
 import { WorldChat } from "./WorldChat";
+import { FarmPanel } from "./Farm";
 import { announceOpenEvents, announceWorldEvent } from "./world-events";
 import { FriendsPanel, useFriendRequestCount } from "./FriendsPanel";
 import { ScrollShop } from "./ScrollShop";
@@ -279,6 +280,7 @@ export function Game() {
             </div>
           )}
           {open === "portal" && <Campaign onClose={() => setOpen(null)} start={start} />}
+          {open === "farm" && <FarmPanel onClose={() => setOpen(null)} />}
           {open === "spire" && (canEnterConquest(hero.level) ? <Campaign spire onClose={() => setOpen(null)} start={start} /> : <ComingSoon id="spire" locked onClose={() => setOpen(null)} />)}
           {open === "forge" && <Forge onClose={() => setOpen(null)} onCraft={() => setCrafting(true)} />}
           {crafting && <Crafting onClose={() => setCrafting(false)} />}
@@ -376,7 +378,7 @@ function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
             style={{ left: `${(i * 37) % 100}%`, animationDuration: `${6 + (i % 5)}s`, animationDelay: `${i * 0.7}s` }} />
         ))}
         {CASTLE_BUILDINGS.map((b) => (
-          <button key={b.id} className="hotspot" aria-label={b.name}
+          <button key={b.id} className={`hotspot${b.id === "farm" ? " hotspot-farm" : ""}`} aria-label={b.name}
             style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.r * 2}%`, aspectRatio: "1" }}
             onMouseEnter={() => setHover(b.id)} onMouseLeave={() => setHover(null)} onClick={(e) => { if (e.detail === 0 || !moved.current) onOpen(b.id); }}>
             <span className={`hotspot-label ${b.soon ? "opacity-60" : ""} absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded px-2 py-0.5 text-xs transition md:text-sm ${hover === b.id ? "scale-110" : "opacity-90"}`}>

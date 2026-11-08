@@ -30,11 +30,11 @@ const hero = () => {
 };
 
 describe("auction house shop discount", () => {
-  it("sells every good 70% under the old stall prices", () => {
-    expect(SHOP_DISCOUNT).toBe(0.7);
-    expect(shopPrice("stamina", 1)).toBe(Math.round(21_000 * 0.3));
-    expect(shopPrice("strength", 1)).toBe(Math.round(40_000 * 0.3));
-    expect(stoneShopPrice(1, 1)).toBe(Math.round(stonePrice(1, 1) * 0.3));
+  it("sells every good 73% under the old stall prices", () => {
+    expect(SHOP_DISCOUNT).toBe(0.73);
+    expect(shopPrice("stamina", 1)).toBe(Math.round(21_000 * (1 - SHOP_DISCOUNT)));
+    expect(shopPrice("strength", 1)).toBe(Math.round(40_000 * (1 - SHOP_DISCOUNT)));
+    expect(stoneShopPrice(1, 1)).toBe(Math.round(stonePrice(1, 1) * (1 - SHOP_DISCOUNT)));
   });
 
   it("carries all nine stone grades and the battle scrolls inside the shop", () => {

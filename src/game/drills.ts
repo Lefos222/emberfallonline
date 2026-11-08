@@ -220,7 +220,9 @@ export function trainAdvanced(h: AdvancedState, id: string): string | null {
  * Individual stat trainings: the reworked barracks attribute training. Instead of four bundled
  * attributes (Str/Int/Agi/Vit), each combat stat is its own permanent gold-paid track. Every rank
  * banks a fixed percentage bonus that feeds the shared stat pipeline through statTrainFx.
- * Gold scaling is capped at rank 5 and only costs gold; all others are open-ended.
+ * There is no final rank: the cost of each step keeps climbing so the training stays a gold sink.
+ * Gold Scaling is the one exception — it is capped at rank 5 because an endless gold multiplier
+ * would break the economy.
  */
 export interface StatTraining {
   id: string;
@@ -229,7 +231,8 @@ export interface StatTraining {
   stat: StatKey;
   /** Bonus per rank, in the stat's own unit (percent). */
   per: number;
-  max: number;
+  /** A cap only where an endless ladder would break the economy; everything else trains forever. */
+  max?: number;
   /** Gold of the first rank; every further rank costs more. */
   base: number;
   /** Barracks building level that unlocks this training. */
@@ -239,21 +242,21 @@ export interface StatTraining {
 
 export const STAT_TRAININGS: StatTraining[] = [
   // Physical group
-  { id: "physAtk", name: "Physical Attack", stat: "atkPct", per: 1, max: 10, base: 800, barracks: 1, desc: "Heavy-bag drills that sharpen every swing." },
-  { id: "physDef", name: "Physical Defense", stat: "defPct", per: 1, max: 10, base: 800, barracks: 1, desc: "Locking shields, rank after rank." },
-  { id: "critDmg", name: "Crit Damage", stat: "critDmg", per: 3, max: 10, base: 1200, barracks: 3, desc: "Reading the opening in a guard for deeper strikes." },
-  { id: "physPen", name: "Armor Pen", stat: "pen", per: 0.5, max: 8, base: 1000, barracks: 5, desc: "Piercing drills that punch clean through armour." },
+  { id: "physAtk", name: "Physical Attack", stat: "atkPct", per: 1, base: 800, barracks: 1, desc: "Heavy-bag drills that sharpen every swing." },
+  { id: "physDef", name: "Physical Defense", stat: "defPct", per: 1, base: 800, barracks: 1, desc: "Locking shields, rank after rank." },
+  { id: "critDmg", name: "Crit Damage", stat: "critDmg", per: 3, base: 1200, barracks: 3, desc: "Reading the opening in a guard for deeper strikes." },
+  { id: "physPen", name: "Armor Pen", stat: "pen", per: 0.5, base: 1000, barracks: 5, desc: "Piercing drills that punch clean through armour." },
   // Magic group
-  { id: "magAtk", name: "Magic Attack", stat: "matkPct", per: 1, max: 10, base: 900, barracks: 2, desc: "Sigil study that sharpens spell power." },
-  { id: "magDef", name: "Magic Defense", stat: "mdefPct", per: 1, max: 10, base: 900, barracks: 3, desc: "Warding drills that harden against magic." },
-  { id: "magPen", name: "Magic Pen", stat: "mpen", per: 0.5, max: 8, base: 1100, barracks: 6, desc: "Runebind drills that carve through magical defences." },
+  { id: "magAtk", name: "Magic Attack", stat: "matkPct", per: 1, base: 900, barracks: 2, desc: "Sigil study that sharpens spell power." },
+  { id: "magDef", name: "Magic Defense", stat: "mdefPct", per: 1, base: 900, barracks: 3, desc: "Warding drills that harden against magic." },
+  { id: "magPen", name: "Magic Pen", stat: "mpen", per: 0.5, base: 1100, barracks: 6, desc: "Runebind drills that carve through magical defences." },
   // Agility group
-  { id: "crit", name: "Crit Chance", stat: "crit", per: 0.5, max: 10, base: 1000, barracks: 4, desc: "Focus drills that find the weak point." },
-  { id: "dodge", name: "Dodge", stat: "dodge", per: 0.5, max: 8, base: 1000, barracks: 6, desc: "Footwork that leaves a blade cutting air." },
-  { id: "accuracy", name: "Accuracy", stat: "acc", per: 0.5, max: 8, base: 1000, barracks: 5, desc: "Marksman drills — nothing but the mark." },
-  { id: "loot", name: "Loot Chance", stat: "loot", per: 1, max: 10, base: 1500, barracks: 8, desc: "Scavenger drills that find more gear in the field." },
+  { id: "crit", name: "Crit Chance", stat: "crit", per: 0.5, base: 1000, barracks: 4, desc: "Focus drills that find the weak point." },
+  { id: "dodge", name: "Dodge", stat: "dodge", per: 0.5, base: 1000, barracks: 6, desc: "Footwork that leaves a blade cutting air." },
+  { id: "accuracy", name: "Accuracy", stat: "acc", per: 0.5, base: 1000, barracks: 5, desc: "Marksman drills — nothing but the mark." },
+  { id: "loot", name: "Loot Chance", stat: "loot", per: 1, base: 1500, barracks: 8, desc: "Scavenger drills that find more gear in the field." },
   // Health
-  { id: "health", name: "Health", stat: "hpPct", per: 2, max: 10, base: 700, barracks: 1, desc: "Conditioning drills that widen your well of life." },
+  { id: "health", name: "Health", stat: "hpPct", per: 2, base: 700, barracks: 1, desc: "Conditioning drills that widen your well of life." },
   // Gold scaling — capped at 5, gold only
   { id: "goldScale", name: "Gold Scaling", stat: "goldScale", per: 5, max: 5, base: 5000, barracks: 10, desc: "Quartermaster drills that squeeze more gold from every victory." },
 ];
@@ -287,7 +290,7 @@ export function statTrainFx(h: Pick<StatTrainState, "statTrains">): BonusFx {
 export function statTrainBlocker(h: StatTrainState, id: string): string | null {
   const d = STAT_TRAININGS.find((x) => x.id === id);
   if (!d) return "Unknown training";
-  if (statTrainRank(h, id) >= d.max) return "Fully trained";
+  if (d.max !== undefined && statTrainRank(h, id) >= d.max) return "Fully trained";
   if (barracksLevel(h) < d.barracks) return `Requires barracks level ${d.barracks}`;
   if (h.gold < statTrainCost(d, statTrainRank(h, id), h.level)) return "Not enough gold";
   return null;

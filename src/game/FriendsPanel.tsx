@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Clock, Loader2, MessageSquare, Search, UserPlus, X } from "lucide-react";
+import { Check, Clock, Copy, Loader2, MessageSquare, Search, Swords, UserPlus, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { heroStats } from "./data";
+import { useGame } from "./store";
 import { InspectPanel } from "./InspectPanel";
 import { FriendChat } from "./FriendChat";
 import {
@@ -93,6 +95,7 @@ export function FriendsPanel({ heroId }: { heroId: string | null }) {
 }
 
 function FriendsContent({ heroId }: { heroId: string | null }) {
+  const { hero } = useGame();
   const [tab, setTab] = useState<Tab>("friends");
   const [friends, setFriends] = useState<FriendProfile[]>([]);
   const [incoming, setIncoming] = useState<FriendRequest[]>([]);
@@ -282,6 +285,23 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
     : friends;
   const onlineCount = friends.filter((f) => presence(f.last_played).online).length;
   const pending = incoming.length + sent.length;
+  const unreadTotal = Object.values(unread).reduce((sum, n) => sum + n, 0);
+  const myPower = hero ? heroStats(hero).power : 0;
+  // Friends are listed online first, then by how recently the server saw them playing.
+  const sortedFriends = [...visibleFriends].sort((a, b) => {
+    const on = Number(presence(b.last_played).online) - Number(presence(a.last_played).online);
+    if (on !== 0) return on;
+    return Date.parse(b.last_played) - Date.parse(a.last_played);
+  });
+  const copyMyName = async () => {
+    if (!hero) return;
+    try {
+      await navigator.clipboard.writeText(hero.name);
+      setNote(`Your hero name is copied — send it to a friend so they can find you.`);
+    } catch {
+      setNote(`Ask your friend to search for "${hero.name}" in Find heroes.`);
+    }
+  };
 
   return (
     <section className="game-panel anim-pop p-4" aria-label="Friends" data-testid="friends-panel">
@@ -346,6 +366,38 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
 
           {tab === "friends" && (
             <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="slot p-2 text-center">
+                  <div className="font-display text-xl text-gold">{friends.length}</div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Friends</div>
+                </div>
+                <div className="slot p-2 text-center">
+                  <div className="font-display text-xl text-r1">{onlineCount}</div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Online now</div>
+                </div>
+                <div className="slot p-2 text-center">
+                  <div className="font-display text-xl text-gold">{pending}</div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Pending requests</div>
+                </div>
+                <div className="slot p-2 text-center">
+                  <div className="font-display text-xl text-blood">{unreadTotal}</div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Unread messages</div>
+                </div>
+              </div>
+              {hero && (
+                <div className="slot flex flex-wrap items-center gap-2 p-2">
+                  <Users className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
+                  <p className="min-w-0 flex-1 text-xs text-muted-foreground">
+                    Your hero name is <b className="text-gold">{hero.name}</b> — share it so friends can find you.
+                  </p>
+                  <Button type="button" variant="outline" size="sm" onClick={() => void copyMyName()}>
+                    <Copy className="mr-1 h-3.5 w-3.5" />Copy name
+                  </Button>
+                  <Button type="button" size="sm" onClick={() => setTab("find")}>
+                    <UserPlus className="mr-1 h-3.5 w-3.5" />Add a friend
+                  </Button>
+                </div>
+              )}
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs text-muted-foreground">
                   {friends.length} friend{friends.length === 1 ? "" : "s"}
@@ -366,8 +418,9 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
               </div>
 
               <ul className="space-y-2">
-                {visibleFriends.map((friend) => {
+                {sortedFriends.map((friend) => {
                   const seen = presence(friend.last_played);
+                  const gap = friend.power - myPower;
                   return (
                     <li key={friend.id} className="slot flex flex-wrap items-center gap-2 p-2">
                       <button
@@ -387,9 +440,20 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                           <span className="capitalize">{friend.hero_class}</span> · Level{" "}
                           {friend.level} · BR {friend.power.toLocaleString()}
                         </span>
-                        <span className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <Clock className="h-3 w-3" aria-hidden="true" />
-                          {seen.label}
+                        <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" aria-hidden="true" />
+                            {seen.label}
+                          </span>
+                          {friend.arena_rating > 0 && (
+                            <span className="flex items-center gap-1"><Swords className="h-3 w-3" aria-hidden="true" />Rating {friend.arena_rating.toLocaleString()}</span>
+                          )}
+                          {myPower > 0 && (
+                            <span className={gap >= 0 ? "text-hp" : "text-r1"}>
+                              {gap >= 0 ? `${gap.toLocaleString()} BR above you` : `${Math.abs(gap).toLocaleString()} BR below you`}
+                            </span>
+                          )}
+                          {friend.title && <span className="text-gold">{friend.title}</span>}
                         </span>
                       </button>
                       <Button

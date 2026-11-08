@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { AuctionHousePanel, buyShopGood, shopPrice } from "@/game/Marketplace";
+import { AuctionHousePanel, SHOP_DISCOUNT, buyShopGood, shopPrice } from "@/game/Marketplace";
 import { buyCatalogueItem, catalogueHour, cataloguePrice, catalogueStock } from "@/game/catalogue";
 import { MagicTower } from "@/game/Workshop";
 import { HeroHall } from "@/game/panels";
@@ -48,10 +48,10 @@ describe("auction house catalogue", () => {
 });
 
 describe("auction house shop", () => {
-  it("sells stamina potions 70% under their old price, and elixirs of strength", () => {
+  it("sells stamina potions 73% under their old price, and elixirs of strength", () => {
     expect(potionPrice("stamina", 1)).toBe(21_000);
-    // The house undercuts the old stalls by 70% (see SHOP_DISCOUNT).
-    expect(shopPrice("stamina", 1)).toBe(Math.round(21_000 * 0.3));
+    // The house undercuts the old stalls by 73% (see SHOP_DISCOUNT).
+    expect(shopPrice("stamina", 1)).toBe(Math.round(21_000 * (1 - SHOP_DISCOUNT)));
     const h = hero();
     const gold = h.gold;
     expect(buyShopGood(h, "stamina")).toBeNull();
