@@ -1,7 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Castle, Compass, Crown, Flag, Gem, Hammer, Landmark, Minus, Plus, Skull, X } from "lucide-react";
+import {
+  Castle,
+  Compass,
+  Crown,
+  Flag,
+  Gem,
+  Hammer,
+  Landmark,
+  Minus,
+  PackageOpen,
+  Plus,
+  ScrollText,
+  Skull,
+  X,
+} from "lucide-react";
 import mapImg from "@/assets/world-map.jpg";
-import { useGame } from "./store";
+import { update, useGame } from "./store";
 import type { StartBattle } from "./panels";
 import { completeWorldRaid, loadWorldMap } from "./worldmap-services";
 import {
@@ -10,6 +24,7 @@ import {
   WORLD_H,
   WORLD_SITES,
   WORLD_W,
+  cacheReward,
   clampCamera,
   clusterMarkers,
   fitZoom,
@@ -26,6 +41,18 @@ import {
   type WorldMapState,
   type WorldSite,
 } from "./worldmap";
+import {
+  bountiesReady,
+  bountyBoard,
+  bountyLedger,
+  bountyProgress,
+  claimBounty,
+  openVault,
+  recordBounty,
+  vaultClaimed,
+  type Bounty,
+  type BountyKind,
+} from "./worldtree";
 import {
   castleRaidNode,
   castleRaidsLeft,
@@ -45,6 +72,7 @@ const KIND_STYLE: Record<SiteKind, { ring: string; dot: string; label: string; I
   keep: { ring: "ring-gold", dot: "bg-gold", label: "Rival castle", Icon: Castle },
   ruin: { ring: "ring-muted-foreground", dot: "bg-muted-foreground", label: "Abandoned castle", Icon: Landmark },
   landmark: { ring: "ring-amber-300", dot: "bg-amber-300", label: "Landmark", Icon: Compass },
+  cache: { ring: "ring-violet-400", dot: "bg-violet-400", label: "Sealed vault", Icon: PackageOpen },
 };
 
 const rewardLines = (reward: Record<string, unknown>) =>
@@ -81,6 +109,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
   const [selected, setSelected] = useState<WorldSite | null>(null);
   const [picked, setPicked] = useState<WorldBanner | null>(null);
   const [planting, setPlanting] = useState(false);
+  const [showBounties, setShowBounties] = useState(false);
   const [castle, setCastle] = useState(() => loadMyCastle(heroId));
   const [castleRaids, setCastleRaids] = useState(() => castleRaidsLeft(heroId));
   const [banners, setBanners] = useState<WorldBanner[]>([]);
@@ -211,6 +240,19 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
   const heroLevel = hero.level + hero.paragon;
   const goldLeft = state ? raidsLeft(state, "gold") : 0;
 
+  const bounties = bountyBoard(heroLevel);
+  const ledger = bountyLedger(hero);
+  const claimable = bountiesReady(hero, heroLevel);
+
+  const claim = (bounty: Bounty) => {
+    let paid = 0;
+    update((h) => {
+      paid = claimBounty(h, bounty);
+    });
+    if (paid) setNote(`Bounty paid: +${paid.toLocaleString("en-GB")} gold.`);
+    else setError("That bounty is not finished yet.");
+  };
+
   const focus = (x: number, y: number, z = cam.z) =>
     setCam((c) => clampCamera({ x, y, z }, size));
 
@@ -279,11 +321,41 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
           const r = await completeWorldRaid(node);
           if (isCastle) setCastleRaids(spendCastleRaid(heroId));
           refresh();
+          const bountyKind: BountyKind = isCastle ? "castle" : (site.kind as BountyKind);
+          update((h) => recordBounty(h, bountyKind));
           const lines = rewardLines(r.reward);
           return { lines: lines.length ? lines : ["Raid complete."] };
         } catch (e) {
           return { lines: [e instanceof Error ? e.message : "Reward confirmation failed."] };
         }
+      },
+    });
+  };
+
+  const breakSeal = (site: WorldSite) => {
+    if (vaultClaimed(hero, site.id)) {
+      setError("This vault is already broken — its seal is spent.");
+      return;
+    }
+    start({
+      title: `World Map · ${site.name}`,
+      right: siteFoe(site, heroLevel),
+      onResult: (won) => {
+        if (!won) return { lines: ["The vault warden holds the seal. Come back stronger."] };
+        const reward = cacheReward(site, heroLevel);
+        let paid = false;
+        update((h) => {
+          paid = openVault(h, site.id, reward);
+        });
+        return {
+          lines: paid
+            ? [
+                `+${reward.gold.toLocaleString("en-GB")} gold`,
+                `${reward.mats.ore} Ember Ore`,
+                `${reward.mats.essence} Soul Essence`,
+              ]
+            : ["The seal was already broken."],
+        };
       },
     });
   };
@@ -316,7 +388,20 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
             </span>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1">
+            <button
+              onClick={() => setShowBounties((s) => !s)}
+              className={`flex h-8 items-center gap-1 px-2 text-[11px] ${showBounties ? "btn-gold" : "btn-ghost"}`}
+              aria-pressed={showBounties}
+            >
+              <ScrollText className="h-4 w-4" />
+              <span className="hidden sm:inline">Bounties{claimable > 0 ? ` · ${claimable}` : ""}</span>
+              {claimable > 0 && (
+                <span className="rounded-full bg-gold px-1 text-[9px] font-bold text-background sm:hidden">
+                  {claimable}
+                </span>
+              )}
+            </button>
             <button
               onClick={() => zoomAt(1 / 1.35, size.w / 2, size.h / 2)}
               className="slot flex h-8 w-8 items-center justify-center"
@@ -419,6 +504,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
             }
             setSelected(null);
             setPicked(null);
+            setShowBounties(false);
           }}
         >
           <div
@@ -475,6 +561,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                   e.stopPropagation();
                   if (moved.current) return;
                   setPicked(null);
+                  setShowBounties(false);
                   setSelected(lead);
                 }}
               >
@@ -566,6 +653,60 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
             </div>
           )}
 
+          {showBounties && (
+            <div
+              className="game-panel absolute bottom-3 right-3 z-30 w-[min(92vw,23rem)] p-3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Bounty board</p>
+                  <h3 className="font-display text-xl text-gold">Today in the realm</h3>
+                </div>
+                <button
+                  onClick={() => setShowBounties(false)}
+                  aria-label="Dismiss bounties"
+                  className="btn-ghost flex h-7 w-7 items-center justify-center"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Three bounties rotate every UTC day with the raid allowances.
+              </p>
+              {bounties.map((bounty) => {
+                const progress = bountyProgress(hero, bounty.kind);
+                const paid = ledger.claimed.includes(bounty.id);
+                const ready = !paid && progress >= bounty.need;
+                return (
+                  <div key={bounty.id} className="mt-2 rounded border border-border/70 px-2 py-1.5">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="text-xs font-semibold">{bounty.title}</p>
+                      <p className="text-[11px] text-gold">+{bounty.gold.toLocaleString("en-GB")} gold</p>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">{bounty.blurb}</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-[11px]">
+                        {Math.min(progress, bounty.need)}/{bounty.need}
+                      </span>
+                      {paid ? (
+                        <span className="ml-auto text-[11px] text-muted-foreground">Paid</span>
+                      ) : (
+                        <button
+                          className="btn-gold ml-auto px-2 py-0.5 text-[11px]"
+                          disabled={!ready}
+                          onClick={() => claim(bounty)}
+                        >
+                          Claim
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {picked && (
             <div
               className="game-panel absolute bottom-3 left-3 z-30 w-[min(92vw,22rem)] p-3"
@@ -622,7 +763,17 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
               </p>
 
               <div className="mt-2.5">
-                {selected.kind === "landmark" ? (
+                {selected.kind === "cache" ? (
+                  vaultClaimed(hero, selected.id) ? (
+                    <p className="text-xs text-muted-foreground">
+                      The seal is broken — this vault stands empty for you.
+                    </p>
+                  ) : (
+                    <button className="btn-gold w-full py-1.5" onClick={() => breakSeal(selected)}>
+                      Break the seal · one-time hoard
+                    </button>
+                  )
+                ) : selected.kind === "landmark" ? (
                   <p className="text-xs text-muted-foreground">
                     A painted wonder of the realm — no raid here, only the view.
                   </p>
@@ -660,9 +811,10 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
         </div>
 
         <p className="border-t border-border px-3 py-2 text-[11px] text-muted-foreground md:px-6">
-          {WORLD_SITES.length} places of interest stand on one bounded realm — drag to travel, scroll
-          or pinch the buttons to zoom, and plant your own castle anywhere on it. Banners are shared:
-          every hero the realm holds can raise one.
+          {WORLD_SITES.length} places of interest stand on one bounded realm — mines, ore dungeons,
+          world bosses, rival castles, ruins, sealed vaults and painted wonders. Drag to travel, scroll
+          or pinch the buttons to zoom, take the day's bounties, and plant your own castle anywhere on
+          it. Banners are shared: every hero the realm holds can raise one.
         </p>
       </div>
     </div>

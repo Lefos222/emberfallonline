@@ -18,3 +18,13 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: () => {},
   }),
 });
+
+// Panels that size themselves to their stage (the world map) need the observer jsdom lacks.
+Object.defineProperty(window, "ResizeObserver", {
+  writable: true,
+  value: class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  },
+});

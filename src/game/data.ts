@@ -300,6 +300,11 @@ export interface Hero {
   buildings?: Record<string, number>;
   /** The banner this hero planted on the world map; every lord can read it (see worldcastles.ts). */
   worldCastle?: { x: number; y: number; at: string };
+  /** World Tree: today's bounty ledger and the sealed vaults already broken (see worldtree.ts). */
+  worldTree?: {
+    bounties?: { day?: string; gold?: number; ore?: number; boss?: number; castle?: number; claimed?: string[] };
+    caches?: string[];
+  };
   /** Daily commission board: day snapshot plus claimed quest ids (see quest-board.ts). */
   daily?: { day: string; base: Record<string, number>; claimed: string[] };
   stage: number;
