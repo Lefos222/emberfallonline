@@ -49,9 +49,9 @@ describe("auction house catalogue", () => {
 
 describe("auction house shop", () => {
   it("sells stamina potions 70% under their old price, and elixirs of strength", () => {
-    expect(potionPrice("stamina", 1)).toBe(85_000);
+    expect(potionPrice("stamina", 1)).toBe(21_000);
     // The house undercuts the old stalls by 70% (see SHOP_DISCOUNT).
-    expect(shopPrice("stamina", 1)).toBe(25_500);
+    expect(shopPrice("stamina", 1)).toBe(Math.round(21_000 * 0.3));
     const h = hero();
     const gold = h.gold;
     expect(buyShopGood(h, "stamina")).toBeNull();

@@ -10,7 +10,7 @@ import type { Hero } from "./data";
  * House. The bar refills at Greek midnight like the dailies.
  */
 
-export const STAMINA_PER_DAY = 200;
+export const STAMINA_PER_DAY = 500;
 /** Stamina one Campaign Gate battle costs. */
 export const CAMPAIGN_STAMINA = 20;
 /** Stamina one Dungeon Gate run costs. */

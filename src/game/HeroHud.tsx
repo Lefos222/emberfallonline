@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Cloud, CloudOff, IdCard, LogOut, Settings, Trophy, Users, Volume2, VolumeX } from "lucide-react";
+import { Cloud, CloudOff, IdCard, LogOut, Settings, Trophy, Users, Volume2, VolumeX, Gift } from "lucide-react";
 import { AvatarIcon } from "./AvatarIcon";
 import { Portrait, frameClass } from "./CharacterSelect";
 import { heroAppearance } from "./appearance";
@@ -28,6 +28,7 @@ import {
 import { Diamonds, Gold, VoidCrystals, fmt } from "./ui";
 import { leaveCharacter, update, useGame } from "./store";
 import { supabase } from "@/integrations/supabase/client";
+import { dailyChestReady, dailyChestCountdown, formatDailyChestCountdown, claimDailyChest, DAILY_CHEST_MAX_LEVEL } from "./daily-chest";
 
 /**
  * The top-left player card: portrait, name, class, XP, currencies, power and stamina.
@@ -95,6 +96,9 @@ export function Hud({
         </div>
         <StaminaBar hero={hero} />
       </div>
+      {hero.level < DAILY_CHEST_MAX_LEVEL && (
+        <DailyChestButton hero={hero} />
+      )}
       <div className="game-panel pointer-events-auto flex items-center gap-1 p-2 lg:gap-2">
         <button
           className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10"
@@ -236,6 +240,49 @@ export function StaminaBar({ hero }: { hero: Hero }) {
               })}
             </div>
             <p className="mt-3 text-[11px] text-muted-foreground">Buy more at the Auction House's shop, or find Stamina Potions as a rare dungeon drop.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Daily bonus chest icon next to the player card: free prize every 30 min until level 30. */
+function DailyChestButton({ hero }: { hero: Hero }) {
+  const [msg, setMsg] = useState<string | null>(null);
+  const ready = dailyChestReady(hero);
+  const countdown = dailyChestCountdown(hero);
+
+  const claim = () => {
+    update((h) => {
+      const result = claimDailyChest(h);
+      setMsg(result);
+    });
+  };
+
+  return (
+    <div className="pointer-events-auto flex flex-col items-center gap-0.5">
+      <button
+        className={`slot relative flex h-10 w-10 items-center justify-center transition hover:scale-110 ${ready ? "ring-2 ring-gold" : ""}`}
+        onClick={ready ? claim : undefined}
+        disabled={!ready}
+        aria-label={ready ? "Claim daily chest" : `Daily chest in ${formatDailyChestCountdown(countdown)}`}
+        title={ready ? "Free daily chest — click to claim!" : `Next chest in ${formatDailyChestCountdown(countdown)}`}
+      >
+        <Gift className={`h-5 w-5 ${ready ? "text-gold animate-pulse" : "text-muted-foreground"}`} />
+        {ready && (
+          <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-r1 ring-2 ring-background" />
+        )}
+      </button>
+      {!ready && (
+        <span className="text-[8px] text-muted-foreground">{formatDailyChestCountdown(countdown)}</span>
+      )}
+      {msg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" onClick={() => setMsg(null)}>
+          <div className="game-panel anim-pop w-full max-w-xs p-4 text-center" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 font-display text-lg text-gold">Daily Chest</div>
+            <p className="text-sm text-r1">{msg}</p>
+            <button className="btn-gold mt-3 w-full py-2 text-sm" onClick={() => setMsg(null)}>Close</button>
           </div>
         </div>
       )}

@@ -264,7 +264,10 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
         const tokens = spire ? floorTokens(stage) : 0;
         update((h) => {
           // Fighting above the hero's level pays catch-up XP (see catchUpXpFactor).
-          const xp = spire ? 0 : scrollXp(rw.xp * catchUpXpFactor(h.level, stage), xpMultiplier);
+          // Non-campaign (Conquest) fights pay 30% XP but never enough to level up.
+          const xp = spire
+            ? Math.max(0, Math.min(Math.round(rw.xp * 0.3 * xpMultiplier), Math.max(0, xpToNext(h) - h.xp - 1)))
+            : scrollXp(rw.xp * catchUpXpFactor(h.level, stage), xpMultiplier);
           const { levels } = grant(h, xp, rw.gold);
           loot = rollLoot(h, stage, foe.boss || spire ? 1 : 0.45, spire ? 2 : foe.boss ? 2 : 0);
           if (loot) addLoot(h, loot);

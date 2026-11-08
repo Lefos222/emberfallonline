@@ -48,7 +48,7 @@ export const ownedChests = (h: ChestSave) =>
 const pickGem = (): GemType => GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)];
 
 /** Coin inside one Gold Chest — a few fights' worth, in step with the scarce campaign purse. */
-export const goldChestValue = (level: number) => goldGain(600 + level * 45);
+export const goldChestValue = (level: number) => goldGain(600 + level * 45, level);
 
 // ---------- Chests found in battle ----------
 

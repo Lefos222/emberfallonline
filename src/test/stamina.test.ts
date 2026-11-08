@@ -21,11 +21,11 @@ import {
 } from "@/game/stamina";
 
 describe("daily stamina", () => {
-  it("pays 200 a day: ten campaign battles at 20 or twenty dungeon runs at 10", () => {
-    expect(STAMINA_PER_DAY).toBe(200);
+  it("pays 500 a day: twenty-five campaign battles at 20 or fifty dungeon runs at 10", () => {
+    expect(STAMINA_PER_DAY).toBe(500);
     expect(CAMPAIGN_STAMINA).toBe(20);
     expect(DUNGEON_STAMINA).toBe(10);
-    expect(DUNGEON_RUNS_PER_DAY).toBe(20);
+    expect(DUNGEON_RUNS_PER_DAY).toBe(50);
   });
 
   it("starts full and drains a campaign battle at a time", () => {

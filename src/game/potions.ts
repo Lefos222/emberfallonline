@@ -50,7 +50,7 @@ export const POTIONS: Record<PotionId, PotionDef> = {
     name: "Stamina Potion",
     art: staminaArt,
     desc: `Restores ${POTION_STAMINA} stamina. At most ${POTION_PER_DAY} a day.`,
-    shop: 85000,
+    shop: 21000,
   },
   strength: {
     id: "strength",
