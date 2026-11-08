@@ -16,6 +16,7 @@ import type { GemType, Mat } from "./crafting";
 const MAT_IMG: Partial<Record<Mat, string>> = { ore, essence, starshard, bossCore, fragment, sigil };
 const GEM_IMG: Partial<Record<GemType, string>> = { ruby, sapphire, emerald, topaz };
 import { ASTRAL_BASES, ASTRAL_COLORS, GEMS, MATS } from "./crafting";
+import { STONE_COLORS } from "./enchant";
 
 /** Drawn shapes for materials that have no painted sheet art. */
 const MAT_SHAPE: Partial<Record<Mat, ReactNode>> = {
@@ -32,6 +33,28 @@ export const MatIcon = ({ mat, size = 20 }: { mat: Mat; size?: number }) => MAT_
     {MAT_SHAPE[mat] ?? <path d="M5 3h10l4 5-9 10L1 8z" fill="#9aa3b5" stroke="#222" />}
   </svg>
 );
+/** An enchantment stone of a grade: the chart's colour ramp, with its grade cut into the stone. */
+export const StoneIcon = ({ level, size = 22 }: { level: number; size?: number }) => {
+  const lvl = Math.max(1, Math.min(9, Math.round(level)));
+  const color = STONE_COLORS[lvl - 1];
+  const id = `stone-${lvl}`;
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" className="inline-block align-middle" role="img" aria-label={`Lv ${lvl} Enchantment Stone`}>
+      <defs>
+        <radialGradient id={id} cx="34%" cy="28%" r="80%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
+          <stop offset="40%" stopColor={color} />
+          <stop offset="100%" stopColor="#101018" stopOpacity="0.9" />
+        </radialGradient>
+      </defs>
+      <path d="M10 1.5l7 5-3.2 11.5H6.2L3 6.5z" fill={`url(#${id})`} stroke="#0b0b10" strokeWidth="0.9" />
+      <path d="M10 1.5L7.5 18.5M3 6.5h14" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="0.5" fill="none" />
+      <circle cx="10" cy="11.5" r="4" fill="#0b0b10" fillOpacity="0.72" />
+      <text x="10" y="14" textAnchor="middle" fontSize="6.4" fontWeight="bold" fill="#fff">{lvl}</text>
+    </svg>
+  );
+};
+
 /** Cut shapes so each gem type is recognisable even without a painted icon. */
 const CUTS: Partial<Record<GemType, string>> = {
   amethyst: "M10 1l6 5-2 12H6L4 6z", aquamarine: "M3 7l7-6 7 6-7 12z",

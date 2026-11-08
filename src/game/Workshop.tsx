@@ -55,7 +55,7 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
       <div className="grid gap-5 lg:grid-cols-3">
         <div>
           <div className="mb-2 font-display">Socketed gear</div>
-          {gear.length === 0 && <p className="text-sm text-muted-foreground">Uncommon or better gear has sockets (Epic: 2, Mythic: 3).</p>}
+          {gear.length === 0 && <p className="text-sm text-muted-foreground">Uncommon or better gear is born with sockets (Epic: 2, Mythic: 3), and the Forge cuts extra gem holes into any piece — up to four.</p>}
           <div className="max-h-96 space-y-1 overflow-y-auto">
             {gear.map((it) => (
               <button key={it.id} onClick={() => setSelId(it.id)} className={`slot w-full px-2 py-1.5 text-left text-sm ${selId === it.id ? "ring-2 ring-gold" : ""}`} style={{ borderColor: `var(--r${it.rarity})` }}>

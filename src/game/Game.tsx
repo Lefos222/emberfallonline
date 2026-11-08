@@ -39,6 +39,7 @@ import { RelicTrials } from "./RelicTrials";
 import { LongRoad } from "./LongRoad";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
+import { addStones, rollStoneDrop } from "./enchant";
 import { ItemCard, Panel } from "./ui";
 import { CONQUEST_LEVEL, canEnterConquest } from "./data";
 import { QuestsButton, QuestsPanel } from "./Quests";
@@ -184,6 +185,15 @@ export function Game() {
       if (shards > 0) {
         update((h) => { h.soulShards = (h.soulShards ?? 0) + shards; });
         r.lines.push(`+${shards} Soul Shard${shards > 1 ? "s" : ""} ✦`);
+      }
+    }
+    // Won fights sometimes leave an enchantment stone behind: bosses always, elites often (see enchant.ts).
+    if (won) {
+      const live = getState().hero;
+      const stone = rollStoneDrop((live?.level ?? 1) + (live?.paragon ?? 0), !!battle.right.boss);
+      if (stone) {
+        update((h) => addStones(h, stone.level, stone.n));
+        r.lines.push(`+${stone.n} Lv ${stone.level} Enchantment Stone`);
       }
     }
     // A won dungeon run can leave a Stamina Potion behind — rare, but the only source (see stamina.ts).

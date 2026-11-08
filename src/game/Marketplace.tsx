@@ -9,31 +9,45 @@ import { POTION_PER_DAY, potionUsesLeft } from "./stamina";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, ItemCard, Panel, fmt } from "./ui";
 import { GearIcon } from "./GearIcon";
-import { MatIcon } from "./MatIcon";
+import { StoneIcon } from "./MatIcon";
+import { ScrollGoods } from "./ScrollShop";
+import { STONE_LEVELS, addStones, clampStone, stoneBonus, stoneCount, stonePrice } from "./enchant";
 
 type Tab = "catalogue" | "shop" | "auction";
 
-/** Goods sold for gold in the Auction House shop. */
-export const SHOP_STOCK: { id: "stamina" | "strength" | "enchantStone"; name: string; note: string; price: number }[] = [
+/** The Auction House undercuts every other stall: its shop goods sell 70% cheaper than before. */
+export const SHOP_DISCOUNT = 0.7;
+/** Apply the shop's permanent discount to a gold price. */
+const cutPrice = (gold: number) => Math.max(1, Math.round(gold * (1 - SHOP_DISCOUNT)));
+
+/** Potions sold for gold in the Auction House shop. */
+export const SHOP_STOCK: { id: PotionId; name: string; note: string; price: number }[] = [
   { id: "stamina", name: "Stamina Potion", note: `+50 stamina · ${POTION_PER_DAY} a day`, price: POTIONS.stamina.shop },
   { id: "strength", name: "Elixir of Strength", note: "+20% physical attack for 30 minutes", price: POTIONS.strength.shop },
-  { id: "enchantStone", name: "Enchantment Stones ×2", note: "Safer gear enhancing at the Forge", price: 22000 },
 ];
 
 /** Gold one shop good costs for this hero. */
-export const shopPrice = (id: (typeof SHOP_STOCK)[number]["id"], level = 1) =>
-  scaledGold(SHOP_STOCK.find((g) => g.id === id)?.price ?? 0, level);
+export const shopPrice = (id: PotionId, level = 1) => cutPrice(scaledGold(POTIONS[id].shop, level));
 
 /** Buy a shop good. Returns an error message, or null on success. */
-export function buyShopGood(h: Hero, id: (typeof SHOP_STOCK)[number]["id"]): string | null {
+export function buyShopGood(h: Hero, id: PotionId): string | null {
   const price = shopPrice(id, h.level);
   if (h.gold < price) return `Not enough gold — ${fmt(price)} needed`;
   h.gold -= price;
-  if (id === "enchantStone") {
-    h.mats = { ...(h.mats ?? {}), enchantStone: (h.mats?.enchantStone ?? 0) + 2 };
-  } else {
-    addPotion(h, id as PotionId);
-  }
+  addPotion(h, id);
+  return null;
+}
+
+/** Gold one enchantment stone of a grade costs in the shop, after the house discount. */
+export const stoneShopPrice = (stone: number, level = 1) => cutPrice(stonePrice(stone, level));
+
+/** Buy one enchantment stone of a grade. Grade 1 is the stone every other source pays out. */
+export function buyEnchantStone(h: Hero, stone: number): string | null {
+  const grade = clampStone(stone);
+  const price = stoneShopPrice(grade, h.level);
+  if (h.gold < price) return `Not enough gold — ${fmt(price)} needed`;
+  h.gold -= price;
+  addStones(h, grade, 1);
   return null;
 }
 
@@ -86,31 +100,60 @@ function CatalogueTab({ hero }: { hero: Hero }) {
 
 function ShopTab({ hero }: { hero: Hero }) {
   const [notice, setNotice] = useState<{ ok: boolean; t: string } | null>(null);
+  const say = (err: string | null, good: string) => setNotice(err ? { ok: false, t: err } : { ok: true, t: `Bought ${good}` });
   return (
     <div>
-      <p className="mb-3 text-xs text-muted-foreground">Game goods for gold. Potions land straight in your pouch; the HUD pouch beside the stamina bar drinks them.</p>
+      <p className="mb-3 text-xs text-muted-foreground">
+        Game goods for gold, every one of them {Math.round(SHOP_DISCOUNT * 100)}% under the old stalls. Potions land straight in
+        your pouch; the HUD pouch beside the stamina bar drinks them.
+      </p>
       {notice && <p role="status" className={`mb-2 text-sm ${notice.ok ? "text-r1" : "text-hp"}`}>{notice.t}</p>}
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {SHOP_STOCK.map((g) => {
           const price = shopPrice(g.id, hero.level);
-          const held = g.id === "enchantStone" ? (hero.mats?.enchantStone ?? 0) : potionHeld(hero, g.id as PotionId);
-          const art = g.id === "enchantStone" ? <MatIcon mat="enchantStone" size={44} /> : (
-            <img src={POTIONS[g.id as PotionId].art} alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
-          );
+          const held = potionHeld(hero, g.id);
           return (
             <article key={g.id} className="slot flex flex-col items-center gap-1 p-3 text-center">
-              {art}
+              <img src={POTIONS[g.id].art} alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
               <div className="text-sm font-bold">{g.name}</div>
               <div className="min-h-8 text-[11px] text-muted-foreground">{g.note}</div>
               <div className="text-[11px]">Held: <b>{fmt(held)}</b>{g.id === "stamina" && <span className="text-muted-foreground"> · {potionUsesLeft(hero)}/{POTION_PER_DAY} drinks left today</span>}</div>
               <button className="btn-gold mt-1 w-full py-1.5 text-sm" disabled={hero.gold < price}
-                onClick={() => update((h) => { const err = buyShopGood(h, g.id); setNotice(err ? { ok: false, t: err } : { ok: true, t: `Bought ${g.name}` }); })}>
+                onClick={() => update((h) => { say(buyShopGood(h, g.id), g.name); })}>
                 <Gold n={price} className="text-primary-foreground" />
               </button>
             </article>
           );
         })}
       </div>
+
+      <div className="mt-5 mb-2 font-display text-sm text-gold">Enchantment Stones · nine grades</div>
+      <p className="mb-2 text-xs text-muted-foreground">
+        Stones taken to the Forge enchant gear instead of gold — each grade adds 10% success. Two stones of one grade
+        plus gold forge the next grade up at the Forge.
+      </p>
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
+        {Array.from({ length: STONE_LEVELS }, (_, i) => i + 1).map((grade) => {
+          const price = stoneShopPrice(grade, hero.level);
+          const held = stoneCount(hero, grade);
+          return (
+            <article key={grade} className="slot flex flex-col items-center gap-1 p-2 text-center">
+              <StoneIcon level={grade} size={34} />
+              <div className="text-[11px] font-bold">Lv {grade}</div>
+              <div className="text-[10px] text-muted-foreground">+{stoneBonus(grade)}% · ×{fmt(held)}</div>
+              <button className="btn-gold mt-1 w-full px-1 py-1 text-[11px]" disabled={hero.gold < price}
+                aria-label={`Buy a Lv ${grade} stone`}
+                title={hero.gold < price ? "Not enough gold" : `Buy a Lv ${grade} stone`}
+                onClick={() => update((h) => { say(buyEnchantStone(h, grade), `Lv ${grade} Enchantment Stone`); })}>
+                <Gold n={price} className="text-primary-foreground" />
+              </button>
+            </article>
+          );
+        })}
+      </div>
+
+      <div className="mt-5 mb-1 font-display text-sm text-gold">Battle Scrolls</div>
+      <ScrollGoods />
     </div>
   );
 }

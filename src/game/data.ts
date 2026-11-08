@@ -6,7 +6,7 @@ import goblinImg from "@/assets/enemy-goblin.png";
 import demonImg from "@/assets/enemy-demon.png";
 import dragonImg from "@/assets/enemy-dragon.png";
 import { talentFx, talentSkills } from "./talents";
-import { astralFx, gemFx, migrateGems, normalizeAstrals, zeroFx, zeroGemFx, type Astral, type BonusFx, type Mat } from "./crafting";
+import { MAX_SOCKETS, astralFx, gemFx, migrateGems, normalizeAstrals, zeroFx, zeroGemFx, type Astral, type BonusFx, type Mat } from "./crafting";
 import { setFx, type BattleEntry, type CombatRecord } from "./progress";
 import { scaledGold } from "./gold";
 import { drillAttrs, drillFx } from "./drills";
@@ -79,6 +79,8 @@ export interface Item {
   crafted?: boolean;
   /** Socketed gem keys (see crafting.ts), null = empty socket. */
   gems?: (string | null)[];
+  /** Extra gem sockets cut into the piece at the Forge, on top of the rarity's own (see crafting.ts). */
+  holes?: number;
 }
 
 export interface ItemStats { atk: number; def: number; hp: number; crit: number }
@@ -216,8 +218,12 @@ export function enhanceChance(it: Item) { return Math.max(0.35, 1 - it.enh * 0.0
 export const enhanceMaxed = (it: Item) => it.enh >= ENHANCE_MAX;
 /** Enchantment Stones needed to enhance: 1 per 3 enhancement levels. */
 export const enchantStoneCost = (it: Item) => 1 + Math.floor(it.enh / 3);
-/** Using enchantment stones boosts success chance by 15%. */
-export const enhanceStoneChance = (it: Item) => Math.min(1, enhanceChance(it) + 0.15);
+/**
+ * Enchanting with a stone: the stone grade (1-9, see enchant.ts) adds 10% per grade to the roll.
+ * The chance never reaches certainty, so even a Lv 9 stone keeps a sliver of bad luck.
+ */
+export const enhanceStoneChance = (it: Item, stoneLevel = 1) =>
+  Math.min(0.99, enhanceChance(it) + Math.max(1, Math.min(9, Math.round(stoneLevel))) * 0.1);
 
 // ---------- Wearing gear ----------
 /** Which wear position a worn item occupies. */
@@ -315,6 +321,8 @@ export interface Hero {
   achClaimed?: string[];
   mats?: Partial<Record<Mat, number>>;
   gems?: Record<string, number>;
+  /** Enchantment Stones of grades 2-9 by grade; grade 1 lives in `mats.enchantStone` (see enchant.ts). */
+  enchantStones?: Record<string, number>;
   astrals?: Astral[];
   astralSlots?: (string | null)[];
   crafts?: number;
@@ -492,6 +500,8 @@ export function normalizeHero(h: Hero): Hero {
   // Enhancement is capped at +30 now: older saves that climbed past it are clamped down.
   for (const it of [...h.inventory, ...WEAR_SLOTS.map((p) => h.equipment[p])]) {
     if (it && it.enh > ENHANCE_MAX) it.enh = ENHANCE_MAX;
+    // Cut gem sockets stay inside the forge's limit whatever a save claims.
+    if (it && it.holes) it.holes = Math.max(0, Math.min(MAX_SOCKETS, Math.floor(it.holes)));
   }
   const legacy = h as unknown as { anc?: unknown; ancTower?: unknown };
   delete legacy.anc;
