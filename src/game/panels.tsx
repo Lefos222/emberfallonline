@@ -28,6 +28,7 @@ import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
 import { QuestBoard } from "./QuestBoard";
 import { AdvancedTraining, AttributeDrills, BarracksUpgrade, DrillTracks } from "./Barracks";
+import { EnlightenmentTraining, SoulForge } from "./EnlightenmentPanel";
 import { batchSizes } from "./barracks";
 import { CharacterPose } from "./CharacterPose";
 import { heroAppearance } from "./appearance";
@@ -538,6 +539,8 @@ export function Temple({ onClose }: { onClose: () => void }) {
       <AttributeDrills hero={hero} />
       <AdvancedTraining hero={hero} />
       <DrillTracks hero={hero} />
+      <EnlightenmentTraining hero={hero} />
+      <SoulForge hero={hero} />
     </Panel>
   );
 }
