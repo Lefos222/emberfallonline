@@ -24,10 +24,13 @@ import {
 } from "@/game/data";
 import {
   current,
+  drinkPotion,
   enemyAct,
   formation,
+  heroUnit,
   initBattle,
   playerAct,
+  skillReady,
 } from "@/game/combat";
 import { DRILLS, drillFx, trainDrill } from "@/game/drills";
 
@@ -84,7 +87,27 @@ function autoBattle(stage: number, cls: HeroClass, enh = 0) {
       enemyAct(s);
       continue;
     }
-    playerAct(s, "hit", []);
+    const hero = heroUnit(s);
+    if (s.potions > 0 && hero.hp < hero.maxHp * 0.35) {
+      drinkPotion(s);
+      turns++;
+      continue;
+    }
+    const foes = s.units.filter((u) => u.side === "foe" && u.hp > 0).sort((a, b) => a.hp - b.hp);
+    if (foes.length === 0) break;
+    const ready =
+      [...hero.kit]
+        .filter((k) => !skillReady(hero, k) && k.mult > 0)
+        .sort(
+          (a, b) =>
+            b.mult * (b.hits ?? 1) * (b.target === "all" ? foes.length : 1) -
+            a.mult * (a.hits ?? 1) * (a.target === "all" ? foes.length : 1),
+        )[0] ?? hero.kit[0];
+    playerAct(
+      s,
+      ready.id,
+      foes.slice(0, ready.maxTargets ?? 1).map((f) => f.id),
+    );
     turns++;
   }
   return { over: s.over, turns };

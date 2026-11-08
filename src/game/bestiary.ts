@@ -8,11 +8,11 @@ export interface RosterEntry {
   /** True for the clipped head portraits in row 5: codex art only, never a battle figure. */
   portrait?: boolean;
 }
-const abilities = ['hit'] as const;
+const abilities = ['cleave', 'nova', 'meteor', 'bolt', 'rage'] as const;
 export const ENEMY_ROSTER: RosterEntry[] = BESTIARY.flatMap((row, r) => row.map((name, c) => ({
   id: `enemy-${r}-${c}`, name, kind: 'enemy' as const, tier: r + 1,
   levelBand: [r * 10 + 1, r * 10 + 10] as const, cell: `enemies:${r}:${c}`,
-  sprite: enemySprite(r, c), signatureAbilityId: abilities[r % abilities.length]!,
+  sprite: enemySprite(r, c), signatureAbilityId: abilities[r]!,
 })));
 
 /** Visual audit of the original 1920×1072 sheet, zero-based row/column.
@@ -49,7 +49,7 @@ export const BOSS_ROSTER: RosterEntry[] = bossNames.flatMap((row, r) => row.flat
 })).concat(Object.entries(TIER_BOSSES).map(([id, boss], i) => ({
   id: `boss-${id}`, name: boss.name, kind: 'boss' as const, tier: i + 2,
   levelBand: [(i + 1) * 15, (i + 1) * 15 + 14] as const,
-  cell: `bosses:featured:${id}`, sprite: boss.sprite, signatureAbilityId: abilities[i % abilities.length]!,
+  cell: `bosses:featured:${id}`, sprite: boss.sprite, signatureAbilityId: abilities[i]!,
 })));
 /** Bosses that may stand on a battlefield — every full-body cell, never a framed portrait. */
 export const BATTLE_BOSSES = BOSS_ROSTER.filter((e) => !e.portrait);

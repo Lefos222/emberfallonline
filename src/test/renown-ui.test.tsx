@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { newHero } from "@/game/data";
 import { RENOWN_TRACKS } from "@/game/renown";
@@ -27,7 +27,7 @@ describe("the hero training panel", () => {
     setHero(hero);
     render(<ThroneHall onClose={() => {}} />);
 
-    expect(screen.getByText("Progression")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Progression"));
     expect(screen.getByText("Hero training")).toBeInTheDocument();
   });
 });
