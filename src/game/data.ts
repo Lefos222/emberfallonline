@@ -436,15 +436,24 @@ export const LATE_LEVEL = 20;
 export const EASY_FIGHTS = 10;
 /** Extra fights every level past LATE_LEVEL adds on top of the one below it (+52 each). */
 export const GRIND_FIGHTS = 52;
+/** The deep-endgame wall: from this level one level stops being an evening's work. */
+export const DEEP_LEVEL = 30;
+/** Fights the wall adds the moment a hero reaches DEEP_LEVEL, on top of the mid-game bill (+1,300). */
+export const DEEP_FIGHTS = 1300;
+/** Extra fights every level past DEEP_LEVEL adds on top of the one below it, over GRIND_FIGHTS (+120). */
+export const DEEP_RAMP = 120;
 
 /** Fights one level costs, counted in cleared fights at the hero's own level.
  *  Levels 0–19 cost ten fights each; from level 20 every level asks for fifty-two fights more
- *  than the one before it (62, 114, 166 …), which is the wall the whole late game is built on and
- *  the reason daily play matters. Level 1.00 deliberately made this climb far longer. */
+ *  than the one before it (62, 114, 166 …). At level 30 the deep wall lands: the bill jumps by
+ *  another 1,300 fights (582 → 1,882) and every level past it grows by 172 fights instead of 52,
+ *  so 30→31 alone is a multi-session grind and the road to 80 is measured in months. */
 export function fightsToLevel(level: number) {
   const lv = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
   if (lv < LATE_LEVEL) return EASY_FIGHTS;
-  return EASY_FIGHTS + GRIND_FIGHTS * (lv - LATE_LEVEL + 1);
+  const mid = EASY_FIGHTS + GRIND_FIGHTS * (lv - LATE_LEVEL + 1);
+  if (lv < DEEP_LEVEL) return mid;
+  return mid + DEEP_FIGHTS + DEEP_RAMP * (lv - DEEP_LEVEL);
 }
 
 /** XP one fight at this level pays before scrolls and catch-up bonuses (see stageRewards). */
@@ -464,6 +473,15 @@ export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
   // pays the same XP per fight at every level and only the fight count moves.
   const base = fightsToLevel(lv) * xpPerFight(lv);
   return h.level < MAX_LEVEL ? base : Math.round(base * Math.pow(1.10, h.paragon));
+}
+
+/** Share of its nominal value a level-relative payout (a quest, a commission) is worth at a level.
+ *  Below the deep wall it is 1, so a quest is a real slice of the next level. Past the wall the
+ *  share shrinks (level 30 ≈ 80%, 40 ≈ 27%, 60 ≈ 11%, floored at 10%): a fixed percentage of an
+ *  ever-growing level bill can never carry progression on its own, so fighting stays the engine. */
+export function levelShareScale(level: number) {
+  if (level < DEEP_LEVEL) return 1;
+  return Math.max(0.1, 1 / (1 + 0.25 * (level - DEEP_LEVEL + 1)));
 }
 
 /** Stages past this point are the hard half of the campaign: foes grow faster than the road below it. */

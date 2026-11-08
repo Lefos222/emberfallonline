@@ -9,7 +9,7 @@ import { recordEnhance } from "./progress";
 import { adviseStrategy } from "@/lib/quests.functions";
 import {
   SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, ENHANCE_MAX, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
-  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, fightsToNextLevel, zoneOf, catchUpXpFactor, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
+  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import { addConquestTokens, floorTokens } from "./conquest";
 import { CAMPAIGN_STAMINA, STAMINA_PER_DAY, staminaBlocker, staminaLeft } from "./stamina";
@@ -721,15 +721,40 @@ export function Oracle(props: { onClose: () => void; start?: StartBattle }) {
   return <QuestBoard onClose={props.onClose} />;
 }
 
+/** The top-left HUD's XP readout: the exact numbers, the bar, and what the next level really asks. */
 export function XpBar({ hero }: { hero: Hero }) {
   const need = xpToNext(hero);
+  const pct = Math.min(100, Math.max(0, (hero.xp / Math.max(1, need)) * 100));
   const left = fightsToNextLevel(hero);
+  const next =
+    hero.level >= MAX_LEVEL ? `Ascension ${hero.paragon + 1}` : `level ${hero.level + 1}`;
   return (
-    <div
-      className="bar-track h-2.5 w-full"
-      title={`${fmt(hero.xp)} / ${fmt(need)} XP · ${left} fight${left === 1 ? "" : "s"} to level ${hero.level + 1}`}
-    >
-      <div className="bar-xp h-full" style={{ width: `${Math.min(100, (hero.xp / need) * 100)}%` }} />
+    <div className="hud-xp" title={`${fmt(hero.xp)} / ${fmt(need)} XP · ${left} fight${left === 1 ? "" : "s"} to ${next}`}>
+      <div className="mb-0.5 flex items-baseline justify-between gap-1 text-[10px] leading-none">
+        <span className="truncate font-bold text-xp">
+          {fmt(hero.xp)}
+          <span className="text-muted-foreground"> / {fmt(need)} XP</span>
+        </span>
+        <span className="shrink-0 font-bold text-foreground/80">{pct.toFixed(pct < 10 ? 1 : 0)}%</span>
+      </div>
+      <div
+        className="bar-track hud-xp-track w-full"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(pct)}
+        aria-label={`Experience toward ${next}`}
+      >
+        <div className="bar-xp h-full" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="mt-0.5 flex items-baseline justify-between gap-1 text-[9px] uppercase tracking-wider text-muted-foreground">
+        <span className="truncate">
+          {left} fight{left === 1 ? "" : "s"} → {next}
+        </span>
+        <span className="shrink-0 text-gold/90" title="XP a fight at your own level pays before scrolls and catch-up bonuses">
+          {fmt(xpPerFight(hero.level))} xp/fight
+        </span>
+      </div>
     </div>
   );
 }

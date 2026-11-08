@@ -1,4 +1,4 @@
-import { xpToNext, type Hero } from "./data";
+import { levelShareScale, xpToNext, type Hero } from "./data";
 import type { Mat } from "./crafting";
 import { greekDayStart } from "./events";
 
@@ -22,9 +22,11 @@ export const DAILY_QUESTS: DailyQuest[] = [
   { id: "enhance", name: "Temper the Steel", desc: "Succeed at 3 enhancements", target: 3, mat: "essence", mats: 2, gold: 170, count: (h) => h.record?.enhances ?? 0 },
 ];
 
-/** A commission pays a share of a whole level, so the board is worth the same at level 1 and level 120. */
+/** A commission pays a share of the next level; past the deep wall that share shrinks (see levelShareScale),
+ *  so the board keeps mattering without becoming a bypass around the level-30 grind. */
 export const QUEST_XP_SHARE = 0.06;
-export const questXp = (h: Pick<Hero, "level" | "paragon">) => Math.max(1, Math.round(xpToNext(h) * QUEST_XP_SHARE));
+export const questXp = (h: Pick<Hero, "level" | "paragon">) =>
+  Math.max(1, Math.round(xpToNext(h) * QUEST_XP_SHARE * levelShareScale(h.level)));
 
 /** Quests occasionally pay bonus progression: a skill-tree point or an Insight point. */
 export const QUEST_POINT_CHANCE = 0.25;
