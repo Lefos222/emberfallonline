@@ -7,6 +7,7 @@ import { CharacterModel } from "./CharacterModel";
 import { update, useGame } from "./store";
 import { GameTabs, Panel, fmt } from "./ui";
 import { goldGain } from "./gold";
+import { ARENA_PER_WINDOW, arenaFightsLeft, arenaResetAt, waitLabel } from "./arena-limits";
 import type { StartBattle } from "./panels";
 
 interface Opp {
@@ -68,6 +69,7 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
     start({
       title: "Blood Arena",
       auto: true,
+      arena: true,
       right: { name: o.name, img: CLASSES[cls].img, gender: asGender(o.gender), hp: o.stats.hp, atk: o.stats.atk, def: o.stats.def, crit: o.stats.crit, dodge: o.stats.dodge ?? 5, critDmg: o.stats.critDmg ?? 200, pen: o.stats.pen ?? 0, acc: o.stats.acc ?? 0, level: o.level + (o.stats.paragon ?? 0), cls, mirror: true },
       onResult: async (won, xpMultiplier = 1) => {
         const { data, error } = await supabase.rpc("record_arena_result", { _attacker: heroId ?? "", _defender: o.id, _won: won });
@@ -84,12 +86,19 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
 
   const opponents = ladder.filter((o) => o.user_id !== userId);
   const myRank = heroId ? ladder.findIndex((o) => o.id === heroId) + 1 : 0;
+  const duelsLeft = arenaFightsLeft(hero);
+  const refillIn = waitLabel(arenaResetAt(hero) - Date.now());
 
   return (
     <Panel title="Blood Arena" subtitle="Ladder, duels and ratings" art="goblet" onClose={onClose} wide>
       <div className="mb-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-display text-lg">
         <span className="flex items-center gap-2"><Trophy className="h-6 w-6 text-r4" /> Rating <span className="text-3xl text-gold">{me?.arena_rating ?? 1000}</span></span>
         {myRank > 0 && <span className="text-sm text-muted-foreground">Rank #{myRank} of {ladder.length}</span>}
+        <span className={`text-sm ${duelsLeft > 0 ? "text-muted-foreground" : "text-hp"}`}>
+          {duelsLeft > 0
+            ? `${duelsLeft}/${ARENA_PER_WINDOW} duels left${duelsLeft < ARENA_PER_WINDOW ? ` · refills in ${refillIn}` : ""}`
+            : `No duels left — ${ARENA_PER_WINDOW} every 12h, back in ${refillIn}`}
+        </span>
         <button className="btn-blood px-3 py-1 text-sm" onClick={load} aria-label="Refresh arena"><RefreshCw className="inline h-4 w-4" /></button>
       </div>
 
@@ -110,7 +119,7 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
                 <div className="w-full truncate font-display">{o.name}</div>
                 <div className="text-xs text-muted-foreground">Lv {o.level} · {CLASSES[cls].name}</div>
                 <div className="text-sm"><Trophy className="inline h-3 w-3 text-r4" /> {fmt(o.power)} · <span className="text-gold">{o.arena_rating}</span></div>
-                <button className="btn-gold mt-2 w-full py-1" onClick={() => fight(o)}><Swords className="mr-1 inline h-4 w-4" />Challenge</button>
+                <button className="btn-gold mt-2 w-full py-1" onClick={() => fight(o)} disabled={duelsLeft < 1} title={duelsLeft > 0 ? "Challenge" : `No duels left — the pit reopens in ${refillIn}`}><Swords className="mr-1 inline h-4 w-4" />Challenge</button>
               </div>
             );
           })}

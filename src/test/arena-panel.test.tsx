@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { newHero, type Hero } from "@/game/data";
+import { ARENA_PER_WINDOW, spendArenaFight } from "@/game/arena-limits";
 
 /**
  * The arena panel against a stubbed ladder: every hero on the server is challengeable and
@@ -38,7 +39,7 @@ vi.mock("@/game/store", () => ({
 
 import { Arena } from "@/game/Arena";
 
-const renderArena = () => render(<Arena onClose={() => {}} start={() => {}} />);
+const renderArena = (start: () => void = () => {}) => render(<Arena onClose={() => {}} start={start as never} />);
 
 describe("the Blood Arena panel", () => {
   beforeEach(() => { store.hero = newHero("Pit", "warrior"); });
@@ -59,6 +60,25 @@ describe("the Blood Arena panel", () => {
     expect(screen.getByText(/Rank #3 of 3/)).toBeTruthy();
     const rows = screen.getByText("Realm ladder · every hero in the arena").parentElement!;
     expect(rows.textContent).toMatch(/1\..*Far Hero.*2\..*Rival One.*3\..*Pit \(you\)/);
+  });
+
+  it("shows the five duels of the twelve-hour allowance and charges one on entry", async () => {
+    const start = vi.fn();
+    renderArena(start);
+    expect(await screen.findByText(/5\/5 duels left/)).toBeTruthy();
+    fireEvent.click(screen.getAllByRole("button", { name: /Challenge/i })[0]);
+    expect(start).toHaveBeenCalledWith(expect.objectContaining({ title: "Blood Arena", arena: true }));
+  });
+
+  it("locks the pit once the window's five duels are spent", async () => {
+    const hero = newHero("Pit", "warrior");
+    for (let i = 0; i < ARENA_PER_WINDOW; i++) spendArenaFight(hero);
+    store.hero = hero;
+    renderArena();
+    expect(await screen.findByText(/No duels left — 5 every 12h/)).toBeTruthy();
+    const buttons = screen.getAllByRole("button", { name: /Challenge/i });
+    expect(buttons).toHaveLength(2);
+    buttons.forEach((b) => expect((b as HTMLButtonElement).disabled).toBe(true));
   });
 
   it("no longer carries an armory tab", async () => {

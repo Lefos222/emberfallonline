@@ -29,6 +29,7 @@ import { recordBattle } from "./progress";
 import { BOSS_CRYSTALS } from "./logic";
 import { battleEssenceGain, enlightenmentUnlocked, rollSoulShards } from "./enlightenment";
 import { DUNGEON_STAMINA, POTION_STAMINA, addPotions, rollStaminaPotion, spendStamina, staminaBlocker } from "./stamina";
+import { arenaBlocker, spendArenaFight } from "./arena-limits";
 import { addRenown, renownGain } from "./renown";
 import { CharacterSelect, ProfilePanel } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
@@ -124,8 +125,15 @@ export function Game() {
       const staminaLock = staminaBlocker(hero, staminaCost);
       if (staminaLock) { setEntryError(staminaLock); return; }
     }
+    // The Blood Arena allows five duels every twelve hours; a duel is spent on entry, win or lose
+    // (see arena-limits.ts).
+    if (o.arena) {
+      const arenaLock = arenaBlocker(hero);
+      if (arenaLock) { setEntryError(arenaLock); return; }
+    }
     if (hero.blitzRun) update((h) => { settleBlitzRun(h); });
     if (staminaCost > 0) update((h) => spendStamina(h, staminaCost));
+    if (o.arena) update((h) => spendArenaFight(h));
     starting.current = true; setEntryError("");
     void (async () => {
       try {

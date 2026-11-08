@@ -40,6 +40,8 @@ export type StartBattle = (opts: {
   dungeon?: boolean;
   /** Stamina this battle costs on entry, charged win or lose. */
   stamina?: number;
+  /** A Blood Arena duel: it spends one of the five fights allowed every twelve hours (see arena-limits.ts). */
+  arena?: boolean;
   onResult: (won: boolean, xpMultiplier?: number) => { lines: string[]; loot?: Item | null } | Promise<{ lines: string[]; loot?: Item | null }>;
 }) => void;
 
