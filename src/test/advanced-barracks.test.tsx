@@ -78,7 +78,7 @@ describe("advanced barracks training", () => {
     expect(screen.getByText(fmt(enhanceCost(blade, hero.level)))).toBeInTheDocument();
   });
 
-  it("sits inside the barracks panel beside the gold tracks", () => {
+  it("sits on its own barracks tab beside the gold tracks", () => {
     const hero = newHero("Tester", "warrior");
     hero.gold = 900_000;
     hero.buildings = { barracks: 30 };
@@ -86,8 +86,10 @@ describe("advanced barracks training", () => {
     setHero(hero);
     render(<Temple onClose={() => {}} />);
 
-    expect(screen.getByText("Advanced training")).toBeInTheDocument();
     expect(screen.getByText("Attribute drills")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Advanced" }));
+    expect(screen.getByText("Advanced training")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Drills" }));
     expect(screen.getByText("Barracks drills")).toBeInTheDocument();
   });
 });

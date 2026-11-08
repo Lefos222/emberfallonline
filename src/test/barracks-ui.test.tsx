@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { AttributeDrills, DrillTracks } from "@/game/Barracks";
 import { newHero } from "@/game/data";
@@ -25,17 +25,30 @@ describe("barracks attribute drills", () => {
 describe("the barracks panel", () => {
   afterEach(() => setHero(null));
 
-  it("shows the attribute upgrades beside the training and the drills", () => {
+  it("keeps the training in tabs so the panel fits on one screen", () => {
     const hero = newHero("Tester", "warrior");
     hero.gold = 900_000;
     hero.buildings = { barracks: 20 };
     setHero(hero);
     render(<Temple onClose={() => {}} />);
 
-    expect(screen.getByText("Barracks — Attribute Training")).toBeInTheDocument();
+    expect(screen.getByText("Barracks")).toBeInTheDocument();
+    // Attributes open first: the four training cards, their batch buttons and the attribute drills.
+    expect(screen.getByText("Attribute training")).toBeInTheDocument();
     expect(screen.getByText("Attribute drills")).toBeInTheDocument();
-    expect(screen.getByText("Barracks drills")).toBeInTheDocument();
     for (const d of ATTRIBUTE_DRILLS) expect(screen.getAllByText(d.name).length).toBeGreaterThanOrEqual(1);
+    // The drill yard no longer sits below everything else.
+    expect(screen.queryByText("Barracks drills")).toBeNull();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Drills" }));
+    expect(screen.getByText("Barracks drills")).toBeInTheDocument();
+    expect(screen.queryByText("Attribute drills")).toBeNull();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Advanced" }));
+    expect(screen.getByText("Advanced training")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Enlightenment" }));
+    expect(screen.queryByText("Barracks drills")).toBeNull();
   });
 });
 
