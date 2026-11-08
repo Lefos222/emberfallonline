@@ -22,9 +22,9 @@ describe("music settings", () => {
   });
 
   it("remembers volume, mute and the chosen soundtrack", () => {
-    saveAudioSettings({ muted: true, volume: 0.8, track: "embers" });
-    expect(readAudioSettings()).toEqual({ muted: true, volume: 0.8, track: "embers" });
-    expect(soundtrackUrl("embers")).toBe("/audio/ember-soundtrack.mp3");
+    saveAudioSettings({ muted: true, volume: 0.8, track: "sibling-showdown" });
+    expect(readAudioSettings()).toEqual({ muted: true, volume: 0.8, track: "sibling-showdown" });
+    expect(soundtrackUrl("sibling-showdown")).toBe("/audio/sibling-showdown.mp3");
   });
 
   it("switches soundtrack and volume from the settings panel", () => {
@@ -33,9 +33,9 @@ describe("music settings", () => {
     expect(screen.getByText("Original theme")).toBeInTheDocument();
     expect(screen.getByText("Default")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /New theme/ }));
-    expect(readAudioSettings().track).toBe("embers");
-    expect(screen.getByRole("button", { name: /New theme/ })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: /Sibling Showdown/ }));
+    expect(readAudioSettings().track).toBe("sibling-showdown");
+    expect(screen.getByRole("button", { name: /Sibling Showdown/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getAllByText("Now playing")).toHaveLength(1);
 
     fireEvent.change(screen.getByLabelText("Music volume"), { target: { value: "80" } });
