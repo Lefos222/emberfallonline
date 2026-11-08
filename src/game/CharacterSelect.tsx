@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Plus, Trash2, Play, ArrowLeft, LogOut, RefreshCw, X } from "lucide-react";
+import { Loader2, Plus, Trash2, Play, ArrowLeft, LogOut, RefreshCw } from "lucide-react";
 import { CharacterModel } from './CharacterModel';
 import { AVATAR_COUNT, AvatarIcon } from './AvatarIcon';
 import { CharacterPose } from './CharacterPose';
@@ -203,19 +203,18 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
   const [frame, setFrame] = useState(row?.frame ?? "iron");
   const [pub, setPub] = useState(row?.is_public ?? true);
   const [msg, setMsg] = useState<string | null>(null);
-  const [gallery, setGallery] = useState(false);
   if (!hero) return null;
   const lvl = hero.level + hero.paragon;
   return (
     <Panel title="Profile" subtitle="Your hero, title and cosmetics" art="profile" onClose={onClose}>
       <div className="flex flex-col gap-4 md:flex-row">
         <div className="flex w-40 shrink-0 flex-col items-center gap-1 self-center">
-          <button className={`slot w-40 overflow-hidden p-0 ${frameClass(frame)}`} onClick={() => setGallery(true)} aria-label="Open full-screen portraits" title="Open full-screen portraits">
+          <div className={`slot w-40 overflow-hidden p-0 ${frameClass(frame)}`}>
             {hero.avatar !== undefined
               ? <AvatarIcon index={hero.avatar} fill className="block aspect-square w-full" />
               : <Portrait cls={hero.cls} gender={gender} className="w-full" />}
-          </button>
-          <button className="btn-ghost px-2 py-1 text-xs" onClick={() => setGallery(true)}>Full screen</button>
+          </div>
+          <div className="text-center text-xs text-muted-foreground">Frame: {FRAMES.find(f => f.id === frame)?.name ?? frame}</div>
         </div>
         <div className="flex-1 space-y-3">
           <div className="flex items-center gap-2">
@@ -223,10 +222,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
             <div><div className="font-display text-2xl">{hero.name}</div>{title && <div className="text-gold">{title}</div>}</div>
           </div>
           <div className="text-sm">
-            <div className="flex items-center justify-between gap-2">
-              <span>Profile portrait</span>
-              <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => setGallery(true)}>Full screen</button>
-            </div>
+            <div className="font-display text-gold">Choose your portrait</div>
             <div className="mt-1 grid grid-cols-5 gap-1 sm:grid-cols-10">
               {Array.from({ length: AVATAR_COUNT }, (_, i) => (
                 <button key={i} type="button" aria-label={`Portrait ${i + 1}`} aria-pressed={hero.avatar === i}
@@ -296,32 +292,6 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
           {msg && <span className="ml-3 text-sm text-gold">{msg}</span>}
         </div>
       </div>
-      {gallery && <PortraitGallery current={hero.avatar} onPick={(i) => update((h) => { h.avatar = i; })} onClose={() => setGallery(false)} />}
     </Panel>
-  );
-}
-
-/** Every painted portrait at gallery size, covering the screen so the art is actually readable. */
-function PortraitGallery({ current, onPick, onClose }: { current?: number; onPick: (i: number) => void; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-background/95 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Profile portraits">
-      <div className="mb-3 flex items-start justify-between gap-2">
-        <div>
-          <div className="font-display text-xl text-gold">Choose your portrait</div>
-          <p className="text-xs text-muted-foreground">{AVATAR_COUNT} portraits — pick one to wear on your profile and HUD.</p>
-        </div>
-        <button className="btn-blood flex h-9 w-9 items-center justify-center" onClick={onClose} aria-label="Close">
-          <X className="h-5 w-5" />
-        </button>
-      </div>
-      <div className="grid flex-1 grid-cols-2 content-start gap-3 overflow-y-auto sm:grid-cols-3 lg:grid-cols-5">
-        {Array.from({ length: AVATAR_COUNT }, (_, i) => (
-          <button key={i} onClick={() => { onPick(i); onClose(); }} aria-label={`Portrait ${i + 1}`} aria-pressed={current === i}
-            className={`slot aspect-square w-full overflow-hidden p-1 ${current === i ? "ring-2 ring-gold" : "hover:ring-1 hover:ring-gold"}`}>
-            <AvatarIcon index={i} fill className="block h-full w-full" />
-          </button>
-        ))}
-      </div>
-    </div>
   );
 }

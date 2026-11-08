@@ -2,8 +2,8 @@ import { ChevronRight, Clover, Crosshair, Eye, Heart, HeartPulse, Lock, Shield, 
 import type { Hero } from "./data";
 import { BARRACKS_UNLOCKS, barracksCost, barracksLevel, trainingDiscount, upgradeBarracks } from "./barracks";
 import {
-  ADVANCED_DRILLS, ATTRIBUTE_DRILLS, DRILLS, advancedBlocker, advancedCost, advancedRank, attrDrillBlocker, attrDrillCost, attrDrillRank,
-  drillBlocker, drillCost, drillRank, drillText, trainAdvanced, trainAttributeDrill, trainDrill,
+  ADVANCED_DRILLS, DRILLS, STAT_TRAININGS, advancedBlocker, advancedCost, advancedRank,
+  drillBlocker, drillCost, drillRank, drillText, statTrainBlocker, statTrainCost, statTrainRank, trainAdvanced, trainDrill, trainStat,
 } from "./drills";
 import { update } from "./store";
 import { Gold, VoidCrystals } from "./ui";
@@ -51,27 +51,32 @@ const DRILL_ICONS: Record<string, LucideIcon> = {
   focus: Crosshair, toughness: Heart, marksman: Eye, guardwork: ShieldCheck, footwork: Wind,
 };
 
-const ATTR_DRILL_ICONS: Record<string, LucideIcon> = { str: Swords, int: Sparkles, agi: Clover, vit: Heart };
+const STAT_TRAIN_ICONS: Record<string, LucideIcon> = {
+  physAtk: Swords, physDef: Shield, critDmg: Crosshair, physPen: Swords,
+  magAtk: Sparkles, magDef: ShieldCheck, magPen: Sparkles,
+  crit: Crosshair, dodge: Wind, accuracy: Eye, loot: Clover,
+  health: HeartPulse, goldScale: Trophy,
+};
 
 /**
- * Attribute drills: the four attributes themselves, upgraded rank by rank in the barracks.
- * Each rank permanently banks points of that attribute, on top of the training batches above.
+ * Individual stat trainings: the reworked barracks attribute training. Each combat stat is its own
+ * permanent gold-paid track — 13 separate stats instead of the old four bundled attributes.
  */
-export function AttributeDrills({ hero }: { hero: Hero }) {
+export function StatTrainings({ hero }: { hero: Hero }) {
   const level = barracksLevel(hero);
   return (
     <div className="mt-6">
-      <div className="mb-1 flex items-center gap-2 font-display text-sm text-gold"><Swords className="h-4 w-4" />Attribute drills</div>
+      <div className="mb-1 flex items-center gap-2 font-display text-sm text-gold"><Swords className="h-4 w-4" />Stat training</div>
       <p className="mb-3 text-xs text-muted-foreground">
-        Permanent upgrades for the four attributes: every rank banks its points for good, costs more than
-        the last, and the deeper ranks need the barracks itself upgraded.
+        Permanent upgrades for every combat stat, trained separately: each rank banks its bonus for good,
+        costs more than the last, and the deeper ranks need the barracks itself upgraded. Gold scaling caps at rank 5.
       </p>
-      <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-4">
-        {ATTRIBUTE_DRILLS.map((d) => {
-          const Icon = ATTR_DRILL_ICONS[d.id] ?? Swords;
-          const rank = attrDrillRank(hero, d.id);
-          const cost = attrDrillCost(d, rank, hero.level);
-          const blocked = attrDrillBlocker(hero, d.id);
+      <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {STAT_TRAININGS.map((d) => {
+          const Icon = STAT_TRAIN_ICONS[d.id] ?? Swords;
+          const rank = statTrainRank(hero, d.id);
+          const cost = statTrainCost(d, rank, hero.level);
+          const blocked = statTrainBlocker(hero, d.id);
           const locked = level < d.barracks;
           return (
             <div key={d.id} className={"slot p-3 text-center " + (locked ? "opacity-60" : "")}>
@@ -79,12 +84,12 @@ export function AttributeDrills({ hero }: { hero: Hero }) {
                 <span className="flex items-center gap-1.5 font-display"><Icon className="h-4 w-4 text-gold" />{d.name}</span>
                 <span className="shrink-0 text-xs text-muted-foreground">Rank {rank}/{d.max}</span>
               </div>
-              <div className="mt-1 font-display text-2xl text-gold">+{d.per * rank}</div>
+              <div className="mt-1 font-display text-2xl text-gold">+{d.per * rank}{d.stat === "goldScale" || d.stat === "loot" || d.stat.endsWith("Pct") || d.stat === "hpPct" ? "%" : ""}</div>
               <div className="text-xs text-muted-foreground">{d.desc}</div>
-              <div className="mt-1 text-xs">Next rank <b className="text-gold">+{d.per} {d.name}</b></div>
-              <button className="btn-gold mt-2 w-full py-1.5 text-sm" disabled={!!blocked} title={blocked ?? `Drill rank ${rank + 1}`}
-                onClick={() => update((h) => { trainAttributeDrill(h, d.id); })}>
-                {rank >= d.max ? "Fully drilled" : locked ? <>Barracks level {d.barracks}</> : <>Train rank {rank + 1} <Gold n={cost} className="text-primary-foreground" /></>}
+              <div className="mt-1 text-xs">Next rank <b className="text-gold">+{d.per}% {d.name}</b></div>
+              <button className="btn-gold mt-2 w-full py-1.5 text-sm" disabled={!!blocked} title={blocked ?? `Train rank ${rank + 1}`}
+                onClick={() => update((h) => { trainStat(h, d.id); })}>
+                {rank >= d.max ? "Fully trained" : locked ? <>Barracks level {d.barracks}</> : <>Train rank {rank + 1} <Gold n={cost} className="text-primary-foreground" /></>}
               </button>
             </div>
           );

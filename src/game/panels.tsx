@@ -28,7 +28,7 @@ import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
 import { QuestBoard } from "./QuestBoard";
-import { AdvancedTraining, AttributeDrills, BarracksUpgrade, DrillTracks } from "./Barracks";
+import { AdvancedTraining, BarracksUpgrade, DrillTracks, StatTrainings } from "./Barracks";
 import { EnlightenmentTraining, SoulForge } from "./EnlightenmentPanel";
 import { barracksCost, barracksLevel, batchSizes } from "./barracks";
 import { CharacterPose } from "./CharacterPose";
@@ -723,7 +723,7 @@ export function Temple({ onClose }: { onClose: () => void }) {
               );
             })}
           </div>
-          <AttributeDrills hero={hero} />
+          <StatTrainings hero={hero} />
         </div>
       )}
 
