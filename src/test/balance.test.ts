@@ -94,16 +94,16 @@ function seeded(seed: number) {
   return () => (x = (x * 1664525 + 1013904223) % 4294967296) / 4294967296;
 }
 
-describe("two fights a level, then ten more every level", () => {
-  it("costs exactly two fights a level up to level 29", () => {
-    for (const lv of [1, 5, 10, 17, 25, 29]) {
+describe("five fights a level, then twenty-six more every level", () => {
+  it("costs exactly five fights a level up to level 19", () => {
+    for (const lv of [1, 5, 10, 17, 19]) {
       expect(fightsToLevel(lv)).toBe(EASY_FIGHTS);
       expect(xpToNext({ level: lv, paragon: 0 })).toBe(EASY_FIGHTS * stageRewards(lv).xp);
     }
   });
-  it("adds ten fights to each level past 30", () => {
-    expect(fightsToLevel(30)).toBe(EASY_FIGHTS + GRIND_FIGHTS);
-    for (let lv = 30; lv < MAX_LEVEL; lv++) {
+  it("adds twenty-six fights to each level past 20", () => {
+    expect(fightsToLevel(20)).toBe(EASY_FIGHTS + GRIND_FIGHTS);
+    for (let lv = 20; lv < MAX_LEVEL; lv++) {
       expect(fightsToLevel(lv + 1) - fightsToLevel(lv)).toBe(GRIND_FIGHTS);
       expect(xpToNext({ level: lv, paragon: 0 })).toBe(fightsToLevel(lv) * stageRewards(lv).xp);
     }
@@ -184,10 +184,10 @@ describe("campaign balance", () => {
 
   it("pays rewards on the same curve the next level costs", () => {
     // One cleared stage is one fight: the level bill divided by a stage's XP is the fight count.
-    for (const stage of [5, 20, 29]) {
+    for (const stage of [5, 10, 17]) {
       expect(xpToNext({ level: stage, paragon: 0 }) / stageRewards(stage).xp).toBe(EASY_FIGHTS);
     }
-    // Past level 30 that count climbs by ten every level.
+    // From level 20 that count climbs by twenty-six every level.
     for (const stage of [40, 50, 60, 80]) {
       expect(xpToNext({ level: stage, paragon: 0 }) / stageRewards(stage).xp).toBe(fightsToLevel(stage));
     }

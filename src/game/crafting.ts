@@ -302,23 +302,61 @@ export const GEM_BUILDS: Record<HeroClass, { name: string; gems: GemType[] }[]> 
 
 // ---------- Astrals ----------
 export type AstralKind = "offense" | "defense" | "utility";
+/** The three families of the vault: Shadow, Chaos and Void. */
+export type AstralFamily = "shadow" | "chaos" | "void";
 export interface Astral { id: string; base: string; rarity: number; lvl: number }
-/** Keep keys in sync with the bases array in the lucky_shot database function. */
-export const ASTRAL_BASES: Record<string, { name: string; kind: AstralKind; stat: StatKey; per: number; power: string }> = {
-  ember: { name: "Ember Wyrm", kind: "offense", stat: "atkPct", per: 1.5, power: "Firebrand: stokes your weapons with living flame" },
-  arcana: { name: "Arcane Moth", kind: "offense", stat: "matkPct", per: 1.5, power: "Spellweave: threads raw arcana through your spells" },
-  aegis: { name: "Aegis Turtle", kind: "defense", stat: "defPct", per: 1.5, power: "Bulwark: raises a shield of solid stone around you" },
-  ward: { name: "Ward Serpent", kind: "defense", stat: "mdefPct", per: 1.5, power: "Warding Coil: coils mystic wards against hostile magic" },
-  oak: { name: "Elder Oak", kind: "defense", stat: "hpPct", per: 2, power: "Deep Roots: roots you in life and thickens your hide" },
-  owl: { name: "Star Owl", kind: "utility", stat: "crit", per: 0.5, power: "Keen Gaze: marks the weak points on every foe" },
-  fang: { name: "Night Fang", kind: "offense", stat: "critDmg", per: 4, power: "Night Strike: makes every killing blow land deeper" },
-  hawk: { name: "Sky Hawk", kind: "utility", stat: "acc", per: 0.4, power: "Hunter's Eye: guides your strikes true" },
-  wisp: { name: "Wind Wisp", kind: "utility", stat: "dodge", per: 0.4, power: "Slipstream: wraps you in a gust that turns blows aside" },
-  turtle: { name: "Stone Tortoise", kind: "defense", stat: "block", per: 0.4, power: "Shellguard: braces you to shrug off the heaviest hits" },
-  spear: { name: "Spear Mantis", kind: "offense", stat: "pen", per: 0.4, power: "Piercing Strike: punches clean through enemy armour" },
-  rune: { name: "Rune Fox", kind: "offense", stat: "mpen", per: 0.4, power: "Runebind: carves through magical defences" },
-  lotus: { name: "Moon Lotus", kind: "utility", stat: "heal", per: 1.5, power: "Moonbloom: petals that mend wounds and deepen heals" },
+
+export interface AstralSpecies {
+  name: string;
+  kind: AstralKind;
+  family: AstralFamily;
+  /** This species' own stat mix: one entry per bonus, each worth `per` at Lv 1 of White rarity. */
+  stats: [StatKey, number][];
+  power: string;
+  /** Orb tint for species whose art is drawn rather than painted. */
+  color: string;
+}
+
+/**
+ * The Astral vault. Every species carries its own unique mix of two or three stats, so no two
+ * Astrals are interchangeable — the old single-stat species keep their primary exactly as saved
+ * saves expect, and gain a small second bonus so they stay worth raising.
+ * Keep keys in sync with the bases array in the lucky_shot database function: never rename a key.
+ */
+export const ASTRAL_BASES: Record<string, AstralSpecies> = {
+  ember: { name: "Ember Wyrm", kind: "offense", family: "chaos", stats: [["atkPct", 1.5], ["critDmg", 1.5]], power: "Firebrand: stokes your weapons with living flame", color: "#e2571f" },
+  arcana: { name: "Arcane Moth", kind: "offense", family: "void", stats: [["matkPct", 1.5], ["mpen", 0.15]], power: "Spellweave: threads raw arcana through your spells", color: "#6f6ee6" },
+  aegis: { name: "Aegis Turtle", kind: "defense", family: "shadow", stats: [["defPct", 1.5], ["block", 0.15]], power: "Bulwark: raises a shield of solid stone around you", color: "#5d8f6d" },
+  ward: { name: "Ward Serpent", kind: "defense", family: "shadow", stats: [["mdefPct", 1.5], ["dodge", 0.12]], power: "Warding Coil: coils mystic wards against hostile magic", color: "#2f9e8f" },
+  oak: { name: "Elder Oak", kind: "defense", family: "shadow", stats: [["hpPct", 2], ["mdefPct", 0.5]], power: "Deep Roots: roots you in life and thickens your hide", color: "#7a6432" },
+  owl: { name: "Star Owl", kind: "utility", family: "void", stats: [["crit", 0.5], ["acc", 0.2]], power: "Keen Gaze: marks the weak points on every foe", color: "#b9c5e0" },
+  fang: { name: "Night Fang", kind: "offense", family: "chaos", stats: [["critDmg", 4], ["atkPct", 0.4]], power: "Night Strike: makes every killing blow land deeper", color: "#8b2d63" },
+  hawk: { name: "Sky Hawk", kind: "utility", family: "void", stats: [["acc", 0.4], ["crit", 0.15]], power: "Hunter's Eye: guides your strikes true", color: "#3f80c9" },
+  wisp: { name: "Wind Wisp", kind: "utility", family: "shadow", stats: [["dodge", 0.4], ["hpPct", 0.4]], power: "Slipstream: wraps you in a gust that turns blows aside", color: "#6fc3d8" },
+  turtle: { name: "Stone Tortoise", kind: "defense", family: "shadow", stats: [["block", 0.4], ["defPct", 0.5]], power: "Shellguard: braces you to shrug off the heaviest hits", color: "#8a8377" },
+  spear: { name: "Spear Mantis", kind: "offense", family: "chaos", stats: [["pen", 0.4], ["atkPct", 0.6]], power: "Piercing Strike: punches clean through enemy armour", color: "#a6c23a" },
+  rune: { name: "Rune Fox", kind: "offense", family: "void", stats: [["mpen", 0.4], ["matkPct", 0.6]], power: "Runebind: carves through magical defences", color: "#c96b2e" },
+  lotus: { name: "Moon Lotus", kind: "utility", family: "void", stats: [["heal", 1.5], ["hpPct", 0.6]], power: "Moonbloom: petals that mend wounds and deepen heals", color: "#d3a6d8" },
+  // ---- The vault's deeper stones (added in 1.00) ----
+  dread: { name: "Dread Core", kind: "offense", family: "chaos", stats: [["atkPct", 2], ["crit", 0.3]], power: "Dread Pulse: every heartbeat of the core sharpens your strikes", color: "#b3122b" },
+  grasp: { name: "Void Grasp", kind: "utility", family: "void", stats: [["mpen", 0.55], ["heal", 0.8]], power: "Hungering Reach: tears wards apart and feeds the mending", color: "#4b1e8c" },
+  abyssal: { name: "Abyssal Heart", kind: "defense", family: "shadow", stats: [["hpPct", 2.4], ["mdefPct", 0.9]], power: "Cold Tide: pressure of the deep hardens flesh and mind", color: "#123b6b" },
+  shadoweye: { name: "Shadow Eye", kind: "utility", family: "shadow", stats: [["crit", 0.6], ["acc", 0.3]], power: "Unblinking: it sees the opening before you do", color: "#3c1f5e" },
+  nexus: { name: "Chaos Nexus", kind: "offense", family: "chaos", stats: [["pen", 0.55], ["atkPct", 1]], power: "Discord: armour and guards mean nothing inside the storm", color: "#7d1f6d" },
+  cursed: { name: "Cursed Orb", kind: "offense", family: "void", stats: [["matkPct", 2], ["mpen", 0.25]], power: "Hexlight: each curse burned into the glass fuels your spells", color: "#a01a4a" },
+  ruinous: { name: "Ruinous Spark", kind: "offense", family: "chaos", stats: [["critDmg", 5], ["crit", 0.2]], power: "Ruin: the last ember of a dead world, hungry for finishing blows", color: "#d4531a" },
+  toxic: { name: "Toxic Cradle", kind: "utility", family: "chaos", stats: [["acc", 0.45], ["heal", 1.2]], power: "Venom Bloom: poison it knows, poison it can mend", color: "#2f9e3a" },
+  nightmare: { name: "Nightmare Sigil", kind: "defense", family: "void", stats: [["mdefPct", 1.4], ["dodge", 0.25]], power: "Sleepwalker: blows pass through the dream of you", color: "#2a2a6e" },
+  lantern: { name: "Soul Lantern", kind: "utility", family: "shadow", stats: [["heal", 2], ["hpPct", 0.8]], power: "Kindled Souls: every fallen foe leaves a little light behind", color: "#c9a227" },
+  starfall: { name: "Starfall Shard", kind: "offense", family: "void", stats: [["matkPct", 1.4], ["crit", 0.35]], power: "Falling Star: a splinter of sky that detonates in your wake", color: "#3f6ad8" },
 };
+
+export const ASTRAL_FAMILIES: { id: AstralFamily; name: string; blurb: string }[] = [
+  { id: "shadow", name: "Shadow", blurb: "Endurance, evasion and the deep cold" },
+  { id: "chaos", name: "Chaos", blurb: "Raw force, crits and armour-breaking" },
+  { id: "void", name: "Void", blurb: "Magic, accuracy and stolen life" },
+];
+
 /** The six rarity colours every Astral is born into: White, Green, Blue, Purple, Gold, Red. */
 export const ASTRAL_RARITY = ["White", "Green", "Blue", "Purple", "Gold", "Red"];
 export const ASTRAL_RARITY_NOTE = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"];
@@ -331,17 +369,32 @@ export const ASTRAL_ODDS = [40, 30, 17, 9, 3.5, 0.5];
 export const ASTRAL_SLOTS = 8;
 /** Slots 1-3 are open from the start; every further slot wakes every 10 levels. */
 export const ASTRAL_SLOT_LEVELS = [1, 1, 1, 10, 20, 30, 40, 50];
-/** Every Astral is summoned at Lv 1 and can be upgraded ten times, up to Lv 10. */
-export const ASTRAL_MAX_LVL = 10;
-/** Share of the species' base bonus one upgrade level adds. */
+/** Share of the species' base bonus one upgrade level adds. Levels never stop. */
 export const ASTRAL_LVL_STEP = 0.15;
 export const SUMMON_COST = 10; // starshards
-/** Starshards banked upgrade step: each rarity tier raises every level's price. */
-export const astralUpgradeCost = (a: Astral) => 3 + Math.max(0, a.lvl - 1) * (a.rarity + 2);
-export const astralValue = (a: Astral) =>
-  +((ASTRAL_BASES[a.base]?.per ?? 0) * (ASTRAL_RARITY_POWER[a.rarity] ?? 1) * (1 + Math.max(0, a.lvl - 1) * ASTRAL_LVL_STEP)).toFixed(1);
+
+/**
+ * Gold one Astral level costs. It rises steeply with the level already reached and with rarity,
+ * then scales with the hero's level like every other gold price, so deep Astrals are the
+ * endgame's grand sink rather than a cheap stat button.
+ */
+export const astralUpgradeCost = (a: Astral, heroLevel = 1) =>
+  scaledGold(Math.round(Math.pow(Math.max(1, a.lvl), 1.7) * (600 + 500 * (a.rarity ?? 0))), heroLevel);
+
+/** Every bonus one Astral grants right now: one entry per species stat. */
+export const astralStats = (a: Astral): { stat: StatKey; value: number }[] => {
+  const species = ASTRAL_BASES[a.base];
+  if (!species) return [];
+  const mult = (ASTRAL_RARITY_POWER[a.rarity] ?? 1) * (1 + Math.max(0, a.lvl - 1) * ASTRAL_LVL_STEP);
+  return species.stats.map(([stat, per]) => ({ stat, value: +(per * mult).toFixed(1) }));
+};
+
+/** Total of everything an Astral grants, used for sorting and quick comparisons. */
+export const astralValue = (a: Astral) => +astralStats(a).reduce((sum, s) => sum + s.value, 0).toFixed(1);
 export const astralLabel = (a: Astral) => `${ASTRAL_RARITY[a.rarity]} ${ASTRAL_BASES[a.base]?.name ?? "Astral"} Lv${a.lvl}`;
-export const astralStatText = (a: Astral) => `+${astralValue(a)}${STAT_LABEL[ASTRAL_BASES[a.base].stat]}`;
+/** Human-readable bonus list, e.g. "+3% Physical Attack, +1.2% Crit Chance". */
+export const astralStatText = (a: Astral) =>
+  astralStats(a).map((s) => `+${s.value}${STAT_LABEL[s.stat]}`).join(" · ");
 
 export function rollAstralRarity(r: number) {
   let acc = 0;
@@ -358,36 +411,42 @@ export function summonAstral(h: CraftState, rand = Math.random): Astral | string
   h.astrals = [...(h.astrals ?? []), a];
   return a;
 }
+
+/** Raise one Astral a level for gold. There is no final level — the price is the only limit. */
 export function upgradeAstral(h: CraftState, id: string): string | null {
   const a = h.astrals?.find((x) => x.id === id);
   if (!a) return "Astral not found";
-  if (a.lvl >= ASTRAL_MAX_LVL) return "Max level";
-  const c = astralUpgradeCost(a);
-  if (matCount(h, "starshard") < c) return `Needs ${c} Starshards`;
-  spendMats(h, { starshard: c }); a.lvl++;
+  const cost = astralUpgradeCost(a, h.level);
+  if (h.gold < cost) return `Needs ${cost.toLocaleString()} gold`;
+  h.gold -= cost;
+  a.lvl += 1;
   return null;
 }
+
 /** Feed a duplicate (same species, not equipped) into an Astral: +1 level, +1 more for every two rarity steps. */
 export function absorbAstral(h: CraftState, targetId: string, foodId: string): string | null {
   const t = h.astrals?.find((x) => x.id === targetId); const f = h.astrals?.find((x) => x.id === foodId);
   if (!t || !f || t.id === f.id) return "Astral not found";
   if (t.base !== f.base) return "Only duplicates of the same species can be absorbed";
   if ((h.astralSlots ?? []).includes(f.id)) return "Unequip the duplicate first";
-  if (t.lvl >= ASTRAL_MAX_LVL) return "Max level";
-  t.lvl = Math.min(ASTRAL_MAX_LVL, t.lvl + 1 + Math.floor(f.rarity / 2));
+  t.lvl = Math.max(1, t.lvl) + 1 + Math.floor(f.rarity / 2);
   h.astrals = h.astrals!.filter((x) => x.id !== f.id);
   return null;
 }
 
-/** Keep every Astral inside the six-colour, ten-level ladder, including ones the server or an old save returns. */
+/** Keep every Astral on a valid colour and level, including ones the server or an old save returns.
+ *  Levels are endless now, so only the floor is enforced. */
 export function normalizeAstrals(h: { astrals?: Astral[] }) {
   for (const a of h.astrals ?? []) {
     const rarity = Math.round(Number(a.rarity));
     a.rarity = Number.isFinite(rarity) ? Math.min(ASTRAL_RARITY.length - 1, Math.max(0, rarity)) : 0;
     const lvl = Math.round(Number(a.lvl));
-    a.lvl = Number.isFinite(lvl) ? Math.min(ASTRAL_MAX_LVL, Math.max(1, lvl)) : 1;
+    a.lvl = Number.isFinite(lvl) ? Math.max(1, lvl) : 1;
+    // Species retired from the table would leave a blank slot; keep them as Astrals of the first species.
+    if (!ASTRAL_BASES[a.base]) a.base = Object.keys(ASTRAL_BASES)[0];
   }
 }
+
 export function equipAstral(h: CraftState, id: string | null, slot: number): string | null {
   if (slot < 0 || slot >= ASTRAL_SLOTS) return "No such slot";
   if (h.level < ASTRAL_SLOT_LEVELS[slot]) return `Slot ${slot + 1} wakes at level ${ASTRAL_SLOT_LEVELS[slot]}`;
@@ -400,12 +459,13 @@ export function astralFx(h: Pick<CraftState, "astrals" | "astralSlots">): BonusF
   const out = zeroFx();
   for (const id of h.astralSlots ?? []) {
     const a = id ? h.astrals?.find((x) => x.id === id) : undefined;
-    if (a && ASTRAL_BASES[a.base]) out[ASTRAL_BASES[a.base].stat] += astralValue(a);
+    if (!a) continue;
+    for (const s of astralStats(a)) out[s.stat] += s.value;
   }
   return out;
 }
 /** Collection milestone: distinct astral species owned. */
-export const ASTRAL_MILESTONES = [{ n: 3, gold: 1000 }, { n: 6, gold: 5000 }, { n: 13, gold: 25000 }];
+export const ASTRAL_MILESTONES = [{ n: 6, gold: 2500 }, { n: 12, gold: 15000 }, { n: 24, gold: 60000 }];
 
 // ---------- Recipes ----------
 export interface Recipe {

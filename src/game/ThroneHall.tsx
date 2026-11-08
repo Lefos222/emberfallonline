@@ -8,6 +8,7 @@ import { LevelProgress } from "./LevelCurve";
 import { QUEST_POINT_CHANCE } from "./quest-board";
 import { TREES } from "./talents";
 import { RenownTraining } from "./RenownPanel";
+import { EnlightenmentTraining, SoulForge } from "./EnlightenmentPanel";
 
 export function ThroneHall({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
@@ -97,6 +98,10 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
           <LevelProgress hero={hero} rows={5} />
         </div>
         <RenownTraining hero={hero} />
+        {/* The Enlightenment and Soul tracks used to live in the Barracks; they now sit here so the
+            Barracks can stay exactly the four attribute cards. */}
+        <EnlightenmentTraining hero={hero} />
+        <SoulForge hero={hero} />
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-1">
             <div className="font-display text-2xl">{hero.name}</div>

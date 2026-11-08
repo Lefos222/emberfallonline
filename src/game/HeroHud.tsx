@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Cloud, CloudOff, IdCard, LogOut, Trophy, Users, Volume2, VolumeX } from "lucide-react";
 import { AvatarIcon } from "./AvatarIcon";
 import { Portrait, frameClass } from "./CharacterSelect";
@@ -6,13 +7,24 @@ import { CLASSES, heroStats, type Hero } from "./data";
 import { premiumState } from "./economy";
 import { XpBar } from "./panels";
 import {
+  CAMPAIGN_STAMINA,
+  DUNGEON_STAMINA,
+  POTION_PER_DAY,
   POTION_STAMINA,
   STAMINA_PER_DAY,
-  drinkStaminaPotion,
   potionCount,
+  potionUsesLeft,
   staminaLeft,
 } from "./stamina";
-import potionArt from "@/assets/stamina-potion.png";
+import {
+  POTIONS,
+  POTION_IDS,
+  potionBlocker,
+  potionBuffLeft,
+  potionHeld,
+  takePotion,
+  type PotionId,
+} from "./potions";
 import { Diamonds, Gold, VoidCrystals, fmt } from "./ui";
 import { leaveCharacter, update, useGame } from "./store";
 import { supabase } from "@/integrations/supabase/client";
@@ -129,22 +141,27 @@ export function Hud({
   );
 }
 
-/** Dungeon Gate stamina and the potion pouch, under the player plate in the top-left HUD. */
+/** Daily stamina and the potion pouch, under the player plate in the top-left HUD. */
 export function StaminaBar({ hero }: { hero: Hero }) {
+  const [shelf, setShelf] = useState(false);
+  const [notice, setNotice] = useState<{ ok: boolean; t: string } | null>(null);
   const left = staminaLeft(hero);
   const potions = potionCount(hero);
-  const drink = () =>
+  const drinksLeft = potionUsesLeft(hero);
+  const buff = potionBuffLeft(hero, "strength");
+  const use = (id: PotionId) =>
     update((h) => {
-      drinkStaminaPotion(h);
+      const err = takePotion(h, id);
+      setNotice(err ? { ok: false, t: err } : { ok: true, t: id === "stamina" ? `+${POTION_STAMINA} stamina` : "Elixir of Strength is burning" });
     });
   return (
     <div
       className="hud-stamina-bar"
-      title={`Dungeon stamina ${left}/${STAMINA_PER_DAY} — 10 per dungeon run, refills at Greek midnight`}
+      title={`Stamina ${left}/${STAMINA_PER_DAY} — ${CAMPAIGN_STAMINA} per Campaign Gate battle, ${DUNGEON_STAMINA} per dungeon run, refills at Greek midnight`}
     >
       <div className="mb-0.5 flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
         <span className="font-display">Stamina</span>
-        <span className={left < 10 ? "font-bold text-hp" : "font-bold text-foreground"}>
+        <span className={left < CAMPAIGN_STAMINA ? "font-bold text-hp" : "font-bold text-foreground"}>
           {left}/{STAMINA_PER_DAY}
         </span>
       </div>
@@ -156,20 +173,56 @@ export function StaminaBar({ hero }: { hero: Hero }) {
           />
         </div>
         <button
-          className="flex shrink-0 items-center gap-0.5 rounded bg-black/40 px-1 py-0.5 text-[10px] font-bold disabled:opacity-40"
-          onClick={drink}
-          disabled={potions <= 0}
-          aria-label={`Drink a Stamina Potion (${potions} left)`}
-          title={
-            potions > 0
-              ? `Drink a Stamina Potion: +${POTION_STAMINA} stamina (${potions} left)`
-              : "No Stamina Potions — they are a rare Dungeon Gate drop"
-          }
+          className="flex shrink-0 items-center gap-0.5 rounded bg-black/40 px-1 py-0.5 text-[10px] font-bold"
+          onClick={() => { setShelf(true); setNotice(null); }}
+          aria-label={`Potion pouch (${potions} stamina potions)`}
+          title={`Potion pouch — ${potions} Stamina Potion${potions === 1 ? "" : "s"}, ${drinksLeft}/${POTION_PER_DAY} drinks left today`}
         >
-          <img src={potionArt} alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
+          <img src={POTIONS.stamina.art} alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
           <span>{potions}</span>
         </button>
       </div>
+      {buff > 0 && (
+        <div className="mt-0.5 flex items-center gap-1 text-[9px] font-bold text-r1" title="Elixir of Strength">
+          <img src={POTIONS.strength.art} alt="" aria-hidden="true" className="h-3 w-3 object-contain" />+20% ATK · {buff}m
+        </div>
+      )}
+      {shelf && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" role="dialog" aria-modal="true"
+          aria-label="Potion pouch" onClick={() => setShelf(false)}>
+          <div className="game-panel anim-pop w-full max-w-sm p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-2 flex items-center justify-between">
+              <div className="font-display text-lg text-gold">Potion pouch</div>
+              <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => setShelf(false)}>Close</button>
+            </div>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Stamina {left}/{STAMINA_PER_DAY} · {drinksLeft}/{POTION_PER_DAY} Stamina Potions left today. Restocks at Greek midnight.
+            </p>
+            {notice && <p role="status" className={`mb-2 text-sm ${notice.ok ? "text-r1" : "text-hp"}`}>{notice.t}</p>}
+            <div className="space-y-2">
+              {POTION_IDS.map((id) => {
+                const def = POTIONS[id];
+                const held = potionHeld(hero, id);
+                const blocked = potionBlocker(hero, id);
+                const running = potionBuffLeft(hero, id);
+                return (
+                  <div key={id} className="slot flex items-center gap-3 p-2">
+                    <img src={def.art} alt="" aria-hidden="true" className="h-11 w-11 shrink-0 object-contain" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-bold">{def.name} <span className="text-muted-foreground">×{held}</span></div>
+                      <div className="text-[11px] text-muted-foreground">{def.desc}</div>
+                      {running > 0 && <div className="text-[11px] font-bold text-r1">Active · {running} min left</div>}
+                    </div>
+                    <button className="btn-gold shrink-0 px-3 py-1 text-xs" disabled={!!blocked} title={blocked ?? "Use"}
+                      onClick={() => use(id)}>Use</button>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-[11px] text-muted-foreground">Buy more at the Auction House's shop, or find Stamina Potions as a rare dungeon drop.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

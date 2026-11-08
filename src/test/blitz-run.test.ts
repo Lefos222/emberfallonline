@@ -57,7 +57,7 @@ describe("blitz runs", () => {
     const receipt = settleBlitzRun(h, NOW + BLITZ_DURATION_MS);
     expect(receipt).toMatchObject({ gate: "campaign", target: 4, xp: 100, gold: 50, tokens: 0 });
     expect(h.gold).toBe(gold + 50);
-    expect(h.level).toBeGreaterThan(1); // the xp paid straight into a level-up
+    expect(h.xp).toBe(100); // the xp paid into the bar (a level now costs far more)
     expect(h.blitzRun).toBeUndefined();
   });
 

@@ -37,7 +37,7 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
         </div>
         <p className="text-xs text-muted-foreground">
           Clear floors 1 to a floor you have already beaten without fighting them again. Your record
-          is floor {cap}; a blitz pays the same XP, gold and tokens as those floors, but it takes ten
+          is floor {cap}; a blitz pays those floors' gold and tokens but only 30% of their XP, and it takes ten
           minutes to run — no battle can start until it lands, and 25 Diamonds finish it on the spot.
           The blitz is the only limit — the floors themselves never stop, and the allowance returns at
           Greek midnight.

@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { newHero } from "@/game/data";
 import {
+  CAMPAIGN_STAMINA,
   DUNGEON_RUNS_PER_DAY,
+  DUNGEON_STAMINA,
   POTION_DROP_CHANCE,
+  POTION_PER_DAY,
   POTION_STAMINA,
   STAMINA_PER_DAY,
-  STAMINA_PER_RUN,
   addPotions,
   potionCount,
+  potionUsesLeft,
   rollStaminaPotion,
   spendStamina,
   staminaBlocker,
@@ -17,40 +20,47 @@ import {
   drinkStaminaPotion,
 } from "@/game/stamina";
 
-describe("dungeon stamina", () => {
-  it("pays 20 dungeon runs a day at 10 stamina each", () => {
+describe("daily stamina", () => {
+  it("pays 200 a day: ten campaign battles at 20 or twenty dungeon runs at 10", () => {
     expect(STAMINA_PER_DAY).toBe(200);
-    expect(STAMINA_PER_RUN).toBe(10);
+    expect(CAMPAIGN_STAMINA).toBe(20);
+    expect(DUNGEON_STAMINA).toBe(10);
     expect(DUNGEON_RUNS_PER_DAY).toBe(20);
   });
 
-  it("starts full and drains a run at a time", () => {
+  it("starts full and drains a campaign battle at a time", () => {
     const h = newHero("Walker", "warrior");
     expect(staminaLeft(h)).toBe(STAMINA_PER_DAY);
-    expect(staminaBlocker(h)).toBeNull();
-    spendStamina(h);
-    expect(staminaLeft(h)).toBe(STAMINA_PER_DAY - STAMINA_PER_RUN);
-    expect(staminaUsed(h)).toBe(STAMINA_PER_RUN);
+    expect(staminaBlocker(h, CAMPAIGN_STAMINA)).toBeNull();
+    spendStamina(h, CAMPAIGN_STAMINA);
+    expect(staminaLeft(h)).toBe(STAMINA_PER_DAY - CAMPAIGN_STAMINA);
+    expect(staminaUsed(h)).toBe(CAMPAIGN_STAMINA);
   });
 
-  it("blocks the 21st run of the day", () => {
-    const h = newHero("Walker", "warrior");
-    for (let i = 0; i < DUNGEON_RUNS_PER_DAY; i++) spendStamina(h);
-    expect(staminaLeft(h)).toBe(0);
-    expect(staminaBlocker(h)).toMatch(/Out of stamina/);
+  it("blocks the eleventh campaign battle and the twenty-first dungeon run", () => {
+    const campaign = newHero("Walker", "warrior");
+    for (let i = 0; i < STAMINA_PER_DAY / CAMPAIGN_STAMINA; i++) spendStamina(campaign, CAMPAIGN_STAMINA);
+    expect(staminaLeft(campaign)).toBe(0);
+    expect(staminaBlocker(campaign, CAMPAIGN_STAMINA)).toMatch(/Out of stamina/);
+    expect(staminaBlocker(campaign, DUNGEON_STAMINA)).toMatch(/Out of stamina/);
+
+    const dungeon = newHero("Walker", "warrior");
+    for (let i = 0; i < DUNGEON_RUNS_PER_DAY; i++) spendStamina(dungeon, DUNGEON_STAMINA);
+    expect(staminaLeft(dungeon)).toBe(0);
+    expect(staminaBlocker(dungeon, DUNGEON_STAMINA)).toMatch(/Out of stamina/);
   });
 
   it("refills at the next Greek day", () => {
     const h = newHero("Walker", "warrior");
     const now = Date.now();
-    for (let i = 0; i < DUNGEON_RUNS_PER_DAY; i++) spendStamina(h, now);
+    for (let i = 0; i < DUNGEON_RUNS_PER_DAY; i++) spendStamina(h, DUNGEON_STAMINA, now);
     expect(staminaLeft(h, now)).toBe(0);
     const tomorrow = now + 86400000;
     expect(staminaDay(tomorrow)).not.toBe(staminaDay(now));
     expect(staminaLeft(h, tomorrow)).toBe(STAMINA_PER_DAY);
   });
 
-  it("stores and drinks potions without refilling past a full bar", () => {
+  it("drinks potions for +50 without refilling past a full bar", () => {
     const empty = newHero("Walker", "warrior");
     expect(drinkStaminaPotion(empty)).toBe("No Stamina Potions");
 
@@ -61,18 +71,23 @@ describe("dungeon stamina", () => {
     expect(drinkStaminaPotion(h)).toBe("Stamina is already full");
     expect(potionCount(h)).toBe(2);
 
-    spendStamina(h);
-    spendStamina(h);
-    expect(staminaLeft(h)).toBe(STAMINA_PER_DAY - 2 * STAMINA_PER_RUN);
+    spendStamina(h, 120);
     expect(drinkStaminaPotion(h)).toBeNull();
     expect(potionCount(h)).toBe(1);
-    expect(staminaLeft(h)).toBe(STAMINA_PER_DAY);
+    expect(staminaLeft(h)).toBe(STAMINA_PER_DAY - 120 + POTION_STAMINA);
+  });
 
-    spendStamina(h);
-    expect(drinkStaminaPotion(h)).toBeNull();
-    expect(potionCount(h)).toBe(0);
-    expect(staminaLeft(h)).toBe(STAMINA_PER_DAY);
-    expect(drinkStaminaPotion(h)).toBe("No Stamina Potions");
+  it("caps stamina potions at five a day", () => {
+    const h = newHero("Walker", "warrior");
+    addPotions(h, 10);
+    for (let i = 0; i < POTION_PER_DAY; i++) {
+      spendStamina(h, 50);
+      expect(drinkStaminaPotion(h)).toBeNull();
+    }
+    spendStamina(h, 50);
+    expect(potionUsesLeft(h)).toBe(0);
+    expect(drinkStaminaPotion(h)).toMatch(/already drunk 5 Stamina Potions/);
+    expect(potionCount(h)).toBe(10 - POTION_PER_DAY);
   });
 
   it("drops a potion only on a rare roll", () => {

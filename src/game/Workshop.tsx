@@ -10,9 +10,10 @@ import { SynthesisTab } from "./Synthesis";
 import { heroAppearance } from "./appearance";
 import { GameTabs, Gold, ItemCard, Panel, fmt } from "./ui";
 import {
-  ASTRAL_BASES, ASTRAL_COLORS, ASTRAL_MAX_LVL, ASTRAL_MILESTONES, ASTRAL_ODDS, ASTRAL_RARITY, ASTRAL_RARITY_NOTE, ASTRAL_SLOT_LEVELS, ASTRAL_SLOTS, FUSE_COUNT, GEMS, GEM_MAX_TIER, MATS, RECIPES, SUMMON_COST,
-  astralUpgradeCost, astralValue, craft, craftBlocker, equipAstral, fuseCost, fuseGem, gemName, gemValue, GEM_STAT_LABEL, insertGem, matCount, parseGem, recipeGold, removeGem,
-  socketCount, sockets, STAT_LABEL, recipeMats, summonAstral, upgradeAstral, absorbAstral, type Mat, type Recipe,
+  ASTRAL_BASES, ASTRAL_COLORS, ASTRAL_FAMILIES, ASTRAL_MILESTONES, ASTRAL_RARITY, ASTRAL_SLOT_LEVELS, ASTRAL_SLOTS, FUSE_COUNT, GEMS, GEM_MAX_TIER, MATS, RECIPES, SUMMON_COST,
+  astralLabel, astralStatText, astralUpgradeCost, craft, craftBlocker, equipAstral, fuseCost, fuseGem, gemName, gemValue, GEM_STAT_LABEL, insertGem, matCount, parseGem, recipeGold, removeGem,
+  socketCount, sockets, recipeMats, summonAstral, upgradeAstral, absorbAstral,
+  type Astral, type AstralFamily, type Mat, type Recipe,
 } from "./crafting";
 
 function MatsBar() {
@@ -121,116 +122,193 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
 }
 
 // ---------------- Magic Tower (Astrals) ----------------
+/** One Astral in the vault: its unique bonus mix, endless level and the gold price of the next step. */
+function AstralRow({ a, hero, seated, onSeat, onUnseat, onUpgrade, onAbsorb, canAbsorb }: {
+  a: Astral; hero: Hero; seated: boolean;
+  onSeat: () => void; onUnseat: () => void; onUpgrade: () => void; onAbsorb: () => void; canAbsorb: boolean;
+}) {
+  const species = ASTRAL_BASES[a.base];
+  const cost = astralUpgradeCost(a, hero.level);
+  const name = `${ASTRAL_RARITY[a.rarity]} ${species.name}`;
+  return (
+    <div className="rounded-md border p-2.5" style={{ borderColor: ASTRAL_COLORS[a.rarity] + '88', background: 'linear-gradient(180deg,#12131e 0%,#0a0b12 100%)' }}>
+      <div className="flex items-start gap-2.5">
+        <AstralIcon base={a.base} rarity={a.rarity} size={46} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <b className="font-display text-sm" style={{ color: ASTRAL_COLORS[a.rarity] }}>{name}</b>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{species.family} · {species.kind}</span>
+            {seated && <span className="rounded bg-gold/20 px-1 text-[10px] font-bold text-gold">SEATED</span>}
+          </div>
+          <div className="text-xs text-foreground/90">{astralStatText(a)}</div>
+          <div className="text-[10px] text-muted-foreground">{species.power}</div>
+        </div>
+        <div className="shrink-0 text-right">
+          <div className="font-display text-lg leading-none text-gold">Lv {a.lvl}</div>
+          <div className="text-[10px] text-muted-foreground">endless</div>
+        </div>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        <button className="btn-gold flex items-center gap-1 px-2.5 py-1 text-xs" disabled={hero.gold < cost}
+          title={`Raise to Lv ${a.lvl + 1} for ${fmt(cost)} gold`}
+          onClick={onUpgrade}>
+          <ArrowUp className="h-3 w-3" />Upgrade <Gold n={cost} className="text-primary-foreground" />
+        </button>
+        <span className="text-[11px] text-muted-foreground">next: {astralStatText({ ...a, lvl: a.lvl + 1 })}</span>
+        <span className="ml-auto flex gap-1">
+          {seated
+            ? <button className="btn-ghost px-2 py-0.5 text-xs" onClick={onUnseat}>Unseat</button>
+            : <button className="btn-ghost px-2 py-0.5 text-xs" onClick={onSeat}>Seat</button>}
+          {canAbsorb && (
+            <button className="btn-ghost px-2 py-0.5 text-xs" title="Feed a duplicate of this species into it for a free level" onClick={onAbsorb}>
+              <Sparkles className="inline h-3 w-3" /> Absorb
+            </button>
+          )}
+        </span>
+      </div>
+      {hero.gold < cost && <p className="mt-1 text-[10px] text-hp" role="note">Not enough gold for the next level — raise {fmt(cost - hero.gold)} more.</p>}
+    </div>
+  );
+}
+
 export function MagicTower({ onClose }: { onClose: () => void }) {
   const { hero, gender } = useGame();
   const [toast, say] = useToast();
   const [picking, setPicking] = useState<number | null>(null);
+  const [tab, setTab] = useState<"owned" | AstralFamily>("owned");
   if (!hero) return null;
   const list = hero.astrals ?? [];
   const slots = Array.from({ length: ASTRAL_SLOTS }, (_, i) => hero.astralSlots?.[i] ?? null);
   const equipped = slots.filter(Boolean).length;
-  const species = new Set(list.map((a) => a.base)).size;
+  const speciesOwned = new Set(list.map((a) => a.base));
   const seat = (id: string, slot: number) => update((h) => { const e = equipAstral(h, id, slot); say(!e, e ?? "Astral seated"); });
-  const label = (a: { base: string; rarity: number; lvl: number }) => `${ASTRAL_RARITY[a.rarity]} ${ASTRAL_BASES[a.base].name} Lv${a.lvl}`;
-  const fx = (a: Parameters<typeof astralValue>[0]) => `+${astralValue(a)} ${STAT_LABEL[ASTRAL_BASES[a.base].stat]}`;
+  const seatFirstFree = (id: string) => {
+    const free = slots.findIndex((x, i) => !x && hero.level >= ASTRAL_SLOT_LEVELS[i]);
+    if (free < 0) { say(false, "No open slot — level up to wake more"); return; }
+    seat(id, free);
+  };
+  const shown = tab === "owned" ? list : list.filter((a) => ASTRAL_BASES[a.base]?.family === tab);
+  const speciesList = (Object.keys(ASTRAL_BASES) as string[]).filter((k) => tab === "owned" || ASTRAL_BASES[k].family === tab);
 
   return (
-    <Panel title="Magic Tower" subtitle="Summon and raise astrals" art="astral" onClose={onClose} wide>
-      <MatsBar />
+    <Panel title="Magic Tower" subtitle="The Astral Vault · every stone unique, every level endless" art="astral" onClose={onClose} wide>
       {toast}
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div className="font-display">Seated: {equipped}/{ASTRAL_SLOTS}</div>
-        <div className="text-sm text-muted-foreground">Level {hero.level} · 3 slots open from the start, the rest wake every 10 levels · every Astral climbs ten levels</div>
-      </div>
-      <div className="relative mx-auto mb-1 h-[300px] w-[300px] sm:h-[340px] sm:w-[340px]">
-        <div className="absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2">
-          <CharacterModel cls={hero.cls} gender={gender} className="h-full w-full" {...heroAppearance(hero, gender)} />
+      <div className="rounded-lg border border-[#2a2a32] bg-[#0a0b12] p-3 text-foreground">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="font-display text-lg text-gold">ASTRAL VAULT</div>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="flex items-center gap-1"><MatIcon mat="starshard" size={16} />{fmt(matCount(hero, "starshard"))}</span>
+            <span className="flex items-center gap-1"><Gold n={hero.gold} /></span>
+            <span className="text-xs text-muted-foreground">Seated {equipped}/{ASTRAL_SLOTS}</span>
+          </div>
         </div>
-        {ASTRAL_SLOT_LEVELS.map((lv, i) => {
-          const ang = (i / ASTRAL_SLOTS) * Math.PI * 2 - Math.PI / 2;
-          const style = { left: `calc(50% + ${Math.round(Math.cos(ang) * 118)}px)`, top: `calc(50% + ${Math.round(Math.sin(ang) * 118)}px)` };
-          const a = slots[i] ? list.find((x) => x.id === slots[i]) : undefined;
-          if (hero.level < lv) return (
-            <div key={i} style={style} title={`Wakes at level ${lv}`}
-              className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-border/60 bg-background/70 text-center">
-              <Lock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-[9px] leading-tight text-muted-foreground">Lv {lv}</span>
-            </div>
-          );
-          if (a) return (
-            <button key={i} style={style} title={`${label(a)} · ${fx(a)} · click to unseat`}
-              onClick={() => update((h) => { equipAstral(h, null, i); })}
-              className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-0.5 rounded-full border border-border bg-background/80 p-1 hover:scale-105">
-              <AstralIcon base={a.base} rarity={a.rarity} size={34} />
-              <span className="max-w-full truncate text-[8px] leading-none">{ASTRAL_BASES[a.base].name}</span>
-            </button>
-          );
-          return (
-            <button key={i} style={style} title={`Astral slot ${i + 1}`} onClick={() => setPicking(i)}
-              className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-dashed border-border bg-background/40 text-muted-foreground hover:border-gold hover:text-gold">
-              <Plus className="h-5 w-5" />
-            </button>
-          );
-        })}
-      </div>
-      <p className="mb-4 text-center text-xs text-muted-foreground">Click an open slot to seat an Astral beside your hero. Click a seated Astral to send it back.</p>
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <button className="btn-gold flex items-center gap-1 px-4 py-2" disabled={matCount(hero, "starshard") < SUMMON_COST}
-          onClick={() => update((h) => { const r = summonAstral(h); say(typeof r !== "string", typeof r === "string" ? r : `Summoned ${label(r)}!`); })}>
-          <Sparkles className="h-4 w-4" />Summon ({SUMMON_COST} Starshards)
-        </button>
-        <span className="text-sm text-muted-foreground">Collection: {species}/{Object.keys(ASTRAL_BASES).length} species
-          {ASTRAL_MILESTONES.map((m) => {
-            const key = `astral_${m.n}`;
-            const got = (hero.achClaimed ?? []).includes(key);
-            return <button key={key} className="btn-ghost ml-2 px-2 py-0.5 text-xs" disabled={got || species < m.n}
-              onClick={() => update((h) => { if (new Set((h.astrals ?? []).map((a) => a.base)).size >= m.n && !(h.achClaimed ?? []).includes(key)) { h.achClaimed = [...(h.achClaimed ?? []), key]; h.gold += m.gold; } })}>
-              {got ? `✓ ${m.n} species` : `${m.n} species: ${fmt(m.gold)} gold`}</button>;
-          })}
-        </span>
-      </div>
-      <div className="mb-3 grid grid-cols-2 gap-1 sm:grid-cols-3">
-        {ASTRAL_RARITY.map((r, i) => (
-          <div key={r} className="slot flex items-center justify-between gap-1 px-2 py-1 text-[11px]">
-            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full" style={{ background: ASTRAL_COLORS[i] }} />{r}</span>
-            <b>{ASTRAL_ODDS[i]}%</b>
+
+        <div className="relative mx-auto mb-1 h-[300px] w-[300px] sm:h-[340px] sm:w-[340px]">
+          <div className="absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2">
+            <CharacterModel cls={hero.cls} gender={gender} className="h-full w-full" {...heroAppearance(hero, gender)} />
           </div>
-        ))}
-      </div>
-      {list.length === 0 && <p className="py-6 text-center text-muted-foreground">No Astrals yet. Starshards drop from battles and bosses.</p>}
-      <div className="grid gap-2 md:grid-cols-2">
-        {list.map((a) => (
-          <div key={a.id} className="slot p-2 text-sm">
-            <div className="flex items-start justify-between gap-2">
-              <span className="flex min-w-0 items-center gap-2">
-                <AstralIcon base={a.base} rarity={a.rarity} size={36} />
-                <span className="min-w-0">
-                  <b style={{ color: ASTRAL_COLORS[a.rarity] }}>{label(a)}</b>
-                  <span className="text-xs text-muted-foreground"> · {ASTRAL_BASES[a.base].kind}</span>
-                  <span className="block text-xs">{fx(a)}</span>
-                  <span className="block text-xs text-muted-foreground">{ASTRAL_BASES[a.base].power}</span>
-                </span>
-              </span>
-              <span className="shrink-0 text-right text-[10px] text-muted-foreground">{ASTRAL_RARITY_NOTE[a.rarity]}</span>
-            </div>
-            <div className="mt-1.5 flex items-center gap-2">
-              <div className="flex gap-[2px]" role="progressbar" aria-label={`${label(a)} upgrade level`} aria-valuemin={1} aria-valuemax={ASTRAL_MAX_LVL} aria-valuenow={a.lvl}>
-                {Array.from({ length: ASTRAL_MAX_LVL }, (_, i) => (
-                  <span key={i} className={`h-2 w-2 rounded-sm ${i < a.lvl ? "" : "bg-muted"}`}
-                    style={i < a.lvl ? { background: ASTRAL_COLORS[a.rarity] } : undefined} />
-                ))}
+          {ASTRAL_SLOT_LEVELS.map((lv, i) => {
+            const ang = (i / ASTRAL_SLOTS) * Math.PI * 2 - Math.PI / 2;
+            const style = { left: `calc(50% + ${Math.round(Math.cos(ang) * 118)}px)`, top: `calc(50% + ${Math.round(Math.sin(ang) * 118)}px)` };
+            const a = slots[i] ? list.find((x) => x.id === slots[i]) : undefined;
+            if (hero.level < lv) return (
+              <div key={i} style={style} title={`Wakes at level ${lv}`}
+                className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-[#3d3d44] bg-black/60 text-center">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-[9px] leading-tight text-muted-foreground">Lv {lv}</span>
               </div>
-              <span className="text-[10px] text-muted-foreground">Lv {a.lvl}/{ASTRAL_MAX_LVL}</span>
-            </div>
-            <div className="mt-1.5 flex flex-wrap gap-1">
-              {!slots.includes(a.id) && <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => { const free = slots.findIndex((x, i) => !x && hero.level >= ASTRAL_SLOT_LEVELS[i]); if (free < 0) { say(false, "No open slot - level up to wake more"); return; } seat(a.id, free); }}>Seat</button>}
-              {list.some(f=>f.id !== a.id && f.base === a.base) && <Button size="sm" variant="outline" disabled={a.lvl >= ASTRAL_MAX_LVL || !list.some(f=>f.id !== a.id && f.base === a.base && !slots.includes(f.id))} onClick={()=>update(h=>{const food=h.astrals?.find(f=>f.id!==a.id && f.base===a.base && !(h.astralSlots??[]).includes(f.id));if(!food)return;const err=absorbAstral(h,a.id,food.id);say(!err,err??'Duplicate absorbed');})}><Sparkles className="h-3 w-3" />Absorb duplicate</Button>}
-              <button className="btn-ghost px-2 py-0.5 text-xs" disabled={a.lvl >= ASTRAL_MAX_LVL || matCount(hero, "starshard") < astralUpgradeCost(a)} title={a.lvl >= ASTRAL_MAX_LVL ? "This Astral is at its final level" : `Upgrade to Lv ${a.lvl + 1}: ${astralUpgradeCost(a)} Starshards`}
-                onClick={() => update((h) => { const e = upgradeAstral(h, a.id); say(!e, e ?? "Astral upgraded"); })}><ArrowUp className="inline h-3 w-3" />{a.lvl >= ASTRAL_MAX_LVL ? "Max level" : `Upgrade · ${astralUpgradeCost(a)}`}</button>
-            </div>
+            );
+            if (a) return (
+              <button key={i} style={style} title={`${astralLabel(a)} · ${astralStatText(a)} · click to unseat`}
+                onClick={() => update((h) => { equipAstral(h, null, i); })}
+                className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-0.5 rounded-full border border-[#3d3d44] bg-black/70 p-1 hover:scale-105">
+                <AstralIcon base={a.base} rarity={a.rarity} size={34} />
+                <span className="max-w-full truncate text-[8px] leading-none">{ASTRAL_BASES[a.base].name}</span>
+              </button>
+            );
+            return (
+              <button key={i} style={style} title={`Astral slot ${i + 1}`} onClick={() => setPicking(i)}
+                className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-dashed border-[#4a4a55] bg-black/40 text-muted-foreground hover:border-gold hover:text-gold">
+                <Plus className="h-5 w-5" />
+              </button>
+            );
+          })}
+        </div>
+        <p className="mb-3 text-center text-[11px] text-muted-foreground">Click an open slot to seat an Astral beside your hero. Click a seated Astral to send it back.</p>
+
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <button className="btn-gold flex items-center gap-1 px-4 py-2" disabled={matCount(hero, "starshard") < SUMMON_COST}
+            onClick={() => update((h) => { const r = summonAstral(h); say(typeof r !== "string", typeof r === "string" ? r : `Summoned ${astralLabel(r)}!`); })}>
+            <Sparkles className="h-4 w-4" />Summon ({SUMMON_COST} Starshards)
+          </button>
+          <span className="text-xs text-muted-foreground">Species found {speciesOwned.size}/{Object.keys(ASTRAL_BASES).length}</span>
+          <div className="ml-auto flex gap-1">
+            {ASTRAL_MILESTONES.map((m) => {
+              const key = `astral_${m.n}`;
+              const got = (hero.achClaimed ?? []).includes(key);
+              return <button key={key} className="btn-ghost px-2 py-0.5 text-[11px]" disabled={got || speciesOwned.size < m.n}
+                onClick={() => update((h) => { if (new Set((h.astrals ?? []).map((a) => a.base)).size >= m.n && !(h.achClaimed ?? []).includes(key)) { h.achClaimed = [...(h.achClaimed ?? []), key]; h.gold += m.gold; } })}>
+                {got ? `✓ ${m.n}` : `${m.n} species: ${fmt(m.gold)}`}</button>;
+            })}
           </div>
-        ))}
+        </div>
+
+        <GameTabs label="Astral families" value={tab} onChange={setTab} tabs={[
+          { id: "owned" as const, name: `Seated & held (${list.length})` },
+          ...ASTRAL_FAMILIES.map((f) => ({ id: f.id, name: f.name })),
+        ]} />
+        <p className="mb-2 text-[11px] text-muted-foreground">{tab === "owned" ? "Every Astral you hold. Upgrades cost gold and never stop." : ASTRAL_FAMILIES.find((f) => f.id === tab)?.blurb}</p>
+
+        {shown.length === 0 ? (
+          <p className="py-4 text-center text-sm text-muted-foreground">
+            {tab === "owned" ? "No Astrals yet — Starshards drop from battles and bosses. Summon one above." : "No Astrals of this family yet."}
+          </p>
+        ) : (
+          <div className="grid gap-2 md:grid-cols-2">
+            {shown.map((a) => {
+              const seated = slots.includes(a.id);
+              const dup = list.find((f) => f.id !== a.id && f.base === a.base && !slots.includes(f.id));
+              return (
+                <AstralRow key={a.id} a={a} hero={hero} seated={seated}
+                  onSeat={() => seatFirstFree(a.id)}
+                  onUnseat={() => update((h) => { equipAstral(h, null, slots.indexOf(a.id)); })}
+                  onUpgrade={() => update((h) => { const e = upgradeAstral(h, a.id); say(!e, e ?? `Astral raised to Lv ${a.lvl + 1}`); })}
+                  canAbsorb={!!dup}
+                  onAbsorb={() => update((h) => {
+                    const food = h.astrals?.find((f) => f.id !== a.id && f.base === a.base && !(h.astralSlots ?? []).includes(f.id));
+                    if (!food) return;
+                    const err = absorbAstral(h, a.id, food.id);
+                    say(!err, err ?? "Duplicate absorbed");
+                  })} />
+              );
+            })}
+          </div>
+        )}
+
+        <div className="mt-4">
+          <div className="mb-2 font-display text-sm text-gold">Species codex · {speciesList.length} stones</div>
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
+            {speciesList.map((key) => {
+              const sp = ASTRAL_BASES[key];
+              const owned = speciesOwned.has(key);
+              const preview: Astral = { id: key, base: key, rarity: 0, lvl: 1 };
+              return (
+                <div key={key} className={"rounded-md border border-[#2a2a32] bg-black/40 p-2 " + (owned ? "" : "opacity-45")} title={sp.power}>
+                  <div className="flex items-center gap-2">
+                    <AstralIcon base={key} rarity={owned ? 0 : 0} size={30} />
+                    <div className="min-w-0">
+                      <div className="truncate text-[11px] font-bold">{sp.name}</div>
+                      <div className="truncate text-[9px] text-muted-foreground">{sp.family}</div>
+                    </div>
+                  </div>
+                  <div className="mt-1 text-[9px] leading-tight text-muted-foreground">{astralStatText(preview)}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
+
       {picking !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" onClick={() => setPicking(null)}>
           <div className="game-panel anim-pop max-h-[80vh] w-full max-w-md overflow-y-auto p-4" onClick={(e) => e.stopPropagation()}>
@@ -246,8 +324,8 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
                   <button key={x.id} className="slot flex w-full items-center gap-3 px-3 py-2 text-left text-sm" onClick={() => { seat(x.id, picking); setPicking(null); }}>
                     <AstralIcon base={x.base} rarity={x.rarity} size={36} />
                     <span className="min-w-0">
-                      {label(x)}
-                      <span className="block text-xs text-muted-foreground">{fx(x)} · {ASTRAL_BASES[x.base].power}</span>
+                      {astralLabel(x)}
+                      <span className="block text-xs text-muted-foreground">{astralStatText(x)} · {ASTRAL_BASES[x.base].power}</span>
                     </span>
                   </button>
                 ))}

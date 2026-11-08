@@ -13,7 +13,7 @@ import { Bestiary } from "./Bestiary";
 import { EventCalendar } from "./EventCalendar";
 import { Expeditions } from './Expeditions';
 import { PremiumShop } from './PremiumShop';
-import { AuctionHouse } from './AuctionHouse';
+import { AuctionHousePanel } from './Marketplace';
 import { WorldMap } from './WorldMap';
 import { beginScrollBattle } from "./services";
 import { battleLockedByBlitz, settleBlitzRun } from "./blitz-run";
@@ -27,11 +27,11 @@ import { authHandoffPending, getState, update, useGame } from "./store";
 import { recordBattle } from "./progress";
 import { BOSS_CRYSTALS } from "./logic";
 import { battleEssenceGain, enlightenmentUnlocked, rollSoulShards } from "./enlightenment";
-import { POTION_STAMINA, addPotions, rollStaminaPotion, spendStamina, staminaBlocker } from "./stamina";
+import { DUNGEON_STAMINA, POTION_STAMINA, addPotions, rollStaminaPotion, spendStamina, staminaBlocker } from "./stamina";
 import { addRenown, renownGain } from "./renown";
 import { CharacterSelect, ProfilePanel } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
-import { Campaign, Forge, HeroHall, Market, Oracle, Temple, heroFighter, type StartBattle } from "./panels";
+import { Campaign, Forge, HeroHall, Oracle, Temple, heroFighter, type StartBattle } from "./panels";
 import { Arena } from "./Arena";
 import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
@@ -44,6 +44,7 @@ import { CONQUEST_LEVEL, canEnterConquest } from "./data";
 import { QuestsButton, QuestsPanel } from "./Quests";
 import { claimableLevelQuests, rollLevelQuests } from "./level-quests";
 import { Hud } from "./HeroHud";
+import { VERSION, RELEASE_NOTES } from "./version";
 
 const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
 
@@ -111,13 +112,15 @@ export function Game() {
     // A blitz keeps the hero out in the field: nothing fights until the run lands (see blitz-run.ts).
     const blitzLock = battleLockedByBlitz(hero);
     if (blitzLock) { setEntryError(blitzLock); return; }
-    // A Dungeon Gate run costs its stamina up front, so a loss costs exactly as much as a win.
-    if (o.dungeon) {
-      const staminaLock = staminaBlocker(hero);
+    // Every priced battle charges its stamina up front, so a loss costs exactly as much as a win:
+    // 20 for a Campaign Gate battle, 10 for a Dungeon Gate run (see stamina.ts).
+    const staminaCost = o.stamina ?? (o.dungeon ? DUNGEON_STAMINA : 0);
+    if (staminaCost > 0) {
+      const staminaLock = staminaBlocker(hero, staminaCost);
       if (staminaLock) { setEntryError(staminaLock); return; }
     }
     if (hero.blitzRun) update((h) => { settleBlitzRun(h); });
-    if (o.dungeon) update((h) => spendStamina(h));
+    if (staminaCost > 0) update((h) => spendStamina(h, staminaCost));
     starting.current = true; setEntryError("");
     void (async () => {
       try {
@@ -216,8 +219,13 @@ export function Game() {
           <WorldChat heroId={heroId} />
           <QuestsButton count={claimableLevelQuests(hero)} onClick={() => setOpen("quests")} />
           <Hud muted={muted} setMuted={setMuted} cloud={cloud} onProfile={() => setOpen("profile")} />
+          <button onClick={() => setOpen("notes")} title="Version 1.00 patch notes"
+            className="game-panel absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded px-2.5 py-1 font-display text-[11px] font-bold text-gold">
+            v{VERSION}
+          </button>
           <p className="castle-hint pointer-events-none absolute inset-x-0 top-32 z-20 text-center font-display text-xs text-gold drop-shadow-[0_1px_2px_black]">Tap a building to open it · drag the castle to reach the rest</p>
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
+          {open === "notes" && <UpdateNotes onClose={() => setOpen(null)} />}
           {open === "quests" && <QuestsPanel onClose={() => setOpen(null)} />}
           {open === "mailbox" && <Mailbox onClose={() => setOpen(null)} />}
           {open === "lucky" && <LuckyShots onClose={() => setOpen(null)} />}
@@ -230,7 +238,7 @@ export function Game() {
           {open === "road" && <LongRoad onClose={() => setOpen(null)} start={start} />}
           {open === "calendar" && <EventCalendar h={hero} onClose={() => setOpen(null)} start={start} />}
           {open === 'premium' && <PremiumShop onClose={()=>setOpen(null)} />}
-          {open === 'auction' && <AuctionHouse onClose={()=>setOpen(null)} />}
+          {open === 'auction' && <AuctionHousePanel onClose={()=>setOpen(null)} />}
           {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
           {open === "friends" && (
             <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-background/70 p-4 pt-16" onClick={() => setOpen(null)}>
@@ -250,7 +258,7 @@ export function Game() {
           {open === "gems" && <GemWorkshop onClose={() => setOpen(null)} />}
           {open === "tower" && <MagicTower onClose={() => setOpen(null)} />}
           {open === "temple" && <Temple onClose={() => setOpen(null)} />}
-          {open === "market" && <Market onClose={() => setOpen(null)} />}
+          {open === "market" && <AuctionHousePanel onClose={() => setOpen(null)} />}
           {open === "arena" && <Arena onClose={() => setOpen(null)} start={start} />}
           {open === "worldmap" && <WorldMap onClose={() => setOpen(null)} start={start} />}
           {open === "oracle" && <Oracle onClose={() => setOpen(null)} start={start} />}
@@ -269,6 +277,24 @@ export function Game() {
         </div>
       )}
     </div>
+  );
+}
+
+/** The patch notes behind the version chip: what version 1.00 changed. */
+function UpdateNotes({ onClose }: { onClose: () => void }) {
+  return (
+    <Panel title={`Emberfall ${VERSION}`} subtitle="Version 1.00 patch notes" art="quest" onClose={onClose}>
+      <div className="space-y-3">
+        {RELEASE_NOTES.map((sec) => (
+          <section key={sec.title}>
+            <h3 className="font-display text-sm text-gold">{sec.title}</h3>
+            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-muted-foreground">
+              {sec.lines.map((l) => <li key={l}>{l}</li>)}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </Panel>
   );
 }
 
@@ -369,7 +395,7 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "road" | "calendar" | 'premium' | 'auction' | 'quests';
+type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "road" | "calendar" | 'premium' | 'auction' | 'quests' | 'notes';
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIconName }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", icon: "bag" },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", icon: "hammer" },
