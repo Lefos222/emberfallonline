@@ -1,6 +1,7 @@
 import { scaledGold } from "./gold";
 import { barracksLevel } from "./barracks";
-import type { BonusFx } from "./crafting";
+import { zeroFx } from "./crafting";
+import type { BonusFx, StatKey } from "./crafting";
 
 /**
  * Barracks drills: the permanent training tracks the barracks offers beside the four attributes.
@@ -210,5 +211,94 @@ export function trainAdvanced(h: AdvancedState, id: string): string | null {
   const d = ADVANCED_DRILLS.find((x) => x.id === id)!;
   h.voidCrystals = (h.voidCrystals ?? 0) - advancedCost(d, advancedRank(h, id), barracksLevel(h));
   h.advancedDrills = { ...(h.advancedDrills ?? {}), [id]: advancedRank(h, id) + 1 };
+  return null;
+}
+
+// ---------- Individual stat training (gold) ----------
+
+/**
+ * Individual stat trainings: the reworked barracks attribute training. Instead of four bundled
+ * attributes (Str/Int/Agi/Vit), each combat stat is its own permanent gold-paid track. Every rank
+ * banks a fixed percentage bonus that feeds the shared stat pipeline through statTrainFx.
+ * Gold scaling is capped at rank 5 and only costs gold; all others are open-ended.
+ */
+export interface StatTraining {
+  id: string;
+  name: string;
+  /** BonusFx key this training contributes to. */
+  stat: StatKey;
+  /** Bonus per rank, in the stat's own unit (percent). */
+  per: number;
+  max: number;
+  /** Gold of the first rank; every further rank costs more. */
+  base: number;
+  /** Barracks building level that unlocks this training. */
+  barracks: number;
+  desc: string;
+}
+
+export const STAT_TRAININGS: StatTraining[] = [
+  // Physical group
+  { id: "physAtk", name: "Physical Attack", stat: "atkPct", per: 1, max: 10, base: 800, barracks: 1, desc: "Heavy-bag drills that sharpen every swing." },
+  { id: "physDef", name: "Physical Defense", stat: "defPct", per: 1, max: 10, base: 800, barracks: 1, desc: "Locking shields, rank after rank." },
+  { id: "critDmg", name: "Crit Damage", stat: "critDmg", per: 3, max: 10, base: 1200, barracks: 3, desc: "Reading the opening in a guard for deeper strikes." },
+  { id: "physPen", name: "Armor Pen", stat: "pen", per: 0.5, max: 8, base: 1000, barracks: 5, desc: "Piercing drills that punch clean through armour." },
+  // Magic group
+  { id: "magAtk", name: "Magic Attack", stat: "matkPct", per: 1, max: 10, base: 900, barracks: 2, desc: "Sigil study that sharpens spell power." },
+  { id: "magDef", name: "Magic Defense", stat: "mdefPct", per: 1, max: 10, base: 900, barracks: 3, desc: "Warding drills that harden against magic." },
+  { id: "magPen", name: "Magic Pen", stat: "mpen", per: 0.5, max: 8, base: 1100, barracks: 6, desc: "Runebind drills that carve through magical defences." },
+  // Agility group
+  { id: "crit", name: "Crit Chance", stat: "crit", per: 0.5, max: 10, base: 1000, barracks: 4, desc: "Focus drills that find the weak point." },
+  { id: "dodge", name: "Dodge", stat: "dodge", per: 0.5, max: 8, base: 1000, barracks: 6, desc: "Footwork that leaves a blade cutting air." },
+  { id: "accuracy", name: "Accuracy", stat: "acc", per: 0.5, max: 8, base: 1000, barracks: 5, desc: "Marksman drills — nothing but the mark." },
+  { id: "loot", name: "Loot Chance", stat: "loot", per: 1, max: 10, base: 1500, barracks: 8, desc: "Scavenger drills that find more gear in the field." },
+  // Health
+  { id: "health", name: "Health", stat: "hpPct", per: 2, max: 10, base: 700, barracks: 1, desc: "Conditioning drills that widen your well of life." },
+  // Gold scaling — capped at 5, gold only
+  { id: "goldScale", name: "Gold Scaling", stat: "goldScale", per: 5, max: 5, base: 5000, barracks: 10, desc: "Quartermaster drills that squeeze more gold from every victory." },
+];
+
+/** State needed to read and train individual stat ranks. */
+export interface StatTrainState {
+  statTrains?: Record<string, number>;
+  buildings?: Record<string, number>;
+  gold: number;
+  level: number;
+}
+
+export const statTrainRank = (h: Pick<StatTrainState, "statTrains">, id: string) =>
+  Math.max(0, Math.floor(h.statTrains?.[id] ?? 0));
+
+/** Gold for the next rank: each rank costs more, scaled by the hero's level. */
+export const statTrainCost = (d: StatTraining, rank: number, level = 1) =>
+  scaledGold(d.base * Math.pow(rank + 1, 1.6), level);
+
+/** Every bonus the hero's individual stat trainings grant, in the shared bonus shape. */
+export function statTrainFx(h: Pick<StatTrainState, "statTrains">): BonusFx {
+  const out = zeroFx();
+  for (const d of STAT_TRAININGS) {
+    const r = statTrainRank(h, d.id);
+    if (r > 0) out[d.stat] += d.per * r;
+  }
+  return out;
+}
+
+/** Why the next rank can't be trained, or null when it can. */
+export function statTrainBlocker(h: StatTrainState, id: string): string | null {
+  const d = STAT_TRAININGS.find((x) => x.id === id);
+  if (!d) return "Unknown training";
+  if (statTrainRank(h, id) >= d.max) return "Fully trained";
+  if (barracksLevel(h) < d.barracks) return `Requires barracks level ${d.barracks}`;
+  if (h.gold < statTrainCost(d, statTrainRank(h, id), h.level)) return "Not enough gold";
+  return null;
+}
+
+/** Buy one rank of an individual stat training with gold. Returns an error message, or null on success. */
+export function trainStat(h: StatTrainState, id: string): string | null {
+  const blocked = statTrainBlocker(h, id);
+  if (blocked) return blocked;
+  const d = STAT_TRAININGS.find((x) => x.id === id)!;
+  h.gold -= statTrainCost(d, statTrainRank(h, id), h.level);
+  h.statTrains = { ...(h.statTrains ?? {}), [id]: statTrainRank(h, id) + 1 };
   return null;
 }

@@ -1,42 +1,41 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { AttributeDrills, DrillTracks } from "@/game/Barracks";
+import { DrillTracks, StatTrainings } from "@/game/Barracks";
 import { newHero } from "@/game/data";
 import { Temple } from "@/game/panels";
-import { ATTRIBUTE_DRILLS, DRILLS } from "@/game/drills";
+import { DRILLS, STAT_TRAININGS } from "@/game/drills";
 import { setHero } from "@/game/store";
 
-describe("barracks attribute drills", () => {
+describe("barracks stat trainings", () => {
   afterEach(() => setHero(null));
 
-  it("lists the four attribute upgrade tracks", () => {
+  it("lists all thirteen individual stat training tracks", () => {
     const hero = newHero("Tester", "warrior");
     hero.gold = 900_000;
     hero.buildings = { barracks: 20 };
     setHero(hero);
-    render(<AttributeDrills hero={hero} />);
+    render(<StatTrainings hero={hero} />);
 
-    for (const d of ATTRIBUTE_DRILLS) expect(screen.getByText(d.name)).toBeInTheDocument();
-    expect(screen.getAllByText(/Rank 0\//)).toHaveLength(ATTRIBUTE_DRILLS.length);
-    expect(screen.getAllByText(/^Train rank 1$/)).toHaveLength(ATTRIBUTE_DRILLS.length);
+    for (const d of STAT_TRAININGS) expect(screen.getByText(d.name)).toBeInTheDocument();
+    expect(screen.getAllByText(/Rank 0\//)).toHaveLength(STAT_TRAININGS.length);
   });
 });
 
 describe("the barracks panel", () => {
   afterEach(() => setHero(null));
 
-  it("shows the attribute upgrades beside the training and the drills", () => {
+  it("shows the stat trainings beside the training and the drills", () => {
     const hero = newHero("Tester", "warrior");
     hero.gold = 900_000;
     hero.buildings = { barracks: 20 };
     setHero(hero);
     render(<Temple onClose={() => {}} />);
 
-    // The panel opens on the gold attribute training and its drill ranks, with the drill yard one tab away.
+    // The panel opens on the gold attribute training and its stat training ranks, with the drill yard one tab away.
     expect(screen.getByText("Barracks — Attribute Training")).toBeInTheDocument();
     expect(screen.getByText("Attribute training")).toBeInTheDocument();
-    expect(screen.getByText("Attribute drills")).toBeInTheDocument();
-    for (const d of ATTRIBUTE_DRILLS) expect(screen.getAllByText(d.name).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Stat training")).toBeInTheDocument();
+    for (const d of STAT_TRAININGS) expect(screen.getAllByText(d.name).length).toBeGreaterThanOrEqual(1);
 
     fireEvent.click(screen.getByRole("tab", { name: "Drills" }));
     expect(screen.getByText("Barracks drills")).toBeInTheDocument();

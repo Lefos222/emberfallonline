@@ -97,13 +97,15 @@ export function refine(h: CraftState, id: string): string | null {
 export interface BonusFx {
   atkPct: number; matkPct: number; defPct: number; mdefPct: number; hpPct: number;
   crit: number; critDmg: number; acc: number; dodge: number; block: number; pen: number; mpen: number; heal: number;
+  loot: number; goldScale: number;
 }
 export type StatKey = keyof BonusFx;
 export const STAT_LABEL: Record<StatKey, string> = {
   atkPct: "% Physical Attack", matkPct: "% Magic Attack", defPct: "% Physical Defense", mdefPct: "% Magic Defense", hpPct: "% Max HP",
   crit: "% Crit Chance", critDmg: "% Crit Damage", acc: "% Accuracy", dodge: "% Dodge", block: "% Block", pen: "% Armor Pen", mpen: "% Magic Pen", heal: "% Healing Power",
+  loot: "% Loot Chance", goldScale: "% Gold Scaling",
 };
-export const zeroFx = (): BonusFx => ({ atkPct: 0, matkPct: 0, defPct: 0, mdefPct: 0, hpPct: 0, crit: 0, critDmg: 0, acc: 0, dodge: 0, block: 0, pen: 0, mpen: 0, heal: 0 });
+export const zeroFx = (): BonusFx => ({ atkPct: 0, matkPct: 0, defPct: 0, mdefPct: 0, hpPct: 0, crit: 0, critDmg: 0, acc: 0, dodge: 0, block: 0, pen: 0, mpen: 0, heal: 0, loot: 0, goldScale: 0 });
 export const addFx = (a: BonusFx, b: Partial<BonusFx>) => { for (const k of Object.keys(b) as StatKey[]) a[k] += b[k] ?? 0; return a; };
 
 // ---------- Gems ----------

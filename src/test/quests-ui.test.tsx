@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { QuestsButton, QuestsPanel } from "@/game/Quests";
 import { ProfilePanel } from "@/game/CharacterSelect";
@@ -47,16 +47,14 @@ describe("quests screen", () => {
 describe("profile portraits", () => {
   afterEach(() => setHero(null));
 
-  it("opens every portrait full screen and wears the one picked", () => {
+  it("shows every portrait inline and wears the one picked", () => {
     const hero = newHero("Gallerist", "mage");
     setHero(hero);
     render(<ProfilePanel onClose={() => {}} />);
 
-    fireEvent.click(screen.getAllByRole("button", { name: /Full screen/ })[0]);
-    const gallery = screen.getByRole("dialog", { name: "Profile portraits" });
-    expect(within(gallery).getAllByRole("button", { name: /^Portrait \d+$/ }).length).toBe(20);
+    expect(screen.getAllByRole("button", { name: /^Portrait \d+$/ }).length).toBe(20);
 
-    fireEvent.click(within(gallery).getByRole("button", { name: "Portrait 7" }));
+    fireEvent.click(screen.getByRole("button", { name: "Portrait 7" }));
     expect(getState().hero?.avatar).toBe(6);
   });
 

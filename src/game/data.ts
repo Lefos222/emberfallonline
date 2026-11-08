@@ -9,7 +9,7 @@ import { talentFx, talentSkills } from "./talents";
 import { MAX_SOCKETS, astralFx, gemFx, migrateGems, normalizeAstrals, zeroFx, zeroGemFx, type Astral, type BonusFx, type Mat } from "./crafting";
 import { setFx, type BattleEntry, type CombatRecord } from "./progress";
 import { goldGain, scaledGold } from "./gold";
-import { drillAttrs, drillFx } from "./drills";
+import { drillAttrs, drillFx, statTrainFx } from "./drills";
 import { guildFx } from "./guild-tower";
 import { normalizeSynth, synthFx } from "./synthesis";
 import { enlightenmentFx, soulFx } from "./enlightenment";
@@ -367,6 +367,8 @@ export interface Hero {
   attrDrills?: Record<string, number>;
   /** Advanced (Void Crystal) attribute ranks: endless, five points each (see drills.ts). */
   advancedDrills?: Record<string, number>;
+  /** Individual stat training ranks by stat id — permanent percentage bonuses (see drills.ts). */
+  statTrains?: Record<string, number>;
   /** Renown earned from won battles, spent on the hero's own permanent upgrades (see renown.ts). */
   renown?: number;
   /** Renown upgrade ranks by track id (see renown.ts). */
@@ -562,18 +564,20 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   const pb = opts.talents ? potionFx(h) : zeroFx();
   // Equipped title buffs are permanent and join the same pipeline (see titles.ts).
   const tf2 = opts.talents ? titleFx(h) : zeroFx();
-  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + sy[k] + so[k] + en[k] + pb[k] + tf2[k];
+  // Individual stat trainings: permanent percentage bonuses from barracks training (see drills.ts).
+  const st = opts.talents ? statTrainFx(h) : zeroFx();
+  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + sy[k] + so[k] + en[k] + pb[k] + tf2[k] + st[k];
   const sf0 = opts.gear ? setFx(h.equipment) : { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
   const af = opts.talents ? astralFx(h) : null;
   const sf = {
-    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct + en.atkPct + so.atkPct + rw.atkPct + pb.atkPct + tf2.atkPct,
-    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct + en.defPct + so.defPct + rw.defPct + pb.defPct + tf2.defPct,
-    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct + en.hpPct + so.hpPct + rw.hpPct + pb.hpPct + tf2.hpPct,
-    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit + en.crit + so.crit + rw.crit + pb.crit + tf2.crit,
+    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct + en.atkPct + so.atkPct + rw.atkPct + pb.atkPct + tf2.atkPct + st.atkPct,
+    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct + en.defPct + so.defPct + rw.defPct + pb.defPct + tf2.defPct + st.defPct,
+    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct + en.hpPct + so.hpPct + rw.hpPct + pb.hpPct + tf2.hpPct + st.hpPct,
+    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit + en.crit + so.crit + rw.crit + pb.crit + tf2.crit + st.crit,
   };
-  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge + so.dodge + rw.dodge + pb.dodge + tf2.dodge;
-  tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + sy.critDmg + rw.critDmg + pb.critDmg + tf2.critDmg;
-  tf.pen += sy.pen + so.pen + pb.pen + tf2.pen;
+  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge + so.dodge + rw.dodge + pb.dodge + tf2.dodge + st.dodge;
+  tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + sy.critDmg + rw.critDmg + pb.critDmg + tf2.critDmg + st.critDmg;
+  tf.pen += sy.pen + so.pen + pb.pen + tf2.pen + st.pen;
   const pa = 1 + (tf.atkPct + sf.atkPct) / 100, ph = 1 + (tf.hpPct + sf.hpPct) / 100, pd = 1 + (tf.defPct + sf.defPct) / 100;
   const c = CLASSES[h.cls];
   const items = opts.gear ? (Object.values(h.equipment).filter(Boolean) as Item[]) : [];

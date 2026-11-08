@@ -2,6 +2,7 @@ import { isArmor } from "./crafting";
 import {
   invCap, MAX_LEVEL, makeItem, rarityCap, rollRarity, xpToNext, type Hero, type Item, type Slot,
 } from "./data";
+import { statTrainFx } from "./drills";
 
 /** Void Crystals a hero banks for each level gained — the slow trickle behind advanced training. */
 export const CRYSTALS_PER_LEVEL = 2;
@@ -10,7 +11,8 @@ export const BOSS_CRYSTALS = 1;
 
 /** Grant xp & gold; handles level ups up to 80 then endless Ascension (paragon) levels. */
 export function grant(h: Hero, xp: number, gold: number): { levels: number } {
-  h.gold += gold;
+  const goldMult = 1 + (statTrainFx(h).goldScale ?? 0) / 100;
+  h.gold += Math.round(gold * goldMult);
   h.xp += xp;
   let levels = 0;
   while (h.xp >= xpToNext(h)) {
@@ -46,7 +48,8 @@ export function claimOverflow(h: Hero): number {
 }
 
 export function rollLoot(h: Hero, stage: number, chance: number, minRarity = 0): Item | null {
-  if (Math.random() > chance) return null;
+  const lootBonus = (statTrainFx(h).loot ?? 0) / 100;
+  if (Math.random() > chance + lootBonus) return null;
   const ilvl = Math.max(1, Math.round(stage * 0.9 + h.level * 0.3));
   return makeDrop(h.cls, ilvl, rollRarity(stage, h.attrs.agi, minRarity, h.level));
 }
