@@ -13,6 +13,7 @@ import {
 } from "./store";
 import { Panel, fmt } from "./ui";
 import { earnedTitles } from "./progress";
+import { TITLES as EARNED_TITLES, TITLE_TIERS, TITLE_COLORS, claimTitle, equipTitle, activeTitle, type TitleDef } from "./titles";
 
 export function Portrait({ cls, gender, className = "", synth, look }: { cls: HeroClass; gender: Gender; className?: string; synth?: number | null; look?: number | null }) {
   return <CharacterModel cls={cls} gender={gender} className={className} synth={synth} look={look} />;
@@ -254,6 +255,38 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
                   title={lvl < f.minLevel ? `Unlocks at level ${f.minLevel}` : ""} onClick={() => setFrame(f.id)}>{f.name}</button>
               ))}
             </div>
+          </div>
+          <div className="text-sm">
+            <div className="flex items-center justify-between">
+              <span className="font-display text-gold">Earned Titles</span>
+              <span className="text-xs text-muted-foreground">Each title grants permanent buffs while equipped</span>
+            </div>
+            <div className="mt-1 space-y-1.5">
+              {EARNED_TITLES.map((t: TitleDef) => {
+                const claimed = (hero.titleClaimed ?? []).includes(t.id);
+                const canClaim = !claimed && t.earned(hero);
+                const equipped = hero.equippedTitle === t.id;
+                return (
+                  <div key={t.id} className="slot flex items-center gap-2 p-2" style={{ borderColor: claimed ? TITLE_COLORS[t.tier] + "66" : undefined }}>
+                    <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold" style={{ backgroundColor: TITLE_COLORS[t.tier] + "22", color: TITLE_COLORS[t.tier] }}>{TITLE_TIERS[t.tier]}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-xs font-bold">{t.name}</div>
+                      <div className="truncate text-[10px] text-muted-foreground">{t.desc} · {t.howToEarn}</div>
+                      {claimed && <div className="truncate text-[10px] text-muted-foreground">
+                        {Object.entries(t.buff).map(([k, v]) => `+${v}${k.endsWith("Pct") ? "%" : ""} ${k.replace(/Pct$/, "").replace(/([A-Z])/g, " $1").trim()}`).join(" · ")}
+                      </div>}
+                    </div>
+                    {canClaim && <button className="btn-gold px-2 py-0.5 text-[10px]" onClick={() => update((h) => { claimTitle(h, t.id); })}>Claim</button>}
+                    {claimed && !equipped && <button className="btn-ghost px-2 py-0.5 text-[10px]" onClick={() => update((h) => { equipTitle(h, t.id); })}>Equip</button>}
+                    {equipped && <span className="rounded bg-gold/20 px-2 py-0.5 text-[10px] font-bold text-gold">Equipped</span>}
+                    {!claimed && !canClaim && <span className="text-[10px] text-muted-foreground">Locked</span>}
+                  </div>
+                );
+              })}
+            </div>
+            {activeTitle(hero) && (
+              <button className="btn-ghost mt-1 px-2 py-0.5 text-[10px]" onClick={() => update((h) => { equipTitle(h, null); })}>Unequip title</button>
+            )}
           </div>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={pub} onChange={(e) => setPub(e.target.checked)} />Public profile (visible in arena & rankings)</label>
           <button className="btn-gold px-6 py-2" onClick={async () => {

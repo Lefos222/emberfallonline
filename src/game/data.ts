@@ -15,6 +15,7 @@ import { normalizeSynth, synthFx } from "./synthesis";
 import { enlightenmentFx, soulFx } from "./enlightenment";
 import { renownFx } from "./renown";
 import { potionFx } from "./potions";
+import { titleFx } from "./titles";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -398,6 +399,16 @@ export interface Hero {
   relics?: { found?: Record<string, number>; clears?: Record<string, number> };
   /** World-reset stamp (see world-reset.ts). A save without the current stamp restarts at level 0. */
   resetAt?: string;
+  /** Title ids the hero has claimed (see titles.ts). */
+  titleClaimed?: string[];
+  /** The currently equipped title id (see titles.ts). */
+  equippedTitle?: string;
+  /** One-time patch gold grant: 1000 gold per player after the titles/astral patch. */
+  patchGoldClaimed?: boolean;
+  /** Daily bonus chest: every 30 min till level 30, mostly gold (see daily-chest.ts). */
+  dailyChest?: { last?: number; claims?: number };
+  /** Astral summon counter for RNG gating (see crafting.ts). */
+  astralSummons?: number;
 
 }
 
@@ -549,18 +560,20 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   const rw = opts.talents ? renownFx(h) : zeroFx();
   // Potion elixirs are timed battle buffs and join the same pipeline (see potions.ts).
   const pb = opts.talents ? potionFx(h) : zeroFx();
-  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + sy[k] + so[k] + en[k] + pb[k];
+  // Equipped title buffs are permanent and join the same pipeline (see titles.ts).
+  const tf2 = opts.talents ? titleFx(h) : zeroFx();
+  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + sy[k] + so[k] + en[k] + pb[k] + tf2[k];
   const sf0 = opts.gear ? setFx(h.equipment) : { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
   const af = opts.talents ? astralFx(h) : null;
   const sf = {
-    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct + en.atkPct + so.atkPct + rw.atkPct + pb.atkPct,
-    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct + en.defPct + so.defPct + rw.defPct + pb.defPct,
-    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct + en.hpPct + so.hpPct + rw.hpPct + pb.hpPct,
-    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit + en.crit + so.crit + rw.crit + pb.crit,
+    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct + en.atkPct + so.atkPct + rw.atkPct + pb.atkPct + tf2.atkPct,
+    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct + en.defPct + so.defPct + rw.defPct + pb.defPct + tf2.defPct,
+    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct + en.hpPct + so.hpPct + rw.hpPct + pb.hpPct + tf2.hpPct,
+    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit + en.crit + so.crit + rw.crit + pb.crit + tf2.crit,
   };
-  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge + so.dodge + rw.dodge + pb.dodge;
-  tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + sy.critDmg + rw.critDmg + pb.critDmg;
-  tf.pen += sy.pen + so.pen + pb.pen;
+  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge + so.dodge + rw.dodge + pb.dodge + tf2.dodge;
+  tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + sy.critDmg + rw.critDmg + pb.critDmg + tf2.critDmg;
+  tf.pen += sy.pen + so.pen + pb.pen + tf2.pen;
   const pa = 1 + (tf.atkPct + sf.atkPct) / 100, ph = 1 + (tf.hpPct + sf.hpPct) / 100, pd = 1 + (tf.defPct + sf.defPct) / 100;
   const c = CLASSES[h.cls];
   const items = opts.gear ? (Object.values(h.equipment).filter(Boolean) as Item[]) : [];
@@ -693,7 +706,7 @@ export function stageRewards(stage: number, mult = 1) {
   const grindTaper = Math.pow(0.992, Math.max(0, stage - HARD_STAGE));
   return {
     xp: Math.round(22 * Math.pow(stage, 1.5) * late * grindTaper * mult),
-    gold: goldGain(Math.round((6 + 1.5 * Math.pow(stage, 1.55)) * late * mult)),
+    gold: goldGain(Math.round((6 + 1.5 * Math.pow(stage, 1.55)) * late * mult), stage),
   };
 }
 

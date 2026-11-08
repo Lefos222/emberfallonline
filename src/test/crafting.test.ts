@@ -3,7 +3,7 @@ import { heroStats, makeItem, newHero, INVENTORY_CAP } from "@/game/data";
 import {
   ASTRAL_BASES, ASTRAL_RARITY, RECIPES, astralLabel, astralStatText, astralStats, astralUpgradeCost, astralValue,
   battleMats, craft, equipAstral, fuseGem, gemValue, insertGem, normalizeAstrals, refine, removeGem, recipeGold,
-  recipeMats, scrapItem, scrapYield, summonAstral, upgradeAstral,
+  recipeMats, scrapItem, scrapYield, summonAstralRandom, summonAstralByRarity, upgradeAstral,
 } from "@/game/crafting";
 import { buyConquestGem, gemGoldPrice } from "@/game/conquest";
 
@@ -67,10 +67,9 @@ describe("gems, astrals, crafting", () => {
   });
   it("astrals carry the six-colour ladder and climb without end for gold", () => {
     const h = newHero("T", "warrior");
-    h.mats = { starshard: 9999 };
     h.gold = 50_000_000;
-    const a = summonAstral(h, () => 0.999) as Exclude<ReturnType<typeof summonAstral>, string>;
-    expect(ASTRAL_RARITY).toEqual(["White", "Green", "Blue", "Purple", "Gold", "Red"]);
+    const a = summonAstralRandom(h, () => 0.999) as Exclude<ReturnType<typeof summonAstralRandom>, string>;
+    expect(ASTRAL_RARITY).toEqual(["Grey", "Green", "Blue", "Purple", "Gold", "Red"]);
     expect(a.rarity).toBe(0);
     expect(a.lvl).toBe(1);
     // Rarity outranks levels: a fresh Red Astral beats a White one at the old ten-level ceiling.
@@ -95,11 +94,11 @@ describe("gems, astrals, crafting", () => {
     expect(h.astrals.map((x) => [x.rarity, x.lvl])).toEqual([[5, 1], [0, 40]]);
   });
 
-  it("equipped astrals add stats; summoning costs 10 starshards", () => {
-    const h = newHero("T", "warrior"); h.mats = { starshard: 10 };
-    const a = summonAstral(h, () => 0.99);
+  it("equipped astrals add stats; summoning costs gold", () => {
+    const h = newHero("T", "warrior"); h.gold = 10000;
+    const a = summonAstralRandom(h, () => 0.99);
     expect(typeof a).toBe("object");
-    expect(h.mats.starshard).toBe(0);
+    expect(h.gold).toBeLessThan(10000);
     const before = heroStats(h).power;
     equipAstral(h, (a as { id: string }).id, 0);
     expect(heroStats(h).power).toBeGreaterThan(before);

@@ -10,9 +10,9 @@ import { SynthesisTab } from "./Synthesis";
 import { heroAppearance } from "./appearance";
 import { GameTabs, Gold, ItemCard, Panel, fmt } from "./ui";
 import {
-  ASTRAL_BASES, ASTRAL_COLORS, ASTRAL_FAMILIES, ASTRAL_MILESTONES, ASTRAL_RARITY, ASTRAL_SLOT_LEVELS, ASTRAL_SLOTS, FUSE_COUNT, GEMS, GEM_MAX_TIER, MATS, MAX_SOCKETS, RECIPES, SUMMON_COST,
+  ASTRAL_BASES, ASTRAL_COLORS, ASTRAL_FAMILIES, ASTRAL_MILESTONES, ASTRAL_RARITY, ASTRAL_SLOT_LEVELS, ASTRAL_SLOTS, ASTRAL_SUMMON_COSTS, ASTRAL_SUMMON_GATES, FUSE_COUNT, GEMS, GEM_MAX_TIER, MATS, MAX_SOCKETS, RECIPES,
   astralLabel, astralStatText, astralUpgradeCost, craft, craftBlocker, cutHole, equipAstral, fuseCost, fuseGem, gemName, gemValue, GEM_STAT_LABEL, holeCost, insertGem, matCount, parseGem, recipeGold, removeGem,
-  socketCount, sockets, recipeMats, summonAstral, upgradeAstral, absorbAstral,
+  socketCount, sockets, recipeMats, summonAstralByRarity, summonAstralRandom, upgradeAstral, absorbAstral,
   type Astral, type AstralFamily, type Mat, type Recipe,
 } from "./crafting";
 
@@ -257,11 +257,12 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
         <p className="mb-3 text-center text-[11px] text-muted-foreground">Click an open slot to seat an Astral beside your hero. Click a seated Astral to send it back.</p>
 
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <button className="btn-gold flex items-center gap-1 px-4 py-2" disabled={matCount(hero, "starshard") < SUMMON_COST}
-            onClick={() => update((h) => { const r = summonAstral(h); say(typeof r !== "string", typeof r === "string" ? r : `Summoned ${astralLabel(r)}!`); })}>
-            <Sparkles className="h-4 w-4" />Summon ({SUMMON_COST} Starshards)
+          <button className="btn-gold flex items-center gap-1 px-4 py-2" disabled={hero.gold < 500}
+            onClick={() => update((h) => { const r = summonAstralRandom(h); say(typeof r !== "string", typeof r === "string" ? r : `Summoned ${astralLabel(r)}!`); })}>
+            <Sparkles className="h-4 w-4" />Random Summon <Gold n={500} className="text-primary-foreground" />
           </button>
           <span className="text-xs text-muted-foreground">Species found {speciesOwned.size}/{Object.keys(ASTRAL_BASES).length}</span>
+          <span className="text-xs text-muted-foreground">Total summons: {hero.astralSummons ?? 0}</span>
           <div className="ml-auto flex gap-1">
             {ASTRAL_MILESTONES.map((m) => {
               const key = `astral_${m.n}`;
@@ -271,6 +272,22 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
                 {got ? `✓ ${m.n}` : `${m.n} species: ${fmt(m.gold)}`}</button>;
             })}
           </div>
+        </div>
+
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {ASTRAL_RARITY.map((rarityName, rarity) => {
+            const cost = (ASTRAL_SUMMON_COSTS[rarity] ?? 500);
+            const gated = (hero.astralSummons ?? 0) < (ASTRAL_SUMMON_GATES[rarity] ?? 0);
+            return (
+              <button key={rarity} className="flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs font-bold transition hover:scale-105"
+                style={{ borderColor: ASTRAL_COLORS[rarity] + "88", color: ASTRAL_COLORS[rarity] }}
+                disabled={hero.gold < cost || gated}
+                title={gated ? `Need ${ASTRAL_SUMMON_GATES[rarity]} total summons first (${hero.astralSummons ?? 0}/${ASTRAL_SUMMON_GATES[rarity]})` : `Summon a ${rarityName} Astral`}
+                onClick={() => update((h) => { const r = summonAstralByRarity(h, rarity); say(typeof r !== "string", typeof r === "string" ? r : `Summoned ${astralLabel(r)}!`); })}>
+                {rarityName} <Gold n={cost} className="text-primary-foreground" />
+              </button>
+            );
+          })}
         </div>
 
         <GameTabs label="Astral families" value={tab} onChange={setTab} tabs={[

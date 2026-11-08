@@ -160,6 +160,12 @@ export async function selectCharacter(id: string): Promise<string | null> {
   // browser draft) starts over from level 0 and is written back before play begins.
   const stale = isPreResetSave(hero);
   const active = stale ? resetHero(hero) : hero;
+  // One-time patch gold grant: 1000 gold per player after the titles/astral/chest patch.
+  if (!active.patchGoldClaimed) {
+    active.gold += 1000;
+    active.patchGoldClaimed = true;
+    await persistResetHero(id, active);
+  }
   localStorage.setItem(LAST, id);
   needsServerReload = false;
   set({ hero: active, heroId: id, gender: (data.gender as Gender) ?? "male", cloud: "saved" });

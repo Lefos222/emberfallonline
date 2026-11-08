@@ -378,20 +378,27 @@ export const ASTRAL_FAMILIES: { id: AstralFamily; name: string; blurb: string }[
   { id: "void", name: "Void", blurb: "Magic, accuracy and stolen life" },
 ];
 
-/** The six rarity colours every Astral is born into: White, Green, Blue, Purple, Gold, Red. */
-export const ASTRAL_RARITY = ["White", "Green", "Blue", "Purple", "Gold", "Red"];
+/** The six rarity colours every Astral is born into: Grey, Green, Blue, Purple, Gold, Red. */
+export const ASTRAL_RARITY = ["Grey", "Green", "Blue", "Purple", "Gold", "Red"];
 export const ASTRAL_RARITY_NOTE = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"];
 export const ASTRAL_TIER = ASTRAL_RARITY_NOTE;
-export const ASTRAL_COLORS = ["#e6e9ef", "#3fbf5a", "#3b82f6", "#a855f7", "#facc15", "#e11d48"];
+export const ASTRAL_COLORS = ["#9ca3af", "#3fbf5a", "#3b82f6", "#a855f7", "#facc15", "#e11d48"];
 /** How much of its species bonus each rarity carries: a Red Astral is worth far more than a White one. */
 export const ASTRAL_RARITY_POWER = [1, 1.35, 1.8, 2.4, 3.2, 4.5];
 /** Lucky Shot / summon odds in % per rarity (index = rarity). Must match the lucky_shot database function. */
 export const ASTRAL_ODDS = [38.5, 30, 17, 9.5, 4.4, 0.6];
+/** Gold cost to summon an Astral of a chosen rarity (base, before level scaling). */
+export const ASTRAL_SUMMON_COSTS = [500, 1500, 3000, 5000, 8000, 13000];
+/** Minimum total summons before a rarity can be obtained (RNG gate). Red and Gold need 200. */
+export const ASTRAL_SUMMON_GATES = [0, 0, 0, 0, 200, 200];
+/** Base gold cost for a random summon (rolls any unlocked rarity). */
+export const ASTRAL_RANDOM_COST = 500;
 export const ASTRAL_SLOTS = 8;
 /** Slots 1-3 are open from the start; every further slot wakes every 10 levels. */
 export const ASTRAL_SLOT_LEVELS = [1, 1, 1, 10, 20, 30, 40, 50];
 /** Share of the species' base bonus one upgrade level adds. Levels never stop. */
 export const ASTRAL_LVL_STEP = 0.15;
+/** Legacy: still used by the Lucky Shot reward RPC path. */
 export const SUMMON_COST = 10; // starshards
 
 /**
@@ -423,10 +430,34 @@ export function rollAstralRarity(r: number) {
   return 0;
 }
 
-export function summonAstral(h: CraftState, rand = Math.random): Astral | string {
-  if (matCount(h, "starshard") < SUMMON_COST) return `Needs ${SUMMON_COST} Starshards`;
-  spendMats(h, { starshard: SUMMON_COST });
-  const rarity = rollAstralRarity(rand() * 100);
+/** Summon an Astral of a chosen rarity for gold. RNG gates prevent summoning above Purple
+ *  until 200 total summons have been performed. Costs scale with the hero's level. */
+export function summonAstralByRarity(h: CraftState, rarity: number, rand = Math.random): Astral | string {
+  const cost = scaledGold(ASTRAL_SUMMON_COSTS[rarity] ?? 500, h.level);
+  if (h.gold < cost) return `Needs ${cost.toLocaleString()} gold`;
+  // RNG gate: Red and Gold rarities require 200 total summons first.
+  const total = (h as { astralSummons?: number }).astralSummons ?? 0;
+  if (rarity >= 4 && total < ASTRAL_SUMMON_GATES[rarity]) {
+    return `Need ${ASTRAL_SUMMON_GATES[rarity]} total summons before ${ASTRAL_RARITY[rarity]} Astrals can be summoned (${total}/${ASTRAL_SUMMON_GATES[rarity]})`;
+  }
+  h.gold -= cost;
+  (h as { astralSummons?: number }).astralSummons = total + 1;
+  const bases = Object.keys(ASTRAL_BASES);
+  const a: Astral = { id: Math.random().toString(36).slice(2, 10) + Date.now().toString(36), base: bases[Math.floor(rand() * bases.length)], rarity, lvl: 1 };
+  h.astrals = [...(h.astrals ?? []), a];
+  return a;
+}
+
+/** Random summon: rolls any rarity that is unlocked by the summon gate, for 500 gold (level-scaled). */
+export function summonAstralRandom(h: CraftState, rand = Math.random): Astral | string {
+  const cost = scaledGold(ASTRAL_RANDOM_COST, h.level);
+  if (h.gold < cost) return `Needs ${cost.toLocaleString()} gold`;
+  const total = (h as { astralSummons?: number }).astralSummons ?? 0;
+  (h as { astralSummons?: number }).astralSummons = total + 1;
+  // Roll rarity with RNG gates applied: high rarities only appear after enough summons.
+  let rarity = rollAstralRarity(rand() * 100);
+  if (rarity >= 4 && total < ASTRAL_SUMMON_GATES[rarity]) rarity = Math.min(3, rarity);
+  h.gold -= cost;
   const bases = Object.keys(ASTRAL_BASES);
   const a: Astral = { id: Math.random().toString(36).slice(2, 10) + Date.now().toString(36), base: bases[Math.floor(rand() * bases.length)], rarity, lvl: 1 };
   h.astrals = [...(h.astrals ?? []), a];
