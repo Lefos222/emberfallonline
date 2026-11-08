@@ -67,7 +67,6 @@ validateRoster(ROSTER);
 export const ROSTER_BY_ID = Object.fromEntries(ROSTER.map(e => [e.id, e]));
 /** Explicit IDs for encounter consumers; selection uses a caller-owned persisted cursor, never random mock encounters. */
 export const ENCOUNTER_TABLES = {
-  road: ENEMY_ROSTER.map(e => e.id),
   elite: ENEMY_ROSTER.map(e => e.id),
   dungeon: BATTLE_BOSSES.map(e => e.id),
   spire: [...ENEMY_ROSTER, ...BATTLE_BOSSES].map(e => e.id),

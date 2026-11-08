@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CLASSES, stageFoe, type Foe, type HeroClass } from "./data";
+import { CLASSES, battleRating, stageFoe, type Foe, type HeroClass } from "./data";
 import { dungeonFoe, DUNGEONS, enemySprite, type SpriteRect } from "./world";
 
 /** World map raid kinds and their server-enforced daily allowances (UTC day). */
@@ -283,7 +283,7 @@ function makeLord(rand: () => number, level: number): CastleLord {
     cls,
     gender: rand() < 0.5 ? "male" : "female",
     level,
-    power: 40 + level * 18,
+    power: battleRating(40 + level * 18, level),
     gold: 200 + level * 45,
     look: Math.floor(rand() * 8),
   };

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Loader2, Plus, Trash2, Play, ArrowLeft, LogOut, RefreshCw } from "lucide-react";
 import { CharacterModel } from './CharacterModel';
-import { AVATAR_COUNT, AvatarIcon } from './AvatarIcon';
 import { CharacterPose } from './CharacterPose';
 import selectionBackground from "@/assets/heroes/selection-bloodmoon.jpg";
 import { Button } from "@/components/ui/button";
@@ -9,11 +8,9 @@ import { RefreshCw as PoseIcon, Sword, Sparkles, Crosshair } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client";
 import { CLASSES, type HeroClass } from "./data";
 import {
-  createCharacter, deleteCharacter, lastCharacterId, loadCharacters, selectCharacter, update, updateProfile, useGame, type CharacterRow, type Gender,
+  createCharacter, deleteCharacter, lastCharacterId, loadCharacters, selectCharacter, useGame, type CharacterRow, type Gender,
 } from "./store";
-import { Panel, fmt } from "./ui";
-import { earnedTitles } from "./progress";
-import { TITLES as EARNED_TITLES, TITLE_TIERS, TITLE_COLORS, claimTitle, equipTitle, activeTitle, type TitleDef } from "./titles";
+import { fmt } from "./ui";
 
 export function Portrait({ cls, gender, className = "", synth, look }: { cls: HeroClass; gender: Gender; className?: string; synth?: number | null; look?: number | null }) {
   return <CharacterModel cls={cls} gender={gender} className={className} synth={synth} look={look} />;
@@ -176,122 +173,5 @@ function CreateCharacter({ canCancel, onCancel }: { canCancel: boolean; onCancel
       {name && !valid && <p className="mt-2 text-xs text-hp">Use 3–18 letters, numbers, spaces, - or _</p>}
       {canCancel && <button className="mt-3 text-sm text-muted-foreground hover:text-gold" onClick={onCancel}>Back to my characters</button>}
     </div>
-  );
-}
-
-const FRAMES = [
-  { id: "iron", name: "Iron", minLevel: 1 },
-  { id: "bronze", name: "Bronze", minLevel: 10 },
-  { id: "silver", name: "Silver", minLevel: 25 },
-  { id: "gold", name: "Gold", minLevel: 50 },
-  { id: "ember", name: "Ember", minLevel: 80 },
-];
-const TITLES = [
-  { id: "", name: "None", minLevel: 1 },
-  { id: "Squire", name: "Squire", minLevel: 5 },
-  { id: "Vanguard", name: "Vanguard", minLevel: 20 },
-  { id: "Champion", name: "Champion", minLevel: 40 },
-  { id: "Ascendant", name: "Ascendant", minLevel: 80 },
-];
-export const frameClass = (f: string) => ({ iron: "rarity-0", bronze: "rarity-1", silver: "rarity-2", gold: "rarity-4", ember: "rarity-5" }[f] ?? "rarity-0");
-
-export function ProfilePanel({ onClose }: { onClose: () => void }) {
-  const { hero, heroId, chars, gender } = useGame();
-  const row = chars?.find((c) => c.id === heroId);
-  const [bio, setBio] = useState(row?.bio ?? "");
-  const [title, setTitle] = useState(row?.title ?? "");
-  const [frame, setFrame] = useState(row?.frame ?? "iron");
-  const [pub, setPub] = useState(row?.is_public ?? true);
-  const [msg, setMsg] = useState<string | null>(null);
-  if (!hero) return null;
-  const lvl = hero.level + hero.paragon;
-  return (
-    <Panel title="Profile" subtitle="Your hero, title and cosmetics" art="profile" onClose={onClose}>
-      <div className="flex flex-col gap-4 md:flex-row">
-        <div className="flex w-40 shrink-0 flex-col items-center gap-1 self-center">
-          <div className={`slot w-40 overflow-hidden p-0 ${frameClass(frame)}`}>
-            {hero.avatar !== undefined
-              ? <AvatarIcon index={hero.avatar} fill className="block aspect-square w-full" />
-              : <Portrait cls={hero.cls} gender={gender} className="w-full" />}
-          </div>
-          <div className="text-center text-xs text-muted-foreground">Frame: {FRAMES.find(f => f.id === frame)?.name ?? frame}</div>
-        </div>
-        <div className="flex-1 space-y-3">
-          <div className="flex items-center gap-2">
-            {hero.avatar !== undefined && <AvatarIcon index={hero.avatar} size={44} />}
-            <div><div className="font-display text-2xl">{hero.name}</div>{title && <div className="text-gold">{title}</div>}</div>
-          </div>
-          <div className="text-sm">
-            <div className="font-display text-gold">Choose your portrait</div>
-            <div className="mt-1 grid grid-cols-5 gap-1 sm:grid-cols-10">
-              {Array.from({ length: AVATAR_COUNT }, (_, i) => (
-                <button key={i} type="button" aria-label={`Portrait ${i + 1}`} aria-pressed={hero.avatar === i}
-                  className={`rounded ${hero.avatar === i ? "ring-2 ring-gold" : "opacity-75 hover:opacity-100"}`}
-                  onClick={() => update((h) => { h.avatar = i; })}>
-                  <AvatarIcon index={i} size={34} />
-                </button>
-              ))}
-            </div>
-          </div>
-          <label className="block text-sm">Biography
-            <textarea className="slot mt-1 w-full p-2 outline-none" maxLength={200} rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
-          </label>
-          <div className="text-sm">Title
-            <div className="mt-1 flex flex-wrap gap-1">
-              {[...TITLES, ...earnedTitles(hero).map((n) => ({ id: n, name: n, minLevel: 1 }))].map((t) => (
-                <button key={t.id} disabled={lvl < t.minLevel} className={`px-2 py-1 text-xs ${title === t.id ? "btn-gold" : "slot"} disabled:opacity-40`}
-                  title={lvl < t.minLevel ? `Unlocks at level ${t.minLevel}` : ""} onClick={() => setTitle(t.id)}>{t.name}</button>
-              ))}
-            </div>
-          </div>
-          <div className="text-sm">Frame
-            <div className="mt-1 flex flex-wrap gap-1">
-              {FRAMES.map((f) => (
-                <button key={f.id} disabled={lvl < f.minLevel} className={`px-2 py-1 text-xs ${frame === f.id ? "btn-gold" : "slot"} disabled:opacity-40`}
-                  title={lvl < f.minLevel ? `Unlocks at level ${f.minLevel}` : ""} onClick={() => setFrame(f.id)}>{f.name}</button>
-              ))}
-            </div>
-          </div>
-          <div className="text-sm">
-            <div className="flex items-center justify-between">
-              <span className="font-display text-gold">Earned Titles</span>
-              <span className="text-xs text-muted-foreground">Each title grants permanent buffs while equipped</span>
-            </div>
-            <div className="mt-1 space-y-1.5">
-              {EARNED_TITLES.map((t: TitleDef) => {
-                const claimed = (hero.titleClaimed ?? []).includes(t.id);
-                const canClaim = !claimed && t.earned(hero);
-                const equipped = hero.equippedTitle === t.id;
-                return (
-                  <div key={t.id} className="slot flex items-center gap-2 p-2" style={{ borderColor: claimed ? TITLE_COLORS[t.tier] + "66" : undefined }}>
-                    <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold" style={{ backgroundColor: TITLE_COLORS[t.tier] + "22", color: TITLE_COLORS[t.tier] }}>{TITLE_TIERS[t.tier]}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-xs font-bold">{t.name}</div>
-                      <div className="truncate text-[10px] text-muted-foreground">{t.desc} · {t.howToEarn}</div>
-                      {claimed && <div className="truncate text-[10px] text-muted-foreground">
-                        {Object.entries(t.buff).map(([k, v]) => `+${v}${k.endsWith("Pct") ? "%" : ""} ${k.replace(/Pct$/, "").replace(/([A-Z])/g, " $1").trim()}`).join(" · ")}
-                      </div>}
-                    </div>
-                    {canClaim && <button className="btn-gold px-2 py-0.5 text-[10px]" onClick={() => update((h) => { claimTitle(h, t.id); })}>Claim</button>}
-                    {claimed && !equipped && <button className="btn-ghost px-2 py-0.5 text-[10px]" onClick={() => update((h) => { equipTitle(h, t.id); })}>Equip</button>}
-                    {equipped && <span className="rounded bg-gold/20 px-2 py-0.5 text-[10px] font-bold text-gold">Equipped</span>}
-                    {!claimed && !canClaim && <span className="text-[10px] text-muted-foreground">Locked</span>}
-                  </div>
-                );
-              })}
-            </div>
-            {activeTitle(hero) && (
-              <button className="btn-ghost mt-1 px-2 py-0.5 text-[10px]" onClick={() => update((h) => { equipTitle(h, null); })}>Unequip title</button>
-            )}
-          </div>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={pub} onChange={(e) => setPub(e.target.checked)} />Public profile (visible in arena & rankings)</label>
-          <button className="btn-gold px-6 py-2" onClick={async () => {
-            const e = await updateProfile({ bio: bio.trim(), title, frame, is_public: pub });
-            setMsg(e ?? "Profile saved");
-          }}>Save profile</button>
-          {msg && <span className="ml-3 text-sm text-gold">{msg}</span>}
-        </div>
-      </div>
-    </Panel>
   );
 }

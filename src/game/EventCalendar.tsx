@@ -7,6 +7,8 @@ import { stageRewards, type Hero, type Item } from "./data";
 import type { StartBattle } from "./panels";
 import { update } from "./store";
 import { scrollXp } from "./scrolls";
+import { addGem, addMats } from "./crafting";
+import { addChests } from "./chests";
 import { confirmEventEntry } from './events.functions';
 import { eventEncounter } from './event-encounters';
 import { recordRosterEncounter } from './bestiary';
@@ -19,6 +21,8 @@ import {
   statusOf,
   timeIn,
   EVENT_BOSS_KILLS_REQUIRED,
+  eventBonusLines,
+  eventStage,
   GAME_TZ,
   TZ_CHOICES,
   WORLD_EVENTS,
@@ -102,8 +106,8 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
     if (entering.current) return;
     entering.current = true; setBusy(true); setError('');
     try {
-    const { foe } = await confirmEntry({ data: { eventId: ev.id } });
-    const rw = stageRewards(ev.stage, ev.kind === "boss" ? 2 : ev.kind === "season" ? 1.5 : 1);
+    const { foe } = await confirmEntry({ data: { eventId: ev.id, heroLevel: h.level } });
+    const rw = stageRewards(eventStage(ev, h.level), ev.bonus.mult);
     start({
       title: `${ev.name} · Live Event`,
       right: foe,
@@ -116,22 +120,25 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
             lines.push("The event is still open — return before the countdown ends.");
             return;
           }
-          // Boss events pay out every fifth kill, so one invasion cannot hand out the whole reward.
+          // Gated events pay out every third win, so one invasion cannot hand out the whole reward.
           if (isBossEvent(ev)) {
             const { kills, rewarded } = countEventBossKill(hh, ev.id);
             if (!rewarded) {
-              lines.push(`Boss participation ${kills}/${EVENT_BOSS_KILLS_REQUIRED}`);
-              lines.push(`Rewards are paid on the ${EVENT_BOSS_KILLS_REQUIRED}th boss kill.`);
+              lines.push(`Event progress ${kills}/${EVENT_BOSS_KILLS_REQUIRED}`);
+              lines.push(`The full purse is paid on the ${EVENT_BOSS_KILLS_REQUIRED}rd win.`);
               return;
             }
-            lines.push(`Reward earned after ${EVENT_BOSS_KILLS_REQUIRED} boss kills`);
+            lines.push(`Full purse earned after ${EVENT_BOSS_KILLS_REQUIRED} wins`);
           }
           const xp = scrollXp(rw.xp, xpMultiplier);
           const { levels } = grant(hh, xp, rw.gold);
-          loot = rollLoot(hh, ev.stage, 1, ev.kind === "boss" ? 2 : 0);
+          loot = rollLoot(hh, ev.stage, 1, ev.kind === "bloodmoon" ? 2 : ev.kind === "siege" ? 1 : 0);
           recordRosterEncounter(hh, foe.rosterId, true);
           if (loot) addLoot(hh, loot);
-          lines.push(`+${fmt(rw.gold)} gold`, `+${fmt(xp)} XP`);
+          if (ev.bonus.mats) addMats(hh, ev.bonus.mats);
+          if (ev.bonus.gem) addGem(hh, ev.bonus.gem.type, ev.bonus.gem.tier);
+          if (ev.bonus.chest) addChests(hh, "gold");
+          lines.push(`+${fmt(rw.gold)} gold`, `+${fmt(xp)} XP`, ...eventBonusLines(ev));
           if (loot) lines.push(`Loot: ${(loot as Item).name}`);
           if (levels > 0) lines.push(`Level up! Now level ${hh.level}`);
         });
@@ -180,7 +187,7 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
       <div className="grid gap-3">
         {rows.map(({ ev, s }) => {
           const at = s.state === "live" ? s.endsAt : s.startsAt;
-          const encounter = eventEncounter(ev, s.state === 'live' ? s.startedAt : s.startsAt);
+          const encounter = eventEncounter(ev, s.state === 'live' ? s.startedAt : s.startsAt, h.level);
           const bossKills = eventBossKills(h, ev.id);
           return (
             <article
@@ -202,7 +209,7 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
                   {isBossEvent(ev) && (
                     <div className="mt-2 max-w-xs">
                       <p className="text-xs font-semibold text-gold">
-                        Boss participations {bossKills}/{EVENT_BOSS_KILLS_REQUIRED} — the reward is paid on the {EVENT_BOSS_KILLS_REQUIRED}th boss kill
+                        Event progress {bossKills}/{EVENT_BOSS_KILLS_REQUIRED} — the full purse is paid on the {EVENT_BOSS_KILLS_REQUIRED}rd win
                       </p>
                       <progress className="mt-1 h-2 w-full accent-primary" max={EVENT_BOSS_KILLS_REQUIRED} value={bossKills} aria-label={`Boss participations ${bossKills} of ${EVENT_BOSS_KILLS_REQUIRED}`} />
                     </div>

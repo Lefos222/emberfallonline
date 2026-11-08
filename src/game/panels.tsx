@@ -9,7 +9,7 @@ import { recordEnhance } from "./progress";
 import { adviseStrategy } from "@/lib/quests.functions";
 import {
   SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, ENHANCE_MAX, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
-  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
+  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, scaledFoe, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import { addConquestTokens, floorTokens } from "./conquest";
 import { CAMPAIGN_STAMINA, STAMINA_PER_DAY, staminaBlocker, staminaLeft } from "./stamina";
@@ -236,10 +236,11 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   if (!hero) return null;
   const max = spire ? hero.spire : hero.stage;
   const mult = spire ? 1.35 : 1;
-  const foe = stageFoe(stage, mult);
+  // Enemies level up with the hero (see scaledFoe): old stages never become a free tutorial.
+  const foe = scaledFoe(stageFoe(stage, mult), hero.level);
   const rw = stageRewards(stage, spire ? 2 : 1);
   const s = heroStats(hero);
-  const foePower = Math.round(foe.atk * 2 + foe.def * 1.5 + foe.hp * 0.2);
+  const foePower = foeRating(foe);
   const ratio = s.power / foePower;
   const danger = ratio > 1.3 ? { t: "Easy", c: "text-r1" } : ratio > 0.95 ? { t: "Fair", c: "text-r4" } : ratio > 0.7 ? { t: "Hard", c: "text-hp" } : { t: "Deadly", c: "text-blood" };
   const zone = zoneOf(stage);
@@ -284,7 +285,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   };
 
   return (
-    <Panel title={spire ? "Endless Conquest" : "Campaign Gate"} subtitle={spire ? "Every floor higher than the last" : "Push the road, level up and loot"} art="quest" onClose={onClose}>
+    <Panel title={spire ? "Endless Conquest" : "Campaign Gate"} subtitle={spire ? "Every floor higher than the last" : "Endless stages — the world levels up with you"} art="quest" onClose={onClose}>
       <div className="grid items-center gap-6 md:grid-cols-2">
         <div className="relative h-72 overflow-hidden rounded-lg">
           <img src={worldMap} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-40" />
@@ -301,6 +302,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
             <button className="btn-blood h-9 w-9" disabled={stage >= max} onClick={() => setStage(Math.min(max, stage + 1))}>›</button>
           </div>
           <div className="font-display text-xl">{foe.name}</div>
+          <div className="text-xs text-muted-foreground">Enemy level {foe.level}</div>
           <div className="flex justify-center gap-4 text-sm">
             <span><Trophy className="inline h-4 w-4 text-r4" /> {fmt(foePower)}</span>
             <span className={`font-bold ${danger.c}`}>{danger.t}</span>

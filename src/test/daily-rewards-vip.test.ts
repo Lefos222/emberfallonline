@@ -43,14 +43,15 @@ describe("VIP reward board", () => {
     });
   });
 
-  it("pays no Diamonds and nothing rare — only gold, level 1-2 gems, common materials and gold chests", () => {
-    const rare = new Set(["sigil", "enchantStone", "bossCore", "starshard", "crystal"]);
+  it("never pays Diamonds, but does pay better gems, bonus chests and rare materials", () => {
     for (const rw of VIP_DAILY_REWARDS) {
       expect(rw).not.toHaveProperty("diamonds");
-      for (const m of Object.keys(rw.mats ?? {})) expect(rare.has(m)).toBe(false);
-      for (const g of rw.gems ?? []) expect([1, 2]).toContain(g.tier);
-      for (const c of rw.chests ?? []) expect(c).toBe("gold");
+      for (const g of rw.gems ?? []) expect(g.tier).toBeGreaterThanOrEqual(1);
+      for (const c of rw.chests ?? []) expect(["gold", "gem"]).toContain(c);
     }
+    expect(VIP_DAILY_REWARDS.some((rw) => rw.chests?.includes("gem"))).toBe(true);
+    expect(VIP_DAILY_REWARDS.some((rw) => (rw.gems ?? []).some((g) => g.tier >= 3))).toBe(true);
+    expect(VIP_DAILY_REWARDS.some((rw) => rw.mats?.sigil)).toBe(true);
   });
 
   it("is a little richer than the free board, day for day", () => {
@@ -59,8 +60,8 @@ describe("VIP reward board", () => {
       list.reduce((sum, rw) => sum + Object.values(rw.mats ?? {}).reduce((a, n) => a + n, 0), 0);
     expect(gold(VIP_DAILY_REWARDS)).toBeGreaterThan(gold(DAILY_REWARDS));
     expect(mats(VIP_DAILY_REWARDS)).toBeGreaterThan(mats(DAILY_REWARDS));
-    // A head start, not a different economy: the whole VIP cycle stays under twice the free gold.
-    expect(gold(VIP_DAILY_REWARDS)).toBeLessThan(gold(DAILY_REWARDS) * 2);
+    // Members who pay get a genuinely bigger board: at least twice the free cycle's gold.
+    expect(gold(VIP_DAILY_REWARDS)).toBeGreaterThan(gold(DAILY_REWARDS) * 2);
   });
 
   it("stays locked below VIP 3 and opens at VIP 3", () => {

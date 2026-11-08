@@ -1,7 +1,7 @@
-// ============= Event reward gate: boss events pay out every fifth boss kill =============
-// A world boss returns every two hours, so one kill must not hand out the whole event reward.
-// Each won boss encounter counts as one participation on the hero's save; the gold, XP and loot
-// pay out on the fifth kill, and the tally starts over for the next reward.
+// ============= Event reward gate: gated events pay out every third win =============
+// Sieges and the Blood Moon return often, so one win must not hand out the whole event reward.
+// Each won encounter counts as one participation on the hero's save; the full purse pays out on
+// the third win, and the tally starts over for the next reward.
 
 import { EVENT_BOSS_KILLS_REQUIRED, type WorldEvent } from "./events";
 
@@ -10,9 +10,8 @@ export interface EventBossProgress {
   eventBoss?: Record<string, number>;
 }
 
-/** Boss events (world boss and the weekly season) are the encounters this gate covers. */
-export const isBossEvent = (ev: Pick<WorldEvent, "kind">) =>
-  ev.kind === "boss" || ev.kind === "season";
+/** Gated events (sieges and the Blood Moon) are the encounters this gate covers. */
+export const isBossEvent = (ev: Pick<WorldEvent, "bonus">) => !!ev.bonus.gated;
 
 /** Boss kills this character has landed in the event since the last payout. */
 export const eventBossKills = (h: EventBossProgress, eventId: string) =>
