@@ -7,6 +7,9 @@ import {
   heroStats,
   makeItem,
   riftFactor,
+  DEEP_FIGHTS,
+  DEEP_LEVEL,
+  DEEP_RAMP,
   EASY_FIGHTS,
   GRIND_FIGHTS,
   MAX_LEVEL,
@@ -131,14 +134,23 @@ describe("ten fights a level, then fifty-two more every level", () => {
       expect(xpToNext({ level: lv, paragon: 0 })).toBe(EASY_FIGHTS * stageRewards(lv).xp);
     }
   });
-  it("adds fifty-two fights to each level past 20", () => {
+  it("adds fifty-two fights to each level from 20 to the deep wall", () => {
     expect(fightsToLevel(20)).toBe(EASY_FIGHTS + GRIND_FIGHTS);
-    for (let lv = 20; lv < MAX_LEVEL; lv++) {
+    for (let lv = 20; lv < DEEP_LEVEL - 1; lv++) {
       expect(fightsToLevel(lv + 1) - fightsToLevel(lv)).toBe(GRIND_FIGHTS);
       expect(xpToNext({ level: lv, paragon: 0 })).toBe(fightsToLevel(lv) * stageRewards(lv).xp);
     }
-    // By level 80 a single level is hundreds of fights: the late game is a real grind.
-    expect(fightsToLevel(80)).toBeGreaterThan(500);
+  });
+  it("opens the deep wall at level 30 and keeps climbing past it", () => {
+    // One level stops being an evening's work: the bill jumps by DEEP_FIGHTS and then grows faster.
+    expect(fightsToLevel(DEEP_LEVEL) - fightsToLevel(DEEP_LEVEL - 1)).toBe(GRIND_FIGHTS + DEEP_FIGHTS);
+    for (let lv = DEEP_LEVEL; lv < MAX_LEVEL; lv++) {
+      expect(fightsToLevel(lv + 1) - fightsToLevel(lv)).toBe(GRIND_FIGHTS + DEEP_RAMP);
+      expect(xpToNext({ level: lv, paragon: 0 })).toBe(fightsToLevel(lv) * stageRewards(lv).xp);
+    }
+    // Level 30 costs more than three times what level 29 did, and level 80 is tens of thousands.
+    expect(fightsToLevel(30)).toBeGreaterThan(fightsToLevel(29) * 3);
+    expect(fightsToLevel(80)).toBeGreaterThan(10_000);
   });
   it("counts the fights left in the current level from saved XP", () => {
     const hero = newHero("Balanced", "warrior");

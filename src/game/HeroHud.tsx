@@ -55,7 +55,7 @@ export function Hud({
           <button
             className={`player-portrait ${frameClass(frame)}`}
             onClick={onProfile}
-            aria-label="Profile"
+            aria-label={`Profile — level ${hero.level}${hero.paragon > 0 ? `, ascension ${hero.paragon}` : ""}`}
             title="Open your profile"
           >
             {hero.avatar !== undefined ? (
@@ -67,7 +67,7 @@ export function Hud({
           </button>
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline gap-1.5">
-              <span className="player-name">{hero.name}</span>
+              <span className="player-name" title={hero.name}>{hero.name}</span>
               {hero.paragon > 0 && (
                 <span className="shrink-0 rounded bg-gold/20 px-1 text-[10px] font-bold text-gold">
                   Asc {hero.paragon}
@@ -81,6 +81,7 @@ export function Hud({
             <XpBar hero={hero} />
           </div>
         </div>
+        <div className="player-divider" />
         <div className="player-currencies" role="group" aria-label="Currencies and power">
           <Gold n={hero.gold} />
           <Diamonds n={premiumState(hero).balance} />

@@ -41,6 +41,8 @@ export const RELEASE_NOTES: NoteSection[] = [
     title: "Progression",
     lines: [
       "Levelling is far harder: every level asks for much more XP from the start and deepens past level 20.",
+      "Level 30 is a wall: one level there costs 1,300 extra fights and every level after it grows by 172 fights instead of 52, so 30→31 and beyond is a long grind.",
+      "Quest XP shrinks past the wall (a level-40 commission pays about a third of its old share), so fighting — not the quest board — is how you level.",
       "Blitzes now pay 70% less XP; they remain a gold and clearing shortcut, not a levelling one.",
     ],
   },

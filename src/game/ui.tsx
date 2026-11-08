@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
-import { X, Diamond } from "lucide-react";
+import { Gem, X, Diamond } from "lucide-react";
 import { ArtIcon, type ArtIconName } from "./ArtIcon";
 import { GoldCoin } from "./CoinIcon";
 import { GearIcon } from "./GearIcon";
+import { GemIcon } from "./MatIcon";
+import { gemName, gemStatText, parseGem, socketCount, sockets } from "./crafting";
 import { itemStats, itemScore, RARITIES, type Item } from "./data";
 
 /** Every window wears the same painted crest in its header, so the castle's screens read as one game. */
@@ -102,6 +104,8 @@ export function ItemCard({ item, compare, actions }: { item: Item; compare?: Ite
   const s = itemStats(item);
   const c = compare ? itemStats(compare) : null;
   const delta = compare ? Math.round(itemScore(item) - itemScore(compare)) : null;
+  // Every socketed gem the piece carries, shown the moment its card opens (empty sockets stay hidden here).
+  const gemKeys = sockets(item).filter((g): g is string => !!g && !!parseGem(g));
   const row = (label: string, v: number, cv?: number) =>
     v || cv ? (
       <div className="flex justify-between text-sm">
@@ -130,6 +134,23 @@ export function ItemCard({ item, compare, actions }: { item: Item; compare?: Ite
         {row("Health", s.hp, c?.hp)}
         {row("Crit %", s.crit, c?.crit)}
       </div>
+      {gemKeys.length > 0 && (
+        <div className="mt-2 border-t border-border/40 pt-2">
+          <div className="mb-1 flex items-center justify-between text-xs">
+            <span className="flex items-center gap-1 font-display text-gold"><Gem className="h-3.5 w-3.5" />Socketed gems</span>
+            <span className="text-muted-foreground">{gemKeys.length}/{socketCount(item)}</span>
+          </div>
+          <ul className="space-y-0.5">
+            {gemKeys.map((k, i) => (
+              <li key={i} className="flex items-center gap-1 text-xs">
+                <GemIcon type={parseGem(k)!.type} size={16} />
+                <span className="font-bold">{gemName(k)}</span>
+                <span className="ml-auto text-muted-foreground">{gemStatText(k)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {actions && <div className="mt-3 flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
