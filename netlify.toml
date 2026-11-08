@@ -1,6 +1,10 @@
 [build]
   command = "bun run build"
   publish = "dist"
+  # This app ships through Lovable, not Netlify. Skip Netlify's pull-request deploy
+  # previews so every push no longer spawns failing deploy checks; production and
+  # branch builds stay available if Netlify is ever wired up for real.
+  ignore = "test \"$CONTEXT\" = \"deploy-preview\""
 
 [build.environment]
   NODE_VERSION = "22"
