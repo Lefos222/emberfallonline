@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { trainingCost, trainAttribute } from './building-content';
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Shield, Heart, Swords, Clover, Sparkles, Trophy, Hammer, Trash2, Skull, Backpack } from "lucide-react";
+import { Shield, Heart, Swords, Clover, Sparkles, Trophy, Gem, Hammer, Trash2, Skull, Backpack } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import { adviseStrategy } from "@/lib/quests.functions";
@@ -18,10 +18,11 @@ import { CampaignBlitz } from "./CampaignBlitz";
 import { LevelProgress } from "./LevelCurve";
 import { update, useGame } from "./store";
 import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
-import { MatIcon } from "./MatIcon";
+import { MatIcon, StoneIcon } from "./MatIcon";
 import { Vault } from "./Vault";
 import { GearCodex } from "./GearCodex";
-import { MATS, REFINE, matCount, refine, scrapItem, scrapYield, sockets, type Mat } from "./crafting";
+import { MAX_SOCKETS, MATS, REFINE, cutHole, holeCost, matCount, refine, scrapItem, scrapYield, socketCount, sockets, type Mat } from "./crafting";
+import { STONE_LEVELS, combineGold, combineStones, heldStoneLevels, spendStones, stoneBonus, stoneCount, stoneName } from "./enchant";
 import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
@@ -335,7 +336,11 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   const [armed, setArmed] = useState<string | null>(null);
   const [warn, setWarn] = useState<Item | null>(null);
   const [useStone, setUseStone] = useState(false);
+  const [stonePick, setStonePick] = useState<number | null>(null);
   if (!hero) return null;
+  // The stone the forge would use: whichever grade the player picked, else the best one held.
+  const heldStones = heldStoneLevels(hero);
+  const stoneLvl = stonePick !== null && heldStones.includes(stonePick) ? stonePick : (heldStones[heldStones.length - 1] ?? 1);
   const equipped = WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean) as Item[];
   const bagged = hero.inventory;
   const all: (Item & { eq?: boolean })[] = [
@@ -369,17 +374,16 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
     if (!sel || enhanceMaxed(sel)) return;
     if (useStone) {
       const stoneCost = enchantStoneCost(sel);
-      if (matCount(hero, "enchantStone") < stoneCost) return;
-      const ok = Math.random() < enhanceStoneChance(sel);
+      if (stoneCount(hero, stoneLvl) < stoneCost) return;
+      // Even the rarest stone never guarantees the step: the roll keeps its sliver of bad luck.
+      const ok = Math.random() < enhanceStoneChance(sel, stoneLvl);
       update((h) => {
-        const m = { ...(h.mats ?? {}) };
-        m.enchantStone = (m.enchantStone ?? 0) - stoneCost;
-        h.mats = m;
+        spendStones(h, stoneLvl, stoneCost);
         const pos = sel.eq ? posOf(h.equipment, sel.id) : undefined;
         const target = pos ? h.equipment[pos] : h.inventory.find((i) => i.id === sel.id);
         if (target && ok) { target.enh++; recordEnhance(h, target.enh); }
       });
-      setMsg(ok ? { ok, t: `Success! +${sel.enh + 1} (Stone)` } : { ok, t: "The stone cracked… failed" });
+      setMsg(ok ? { ok, t: `Success! +${sel.enh + 1} (Lv ${stoneLvl} stone)` } : { ok, t: "The stone cracked… failed" });
     } else {
       const cost = enhanceCost(sel, hero.level);
       if (hero.gold < cost) return;
@@ -428,21 +432,77 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                 <button className={`flex-1 py-1.5 text-xs ${!useStone ? "btn-gold" : "btn-ghost"}`} onClick={() => setUseStone(false)}>Gold</button>
                 <button className={`flex-1 py-1.5 text-xs ${useStone ? "btn-gold" : "btn-ghost"}`} onClick={() => setUseStone(true)}>Enchantment Stone</button>
               </div>
+              {useStone && (
+                <div className="slot p-2">
+                  <div className="mb-1 flex items-center justify-between text-xs">
+                    <span className="font-display text-gold">Stone grade</span>
+                    <span className="text-muted-foreground">+{stoneBonus(stoneLvl)}% success</span>
+                  </div>
+                  {heldStones.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No stones yet — battle wins drop them, and the Auction House shop sells all nine grades.</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-1">
+                      {heldStones.map((lvl) => (
+                        <button key={lvl} className={`flex items-center gap-1 rounded border px-1.5 py-0.5 text-xs ${lvl === stoneLvl ? "border-gold text-gold" : "border-border"}`}
+                          title={stoneName(lvl)} onClick={() => setStonePick(lvl)}>
+                          <StoneIcon level={lvl} size={16} /> ×{fmt(stoneCount(hero, lvl))}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="flex items-center justify-between text-sm">
                 <span>Enhancement <b className="text-gold">+{sel.enh}</b> / +{ENHANCE_MAX}</span>
-                {!enhanceMaxed(sel) && <span>Chance <b className="text-gold">{Math.round((useStone ? enhanceStoneChance(sel) : enhanceChance(sel)) * 100)}%</b>{useStone && <span className="ml-1 text-xs text-r1">+15% stone bonus</span>}</span>}
+                {!enhanceMaxed(sel) && <span>Chance <b className="text-gold">{Math.round((useStone ? enhanceStoneChance(sel, stoneLvl) : enhanceChance(sel)) * 100)}%</b>{useStone && <span className="ml-1 text-xs text-r1">+{stoneBonus(stoneLvl)}% Lv {stoneLvl} stone</span>}</span>}
               </div>
               {!enhanceMaxed(sel) && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Next step</span>
                   {useStone
-                    ? <span className="flex items-center gap-1"><MatIcon mat="enchantStone" size={18} /> {matCount(hero, "enchantStone")}/{enchantStoneCost(sel)}</span>
+                    ? <span className="flex items-center gap-1"><StoneIcon level={stoneLvl} size={18} /> {fmt(stoneCount(hero, stoneLvl))}/{enchantStoneCost(sel)} Lv {stoneLvl}</span>
                     : <Gold n={enhanceCost(sel, hero.level)} />}
                 </div>
               )}
-              <button className="btn-gold w-full py-3 text-lg" disabled={enhanceMaxed(sel) || (useStone ? matCount(hero, "enchantStone") < enchantStoneCost(sel) : hero.gold < enhanceCost(sel, hero.level))} onClick={enhance}>
+              <button className="btn-gold w-full py-3 text-lg" disabled={enhanceMaxed(sel) || (useStone ? stoneCount(hero, stoneLvl) < enchantStoneCost(sel) : hero.gold < enhanceCost(sel, hero.level))} onClick={enhance}>
                 <Hammer className="mr-2 inline" />{enhanceMaxed(sel) ? `Fully enhanced · +${ENHANCE_MAX}` : `Enhance +${sel.enh + 1}`}
               </button>
+
+              <div className="slot p-3">
+                <div className="mb-2 flex items-center gap-2 font-display text-sm"><Gem className="h-4 w-4" />Gem sockets</div>
+                <div className="mb-2 flex items-center gap-1.5">
+                  {Array.from({ length: MAX_SOCKETS }, (_, i) => (
+                    <span key={i} title={sockets(sel)[i] ? "Gem socketed" : "Empty socket"}
+                      className={`h-5 w-5 rounded-sm border ${i < socketCount(sel) ? (sockets(sel)[i] ? "border-gold bg-gold/60" : "border-gold bg-black/40") : "border-border/60 bg-black/20"}`} />
+                  ))}
+                  <span className="ml-1 text-xs text-muted-foreground">{socketCount(sel)}/{MAX_SOCKETS} holes</span>
+                </div>
+                <button className="btn-gold w-full py-2 text-sm"
+                  disabled={socketCount(sel) >= MAX_SOCKETS || hero.gold < holeCost(sel, hero.level)}
+                  onClick={() => update((h) => { const e = cutHole(h, sel.id); setMsg(!e ? { ok: true, t: "Cut a new gem socket" } : { ok: false, t: e }); })}>
+                  {socketCount(sel) >= MAX_SOCKETS
+                    ? `All ${MAX_SOCKETS} sockets cut`
+                    : <>Cut a gem socket <Gold n={holeCost(sel, hero.level)} className="text-primary-foreground" /></>}
+                </button>
+                <p className="mt-1 text-[11px] text-muted-foreground">Every piece of gear can hold up to {MAX_SOCKETS} gems. Fill them at the Gem Workshop.</p>
+              </div>
+
+              <div className="slot p-3">
+                <div className="mb-2 flex items-center gap-2 font-display text-sm"><Sparkles className="h-4 w-4" />Enchantment stones</div>
+                <p className="mb-2 text-xs text-muted-foreground">Two stones of one grade plus gold forge one of the next grade.</p>
+                <div className="space-y-1">
+                  {heldStoneLevels(hero).filter((lvl) => lvl < STONE_LEVELS).map((lvl) => (
+                    <button key={lvl} className="btn-ghost flex w-full items-center justify-between gap-2 px-2 py-1 text-xs" disabled={stoneCount(hero, lvl) < 2 || hero.gold < combineGold(lvl, hero.level)}
+                      onClick={() => update((h) => { const e = combineStones(h, lvl); setMsg(!e ? { ok: true, t: `Forged a ${stoneName(lvl + 1)}` } : { ok: false, t: e }); })}>
+                      <span className="flex items-center gap-1"><StoneIcon level={lvl} size={16} /> ×2 <span className="text-muted-foreground">({fmt(stoneCount(hero, lvl))} held)</span></span>
+                      <span className="flex items-center gap-1 text-gold">→ <StoneIcon level={lvl + 1} size={16} /> <Gold n={combineGold(lvl, hero.level)} /></span>
+                    </button>
+                  ))}
+                  {heldStoneLevels(hero).filter((lvl) => lvl < STONE_LEVELS).length === 0 && (
+                    <p className="text-xs text-muted-foreground">Nothing to forge yet — stones drop from won battles and are sold in the Auction House shop.</p>
+                  )}
+                </div>
+              </div>
 
               <div className="slot p-3">
                 <div className="mb-2 flex items-center gap-2 font-display text-sm"><Trash2 className="h-4 w-4" />Salvage into materials</div>

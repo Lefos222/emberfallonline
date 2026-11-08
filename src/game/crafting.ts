@@ -13,7 +13,7 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   hide: { name: "Beast Hide", desc: "Hide stripped from slain monsters. Refines into Armor Fragments.", src: "Every won battle (more in higher regions)", rarity: 1 },
   bloom: { name: "Emberbloom", desc: "Fire-touched herb. Refines into Soul Essence.", src: "Won battles and elites", rarity: 1 },
   crystal: { name: "Arcane Crystal", desc: "Crystallised mana. Refines into Starshards.", src: "Elites and Dungeon Gate bosses", rarity: 2 },
-  enchantStone: { name: "Enchantment Stone", desc: "A resonant stone used to enchant gear at the Forge instead of gold. Higher success rate.", src: "Conquest Gate shop and Guild shop", rarity: 3 },
+  enchantStone: { name: "Enchantment Stone", desc: "A resonant stone used to enchant gear at the Forge instead of gold. Grade 1 of 9 — two of a grade forge the next (see enchant.ts).", src: "Won battles, Auction House shop, guild and Conquest shops", rarity: 3 },
 };
 type Mats = Partial<Record<Mat, number>>;
 
@@ -188,8 +188,28 @@ export function migrateGems(h: Pick<CraftState, "gems">) {
   h.gems = out;
   return h;
 }
-export const socketCount = (it: Pick<Item, "rarity">) => (it.rarity >= 5 ? 3 : it.rarity >= 3 ? 2 : it.rarity >= 1 ? 1 : 0);
+/** No piece of gear can ever hold more than four gems, however many sockets are cut into it. */
+export const MAX_SOCKETS = 4;
+/** The sockets a piece is born with, by rarity. */
+export const baseSockets = (it: Pick<Item, "rarity">) => (it.rarity >= 5 ? 3 : it.rarity >= 3 ? 2 : it.rarity >= 1 ? 1 : 0);
+/** Sockets a piece holds right now: its rarity's own plus every hole cut at the Forge. */
+export const socketCount = (it: Pick<Item, "rarity"> & { holes?: number }) =>
+  Math.min(MAX_SOCKETS, baseSockets(it) + Math.max(0, Math.floor(it.holes ?? 0)));
 export const sockets = (it: Item & { gems?: (string | null)[] }) => Array.from({ length: socketCount(it) }, (_, i) => it.gems?.[i] ?? null);
+/** Gold the smith charges to cut one more gem socket: each hole costs more than the last. */
+export const holeCost = (it: Pick<Item, "rarity"> & { holes?: number }, heroLevel = 1) =>
+  scaledGold(1500 + 2500 * socketCount(it) + 600 * it.rarity, heroLevel);
+/** Cut an extra gem socket into a piece the hero owns. */
+export function cutHole(h: CraftState, itemId: string): string | null {
+  const it = findOwned(h, itemId);
+  if (!it) return "Item not found";
+  if (socketCount(it) >= MAX_SOCKETS) return `This piece already holds ${MAX_SOCKETS} gems`;
+  const cost = holeCost(it, h.level);
+  if (h.gold < cost) return `Needs ${cost.toLocaleString()} gold`;
+  h.gold -= cost;
+  it.holes = (it.holes ?? 0) + 1;
+  return null;
+}
 
 export const FUSE_COUNT = 3;
 /** Fusing costs gold (scaled to the hero's level) and one Soul Essence per tier. */
