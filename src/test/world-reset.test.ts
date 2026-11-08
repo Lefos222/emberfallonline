@@ -3,6 +3,17 @@ import { newHero, heroStats } from "@/game/data";
 import { isPreResetSave, resetHero, WORLD_RESET_ID } from "@/game/world-reset";
 
 describe("world reset", () => {
+  it("starts every new class at level 0 without inherited progression", () => {
+    for (const cls of ["warrior", "mage", "archer"] as const) {
+      const hero = resetHero({ name: "FreshHero", cls });
+      expect(hero.level).toBe(0);
+      expect(hero.xp).toBe(0);
+      expect(hero.gold).toBe(0);
+      expect(hero.inventory).toEqual([]);
+      expect(hero.resetAt).toBe(WORLD_RESET_ID);
+    }
+  });
+
   it("never treats a save as pre-reset (world reset disabled)", () => {
     expect(isPreResetSave({})).toBe(false);
     expect(isPreResetSave({ resetAt: "old-stamp" })).toBe(false);

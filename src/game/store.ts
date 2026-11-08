@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { heroStats, newHero, normalizeHero, type Hero, type HeroClass } from "./data";
-import { isPreResetSave, resetHero, WORLD_RESET_ID } from "./world-reset";
+import { heroStats, normalizeHero, type Hero, type HeroClass } from "./data";
+import { isPreResetSave, resetHero } from "./world-reset";
 
 export type Gender = "male" | "female";
 export interface CharacterRow {
@@ -170,12 +170,10 @@ export async function selectCharacter(id: string): Promise<string | null> {
 
 export async function createCharacter(name: string, cls: HeroClass, gender: Gender): Promise<string | null> {
   if (!state.userId) return "Not signed in";
-  const hero = newHero(name, cls);
-  // A character created after the reset is already current - never reset on its next load.
-  hero.resetAt = WORLD_RESET_ID;
+  const hero = resetHero({ name, cls });
   const s = heroStats(hero);
   const { data, error } = await supabase.from("heroes").insert({
-    user_id: state.userId, name, hero_class: cls, gender, level: 1, power: s.power,
+    user_id: state.userId, name, hero_class: cls, gender, level: hero.level, power: s.power,
     stats: { ...s, paragon: 0 } as never, save: hero as never,
   }).select("id").single();
   if (error) {
