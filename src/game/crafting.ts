@@ -2,7 +2,7 @@ import type { HeroClass, Item, Slot } from "./data";
 import { scaledGold } from "./gold";
 
 // ---------- Materials ----------
-export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone";
+export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone" | "fateStone";
 export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity: number }> = {
   ore: { name: "Ember Ore", desc: "Common ore used in crafting and gem cutting.", src: "Every won battle (more in higher regions)", rarity: 0 },
   essence: { name: "Soul Essence", desc: "Distilled souls used in crafting and gem fusion.", src: "Tougher fights, elites, bosses", rarity: 2 },
@@ -14,6 +14,7 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   bloom: { name: "Emberbloom", desc: "Fire-touched herb. Refines into Soul Essence.", src: "Won battles and elites", rarity: 1 },
   crystal: { name: "Arcane Crystal", desc: "Crystallised mana. Refines into Starshards.", src: "Elites and Dungeon Gate bosses", rarity: 2 },
   enchantStone: { name: "Enchantment Stone", desc: "A resonant stone used to enchant gear at the Forge instead of gold. Grade 1 of 9 — two of a grade forge the next (see enchant.ts).", src: "Won battles, Auction House shop, guild and Conquest shops", rarity: 3 },
+  fateStone: { name: "Fate Stone", desc: "A rare rune-cut stone that refines gear at the Forge instead of gold. One adds a flat +25% to the roll and is spent win or lose (see fate.ts).", src: "Rare battle drops, Auction House shop", rarity: 4 },
 };
 type Mats = Partial<Record<Mat, number>>;
 

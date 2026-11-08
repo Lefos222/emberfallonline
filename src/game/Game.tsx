@@ -40,6 +40,7 @@ import { LongRoad } from "./LongRoad";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
 import { addStones, rollStoneDrop } from "./enchant";
+import { addFateStones, rollFateStone } from "./fate";
 import { ItemCard, Panel } from "./ui";
 import { CONQUEST_LEVEL, canEnterConquest } from "./data";
 import { QuestsButton, QuestsPanel } from "./Quests";
@@ -194,6 +195,14 @@ export function Game() {
       if (stone) {
         update((h) => addStones(h, stone.level, stone.n));
         r.lines.push(`+${stone.n} Lv ${stone.level} Enchantment Stone`);
+      }
+    }
+    // A won fight can very rarely leave a Fate Stone behind for the Forge's refinement (see fate.ts).
+    if (won) {
+      const fate = rollFateStone(!!battle.right.boss, !!battle.right.elite);
+      if (fate > 0) {
+        update((h) => addFateStones(h, fate));
+        r.lines.push(`+${fate} Fate Stone${fate > 1 ? "s" : ""}`);
       }
     }
     // A won dungeon run can leave a Stamina Potion behind — rare, but the only source (see stamina.ts).

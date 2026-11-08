@@ -1,5 +1,6 @@
 import type { ChestKind } from "./chests";
-import type { GemType, Mat } from "./crafting";
+import type { GemType } from "./crafting";
+import type { DiamondMat } from "./economy";
 import {
   CHEST_OFFERS,
   DIAMOND_PACKS,
@@ -26,7 +27,7 @@ export function buyGoldPack(id: string): string | null {
   return LOCKED;
 }
 
-export function buyMaterial(mat: Mat, quantity: 1 | 5): string | null {
+export function buyMaterial(mat: DiamondMat, quantity: 1 | 5): string | null {
   const prices = MATERIAL_PRICES[mat];
   if (!prices) return "Unknown material.";
   const cost = quantity === 1 ? prices.one : prices.five;
