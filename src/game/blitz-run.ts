@@ -10,8 +10,8 @@ import { grant } from "./logic";
 /** How long a blitz run takes. */
 export const BLITZ_DURATION_MS = 10 * 60_000;
 
-/** Version 1.00: a blitz pays 70% less XP than fighting those stages, so it is a gold and clear
- *  shortcut rather than the fastest way to level. Shared by both gates' reward tables. */
+/** Version 1.00: a campaign blitz pays 70% less XP than fighting those stages, so it is a gold and
+ *  clear shortcut rather than the fastest way to level. The Conquest Gate's blitz pays no XP at all. */
 export const BLITZ_XP_SHARE = 0.3;
 
 /** Diamonds a player pays to end a running blitz immediately. */
@@ -70,12 +70,14 @@ export interface BlitzReceipt {
 export function finishBlitzRun(h: Hero): BlitzReceipt | null {
   const run = blitzRun(h);
   if (!run) return null;
-  grant(h, run.xp, run.gold);
+  // Only the Campaign Gate feeds the level bar: a conquest run banks gold and tokens, never XP.
+  const xp = run.gate === "campaign" ? run.xp : 0;
+  grant(h, xp, run.gold);
   const tokens = run.tokens ?? 0;
   if (tokens)
     h.conquest = { ...(h.conquest ?? {}), tokens: Math.max(0, (h.conquest?.tokens ?? 0) + tokens) };
   delete h.blitzRun;
-  return { gate: run.gate, target: run.target, xp: run.xp, gold: run.gold, tokens };
+  return { gate: run.gate, target: run.target, xp, gold: run.gold, tokens };
 }
 
 /** Pay the run once its ten minutes are up. Returns the receipt, or null while it still runs. */

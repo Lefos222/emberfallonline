@@ -257,11 +257,12 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
         const { grant, rollLoot, addLoot } = await import("./logic");
         let lines: string[] = [];
         let loot: Item | null = null;
-        // Clearing a floor pays Conquest Tokens; deeper floors pay more.
+        // Clearing a floor pays Conquest Tokens; deeper floors pay more. The gate pays no XP at
+        // all — the Campaign Gate is the only place a hero earns levels.
         const tokens = spire ? floorTokens(stage) : 0;
         update((h) => {
           // Fighting above the hero's level pays catch-up XP (see catchUpXpFactor).
-          const xp = scrollXp(rw.xp * catchUpXpFactor(h.level, stage), xpMultiplier);
+          const xp = spire ? 0 : scrollXp(rw.xp * catchUpXpFactor(h.level, stage), xpMultiplier);
           const { levels } = grant(h, xp, rw.gold);
           loot = rollLoot(h, stage, foe.boss || spire ? 1 : 0.45, spire ? 2 : foe.boss ? 2 : 0);
           if (loot) addLoot(h, loot);
@@ -269,7 +270,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
           if (spire && stage === h.spire) h.spire++;
           if (!spire && stage === h.stage) h.stage++;
           h.wins++;
-          lines = [`+${fmt(xp)} XP`, `+${fmt(rw.gold)} gold`, ...(tokens ? [`+${tokens} Conquest Tokens`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+          lines = [...(xp ? [`+${fmt(xp)} XP`] : []), `+${fmt(rw.gold)} gold`, ...(tokens ? [`+${tokens} Conquest Tokens`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         if (stage === max) setStage(stage + 1);
         return { lines, loot };
@@ -300,7 +301,9 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
             <span className={`font-bold ${danger.c}`}>{danger.t}</span>
           </div>
           <div className="flex justify-center gap-4">
-            <span className="font-bold text-xp">+{fmt(rw.xp)} XP</span>
+            {spire
+              ? <span className="font-bold text-gold">+{fmt(floorTokens(stage))} tokens</span>
+              : <span className="font-bold text-xp">+{fmt(rw.xp)} XP</span>}
             <Gold n={rw.gold} />
             {(spire || foe.boss) && <span className="font-bold text-r2">Rare+ loot</span>}
           </div>
