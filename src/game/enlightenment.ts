@@ -62,24 +62,24 @@ export function battleEssenceGain(level: number, boss: boolean): number {
 // ============= Soul Shards: chance-based battle drops for permanent infusions =============
 // Soul Shards drop randomly from won battles — bosses drop more often and in
 // larger stacks. They're spent at the Soul Forge for permanent stat infusions,
-// each rank a small but permanent step that never resets. There is no final
-// rank: every infusion can be fed forever, with the shard cost rising each step.
+// each rank a small but permanent step that never resets.
 
 export interface SoulInfusion {
   id: string;
   name: string;
   stat: keyof BonusFx;
   per: number;
+  max: number;
   desc: string;
 }
 
 export const SOUL_INFUSIONS: SoulInfusion[] = [
-  { id: "soul_atk", name: "Soul Strike", stat: "atkPct", per: 0.5, desc: "Channel soul energy into raw attack power." },
-  { id: "soul_def", name: "Soul Guard", stat: "defPct", per: 0.5, desc: "Harden your body with the essence of fallen foes." },
-  { id: "soul_hp", name: "Soul Vitality", stat: "hpPct", per: 1, desc: "Draw life force from every victory." },
-  { id: "soul_crit", name: "Soul Precision", stat: "crit", per: 0.3, desc: "Read the flow of battle with perfect clarity." },
-  { id: "soul_dodge", name: "Soul Evasion", stat: "dodge", per: 0.2, desc: "Move with the ghost of every fallen enemy." },
-  { id: "soul_pen", name: "Soul Pierce", stat: "pen", per: 0.3, desc: "Find the gap in any defense." },
+  { id: "soul_atk", name: "Soul Strike", stat: "atkPct", per: 0.5, max: 20, desc: "Channel soul energy into raw attack power." },
+  { id: "soul_def", name: "Soul Guard", stat: "defPct", per: 0.5, max: 20, desc: "Harden your body with the essence of fallen foes." },
+  { id: "soul_hp", name: "Soul Vitality", stat: "hpPct", per: 1, max: 20, desc: "Draw life force from every victory." },
+  { id: "soul_crit", name: "Soul Precision", stat: "crit", per: 0.3, max: 15, desc: "Read the flow of battle with perfect clarity." },
+  { id: "soul_dodge", name: "Soul Evasion", stat: "dodge", per: 0.2, max: 15, desc: "Move with the ghost of every fallen enemy." },
+  { id: "soul_pen", name: "Soul Pierce", stat: "pen", per: 0.3, max: 15, desc: "Find the gap in any defense." },
 ];
 
 export const soulShards = (h: Hero) => Math.max(0, Math.floor(h.soulShards ?? 0));
@@ -103,6 +103,7 @@ export function soulBlocker(h: Hero, id: string): string | null {
   const inf = SOUL_INFUSIONS.find((s) => s.id === id);
   if (!inf) return "Unknown infusion";
   const rank = soulRank(h, id);
+  if (rank >= inf.max) return "Maxed";
   if (soulShards(h) < soulCost(rank)) return `Need ${soulCost(rank)} Soul Shards`;
   return null;
 }
