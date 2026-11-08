@@ -1,9 +1,8 @@
 /**
- * Auto-battle combat engine (pure, no React).
- * Like Shakes & Fidget: units auto-attack turn by turn — no skills, no mana, no potions.
- * Stats and gear determine the outcome; the player watches the animated fight.
+ * Tactical turn-based combat engine (pure, no React).
+ * One authoritative set of stats per unit is used both for the UI and for damage resolution.
  */
-import { calcDamage, type HeroClass, type Skill } from "./data";
+import { calcDamage, SKILLS, type HeroClass, type Skill } from "./data";
 import type { SpriteRect } from "./world";
 
 export type StatusKind = "guard" | "barrier" | "mark" | "evade" | "slow" | "stun" | "burn" | "weaken" | "counter";
@@ -53,12 +52,67 @@ export const HEAL_CAP = 50;
 const RESOURCE: Record<HeroClass, string> = { warrior: "Rage", mage: "Mana", archer: "Focus" };
 export const resourceName = (c?: HeroClass) => (c ? RESOURCE[c] : "Energy");
 
-// ---------- Basic attack (the only move in auto-battle) ----------
-const BASIC: TSkill = { id: "hit", name: "Attack", desc: "Basic attack.", icon: "sword", mult: 1, cd: 0, cost: 0, target: "enemy" };
+// ---------- Class kits (existing skills + skill-tree abilities, adapted to tactics) ----------
+const ADAPT: Record<string, Partial<TSkill>> = {
+  // Knight
+  strike: { name: "Heavy Strike", desc: "Strong single-target physical blow. Builds Rage.", cost: 0, gain: 20 },
+  cleave: { target: "all", mult: 1.15, cost: 25, desc: "Sweeps every enemy in front of you." },
+  rage: { cost: 40, desc: "Massive blow that heals you." },
+  slam: { cost: 30, desc: "Stuns the target for a turn." },
+  whirl: { target: "all", cost: 35, desc: "Spinning strikes against all enemies." },
+  execute: { cost: 50, desc: "Devastating blow that always crits." },
+  // Mage
+  bolt: { desc: "Magical single-target damage. Restores Mana.", cost: 0, gain: 20 },
+  nova: { name: "Frostbind", desc: "Freezes the target (skips its turn) and slows it.", cost: 30, applies: { kind: "slow", turns: 2, value: 30 } },
+  meteor: { cost: 50, desc: "Huge fire damage on one target, leaving it burning.", applies: { kind: "burn", turns: 3, value: 0.25 } },
+  inferno: { target: "all", cost: 45, desc: "Fire rains on every enemy." },
+  spike: { cost: 40, desc: "Piercing ice that freezes the target." },
+  drain: { cost: 35, desc: "Steals life from the target." },
+  // Archer
+  shot: { name: "Piercing Shot", desc: "Precise shot that ignores 20% armor. Builds Focus.", cost: 0, gain: 20, penBonus: 20 },
+  volley: { name: "Multishot", target: "multi", maxTargets: 3, hits: 1, mult: 1.05, cost: 25, desc: "Fires at up to 3 chosen enemies." },
+  snipe: { name: "Deadly Aim", cost: 50, desc: "Lethal aimed shot that always crits." },
+  pierce: { cost: 40, desc: "Armor-shredding arrow that always crits.", penBonus: 30 },
+  rain: { target: "all", cost: 40, desc: "Arrows fall on every enemy." },
+  aegis: { cost: 40, desc: "A shield-driven impact stuns one foe." },
+  cyclone: { target: "all", cost: 50, desc: "Four sweeping strikes against every foe." },
+  sovereign: { cost: 60, desc: "A leaping execution; guaranteed critical damage." },
+  solar: { target: "all", cost: 55, desc: "Four solar impacts burn every foe.", applies: { kind: "burn", turns: 2, value: 0.15 } },
+  winter: { target: "all", cost: 50, desc: "An expanding frost wave freezes every foe." },
+  "astral-siphon": { cost: 45, desc: "A life-draining tether heals the caster." },
+  horizon: { cost: 50, penBonus: 40, desc: "An aimed critical arrow ignores 40% armor." },
+  tempest: { target: "all", cost: 50, desc: "Five arrow waves strike every foe." },
+  eclipse: { cost: 40, desc: "A shadow dash heals you and grants evasion.", selfApplies: { kind: "evade", turns: 2, value: 30 } },
+};
 
-/** Every fighter has exactly one move: a basic attack. Skills and passives are gone. */
-export function buildKit(_cls?: HeroClass, _skills?: Skill[], _chosen?: string[]): TSkill[] {
-  return [BASIC];
+const EXTRA: Record<HeroClass, TSkill[]> = {
+  warrior: [
+    { id: "guard", name: "Shield Guard", desc: "Reduce incoming damage by 45% for 2 turns.", icon: "shield", mult: 0, cd: 4, cost: 20, target: "self", selfApplies: { kind: "guard", turns: 2, value: 45 } },
+    { id: "taunt", name: "Taunting Blow", desc: "0.9× hit that weakens the target's attack by 25% for 2 turns and draws its fury.", icon: "megaphone", mult: 0.9, cd: 3, cost: 15, target: "enemy", applies: { kind: "weaken", turns: 2, value: 25 } },
+    { id: "counter", name: "Counterattack", desc: "For 2 turns, strike back for 0.7× whenever you are hit.", icon: "swords", mult: 0, cd: 5, cost: 25, target: "self", selfApplies: { kind: "counter", turns: 2, value: 0.7 } },
+  ],
+  archer: [
+    { id: "mark", name: "Mark Target", desc: "0.5× shot; the target takes 30% more damage for 3 turns.", icon: "scan", mult: 0.5, cd: 4, cost: 15, target: "enemy", applies: { kind: "mark", turns: 3, value: 30 } },
+    { id: "evade", name: "Evasive Step", desc: "+30% dodge for 2 turns.", icon: "wind", mult: 0, cd: 4, cost: 20, target: "self", selfApplies: { kind: "evade", turns: 2, value: 30 } },
+  ],
+  mage: [
+    { id: "firestorm", name: "Firestorm", desc: "0.95× fire damage to every enemy, burning them.", icon: "flame", mult: 0.95, cd: 3, cost: 35, target: "all", applies: { kind: "burn", turns: 2, value: 0.15 } },
+    { id: "barrier", name: "Arcane Barrier", desc: "Absorb damage equal to 25% of your max HP for 3 turns.", icon: "shield", mult: 0, cd: 5, cost: 30, target: "self", selfApplies: { kind: "barrier", turns: 3, value: 0.25 } },
+    { id: "restore", name: "Restoration", desc: "Heal 28% of max HP (scaled by Healing Power).", icon: "heart", mult: 0, cd: 4, cost: 30, target: "self", heal: 0.28 },
+  ],
+};
+
+export function buildKit(cls: HeroClass | undefined, skills?: Skill[], chosen?: string[]): TSkill[] {
+  const base = skills ?? (cls ? SKILLS[cls] : [{ id: "hit", name: "Attack", mult: 1, cd: 0, icon: "sword" } as Skill]);
+  const kit: TSkill[] = base.map((s) => ({
+    id: s.id, name: s.name, desc: `${Math.round(s.mult * (s.hits ?? 1) * 100)}% damage.`, icon: s.icon,
+    mult: s.mult, hits: s.hits, cd: s.cd, cost: s.cd > 0 ? 25 : 0, target: "enemy" as TargetMode,
+    crit: s.crit, heal: s.heal, stun: s.stun, gain: s.cd === 0 ? 20 : 0,
+    ...(ADAPT[s.id] ?? {}),
+  }));
+  if (cls) for (const e of EXTRA[cls]) if (!kit.some((k) => k.id === e.id)) kit.push(e);
+  // Basic resource-generating attack is always present. Filter only the actual unlocked kit.
+  return chosen ? kit.filter((s,i)=>i===0 || chosen.includes(s.id)) : kit;
 }
 
 // ---------- Setup ----------
@@ -71,8 +125,8 @@ function toUnit(f: FighterInput, side: Unit["side"], id: string): Unit {
     critDmg: f.critDmg ?? 200, dodge: f.dodge, pen: f.pen ?? 0, acc: f.acc ?? 0,
     block: Math.min(BLOCK_CAP, f.block ?? (f.boss ? 5 : 0)), heal: Math.min(HEAL_CAP, f.heal ?? 0),
     speed: Math.round(100 + f.dodge * 2 + (f.acc ?? 0) + (f.cls === "archer" ? 15 : f.cls === "mage" ? 5 : 0) - (f.boss ? 10 : 0)),
-    mana: 0, maxMana, statuses: [], cds: {},
-    kit: [BASIC], turnsTaken: 0,
+    mana: side === "hero" ? 40 : 0, maxMana, statuses: [], cds: {},
+    kit: side === "hero" || f.cls ? buildKit(f.cls, f.skills, f.skillLoadout) : [], turnsTaken: 0,
   };
 }
 
@@ -93,7 +147,7 @@ export function formation(foe: FighterInput): FighterInput[] {
 
 export function initBattle(hero: FighterInput, foes: FighterInput[]): BattleState {
   const units = [toUnit(hero, "hero", "H"), ...foes.map((f, i) => toUnit({ ...f, mirror: f.mirror ?? false }, "foe", `F${i}`))];
-  const s: BattleState = { units, round: 0, queue: [], turn: 0, over: null, log: [], potions: 0 };
+  const s: BattleState = { units, round: 0, queue: [], turn: 0, over: null, log: [], potions: 2 };
   newRound(s);
   return s;
 }
@@ -130,12 +184,15 @@ export function upcoming(s: BattleState, n = 6): Unit[] {
   return out;
 }
 
-// ---------- Validation (kept for API compatibility; basic attack is always ready) ----------
-export function skillReady(_u: Unit, _sk: TSkill): string | null {
+// ---------- Validation ----------
+export function skillReady(u: Unit, sk: TSkill): string | null {
+  if ((u.cds[sk.id] ?? 0) > 0) return `On cooldown (${u.cds[sk.id]})`;
+  if (u.mana < sk.cost) return `Needs ${sk.cost} ${resourceName(u.cls)}`;
   return null;
 }
 
-export function validTargets(s: BattleState, actor: Unit, _sk: TSkill): string[] {
+export function validTargets(s: BattleState, actor: Unit, sk: TSkill): string[] {
+  if (sk.target === "self") return [actor.id];
   const enemies = s.units.filter((u) => u.side !== actor.side && alive(u));
   return enemies.map((u) => u.id);
 }
@@ -193,6 +250,12 @@ export const STATUS_LABEL: Record<StatusKind, string> = {
   guard: "GUARD", barrier: "BARRIER", mark: "MARKED", evade: "EVASIVE", slow: "SLOWED", stun: "STUNNED", burn: "BURNING", weaken: "WEAKENED", counter: "COUNTER",
 };
 
+function healUnit(u: Unit, amount: number, ev: CEvent[]) {
+  const amt = Math.round(amount * (1 + u.heal / 100));
+  const before = u.hp; u.hp = Math.min(u.maxHp, u.hp + amt);
+  ev.push({ kind: "heal", tgt: u.id, value: u.hp - before, text: `+${(u.hp - before).toLocaleString()}` });
+}
+
 function checkOver(s: BattleState) {
   if (!alive(heroUnit(s))) s.over = "lost";
   else if (livingFoes(s).length === 0) s.over = "won";
@@ -207,10 +270,11 @@ function startTurn(s: BattleState, u: Unit, ev: CEvent[]): boolean {
   return false;
 }
 
-/** End-of-turn: tick statuses & cooldowns for the actor, advance. */
+/** End-of-turn: tick statuses & cooldowns for the actor, regen resource, advance. */
 function endTurn(s: BattleState, u: Unit) {
   u.statuses = u.statuses.map((x) => ({ ...x, turns: x.turns - 1 })).filter((x) => x.turns > 0);
   for (const k of Object.keys(u.cds)) u.cds[k] = Math.max(0, u.cds[k] - 1);
+  u.mana = Math.min(u.maxMana, u.mana + 10);
   u.turnsTaken++;
   s.turn++;
   checkOver(s);
@@ -223,30 +287,50 @@ function logEv(s: BattleState, ev: CEvent[], head: string) {
 
 export type ActResult = { ok: true; events: CEvent[] } | { ok: false; error: string };
 
-/** Player auto-attacks the first living foe. Skill/target parameters are ignored (auto-battle). */
-export function playerAct(s: BattleState, _skillId?: string, _targets?: string[]): ActResult {
+/** Player uses a skill on chosen targets. Validates turn, cooldown, resource and targets. */
+export function playerAct(s: BattleState, skillId: string, targets: string[]): ActResult {
   const u = current(s);
   if (!u || u.side !== "hero") return { ok: false, error: "Not your turn" };
+  const sk = u.kit.find((k) => k.id === skillId);
+  if (!sk) return { ok: false, error: "Unknown skill" };
+  const nr = skillReady(u, sk); if (nr) return { ok: false, error: nr };
+  const valid = validTargets(s, u, sk);
+  let tg = sk.target === "all" ? valid : sk.target === "self" ? [u.id] : [...new Set(targets)].filter((t) => valid.includes(t));
+  if (sk.target === "enemy") tg = tg.slice(0, 1);
+  if (sk.target === "multi") tg = tg.slice(0, sk.maxTargets ?? 3);
+  if (tg.length === 0) return { ok: false, error: "Invalid target" };
   const ev: CEvent[] = [];
   if (startTurn(s, u, ev)) { endTurn(s, u); logEv(s, ev, `${u.name} is stunned.`); return { ok: true, events: ev }; }
-  const foes = s.units.filter((x) => x.side !== u.side && alive(x));
-  const t = foes.sort((a, b) => a.hp - b.hp)[0];
-  if (!t) { endTurn(s, u); return { ok: true, events: ev }; }
-  const sk = u.kit[0]; // always the basic attack
-  const dealt = dealHit(s, u, t, sk, ev);
+  u.mana = Math.min(u.maxMana, u.mana - sk.cost + (sk.gain ?? 0));
+  if (sk.cd) u.cds[sk.id] = sk.cd + 1; // +1 because endTurn ticks immediately
+  let dealt = 0;
+  if (sk.target !== "self" && sk.mult > 0) for (const t of tg) dealt += dealHit(s, u, unit(s, t), sk, ev);
+  else if (sk.applies) for (const t of tg) addStatus(unit(s, t), sk.applies, ev);
+  if (sk.selfApplies) addStatus(u, sk.selfApplies, ev);
+  if (sk.heal) healUnit(u, sk.target === "self" ? u.maxHp * sk.heal : u.maxHp * sk.heal, ev);
+  if (sk.id === "taunt") for (const t of tg) { const e = unit(s, t); if (e.telegraph) { e.telegraph.turns += 1; ev.push({ kind: "info", tgt: e.id, text: "DELAYED" }); } }
   endTurn(s, u);
-  logEv(s, ev, `${u.name} attacks${dealt ? ` for ${dealt.toLocaleString()} damage` : ""}.`);
+  logEv(s, ev, `${u.name} uses ${sk.name}${dealt ? ` for ${dealt.toLocaleString()} damage` : ""}.`);
   return { ok: true, events: ev };
 }
 
-/** Potions are removed in auto-battle; kept for API compatibility. */
 export function drinkPotion(s: BattleState): ActResult {
-  return { ok: false, error: "Potions are not available" };
+  const u = current(s);
+  if (!u || u.side !== "hero") return { ok: false, error: "Not your turn" };
+  if (s.potions <= 0) return { ok: false, error: "No potions left" };
+  const ev: CEvent[] = [];
+  if (startTurn(s, u, ev)) { endTurn(s, u); return { ok: true, events: ev }; }
+  s.potions--; healUnit(u, u.maxHp * 0.35, ev);
+  endTurn(s, u);
+  logEv(s, ev, `${u.name} drinks a potion.`);
+  return { ok: true, events: ev };
 }
 
-const BASIC_FOE: TSkill = BASIC;
+const BOSS_SKILL: TSkill = { id: "cataclysm", name: "Cataclysm", desc: "", icon: "flame", mult: 2.4, cd: 0, cost: 0, target: "enemy" };
+const ELITE_SKILL: TSkill = { id: "rend", name: "Savage Rend", desc: "", icon: "axe", mult: 1.6, cd: 0, cost: 0, target: "enemy", applies: { kind: "burn", turns: 2, value: 0.2 } };
+const BASIC: TSkill = { id: "hit", name: "Attack", desc: "", icon: "sword", mult: 1, cd: 0, cost: 0, target: "enemy" };
 
-/** Enemy AI: every foe simply basic-attacks the hero. */
+/** Enemy AI: bosses telegraph a heavy blow a turn ahead; elites rend; class opponents use their kits. */
 export function enemyAct(s: BattleState): ActResult {
   const u = current(s);
   if (!u || u.side !== "foe") return { ok: false, error: "Not an enemy turn" };
@@ -254,9 +338,28 @@ export function enemyAct(s: BattleState): ActResult {
   if (startTurn(s, u, ev)) { endTurn(s, u); logEv(s, ev, `${u.name} cannot act.`); return { ok: true, events: ev }; }
   const targets = s.units.filter((x) => x.side !== u.side && alive(x));
   const t = targets[0];
+  let sk: TSkill = BASIC;
+  if (u.telegraph) {
+    u.telegraph.turns--;
+    if (u.telegraph.turns <= 0) { sk = u.telegraph.skill; u.telegraph = undefined; }
+    else { ev.push({ kind: "telegraph", src: u.id, text: `${u.name} keeps gathering power…` }); endTurn(s, u); logEv(s, ev, `${u.name} channels.`); return { ok: true, events: ev }; }
+  } else if (u.boss && u.turnsTaken % 3 === 1) {
+    u.telegraph = { skill: BOSS_SKILL, turns: 1 };
+    ev.push({ kind: "telegraph", src: u.id, text: `⚠ ${u.name} prepares CATACLYSM! Guard or stun it!` });
+    endTurn(s, u); logEv(s, ev, `${u.name} gathers power.`);
+    return { ok: true, events: ev };
+  } else if (u.elite && u.turnsTaken % 3 === 2) sk = ELITE_SKILL;
+  else if (u.kit.length) {
+    const ready = [...u.kit].reverse().find((k) => k.mult > 0 && !skillReady(u, k) && k.cost > 0);
+    const def = [...u.kit].find((k) => k.target === "self" && !skillReady(u, k));
+    if (def && u.hp < u.maxHp * 0.4 && Math.random() < 0.5) sk = def; else if (ready && Math.random() < 0.7) sk = ready; else sk = u.kit[0];
+    u.mana = Math.min(u.maxMana, u.mana - sk.cost + (sk.gain ?? 0));
+    if (sk.cd) u.cds[sk.id] = sk.cd + 1;
+  }
   if (!t) { endTurn(s, u); return { ok: true, events: ev }; }
-  dealHit(s, u, t, BASIC_FOE, ev);
+  if (sk.target === "self") { if (sk.selfApplies) addStatus(u, sk.selfApplies, ev); if (sk.heal) healUnit(u, u.maxHp * sk.heal, ev); }
+  else { dealHit(s, u, t, sk, ev); if (sk.heal) healUnit(u, u.maxHp * sk.heal, ev); }
   endTurn(s, u);
-  logEv(s, ev, `${u.name} attacks.`);
+  logEv(s, ev, `${u.name} uses ${sk.name}.`);
   return { ok: true, events: ev };
 }

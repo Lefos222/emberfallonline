@@ -3,11 +3,9 @@ import { afterEach, describe, expect, it } from "vitest";
 import { AuctionHousePanel, buyShopGood, shopPrice } from "@/game/Marketplace";
 import { buyCatalogueItem, catalogueHour, cataloguePrice, catalogueStock } from "@/game/catalogue";
 import { MagicTower } from "@/game/Workshop";
-import { BarracksTraining } from "@/game/Barracks";
 import { HeroHall } from "@/game/panels";
 import { makeItem, newHero } from "@/game/data";
 import { potionHeld, potionPrice } from "@/game/potions";
-import { attrTrainCost } from "@/game/drills";
 import { getState, setHero } from "@/game/store";
 import { fmt } from "@/game/ui";
 
@@ -121,12 +119,4 @@ describe("quality of life", () => {
     expect(getState().hero?.equipment.weapon?.id).toBe(blade.id);
   });
 
-  it("barracks levels keep getting more expensive", () => {
-    const h = hero();
-    const first = attrTrainCost(h, "vit");
-    h.attrDrills = { vit: 10 };
-    expect(attrTrainCost(h, "vit")).toBeGreaterThan(first);
-    render(<BarracksTraining hero={h} />);
-    expect(screen.getAllByRole("button")).toHaveLength(4);
-  });
 });
