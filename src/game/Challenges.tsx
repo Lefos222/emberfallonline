@@ -43,6 +43,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
     start({
       title: `Boss Challenge · ${TIER_BOSSES[id].name} · Difficulty ${d}`,
       right: foe,
+      dungeon: true,
       onResult: async (won, xpMultiplier = 1) => {
         if (!won) return { lines: ["The boss stands victorious. Grow stronger."] };
         const { grant, addLoot, makeDrop, cappedRarity } = await import("./logic");
@@ -67,6 +68,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
     start({
       title: `Elite Hunt · ${foe.name}`,
       right: foe,
+      dungeon: true,
       onResult: async (won, xpMultiplier = 1) => {
         if (!won) return { lines: ["The elite escaped…"] };
         const { grant, rollLoot, addLoot } = await import("./logic");

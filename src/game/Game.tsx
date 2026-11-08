@@ -27,6 +27,7 @@ import { authHandoffPending, getState, update, useGame } from "./store";
 import { recordBattle } from "./progress";
 import { BOSS_CRYSTALS } from "./logic";
 import { battleEssenceGain, enlightenmentUnlocked, rollSoulShards } from "./enlightenment";
+import { POTION_STAMINA, addPotions, rollStaminaPotion, spendStamina, staminaBlocker } from "./stamina";
 import { CharacterSelect, ProfilePanel } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
 import { Campaign, Forge, HeroHall, Market, Oracle, Temple, heroFighter, type StartBattle } from "./panels";
@@ -53,7 +54,7 @@ export function Game() {
   const friendRequests = useFriendRequestCount(heroId);
   const nav = useNavigate();
   const [open, setOpen] = useState<ShortcutTarget | null>(null);
-  const [battle, setBattle] = useState<null | { right: Fighter; left: Fighter; auto?: boolean; title: string; onResult: Parameters<StartBattle>[0]["onResult"] }>(null);
+  const [battle, setBattle] = useState<null | { right: Fighter; left: Fighter; auto?: boolean; title: string; dungeon?: boolean; onResult: Parameters<StartBattle>[0]["onResult"] }>(null);
   const [result, setResult] = useState<null | { won: boolean; lines: string[]; loot?: Item | null }>(null);
   const [crafting, setCrafting] = useState(false);
   const [expeditions, setExpeditions] = useState(false);
@@ -109,7 +110,13 @@ export function Game() {
     // A blitz keeps the hero out in the field: nothing fights until the run lands (see blitz-run.ts).
     const blitzLock = battleLockedByBlitz(hero);
     if (blitzLock) { setEntryError(blitzLock); return; }
+    // A Dungeon Gate run costs its stamina up front, so a loss costs exactly as much as a win.
+    if (o.dungeon) {
+      const staminaLock = staminaBlocker(hero);
+      if (staminaLock) { setEntryError(staminaLock); return; }
+    }
     if (hero.blitzRun) update((h) => { settleBlitzRun(h); });
+    if (o.dungeon) update((h) => spendStamina(h));
     starting.current = true; setEntryError("");
     void (async () => {
       try {
@@ -167,6 +174,14 @@ export function Game() {
       if (shards > 0) {
         update((h) => { h.soulShards = (h.soulShards ?? 0) + shards; });
         r.lines.push(`+${shards} Soul Shard${shards > 1 ? "s" : ""} ✦`);
+      }
+    }
+    // A won dungeon run can leave a Stamina Potion behind — rare, but the only source (see stamina.ts).
+    if (won && battle.dungeon) {
+      const potions = rollStaminaPotion();
+      if (potions > 0) {
+        update((h) => addPotions(h, potions));
+        r.lines.push(`+${potions} Stamina Potion — +${POTION_STAMINA} stamina`);
       }
     }
     setResult({ won, ...r });

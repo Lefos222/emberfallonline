@@ -336,8 +336,9 @@ export interface Hero {
     gold: number;
     tokens?: number;
   };
-  /** Campaign Gate stamina for the Greek day (see stamina.ts). */
+  /** Dungeon Gate stamina for the Greek day and the potions in the pouch (see stamina.ts). */
   stamina?: { day?: string; used?: number };
+  staminaPotions?: number;
   /** Current level's quest board: counter snapshot taken when the level began, plus claimed ids (see level-quests.ts). */
   levelQuests?: { level: number; base: Record<string, number>; claimed: string[] };
   /** Barracks drill ranks by drill id (see drills.ts). */

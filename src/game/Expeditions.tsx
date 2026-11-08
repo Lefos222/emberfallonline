@@ -16,7 +16,7 @@ export function Expeditions({onClose,start}:{onClose:()=>void;start:StartBattle}
   const fight=(index:number)=>{
     const expedition=EXPEDITIONS[index]; if(!expedition || hero.level+hero.paragon<expedition.level)return;
     const foe=expeditionFoe(hero,index); const rw=stageRewards(foe.level,foe.boss?1.5:1);
-    start({title:`Dungeon Expedition · ${expedition.name}`,right:foe,onResult:async(won,xpMultiplier=1)=>{
+    start({title:`Dungeon Expedition · ${expedition.name}`,right:foe,dungeon:true,onResult:async(won,xpMultiplier=1)=>{
       if(!won)return {lines:['The expedition failed. No treasure recovered.']};
       const {grant,rollLoot,addLoot}=await import('./logic');
       let loot:Item|null=null; const lines:string[]=[];
