@@ -1,5 +1,8 @@
 import strengthArt from "@/assets/potion-strength.png";
 import staminaArt from "@/assets/potion-stamina.png";
+import wardingArt from "@/assets/potion-warding.svg";
+import fortuneArt from "@/assets/potion-fortune.svg";
+import sorceryArt from "@/assets/potion-sorcery.svg";
 import type { BonusFx } from "./crafting";
 import { scaledGold } from "./gold";
 import {
@@ -19,7 +22,7 @@ import {
  * potion lives in `hero.potions`. Elixirs are timed battle buffs stored in `hero.potionBuffs` and
  * join the shared stat pipeline through `potionFx` (see data.computeStats).
  */
-export type PotionId = "stamina" | "strength";
+export type PotionId = "stamina" | "strength" | "warding" | "fortune" | "sorcery";
 
 /** The saved fields every potion helper reads and writes. */
 export interface PotionState {
@@ -56,6 +59,33 @@ export const POTIONS: Record<PotionId, PotionDef> = {
     desc: "Red battle elixir: +20% physical attack for 30 minutes.",
     shop: 40000,
     buff: { atkPct: 20 },
+    minutes: 30,
+  },
+  warding: {
+    id: "warding",
+    name: "Elixir of Warding",
+    art: wardingArt,
+    desc: "Steel-blue elixir: +25% physical and magic defence for 30 minutes.",
+    shop: 36000,
+    buff: { defPct: 25, mdefPct: 25 },
+    minutes: 30,
+  },
+  fortune: {
+    id: "fortune",
+    name: "Draught of Fortune",
+    art: fortuneArt,
+    desc: "Amber draught: +8% crit chance and +15% crit damage for 30 minutes.",
+    shop: 52000,
+    buff: { crit: 8, critDmg: 15 },
+    minutes: 30,
+  },
+  sorcery: {
+    id: "sorcery",
+    name: "Elixir of Sorcery",
+    art: sorceryArt,
+    desc: "Violet elixir: +20% magic attack for 30 minutes.",
+    shop: 36000,
+    buff: { matkPct: 20 },
     minutes: 30,
   },
 };

@@ -2,7 +2,7 @@ import type { HeroClass, Item, Slot } from "./data";
 import { scaledGold } from "./gold";
 
 // ---------- Materials ----------
-export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone";
+export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone" | "fateStone";
 export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity: number }> = {
   ore: { name: "Ember Ore", desc: "Common ore used in crafting and gem cutting.", src: "Every won battle (more in higher regions)", rarity: 0 },
   essence: { name: "Soul Essence", desc: "Distilled souls used in crafting and gem fusion.", src: "Tougher fights, elites, bosses", rarity: 2 },
@@ -14,6 +14,7 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   bloom: { name: "Emberbloom", desc: "Fire-touched herb. Refines into Soul Essence.", src: "Won battles and elites", rarity: 1 },
   crystal: { name: "Arcane Crystal", desc: "Crystallised mana. Refines into Starshards.", src: "Elites and Dungeon Gate bosses", rarity: 2 },
   enchantStone: { name: "Enchantment Stone", desc: "A resonant stone used to enchant gear at the Forge instead of gold. Grade 1 of 9 — two of a grade forge the next (see enchant.ts).", src: "Won battles, Auction House shop, guild and Conquest shops", rarity: 3 },
+  fateStone: { name: "Fate Stone", desc: "A rare rune-cut stone that refines gear at the Forge instead of gold. One adds a flat +25% to the roll and is spent win or lose (see fate.ts).", src: "Rare battle drops, Auction House shop", rarity: 4 },
 };
 type Mats = Partial<Record<Mat, number>>;
 
@@ -385,7 +386,7 @@ export const ASTRAL_COLORS = ["#e6e9ef", "#3fbf5a", "#3b82f6", "#a855f7", "#facc
 /** How much of its species bonus each rarity carries: a Red Astral is worth far more than a White one. */
 export const ASTRAL_RARITY_POWER = [1, 1.35, 1.8, 2.4, 3.2, 4.5];
 /** Lucky Shot / summon odds in % per rarity (index = rarity). Must match the lucky_shot database function. */
-export const ASTRAL_ODDS = [40, 30, 17, 9, 3.5, 0.5];
+export const ASTRAL_ODDS = [38.5, 30, 17, 9.5, 4.4, 0.6];
 export const ASTRAL_SLOTS = 8;
 /** Slots 1-3 are open from the start; every further slot wakes every 10 levels. */
 export const ASTRAL_SLOT_LEVELS = [1, 1, 1, 10, 20, 30, 40, 50];

@@ -148,11 +148,11 @@ export function StaminaBar({ hero }: { hero: Hero }) {
   const left = staminaLeft(hero);
   const potions = potionCount(hero);
   const drinksLeft = potionUsesLeft(hero);
-  const buff = potionBuffLeft(hero, "strength");
+  const running = POTION_IDS.filter((id) => POTIONS[id].buff && potionBuffLeft(hero, id) > 0);
   const use = (id: PotionId) =>
     update((h) => {
       const err = takePotion(h, id);
-      setNotice(err ? { ok: false, t: err } : { ok: true, t: id === "stamina" ? `+${POTION_STAMINA} stamina` : "Elixir of Strength is burning" });
+      setNotice(err ? { ok: false, t: err } : { ok: true, t: id === "stamina" ? `+${POTION_STAMINA} stamina` : `${POTIONS[id].name} is burning` });
     });
   return (
     <div
@@ -182,9 +182,13 @@ export function StaminaBar({ hero }: { hero: Hero }) {
           <span>{potions}</span>
         </button>
       </div>
-      {buff > 0 && (
-        <div className="mt-0.5 flex items-center gap-1 text-[9px] font-bold text-r1" title="Elixir of Strength">
-          <img src={POTIONS.strength.art} alt="" aria-hidden="true" className="h-3 w-3 object-contain" />+20% ATK · {buff}m
+      {running.length > 0 && (
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[9px] font-bold text-r1">
+          {running.map((id) => (
+            <span key={id} className="flex items-center gap-1" title={POTIONS[id].name}>
+              <img src={POTIONS[id].art} alt="" aria-hidden="true" className="h-3 w-3 object-contain" />{POTIONS[id].name} · {potionBuffLeft(hero, id)}m
+            </span>
+          ))}
         </div>
       )}
       {shelf && (

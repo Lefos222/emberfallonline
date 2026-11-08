@@ -9,9 +9,10 @@ import { POTION_PER_DAY, potionUsesLeft } from "./stamina";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, ItemCard, Panel, fmt } from "./ui";
 import { GearIcon } from "./GearIcon";
-import { StoneIcon } from "./MatIcon";
+import { MatIcon, StoneIcon } from "./MatIcon";
 import { ScrollGoods } from "./ScrollShop";
 import { STONE_LEVELS, addStones, clampStone, stoneBonus, stoneCount, stonePrice } from "./enchant";
+import { FATE_STONE_PRICE, FATE_SUCCESS_BONUS, addFateStones, fateStoneCost, fateStoneCount } from "./fate";
 
 type Tab = "catalogue" | "shop" | "auction";
 
@@ -24,6 +25,9 @@ const cutPrice = (gold: number) => Math.max(1, Math.round(gold * (1 - SHOP_DISCO
 export const SHOP_STOCK: { id: PotionId; name: string; note: string; price: number }[] = [
   { id: "stamina", name: "Stamina Potion", note: `+50 stamina · ${POTION_PER_DAY} a day`, price: POTIONS.stamina.shop },
   { id: "strength", name: "Elixir of Strength", note: "+20% physical attack for 30 minutes", price: POTIONS.strength.shop },
+  { id: "warding", name: "Elixir of Warding", note: "+25% physical & magic defence for 30 minutes", price: POTIONS.warding.shop },
+  { id: "fortune", name: "Draught of Fortune", note: "+8% crit chance · +15% crit damage for 30 minutes", price: POTIONS.fortune.shop },
+  { id: "sorcery", name: "Elixir of Sorcery", note: "+20% magic attack for 30 minutes", price: POTIONS.sorcery.shop },
 ];
 
 /** Gold one shop good costs for this hero. */
@@ -35,6 +39,18 @@ export function buyShopGood(h: Hero, id: PotionId): string | null {
   if (h.gold < price) return `Not enough gold — ${fmt(price)} needed`;
   h.gold -= price;
   addPotion(h, id);
+  return null;
+}
+
+/** Gold one Fate Stone costs in the shop, after the house discount. */
+export const fateStoneShopPrice = (level = 1) => cutPrice(scaledGold(FATE_STONE_PRICE, level));
+
+/** Buy one Fate Stone for the Forge's refinement. */
+export function buyFateStone(h: Hero): string | null {
+  const price = fateStoneShopPrice(h.level);
+  if (h.gold < price) return `Not enough gold — ${fmt(price)} needed`;
+  h.gold -= price;
+  addFateStones(h, 1);
   return null;
 }
 
@@ -151,6 +167,33 @@ function ShopTab({ hero }: { hero: Hero }) {
           );
         })}
       </div>
+
+      <div className="mt-5 mb-2 flex flex-wrap items-baseline justify-between gap-1">
+        <span className="font-display text-sm text-gold">Fate Stones · refinement</span>
+        <span className="text-xs text-muted-foreground">Held ×{fmt(fateStoneCount(hero))}</span>
+      </div>
+      <p className="mb-2 text-xs text-muted-foreground">
+        One Fate Stone adds a flat +{Math.round(FATE_SUCCESS_BONUS * 100)}% to a Forge refinement and is spent whether the
+        metal holds or not — one stone per step, more as the gear climbs.
+      </p>
+      {(() => {
+        const price = fateStoneShopPrice(hero.level);
+        return (
+          <article className="slot flex items-center gap-3 p-3 sm:max-w-sm">
+            <MatIcon mat="fateStone" size={40} />
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-bold">Fate Stone</div>
+              <div className="text-[11px] text-muted-foreground">Refines gear at the Forge · held ×{fmt(fateStoneCount(hero))}</div>
+            </div>
+            <button className="btn-gold px-3 py-1.5 text-sm" disabled={hero.gold < price}
+              aria-label="Buy a Fate Stone"
+              title={hero.gold < price ? "Not enough gold" : "Buy a Fate Stone"}
+              onClick={() => update((h) => { say(buyFateStone(h), "a Fate Stone"); })}>
+              <Gold n={price} className="text-primary-foreground" />
+            </button>
+          </article>
+        );
+      })()}
 
       <div className="mt-5 mb-1 font-display text-sm text-gold">Battle Scrolls</div>
       <ScrollGoods />

@@ -25,6 +25,7 @@ const MAT_SHAPE: Partial<Record<Mat, ReactNode>> = {
   hide: (<><path d="M3 5c3-3 11-3 14 0 1 3-1 6-2 7 1 2 0 5-2 6-4 1-9-1-11-4-1-2 0-4 2-5C3 8 2 6 3 5z" fill="#8a5a32" stroke="#2b1a0f" strokeWidth="0.8" /><path d="M7 6c2 2 4 6 4 9" stroke="#5d3a1e" strokeWidth="0.8" fill="none" /></>),
   bloom: (<><path d="M10 11v7" stroke="#3f7a3a" strokeWidth="1.2" /><path d="M10 3c2 0 3 2 3 3s-1 2-3 2-3-1-3-2 1-3 3-3z" fill="#e2603a" stroke="#7a2a12" strokeWidth="0.8" /><path d="M5 7c2 0 3 2 3 3s-1 2-3 2-2-1-2-3 0-2 2-2z" fill="#c9452a" stroke="#7a2a12" strokeWidth="0.6" /><path d="M15 7c-2 0-3 2-3 3s1 2 3 2 2-1 2-3 0-2-2-2z" fill="#c9452a" stroke="#7a2a12" strokeWidth="0.6" /></>),
   crystal: (<><path d="M10 1.5l6 5.5-3 11.5H7L4 7z" fill="#7b5cd6" stroke="#2a1b4d" strokeWidth="0.9" /><path d="M10 1.5L8.5 18.5M4 7h12" stroke="#c9b6ff" strokeWidth="0.6" fill="none" /></>),
+  fateStone: (<><path d="M10 1.4l6.9 4.9-3.1 11.9H6.2L3.1 6.3z" fill="#2f8f9e" stroke="#0a2226" strokeWidth="0.9" /><path d="M10 1.4L7.3 18.2M3.1 6.3h13.8" stroke="#bdf3f4" strokeWidth="0.5" strokeOpacity="0.55" fill="none" /><path d="M10 5.6v4.6M7.7 7.9h4.6M8 13.6h4M10 12v3.2" stroke="#eaffff" strokeWidth="0.8" fill="none" /></>),
 };
 export const MatIcon = ({ mat, size = 20 }: { mat: Mat; size?: number }) => MAT_IMG[mat] ? (
   <img src={MAT_IMG[mat]} alt="" width={size} height={size} loading="lazy" className="inline-block align-middle" style={{ width: size, height: size }} />

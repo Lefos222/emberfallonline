@@ -10,8 +10,8 @@ import { SynthesisTab } from "./Synthesis";
 import { heroAppearance } from "./appearance";
 import { GameTabs, Gold, ItemCard, Panel, fmt } from "./ui";
 import {
-  ASTRAL_BASES, ASTRAL_COLORS, ASTRAL_FAMILIES, ASTRAL_MILESTONES, ASTRAL_RARITY, ASTRAL_SLOT_LEVELS, ASTRAL_SLOTS, FUSE_COUNT, GEMS, GEM_MAX_TIER, MATS, RECIPES, SUMMON_COST,
-  astralLabel, astralStatText, astralUpgradeCost, craft, craftBlocker, equipAstral, fuseCost, fuseGem, gemName, gemValue, GEM_STAT_LABEL, insertGem, matCount, parseGem, recipeGold, removeGem,
+  ASTRAL_BASES, ASTRAL_COLORS, ASTRAL_FAMILIES, ASTRAL_MILESTONES, ASTRAL_RARITY, ASTRAL_SLOT_LEVELS, ASTRAL_SLOTS, FUSE_COUNT, GEMS, GEM_MAX_TIER, MATS, MAX_SOCKETS, RECIPES, SUMMON_COST,
+  astralLabel, astralStatText, astralUpgradeCost, craft, craftBlocker, cutHole, equipAstral, fuseCost, fuseGem, gemName, gemValue, GEM_STAT_LABEL, holeCost, insertGem, matCount, parseGem, recipeGold, removeGem,
   socketCount, sockets, recipeMats, summonAstral, upgradeAstral, absorbAstral,
   type Astral, type AstralFamily, type Mat, type Recipe,
 } from "./crafting";
@@ -55,7 +55,7 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
       <div className="grid gap-5 lg:grid-cols-3">
         <div>
           <div className="mb-2 font-display">Socketed gear</div>
-          {gear.length === 0 && <p className="text-sm text-muted-foreground">Uncommon or better gear is born with sockets (Epic: 2, Mythic: 3), and the Forge cuts extra gem holes into any piece — up to four.</p>}
+          {gear.length === 0 && <p className="text-sm text-muted-foreground">Uncommon or better gear is born with sockets (Epic: 2, Mythic: 3), and the Gem Workshop cuts extra holes into any piece — up to four.</p>}
           <div className="max-h-96 space-y-1 overflow-y-auto">
             {gear.map((it) => (
               <button key={it.id} onClick={() => setSelId(it.id)} className={`slot w-full px-2 py-1.5 text-left text-sm ${selId === it.id ? "ring-2 ring-gold" : ""}`} style={{ borderColor: `var(--r${it.rarity})` }}>
@@ -78,6 +78,26 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
                       : <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => setPick(i)}><Gem className="inline h-3 w-3" /> Insert gem</button>}
                   </div>
                 ))}
+              </div>
+              <div className="slot mt-3 p-3">
+                <div className="mb-2 flex items-center justify-between font-display text-sm">
+                  <span className="flex items-center gap-2"><Gem className="h-4 w-4" />Cut a socket</span>
+                  <span className="text-xs text-muted-foreground">{socketCount(sel)}/{MAX_SOCKETS} holes</span>
+                </div>
+                <div className="mb-2 flex items-center gap-1.5">
+                  {Array.from({ length: MAX_SOCKETS }, (_, i) => (
+                    <span key={i} title={sockets(sel)[i] ? "Gem socketed" : "Empty socket"}
+                      className={`h-5 w-5 rounded-sm border ${i < socketCount(sel) ? (sockets(sel)[i] ? "border-gold bg-gold/60" : "border-gold bg-black/40") : "border-border/60 bg-black/20"}`} />
+                  ))}
+                </div>
+                <button className="btn-gold w-full py-2 text-sm"
+                  disabled={socketCount(sel) >= MAX_SOCKETS || hero.gold < holeCost(sel, hero.level)}
+                  onClick={() => act((h) => { const e = cutHole(h, sel.id); say(!e, e ?? "Cut a new gem socket"); })}>
+                  {socketCount(sel) >= MAX_SOCKETS
+                    ? `All ${MAX_SOCKETS} sockets cut`
+                    : <>Cut a gem socket <Gold n={holeCost(sel, hero.level)} className="text-primary-foreground" /></>}
+                </button>
+                <p className="mt-1 text-[11px] text-muted-foreground">Each extra hole costs more than the last; every piece can hold up to {MAX_SOCKETS} gems.</p>
               </div>
             </>
           ) : <p className="py-16 text-center text-muted-foreground">Pick a piece of gear to socket</p>}

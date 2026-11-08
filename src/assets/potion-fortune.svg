@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Draught of Fortune">
+  <defs>
+    <linearGradient id="fortuneGlass" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#fff6d6" stop-opacity="0.8"/>
+      <stop offset="45%" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#c9a24a" stop-opacity="0.6"/>
+    </linearGradient>
+    <linearGradient id="fortuneLiquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffe89b"/>
+      <stop offset="55%" stop-color="#e0a52f"/>
+      <stop offset="100%" stop-color="#8c580d"/>
+    </linearGradient>
+    <linearGradient id="fortuneCork" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d0a76f"/>
+      <stop offset="100%" stop-color="#7d5731"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="32" cy="59" rx="15" ry="3" fill="#000" opacity="0.35"/>
+  <path d="M27 12h10v8l7 10c1.6 2.3 2.4 4.6 2.4 7.2V49a8 8 0 0 1-8 8h-12.8a8 8 0 0 1-8-8V37.2c0-2.6.8-4.9 2.4-7.2l7-10z"
+        fill="url(#fortuneLiquid)" stroke="#231804" stroke-width="2"/>
+  <path d="M21 38h22v10a6 6 0 0 1-6 6h-10a6 6 0 0 1-6-6z" fill="url(#fortuneGlass)"/>
+  <path d="M27 12h10v8l7 10c1.6 2.3 2.4 4.6 2.4 7.2V49a8 8 0 0 1-8 8h-12.8a8 8 0 0 1-8-8V37.2c0-2.6.8-4.9 2.4-7.2l7-10z"
+        fill="none" stroke="#231804" stroke-width="2"/>
+  <path d="M26 26c-2 2.7-3 5.2-3 7.6V49" fill="none" stroke="#fffaf0" stroke-opacity="0.7" stroke-width="2" stroke-linecap="round"/>
+  <rect x="25" y="6" width="14" height="8" rx="2.5" fill="url(#fortuneCork)" stroke="#33220f" stroke-width="2"/>
+  <path d="M32 33l2.6 5.6 6.1.7-4.5 4.1 1.2 6-5.4-3-5.4 3 1.2-6-4.5-4.1 6.1-.7z"
+        fill="#fff3c4" stroke="#8c580d" stroke-width="1.3"/>
+  <circle cx="32" cy="43" r="10" fill="none" stroke="#ffe9a3" stroke-opacity="0.5" stroke-width="1.2"/>
+  <circle cx="45" cy="26" r="1.6" fill="#ffe9a3" opacity="0.9"/>
+  <circle cx="19" cy="31" r="1.2" fill="#ffe9a3" opacity="0.8"/>
+</svg>

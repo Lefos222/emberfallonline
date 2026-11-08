@@ -5,8 +5,8 @@ import { buyCatalogueItem, catalogueHour, cataloguePrice, catalogueStock } from 
 import { MagicTower } from "@/game/Workshop";
 import { HeroHall } from "@/game/panels";
 import { makeItem, newHero } from "@/game/data";
-import { potionHeld, potionPrice } from "@/game/potions";
-import { getState, setHero } from "@/game/store";
+import { potionHeld, potionPrice, takePotion } from "@/game/potions";
+import { getState, setHero, update } from "@/game/store";
 import { fmt } from "@/game/ui";
 
 const hero = () => {
@@ -69,6 +69,23 @@ describe("auction house shop", () => {
     expect(screen.getByText("Stamina Potion")).toBeInTheDocument();
     expect(screen.getByText("Elixir of Strength")).toBeInTheDocument();
     expect(screen.getAllByText(fmt(shopPrice("stamina", 20))).length).toBeGreaterThan(0);
+  });
+
+  it("stocks the new battle elixirs and drinks them from the pouch", () => {
+    const h = hero();
+    setHero(h);
+    render(<AuctionHousePanel onClose={() => {}} />);
+    fireEvent.click(screen.getByRole("tab", { name: "Shop" }));
+
+    for (const name of ["Elixir of Warding", "Draught of Fortune", "Elixir of Sorcery"]) {
+      expect(screen.getByText(name)).toBeInTheDocument();
+    }
+    update((draft) => {
+      expect(buyShopGood(draft, "fortune")).toBeNull();
+      expect(takePotion(draft, "fortune")).toBeNull();
+    });
+    expect(potionHeld(getState().hero!, "fortune")).toBe(0);
+    expect(getState().hero!.potionBuffs?.["fortune"]).toBeGreaterThan(Date.now());
   });
 });
 

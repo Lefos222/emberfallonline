@@ -124,7 +124,11 @@ export interface MaterialPrices {
   five: number;
 }
 
-export const MATERIAL_PRICES: Record<Mat, MaterialPrices> = {
+/** The materials the diamond shop sells. Fate Stones are earned in battle and bought for gold at the
+ *  Auction House, so they are deliberately not a diamond good. */
+export type DiamondMat = Exclude<Mat, "fateStone">;
+
+export const MATERIAL_PRICES: Record<DiamondMat, MaterialPrices> = {
   ore: { one: 5, five: 20 },
   hide: { one: 5, five: 20 },
   bloom: { one: 5, five: 20 },
@@ -138,7 +142,7 @@ export const MATERIAL_PRICES: Record<Mat, MaterialPrices> = {
 };
 
 /** Display order for the materials tab. */
-export const MATERIAL_ORDER: Mat[] = [
+export const MATERIAL_ORDER: DiamondMat[] = [
   "ore",
   "hide",
   "bloom",

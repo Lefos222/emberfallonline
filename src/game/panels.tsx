@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { trainingCost, trainAttribute } from './building-content';
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Shield, Heart, Swords, Clover, Sparkles, Trophy, Gem, Hammer, Trash2, Skull, Backpack } from "lucide-react";
+import { Shield, Heart, Swords, Clover, Sparkles, Trophy, Gem, Hammer, Trash2, Skull, Backpack, Layers } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import { adviseStrategy } from "@/lib/quests.functions";
@@ -21,8 +21,9 @@ import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { MatIcon, StoneIcon } from "./MatIcon";
 import { Vault } from "./Vault";
 import { GearCodex } from "./GearCodex";
-import { MAX_SOCKETS, MATS, REFINE, cutHole, holeCost, matCount, refine, scrapItem, scrapYield, socketCount, sockets, type Mat } from "./crafting";
-import { STONE_LEVELS, combineGold, combineStones, heldStoneLevels, spendStones, stoneBonus, stoneCount, stoneName } from "./enchant";
+import { MAX_SOCKETS, MATS, REFINE, matCount, refine, scrapItem, scrapYield, socketCount, sockets, type Mat } from "./crafting";
+import { STONE_FAIL_SAVE_CHANCE, STONE_LEVELS, combineAllStones, combineGold, combineStones, heldStoneLevels, spendStones, stoneBonus, stoneCount, stoneName } from "./enchant";
+import { FATE_SUCCESS_BONUS, enhanceFateChance, fateStoneCost, fateStoneCount, spendFateStones } from "./fate";
 import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
@@ -335,7 +336,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
   const [armed, setArmed] = useState<string | null>(null);
   const [warn, setWarn] = useState<Item | null>(null);
-  const [useStone, setUseStone] = useState(false);
+  const [mode, setMode] = useState<"gold" | "stone" | "fate">("gold");
   const [stonePick, setStonePick] = useState<number | null>(null);
   if (!hero) return null;
   // The stone the forge would use: whichever grade the player picked, else the best one held.
@@ -372,18 +373,36 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   };
   const enhance = () => {
     if (!sel || enhanceMaxed(sel)) return;
-    if (useStone) {
-      const stoneCost = enchantStoneCost(sel);
-      if (stoneCount(hero, stoneLvl) < stoneCost) return;
-      // Even the rarest stone never guarantees the step: the roll keeps its sliver of bad luck.
-      const ok = Math.random() < enhanceStoneChance(sel, stoneLvl);
+    if (mode === "fate") {
+      const fateCost = fateStoneCost(sel);
+      if (fateStoneCount(hero) < fateCost) return;
+      // Fate Stones carry their own luck: a flat lift on the plain roll, never a certainty.
+      const ok = Math.random() < enhanceFateChance(sel);
       update((h) => {
-        spendStones(h, stoneLvl, stoneCost);
+        spendFateStones(h, fateCost);
         const pos = sel.eq ? posOf(h.equipment, sel.id) : undefined;
         const target = pos ? h.equipment[pos] : h.inventory.find((i) => i.id === sel.id);
         if (target && ok) { target.enh++; recordEnhance(h, target.enh); }
       });
-      setMsg(ok ? { ok, t: `Success! +${sel.enh + 1} (Lv ${stoneLvl} stone)` } : { ok, t: "The stone cracked… failed" });
+      setMsg(ok
+        ? { ok, t: `Refined! +${sel.enh + 1} (Fate Stone)` }
+        : { ok, t: `Fate turned — ${fateCost} stone${fateCost === 1 ? "" : "s"} spent` });
+    } else if (mode === "stone") {
+      const stoneCost = enchantStoneCost(sel);
+      if (stoneCount(hero, stoneLvl) < stoneCost) return;
+      // Even the rarest stone never guarantees the step: the roll keeps its sliver of bad luck.
+      const ok = Math.random() < enhanceStoneChance(sel, stoneLvl);
+      // A failed roll sometimes leaves one stone unspent, so a bad attempt is not always a total loss.
+      const survived = !ok && Math.random() < STONE_FAIL_SAVE_CHANCE ? 1 : 0;
+      update((h) => {
+        spendStones(h, stoneLvl, stoneCost - survived);
+        const pos = sel.eq ? posOf(h.equipment, sel.id) : undefined;
+        const target = pos ? h.equipment[pos] : h.inventory.find((i) => i.id === sel.id);
+        if (target && ok) { target.enh++; recordEnhance(h, target.enh); }
+      });
+      setMsg(ok
+        ? { ok, t: `Success! +${sel.enh + 1} (Lv ${stoneLvl} stone)` }
+        : { ok, t: survived ? "The stone cracked… failed — one stone survived" : "The stone cracked… failed" });
     } else {
       const cost = enhanceCost(sel, hero.level);
       if (hero.gold < cost) return;
@@ -429,10 +448,23 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
             <>
               <ItemCard item={sel} />
               <div className="flex gap-1 text-sm">
-                <button className={`flex-1 py-1.5 text-xs ${!useStone ? "btn-gold" : "btn-ghost"}`} onClick={() => setUseStone(false)}>Gold</button>
-                <button className={`flex-1 py-1.5 text-xs ${useStone ? "btn-gold" : "btn-ghost"}`} onClick={() => setUseStone(true)}>Enchantment Stone</button>
+                <button className={`flex-1 py-1.5 text-xs ${mode === "gold" ? "btn-gold" : "btn-ghost"}`} onClick={() => setMode("gold")}>Gold</button>
+                <button className={`flex-1 py-1.5 text-xs ${mode === "stone" ? "btn-gold" : "btn-ghost"}`} onClick={() => setMode("stone")}>Enchantment Stone</button>
+                <button className={`flex-1 py-1.5 text-xs ${mode === "fate" ? "btn-gold" : "btn-ghost"}`} onClick={() => setMode("fate")}>Fate Stone</button>
               </div>
-              {useStone && (
+              {mode === "fate" && (
+                <div className="slot p-2">
+                  <div className="mb-1 flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-1 font-display text-gold"><MatIcon mat="fateStone" size={16} />Fate Stone</span>
+                    <span className="text-muted-foreground">+{Math.round(FATE_SUCCESS_BONUS * 100)}% success</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Held <b className="text-gold">×{fmt(fateStoneCount(hero))}</b> — a refinement spends {fateStoneCost(sel)}, win or lose.
+                    Fate Stones drop from rare battles and are sold in the Auction House shop.
+                  </p>
+                </div>
+              )}
+              {mode === "stone" && (
                 <div className="slot p-2">
                   <div className="mb-1 flex items-center justify-between text-xs">
                     <span className="font-display text-gold">Stone grade</span>
@@ -454,37 +486,34 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
               )}
               <div className="flex items-center justify-between text-sm">
                 <span>Enhancement <b className="text-gold">+{sel.enh}</b> / +{ENHANCE_MAX}</span>
-                {!enhanceMaxed(sel) && <span>Chance <b className="text-gold">{Math.round((useStone ? enhanceStoneChance(sel, stoneLvl) : enhanceChance(sel)) * 100)}%</b>{useStone && <span className="ml-1 text-xs text-r1">+{stoneBonus(stoneLvl)}% Lv {stoneLvl} stone</span>}</span>}
+                {!enhanceMaxed(sel) && <span>Chance <b className="text-gold">{Math.round((mode === "fate" ? enhanceFateChance(sel) : mode === "stone" ? enhanceStoneChance(sel, stoneLvl) : enhanceChance(sel)) * 100)}%</b>{mode === "stone" && <span className="ml-1 text-xs text-r1">+{stoneBonus(stoneLvl)}% Lv {stoneLvl} stone</span>}{mode === "fate" && <span className="ml-1 text-xs text-r1">+{Math.round(FATE_SUCCESS_BONUS * 100)}% fate</span>}</span>}
               </div>
               {!enhanceMaxed(sel) && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Next step</span>
-                  {useStone
+                  {mode === "fate"
+                    ? <span className="flex items-center gap-1"><MatIcon mat="fateStone" size={18} /> {fmt(fateStoneCount(hero))}/{fateStoneCost(sel)} Fate Stone{fateStoneCost(sel) === 1 ? "" : "s"}</span>
+                    : mode === "stone"
                     ? <span className="flex items-center gap-1"><StoneIcon level={stoneLvl} size={18} /> {fmt(stoneCount(hero, stoneLvl))}/{enchantStoneCost(sel)} Lv {stoneLvl}</span>
                     : <Gold n={enhanceCost(sel, hero.level)} />}
                 </div>
               )}
-              <button className="btn-gold w-full py-3 text-lg" disabled={enhanceMaxed(sel) || (useStone ? stoneCount(hero, stoneLvl) < enchantStoneCost(sel) : hero.gold < enhanceCost(sel, hero.level))} onClick={enhance}>
-                <Hammer className="mr-2 inline" />{enhanceMaxed(sel) ? `Fully enhanced · +${ENHANCE_MAX}` : `Enhance +${sel.enh + 1}`}
+              <button className="btn-gold w-full py-3 text-lg" disabled={enhanceMaxed(sel) || (mode === "fate" ? fateStoneCount(hero) < fateStoneCost(sel) : mode === "stone" ? stoneCount(hero, stoneLvl) < enchantStoneCost(sel) : hero.gold < enhanceCost(sel, hero.level))} onClick={enhance}>
+                <Hammer className="mr-2 inline" />{enhanceMaxed(sel) ? `Fully enhanced · +${ENHANCE_MAX}` : `${mode === "fate" ? "Refine" : "Enhance"} +${sel.enh + 1}`}
               </button>
 
               <div className="slot p-3">
-                <div className="mb-2 flex items-center gap-2 font-display text-sm"><Gem className="h-4 w-4" />Gem sockets</div>
-                <div className="mb-2 flex items-center gap-1.5">
+                <div className="mb-2 flex items-center justify-between font-display text-sm">
+                  <span className="flex items-center gap-2"><Gem className="h-4 w-4" />Gem sockets</span>
+                  <span className="text-xs text-muted-foreground">{socketCount(sel)}/{MAX_SOCKETS} holes</span>
+                </div>
+                <div className="flex items-center gap-1.5">
                   {Array.from({ length: MAX_SOCKETS }, (_, i) => (
                     <span key={i} title={sockets(sel)[i] ? "Gem socketed" : "Empty socket"}
                       className={`h-5 w-5 rounded-sm border ${i < socketCount(sel) ? (sockets(sel)[i] ? "border-gold bg-gold/60" : "border-gold bg-black/40") : "border-border/60 bg-black/20"}`} />
                   ))}
-                  <span className="ml-1 text-xs text-muted-foreground">{socketCount(sel)}/{MAX_SOCKETS} holes</span>
                 </div>
-                <button className="btn-gold w-full py-2 text-sm"
-                  disabled={socketCount(sel) >= MAX_SOCKETS || hero.gold < holeCost(sel, hero.level)}
-                  onClick={() => update((h) => { const e = cutHole(h, sel.id); setMsg(!e ? { ok: true, t: "Cut a new gem socket" } : { ok: false, t: e }); })}>
-                  {socketCount(sel) >= MAX_SOCKETS
-                    ? `All ${MAX_SOCKETS} sockets cut`
-                    : <>Cut a gem socket <Gold n={holeCost(sel, hero.level)} className="text-primary-foreground" /></>}
-                </button>
-                <p className="mt-1 text-[11px] text-muted-foreground">Every piece of gear can hold up to {MAX_SOCKETS} gems. Fill them at the Gem Workshop.</p>
+                <p className="mt-2 text-[11px] text-muted-foreground">Sockets are cut and filled at the Gem Workshop — every piece of gear can hold up to {MAX_SOCKETS} gems.</p>
               </div>
 
               <div className="slot p-3">
@@ -502,6 +531,19 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                     <p className="text-xs text-muted-foreground">Nothing to forge yet — stones drop from won battles and are sold in the Auction House shop.</p>
                   )}
                 </div>
+                {heldStoneLevels(hero).some((lvl) => lvl < STONE_LEVELS && stoneCount(hero, lvl) >= 2) && (
+                  <button className="btn-ghost mt-2 flex w-full items-center justify-center gap-1 px-2 py-1 text-xs"
+                    title="Forge every pair you hold into the next grade"
+                    onClick={() => update((h) => {
+                      const r = combineAllStones(h);
+                      setMsg(r.made
+                        ? { ok: true, t: `Forged ${r.made} stone${r.made === 1 ? "" : "s"} into higher grades` }
+                        : { ok: false, t: r.error ?? "No pairs to forge" });
+                    })}>
+                    <Layers className="h-3.5 w-3.5" />Forge every pair
+                  </button>
+                )}
+                <p className="mt-2 text-[11px] text-muted-foreground">A stone that fails an enchantment survives {Math.round(STONE_FAIL_SAVE_CHANCE * 100)}% of the time, so a bad roll still keeps one in the pouch.</p>
               </div>
 
               <div className="slot p-3">
