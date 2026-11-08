@@ -13,6 +13,7 @@ import { drillAttrs, drillFx } from "./drills";
 import { guildFx } from "./guild-tower";
 import { normalizeSynth, synthFx } from "./synthesis";
 import { enlightenmentFx, soulFx } from "./enlightenment";
+import { renownFx } from "./renown";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -347,6 +348,10 @@ export interface Hero {
   attrDrills?: Record<string, number>;
   /** Advanced (Void Crystal) attribute ranks: endless, five points each (see drills.ts). */
   advancedDrills?: Record<string, number>;
+  /** Renown earned from won battles, spent on the hero's own permanent upgrades (see renown.ts). */
+  renown?: number;
+  /** Renown upgrade ranks by track id (see renown.ts). */
+  renownRanks?: Record<string, number>;
   /** Bestiary entries the character has defeated, by bestiary id. */
   kills?: Record<string, number>;
   weekly?: { week: number; kills: number; claimed: boolean };
@@ -506,17 +511,19 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   // Enlightenment and Soul infusions are the post-20 permanent tracks (see enlightenment.ts).
   const en = opts.talents ? enlightenmentFx(h) : zeroFx();
   const so = opts.talents ? soulFx(h) : zeroFx();
+  // Renown upgrades are earned by winning fights and belong to the hero alone (see renown.ts).
+  const rw = opts.talents ? renownFx(h) : zeroFx();
   const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + sy[k] + so[k] + en[k];
   const sf0 = opts.gear ? setFx(h.equipment) : { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
   const af = opts.talents ? astralFx(h) : null;
   const sf = {
-    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct + en.atkPct + so.atkPct,
-    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct + en.defPct + so.defPct,
-    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct + en.hpPct + so.hpPct,
-    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit + en.crit + so.crit,
+    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct + en.atkPct + so.atkPct + rw.atkPct,
+    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct + en.defPct + so.defPct + rw.defPct,
+    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct + en.hpPct + so.hpPct + rw.hpPct,
+    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit + en.crit + so.crit + rw.crit,
   };
-  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge + so.dodge;
-  tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + sy.critDmg;
+  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge + so.dodge + rw.dodge;
+  tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + sy.critDmg + rw.critDmg;
   tf.pen += sy.pen + so.pen;
   const pa = 1 + (tf.atkPct + sf.atkPct) / 100, ph = 1 + (tf.hpPct + sf.hpPct) / 100, pd = 1 + (tf.defPct + sf.defPct) / 100;
   const c = CLASSES[h.cls];
@@ -563,7 +570,7 @@ export function powerBreakdown(h: Hero): PowerSource[] {
     { label: "Attributes", power: withAttrs - base },
     { label: "Equipment", power: withGear - withAttrs },
     { label: `Ascension ${h.paragon}`, power: withAsc - withGear },
-    { label: "Skills, drills, Astrals, Synthesis & Enlightenment", power: total - withAsc },
+    { label: "Skills, drills, Astrals, Synthesis, Enlightenment & Renown", power: total - withAsc },
   ];
 }
 export const powerOf = (s: { hp: number; atk: number; def: number; crit: number }) => Math.round(s.atk * 2 + s.def * 1.5 + s.hp * 0.2 + s.crit * 10);

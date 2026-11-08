@@ -28,6 +28,7 @@ import { recordBattle } from "./progress";
 import { BOSS_CRYSTALS } from "./logic";
 import { battleEssenceGain, enlightenmentUnlocked, rollSoulShards } from "./enlightenment";
 import { POTION_STAMINA, addPotions, rollStaminaPotion, spendStamina, staminaBlocker } from "./stamina";
+import { addRenown, renownGain } from "./renown";
 import { CharacterSelect, ProfilePanel } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
 import { Campaign, Forge, HeroHall, Market, Oracle, Temple, heroFighter, type StartBattle } from "./panels";
@@ -149,6 +150,12 @@ export function Game() {
     if (r.loot && r.loot.rarity >= 2) void announceWorldEvent(heroId, `looted ${r.loot.name}!`);
     if (useGameOverflow() > before && !r.lines.some((l) => /Overflow/.test(l))) r.lines.push("Bag full — loot placed in your Overflow Chest (Armory)");
     if (won) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m)); });
+    // Won fights pay Renown, the hero's own upgrade currency (see renown.ts).
+    if (won) {
+      const gained = renownGain({ boss: !!battle.right.boss, dungeon: !!battle.dungeon, arena: /arena/i.test(battle.title) });
+      update((h) => addRenown(h, gained));
+      r.lines.push(`+${gained} Renown`);
+    }
     // A won fight sometimes leaves a chest on the field: gold is the common find, gems the rare one.
     if (won) {
       const drop = rollBattleChest();
