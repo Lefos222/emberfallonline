@@ -17,6 +17,10 @@ export interface FriendProfile {
 }
 export interface InspectedProfile extends FriendProfile {
   stats: Json;
+  /** Summed quality of the hero's worn kit, taken from the public stats row (see data.gearScoreOf). */
+  gear_score?: number;
+  /** The guild the hero belongs to, when they are in one. */
+  guild?: string | null;
 }
 
 /** An incoming friendship request: the sender answers before any friendship exists. */
@@ -147,7 +151,7 @@ export async function searchHeroes(heroId: string, query: string): Promise<HeroS
   return (await call("search_heroes", { _hero: heroId, _q: q })) ?? [];
 }
 
-export async function inspectHero(heroId: string, targetId: string): Promise<InspectedProfile> {
+export async function inspectHero(_heroId: string, targetId: string): Promise<InspectedProfile> {
   const { data, error } = await supabase
     .from("heroes")
     .select("id,name,hero_class,gender,level,power,arena_rating,title,frame,bio,last_played,stats")
@@ -155,7 +159,31 @@ export async function inspectHero(heroId: string, targetId: string): Promise<Ins
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("That hero cannot be inspected");
-  return data as InspectedProfile;
+  const stats = data.stats as Json;
+  const statMap =
+    stats && typeof stats === "object" && !Array.isArray(stats)
+      ? (stats as Record<string, unknown>)
+      : {};
+  // The guild roster is public to every authenticated player, so inspection can name the team.
+  const { data: member } = await supabase
+    .from("guild_members")
+    .select("guild_id")
+    .eq("hero_id", targetId)
+    .maybeSingle();
+  let guild: string | null = null;
+  if (member?.guild_id) {
+    const { data: row } = await supabase
+      .from("guilds")
+      .select("name")
+      .eq("id", member.guild_id)
+      .maybeSingle();
+    guild = row?.name ?? null;
+  }
+  return {
+    ...(data as unknown as InspectedProfile),
+    gear_score: Math.max(0, Math.round(Number(statMap["gearScore"] ?? 0))),
+    guild,
+  };
 }
 
 // ============ Direct messages (unchanged - use Supabase chat table) ============

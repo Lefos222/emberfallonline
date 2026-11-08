@@ -8,6 +8,7 @@ import { update, useGame } from "./store";
 import { RARITIES, invCap, type Item } from "./data";
 import { SET_BONUSES, activeSets, signatureOf } from "./progress";
 import { scrollXp } from "./scrolls";
+import { outsideXp } from "./xp";
 import type { StartBattle } from "./panels";
 import gearAtlas from "@/assets/gear-atlas.jpg";
 import {
@@ -40,7 +41,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
         let loot: Item | null = null;
         const lines: string[] = [];
         update((h) => {
-          const xp = scrollXp(rw.xp, xpMultiplier);
+          const xp = outsideXp(scrollXp(rw.xp, xpMultiplier));
           const { levels } = grant(h, xp, rw.gold);
           const roll = rollRelic(h, rank);
           const first = noteRelic(h, roll.piece.id);

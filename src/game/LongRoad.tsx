@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Swords } from 'lucide-react';
 import type { StartBattle } from './panels';
 import { matsLine } from './crafting';
+import { outsideXp } from './xp';
 import { canEnterRoad, canEnterSpire, dailyRoad, recordRoadClear, roadFoe, roadRegion, roadRewards, roadState, roadWeekIndex, spireCircuit, spireRewards, spireWave, weeklyRoad, type RoadClear } from './longroad';
 
 export function LongRoad({ onClose, start }: { onClose: () => void; start: StartBattle }) {
@@ -26,7 +27,7 @@ export function LongRoad({ onClose, start }: { onClose: () => void; start: Start
           const next = recordRoadClear(h, { mode, value, xpMultiplier });
           if (next === h) return;
           const rw = mode === 'road' ? roadRewards(value, true) : spireRewards(value);
-          lines = [`+${fmt(rw.gold)} gold`, `+${fmt(Math.round(rw.xp * (xpMultiplier === 1.2 ? 1.2 : 1)))} XP`, ...matsLine(rw.materials), ...(rw.items ? ['Roadwarden weapon delivered to bag or Overflow Chest.'] : [])];
+          lines = [`+${fmt(rw.gold)} gold`, `+${fmt(outsideXp(Math.round(rw.xp * (xpMultiplier === 1.2 ? 1.2 : 1))))} XP`, ...matsLine(rw.materials), ...(rw.items ? ['Roadwarden weapon delivered to bag or Overflow Chest.'] : [])];
           Object.assign(h, next);
         });
         return { lines };

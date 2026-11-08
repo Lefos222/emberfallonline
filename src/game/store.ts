@@ -2,6 +2,8 @@ import { useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { heroStats, normalizeHero, type Hero, type HeroClass } from "./data";
 import { isPreResetSave, resetHero } from "./world-reset";
+import { grantTitles } from "./titles";
+import { applyPatchGifts } from "./patch-gifts";
 
 export type Gender = "male" | "female";
 export interface CharacterRow {
@@ -56,7 +58,7 @@ async function performSave(): Promise<boolean> {
   const s = heroStats(h);
   const now = new Date().toISOString();
   const { error } = await supabase.from("heroes").update({
-    level: h.level, power: s.power, stats: { ...s, paragon: h.paragon } as never, save: h as never,
+    level: h.level, power: s.power, stats: { ...s, paragon: h.paragon, titles: h.titles ?? [], activeTitle: h.activeTitle ?? null } as never, save: h as never,
     updated_at: now, last_played: now,
   }).eq("id", id);
   lastSavedAt = now;
@@ -160,6 +162,8 @@ export async function selectCharacter(id: string): Promise<string | null> {
   // browser draft) starts over from level 0 and is written back before play begins.
   const stale = isPreResetSave(hero);
   const active = stale ? resetHero(hero) : hero;
+  // A published patch gift is paid exactly once, on the next character load.
+  applyPatchGifts(active);
   localStorage.setItem(LAST, id);
   needsServerReload = false;
   set({ hero: active, heroId: id, gender: (data.gender as Gender) ?? "male", cloud: "saved" });
@@ -174,7 +178,7 @@ export async function createCharacter(name: string, cls: HeroClass, gender: Gend
   const s = heroStats(hero);
   const { data, error } = await supabase.from("heroes").insert({
     user_id: state.userId, name, hero_class: cls, gender, level: hero.level, power: s.power,
-    stats: { ...s, paragon: 0 } as never, save: hero as never,
+    stats: { ...s, paragon: 0, titles: hero.titles ?? [], activeTitle: hero.activeTitle ?? null } as never, save: hero as never,
   }).select("id").single();
   if (error) {
     if (error.code === "23505") return "That name is already taken";
@@ -232,6 +236,9 @@ export function update(fn: (h: Hero) => void) {
   if (!state.hero || serverOperation || needsServerReload) return;
   const h = structuredClone(state.hero);
   fn(h);
+  // Earned titles are settled on every save mutation, so the player never has to reload
+  // to receive one. The one-time patch gift is paid on load (see normalizeHero).
+  grantTitles(h);
   setHero(h);
 }
 

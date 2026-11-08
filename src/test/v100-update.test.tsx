@@ -115,7 +115,7 @@ describe("magic tower vault", () => {
     h.astrals = [{ id: "a1", base: "ember", rarity: 0, lvl: 1 }];
     setHero(h);
     render(<MagicTower onClose={() => {}} />);
-    expect(screen.getByText(/Species codex/)).toBeInTheDocument();
+    expect(screen.getByText(/Held stones/)).toBeInTheDocument();
     expect(screen.getAllByText(/Ember Wyrm/i).length).toBeGreaterThan(0);
   });
 });

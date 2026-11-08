@@ -204,7 +204,7 @@ export const GUILD_SHOP: GuildShopItem[] = [
   { id: "g_hide", name: "Beast Hide ×20", desc: "Refines into Armor Fragments", cost: 400, mat: "hide", qty: 20 },
   { id: "g_hide100", name: "Beast Hide ×100", desc: "Bulk hides for refining", cost: 1800, mat: "hide", qty: 100 },
   { id: "g_bloom", name: "Emberbloom ×20", desc: "Refines into Soul Essence", cost: 450, mat: "bloom", qty: 20 },
-  { id: "g_starshard", name: "Starshard ×5", desc: "For Astral summoning & upgrades", cost: 2000, mat: "starshard", qty: 5 },
+  { id: "g_starshard", name: "Starshard ×5", desc: "For Astral upgrades", cost: 2000, mat: "starshard", qty: 5 },
   { id: "g_starshard20", name: "Starshard ×20", desc: "A deep Astral reserve", cost: 7400, mat: "starshard", qty: 20 },
   { id: "g_sigil", name: "Elite Sigil ×5", desc: "For Epic+ gear", cost: 2500, mat: "sigil", qty: 5 },
   { id: "g_bossCore", name: "Boss Core ×3", desc: "For Legendary+ gear", cost: 3000, mat: "bossCore", qty: 3 },

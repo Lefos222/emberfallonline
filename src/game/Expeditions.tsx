@@ -9,6 +9,7 @@ import { MATS, addMats } from './crafting';
 import { stageRewards, type Item } from './data';
 import { recordRosterEncounter } from './bestiary';
 import { scrollXp } from './scrolls';
+import { outsideXp } from './xp';
 import type { StartBattle } from './panels';
 
 export function Expeditions({onClose,start}:{onClose:()=>void;start:StartBattle}) {
@@ -21,7 +22,7 @@ export function Expeditions({onClose,start}:{onClose:()=>void;start:StartBattle}
       const {grant,rollLoot,addLoot}=await import('./logic');
       let loot:Item|null=null; const lines:string[]=[];
       update(h=>{
-        const xp=scrollXp(rw.xp,xpMultiplier);const {levels}=grant(h,xp,rw.gold);
+        const xp=outsideXp(scrollXp(rw.xp,xpMultiplier));const {levels}=grant(h,xp,rw.gold);
         h.wins++; recordRosterEncounter(h,foe.rosterId,true);
         addMats(h,{[expedition.material]:expedition.quantity});
         loot=rollLoot(h,foe.level,0.6,foe.boss?2:0);if(loot)addLoot(h,loot);

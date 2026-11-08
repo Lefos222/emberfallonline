@@ -3,6 +3,7 @@ import { CAMPAIGN_STAGES, type SpriteRect } from './world';
 import { BATTLE_BOSSES, ENEMY_ROSTER } from './bestiary';
 import type { Mat } from './crafting';
 import { goldGain } from './gold';
+import { outsideXp } from './xp';
 
 export const ROAD_START = 91;
 /** Ten stages per region; after these twelve, new circuits raise all level bands by 120. */
@@ -98,7 +99,8 @@ export function recordRoadClear(hero: Hero, clear: RoadClear): Hero {
   const overflow = [...(hero.overflow ?? [])];
   const h: Hero = { ...hero, inventory: [...hero.inventory], overflow, mats, road: { ...s } };
   h.gold += rw.gold;
-  h.xp += Math.round(rw.xp * (clear.xpMultiplier === 1.2 ? 1.2 : 1));
+  // The Long Road and Spire are out-of-campaign fights: they pay 30% XP (see xp.ts).
+  h.xp += outsideXp(Math.round(rw.xp * (clear.xpMultiplier === 1.2 ? 1.2 : 1)));
   while (h.xp >= xpToNext(h)) { h.xp -= xpToNext(h); if (h.level < MAX_LEVEL) h.level++; else h.paragon++; h.insight = (h.insight ?? 0) + 1; }
   for (const [mat, count] of Object.entries(rw.materials) as [Mat, number][]) mats[mat] = (mats[mat] ?? 0) + count;
   if (road) h.road = { ...s, stage: clear.value + 1, cleared: clear.value };

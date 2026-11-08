@@ -23,6 +23,8 @@ export interface CraftState {
   mats?: Mats; gems?: Record<string, number>; astrals?: Astral[]; astralSlots?: (string | null)[];
   equipment: Partial<Record<Slot, Item>>; inventory: Item[];
   crafts?: number;
+  /** Lifetime Astral summons, gating the Gold and Red tiers (see summonAstral). */
+  astralSummons?: number;
 }
 
 export const matCount = (h: Pick<CraftState, "mats">, m: Mat) => h.mats?.[m] ?? 0;
@@ -378,12 +380,12 @@ export const ASTRAL_FAMILIES: { id: AstralFamily; name: string; blurb: string }[
   { id: "void", name: "Void", blurb: "Magic, accuracy and stolen life" },
 ];
 
-/** The six rarity colours every Astral is born into: White, Green, Blue, Purple, Gold, Red. */
-export const ASTRAL_RARITY = ["White", "Green", "Blue", "Purple", "Gold", "Red"];
+/** The six rarity colours every Astral is born into: Grey, Green, Blue, Purple, Gold, Red. */
+export const ASTRAL_RARITY = ["Grey", "Green", "Blue", "Purple", "Gold", "Red"];
 export const ASTRAL_RARITY_NOTE = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"];
 export const ASTRAL_TIER = ASTRAL_RARITY_NOTE;
-export const ASTRAL_COLORS = ["#e6e9ef", "#3fbf5a", "#3b82f6", "#a855f7", "#facc15", "#e11d48"];
-/** How much of its species bonus each rarity carries: a Red Astral is worth far more than a White one. */
+export const ASTRAL_COLORS = ["#9aa0aa", "#3fbf5a", "#3b82f6", "#a855f7", "#facc15", "#e11d48"];
+/** How much of its species bonus each rarity carries: a Red Astral is worth far more than a Grey one. */
 export const ASTRAL_RARITY_POWER = [1, 1.35, 1.8, 2.4, 3.2, 4.5];
 /** Lucky Shot / summon odds in % per rarity (index = rarity). Must match the lucky_shot database function. */
 export const ASTRAL_ODDS = [38.5, 30, 17, 9.5, 4.4, 0.6];
@@ -392,7 +394,42 @@ export const ASTRAL_SLOTS = 8;
 export const ASTRAL_SLOT_LEVELS = [1, 1, 1, 10, 20, 30, 40, 50];
 /** Share of the species' base bonus one upgrade level adds. Levels never stop. */
 export const ASTRAL_LVL_STEP = 0.15;
-export const SUMMON_COST = 10; // starshards
+/**
+ * Gold price of summoning each rarity, in rarity order: Grey 500, Green 1,500, Blue 3,000,
+ * Purple 5,000, Gold 8,000, Red 13,000.
+ */
+export const ASTRAL_SUMMON_GOLD = [500, 1_500, 3_000, 5_000, 8_000, 13_000];
+/** Hero level each summon tier opens at. */
+export const ASTRAL_SUMMON_LEVEL = [1, 5, 12, 22, 35, 50];
+/** A Gold Astral cannot be summoned before this many lifetime summons; Red needs 200. */
+export const ASTRAL_GOLD_PULLS = 40;
+export const ASTRAL_RED_PULLS = 200;
+
+/** Gold one summon of a rarity costs, scaled for the hero's level like every other gold price. */
+export const astralSummonCost = (rarity: number, heroLevel = 1) =>
+  scaledGold(ASTRAL_SUMMON_GOLD[Math.max(0, Math.min(5, rarity))] ?? ASTRAL_SUMMON_GOLD[0], heroLevel);
+
+/** How many summons the hero has ever made (the anti-luck gate for Gold and Red). */
+export const astralSummons = (h: { astralSummons?: number }) => Math.max(0, Math.floor(h.astralSummons ?? 0));
+
+/**
+ * Why a summon tier is locked, or null when it is open. Gold needs 40 lifetime summons,
+ * Red needs 200, and every tier also has a hero-level gate — higher tiers are a level climb,
+ * never a day-one purchase.
+ */
+export function astralSummonLock(h: { level?: number; astralSummons?: number }, rarity: number): string | null {
+  if (rarity < 0 || rarity >= ASTRAL_SUMMON_GOLD.length) return "That Astral tier does not exist";
+  const level = Math.max(1, Math.floor(h.level ?? 1));
+  const needLevel = ASTRAL_SUMMON_LEVEL[rarity] ?? 1;
+  if (level < needLevel) return `Summoning ${ASTRAL_RARITY[rarity]} Astrals opens at level ${needLevel}`;
+  const pulls = astralSummons(h);
+  if (rarity >= 5 && pulls < ASTRAL_RED_PULLS) return `Red Astrals cannot answer before ${ASTRAL_RED_PULLS} summons (${pulls}/${ASTRAL_RED_PULLS})`;
+  if (rarity >= 4 && pulls < ASTRAL_GOLD_PULLS) return `Gold Astrals cannot answer before ${ASTRAL_GOLD_PULLS} summons (${pulls}/${ASTRAL_GOLD_PULLS})`;
+  return null;
+}
+
+/** Luck rises with the hero's level: a summon can rise one tier, capped at 35%. */
+export const astralLuck = (heroLevel = 1) => Math.min(0.35, Math.max(0, heroLevel - 1) * 0.004);
 
 /**
  * Gold one Astral level costs. It rises steeply with the level already reached and with rarity,
@@ -423,10 +460,23 @@ export function rollAstralRarity(r: number) {
   return 0;
 }
 
-export function summonAstral(h: CraftState, rand = Math.random): Astral | string {
-  if (matCount(h, "starshard") < SUMMON_COST) return `Needs ${SUMMON_COST} Starshards`;
-  spendMats(h, { starshard: SUMMON_COST });
-  const rarity = rollAstralRarity(rand() * 100);
+/**
+ * Summon one Astral of a chosen rarity tier for gold. The stone always answers at the
+ * tier paid for, but levelling earns luck: it can rise one tier higher than the one bought
+ * (never past a tier still locked by level or by the lifetime-summon gate). The summon is
+ * spent before the roll, so a bad roll never refunds.
+ */
+export function summonAstral(h: CraftState, rand = Math.random, tier = 0): Astral | string {
+  const lock = astralSummonLock(h, tier);
+  if (lock) return lock;
+  const cost = astralSummonCost(tier, h.level);
+  if (h.gold < cost) return `Needs ${cost.toLocaleString()} gold`;
+  h.gold -= cost;
+  h.astralSummons = astralSummons(h) + 1;
+  let rarity = tier;
+  if (tier < ASTRAL_RARITY.length - 1 && rand() < astralLuck(h.level) && !astralSummonLock(h, tier + 1)) {
+    rarity = tier + 1;
+  }
   const bases = Object.keys(ASTRAL_BASES);
   const a: Astral = { id: Math.random().toString(36).slice(2, 10) + Date.now().toString(36), base: bases[Math.floor(rand() * bases.length)], rarity, lvl: 1 };
   h.astrals = [...(h.astrals ?? []), a];

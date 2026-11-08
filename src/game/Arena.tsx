@@ -7,6 +7,7 @@ import { CharacterModel } from "./CharacterModel";
 import { update, useGame } from "./store";
 import { GameTabs, Panel, fmt } from "./ui";
 import { goldGain } from "./gold";
+import { outsideXp } from "./xp";
 import { ARENA_PER_WINDOW, arenaFightsLeft, arenaResetAt, waitLabel } from "./arena-limits";
 import type { StartBattle } from "./panels";
 
@@ -76,8 +77,15 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
         const lines = [won ? "Victory in the arena!" : "Defeated…"];
         if (!error && typeof data === "number") lines.push(`Rating ${data >= 0 ? "+" : ""}${data}`);
         const gold = won ? goldGain(15 + hero.level * 4) : 0;
-        update((h) => { h.gold += gold; });
+        // A duel is an out-of-campaign fight: it pays 30% XP, win or lose (see xp.ts).
+        const xp = outsideXp(hero.level * 40);
+        const { grant } = await import("./logic");
+        update((h) => {
+          const { levels } = grant(h, xp, gold);
+          if (levels) lines.push(`LEVEL UP ×${levels}!`);
+        });
         if (gold) lines.push(`+${fmt(gold)} gold`);
+        if (xp) lines.push(`+${fmt(xp)} XP`);
         void load();
         return { lines };
       },

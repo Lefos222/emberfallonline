@@ -13,6 +13,7 @@ import {
 } from "./store";
 import { Panel, fmt } from "./ui";
 import { earnedTitles } from "./progress";
+import { TITLE_TIER_COLOR, TITLE_TIER_LABEL, ownedTitles, titleBuffText } from "./titles";
 
 export function Portrait({ cls, gender, className = "", synth, look }: { cls: HeroClass; gender: Gender; className?: string; synth?: number | null; look?: number | null }) {
   return <CharacterModel cls={cls} gender={gender} className={className} synth={synth} look={look} />;
@@ -205,6 +206,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
   const [gallery, setGallery] = useState(false);
   if (!hero) return null;
   const lvl = hero.level + hero.paragon;
+  const tieredTitles = ownedTitles(hero);
   return (
     <Panel title="Profile" subtitle="Your hero, title and cosmetics" art="profile" onClose={onClose}>
       <div className="flex flex-col gap-4 md:flex-row">
@@ -240,10 +242,32 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
             <textarea className="slot mt-1 w-full p-2 outline-none" maxLength={200} rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
           </label>
           <div className="text-sm">Title
+            <p className="text-xs text-muted-foreground">Earned titles give a permanent battle bonus while worn. Click one to wear it.</p>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {tieredTitles.length === 0 && <span className="text-xs text-muted-foreground">No titles yet — meet a requirement to earn your first.</span>}
+              {tieredTitles.map((t) => {
+                const worn = title === t.name && hero.activeTitle === t.id;
+                return (
+                  <button key={t.id} className={`px-2 py-1 text-xs ${worn ? "btn-gold" : "slot"}`}
+                    style={worn ? undefined : { borderColor: TITLE_TIER_COLOR[t.tier] }}
+                    title={`${TITLE_TIER_LABEL[t.tier]} title · ${titleBuffText(t)} — ${t.requirement}`}
+                    onClick={() => {
+                      setTitle(t.name);
+                      update((h) => { h.activeTitle = t.id; h.titleChosen = true; });
+                      // Mirror the worn title onto the public profile at once, so inspection shows it.
+                      void updateProfile({ title: t.name });
+                    }}>
+                    <span style={{ color: worn ? undefined : TITLE_TIER_COLOR[t.tier] }}>{t.name}</span>
+                    <span className="block text-[10px] text-muted-foreground">{titleBuffText(t)}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">Achievement titles</p>
             <div className="mt-1 flex flex-wrap gap-1">
               {[...TITLES, ...earnedTitles(hero).map((n) => ({ id: n, name: n, minLevel: 1 }))].map((t) => (
                 <button key={t.id} disabled={lvl < t.minLevel} className={`px-2 py-1 text-xs ${title === t.id ? "btn-gold" : "slot"} disabled:opacity-40`}
-                  title={lvl < t.minLevel ? `Unlocks at level ${t.minLevel}` : ""} onClick={() => setTitle(t.id)}>{t.name}</button>
+                  title={lvl < t.minLevel ? `Unlocks at level ${t.minLevel}` : "No battle bonus"} onClick={() => { setTitle(t.id); update((h) => { h.activeTitle = undefined; h.titleChosen = true; }); }}>{t.name}</button>
               ))}
             </div>
           </div>

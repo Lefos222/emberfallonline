@@ -14,6 +14,7 @@ import { guildFx } from "./guild-tower";
 import { normalizeSynth, synthFx } from "./synthesis";
 import { enlightenmentFx, soulFx } from "./enlightenment";
 import { renownFx } from "./renown";
+import { grantTitles, titleBuff } from "./titles";
 import { potionFx } from "./potions";
 
 export type HeroClass = "warrior" | "mage" | "archer";
@@ -325,7 +326,19 @@ export interface Hero {
   enchantStones?: Record<string, number>;
   astrals?: Astral[];
   astralSlots?: (string | null)[];
+  /** Lifetime Astral summons: Gold opens after 40, Red after 200 (see crafting.ts). */
+  astralSummons?: number;
   crafts?: number;
+  /** Tiered titles the hero has earned (see titles.ts). */
+  titles?: string[];
+  /** The tiered title currently worn and granting its buff. */
+  activeTitle?: string;
+  /** True once the player picked a title by hand; auto-equipping then stops. */
+  titleChosen?: boolean;
+  /** One-time patch gifts already paid to this hero (see patch-gifts.ts). */
+  patchGifts?: string[];
+  /** The 30-minute fortune chest beside the player card, for heroes below level 30 (see fortune.ts). */
+  fortuneChest?: { last?: number };
   /** Endgame: highest difficulty cleared per challenge boss. */
   challenges?: Record<string, number>;
   /** Passive tree ranks by passive id (see passives.ts). */
@@ -495,6 +508,8 @@ export function catchUpXpFactor(level: number, stage: number) {
 export interface Stats {
   hp: number; atk: number; def: number; crit: number; dodge: number; power: number;
   patk: number; matk: number; pdef: number; mdef: number; critDmg: number; pen: number; acc: number; block: number; heal: number;
+  /** Summed quality of the worn kit, mirrored into the public stats for inspection (see gearScoreOf). */
+  gearScore?: number;
 }
 export interface PowerSource { label: string; power: number }
 
@@ -527,6 +542,8 @@ export function normalizeHero(h: Hero): Hero {
   normalizeAstrals(h);
   // Synthesis gear survives every save round-trip; unknown or un-forged pieces are dropped.
   normalizeSynth(h);
+  // Titles are earned from what the save already records.
+  grantTitles(h);
   return h;
 }
 
@@ -549,18 +566,20 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   const rw = opts.talents ? renownFx(h) : zeroFx();
   // Potion elixirs are timed battle buffs and join the same pipeline (see potions.ts).
   const pb = opts.talents ? potionFx(h) : zeroFx();
-  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + sy[k] + so[k] + en[k] + pb[k];
+  // The worn title's buff joins the same pipeline (see titles.ts).
+  const tb = opts.talents ? titleBuff(h) : {};
+  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + sy[k] + so[k] + en[k] + pb[k] + ((tb as Record<string, number | undefined>)[k] ?? 0);
   const sf0 = opts.gear ? setFx(h.equipment) : { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
   const af = opts.talents ? astralFx(h) : null;
   const sf = {
-    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct + en.atkPct + so.atkPct + rw.atkPct + pb.atkPct,
-    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct + en.defPct + so.defPct + rw.defPct + pb.defPct,
-    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct + en.hpPct + so.hpPct + rw.hpPct + pb.hpPct,
-    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit + en.crit + so.crit + rw.crit + pb.crit,
+    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct + en.atkPct + so.atkPct + rw.atkPct + pb.atkPct + (tb.atkPct ?? 0),
+    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct + en.defPct + so.defPct + rw.defPct + pb.defPct + (tb.defPct ?? 0),
+    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct + en.hpPct + so.hpPct + rw.hpPct + pb.hpPct + (tb.hpPct ?? 0),
+    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit + en.crit + so.crit + rw.crit + pb.crit + (tb.crit ?? 0),
   };
-  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge + so.dodge + rw.dodge + pb.dodge;
-  tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + sy.critDmg + rw.critDmg + pb.critDmg;
-  tf.pen += sy.pen + so.pen + pb.pen;
+  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge + so.dodge + rw.dodge + pb.dodge + (tb.dodge ?? 0);
+  tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + sy.critDmg + rw.critDmg + pb.critDmg + (tb.critDmg ?? 0);
+  tf.pen += sy.pen + so.pen + pb.pen + (tb.pen ?? 0);
   const pa = 1 + (tf.atkPct + sf.atkPct) / 100, ph = 1 + (tf.hpPct + sf.hpPct) / 100, pd = 1 + (tf.defPct + sf.defPct) / 100;
   const c = CLASSES[h.cls];
   const items = opts.gear ? (Object.values(h.equipment).filter(Boolean) as Item[]) : [];
@@ -592,7 +611,23 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   return { hp, atk, def, crit, dodge, power, patk, matk, pdef, mdef, critDmg, pen, acc, block, heal };
 }
 
-export function heroStats(h: Hero): Stats { return computeStats(h, { gear: true, attrs: true, asc: true, talents: true }); }
+export function heroStats(h: Hero): Stats {
+  const s = computeStats(h, { gear: true, attrs: true, asc: true, talents: true });
+  s.gearScore = gearScoreOf(h);
+  return s;
+}
+
+/**
+ * Gear score: the worn kit's item level, rarity and enhancement in one number. It is stored
+ * beside battle rating on the public hero row so other players see it when they inspect you.
+ */
+export function gearScoreOf(h: Pick<Hero, "equipment">): number {
+  return Math.round(
+    Object.values(h.equipment)
+      .filter((it): it is Item => !!it)
+      .reduce((n, it) => n + it.ilvl * 10 + (it.rarity + 1) * 60 + it.enh * 8, 0),
+  );
+}
 
 /** Battle Rating broken down by real sources (each = marginal gain when added). */
 export function powerBreakdown(h: Hero): PowerSource[] {
@@ -606,7 +641,7 @@ export function powerBreakdown(h: Hero): PowerSource[] {
     { label: "Attributes", power: withAttrs - base },
     { label: "Equipment", power: withGear - withAttrs },
     { label: `Ascension ${h.paragon}`, power: withAsc - withGear },
-    { label: "Skills, drills, Astrals, Synthesis, Enlightenment & Renown", power: total - withAsc },
+    { label: "Skills, drills, Astrals, titles, Synthesis, Enlightenment & Renown", power: total - withAsc },
   ];
 }
 export const powerOf = (s: { hp: number; atk: number; def: number; crit: number }) => Math.round(s.atk * 2 + s.def * 1.5 + s.hp * 0.2 + s.crit * 10);
