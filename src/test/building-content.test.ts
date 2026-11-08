@@ -47,15 +47,16 @@ describe('building content preserves existing progression', () => {
     expect(absorbAstral(h,'a','b')).toBe('Unequip the duplicate first'); expect(h.astrals).toHaveLength(2);
   });
 });
-describe('two-hour world boss encounters',()=>{
-  const boss=WORLD_EVENTS.find(e=>e.id==='world-boss'); if(!boss) throw new Error('Missing event');
-  it('rotates a real boss each two-hour occurrence',()=>{
-    const first=eventEncounter(boss,boss.anchor); const next=eventEncounter(boss,boss.anchor+2*H);
+describe('world event encounters',()=>{
+  const siege=WORLD_EVENTS.find(e=>e.id==='rift-siege'); if(!siege) throw new Error('Missing event');
+  const live=siege.anchor+2*H; // the first 4-hour rift window on the Greek clock
+  it('rotates a real champion each occurrence',()=>{
+    const first=eventEncounter(siege,live); const next=eventEncounter(siege,live+4*H);
     expect(first.boss).toBe(true); expect(first.rosterId).not.toBe(next.rosterId); expect(first.sprite.url).toBeTruthy();
   });
   it('rejects event entry outside its open window',()=>{
-    expect(()=>liveOccurrence(boss,boss.anchor+H)).toThrow('not open');
-    expect(liveOccurrence(boss,boss.anchor+2*H)).toBe(boss.anchor+2*H);
+    expect(()=>liveOccurrence(siege,live+2*H)).toThrow('not open');
+    expect(liveOccurrence(siege,live+10*60_000)).toBe(live);
   });
   it('Rare world boss gear never includes finished Rare armor',()=>{
     for(let i=0;i<100;i++) expect(['weapon','ring','talisman']).toContain(makeDrop('warrior',40,2).slot);

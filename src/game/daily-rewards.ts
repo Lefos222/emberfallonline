@@ -78,42 +78,43 @@ export const VIP_BOARD_MIN_LEVEL = 3;
 export const VIP_BOARD_LOCKED = "The VIP board is for VIP 3 members and above.";
 
 /**
- * The VIP board: thirty days of the same kind of small gifts, a touch richer than the free
- * board — more gold, an extra gem or material on some days — and deliberately nothing rare
- * and no Diamonds. VIP has to stay a head start, not a separate economy.
+ * The VIP board: thirty days of genuinely generous gifts for members who pay. Every day carries
+ * several things at once — much more gold than the free board, level 1-4 gems, an extra chest,
+ * elite sigils and deep material bundles — while still paying no Diamonds, because the premium
+ * wallet is server-owned. VIP is a large head start, not a separate economy.
  */
 // prettier-ignore
 export const VIP_DAILY_REWARDS: DailyReward[] = [
-  { day: 1, label: "180 gold", gold: 180 },
-  { day: 2, label: "Chipped Ruby + Chipped Sapphire gems", gems: [{ gem: "ruby", tier: 1 }, { gem: "sapphire", tier: 1 }] },
-  { day: 3, label: "6 Ember Ore + 2 Beast Hide", mats: { ore: 6, hide: 2 } },
-  { day: 4, label: "Chipped Emerald gem + 120 gold", gems: [{ gem: "emerald", tier: 1 }], gold: 120 },
-  { day: 5, label: "4 Armor Fragments", mats: { fragment: 4 } },
-  { day: 6, label: "Gold Chest + 8 Ember Ore", chest: true, chests: ["gold"], mats: { ore: 8 } },
-  { day: 7, label: "260 gold", gold: 260 },
-  { day: 8, label: "Chipped Sapphire + Chipped Topaz gems", gems: [{ gem: "sapphire", tier: 1 }, { gem: "topaz", tier: 1 }] },
-  { day: 9, label: "5 Armor Fragments + 2 Soul Essence", mats: { fragment: 5, essence: 2 } },
-  { day: 10, label: "Chipped Amethyst gem + 3 Soul Essence", gems: [{ gem: "amethyst", tier: 1 }], mats: { essence: 3 } },
-  { day: 11, label: "380 gold", gold: 380 },
-  { day: 12, label: "Gold Chest + 12 Ember Ore + 4 Armor Fragments", chest: true, chests: ["gold"], mats: { ore: 12, fragment: 4 } },
-  { day: 13, label: "Flawed Amethyst gem", gems: [{ gem: "amethyst", tier: 2 }] },
-  { day: 14, label: "7 Armor Fragments", mats: { fragment: 7 } },
-  { day: 15, label: "500 gold", gold: 500 },
-  { day: 16, label: "Flawed Tourmaline gem + 150 gold", gems: [{ gem: "tourmaline", tier: 2 }], gold: 150 },
-  { day: 17, label: "6 Soul Essence + 6 Beast Hide", mats: { essence: 6, hide: 6 } },
-  { day: 18, label: "Gold Chest + 14 Ember Ore + 7 Armor Fragments", chest: true, chests: ["gold"], mats: { ore: 14, fragment: 7 } },
-  { day: 19, label: "Flawed Ruby gem + 200 gold", gems: [{ gem: "ruby", tier: 2 }], gold: 200 },
-  { day: 20, label: "720 gold", gold: 720 },
-  { day: 21, label: "9 Armor Fragments", mats: { fragment: 9 } },
-  { day: 22, label: "Flawed Aquamarine gem + 4 Soul Essence", gems: [{ gem: "aquamarine", tier: 2 }], mats: { essence: 4 } },
-  { day: 23, label: "1,000 gold", gold: 1000 },
-  { day: 24, label: "Gold Chest + 16 Ember Ore + 8 Armor Fragments", chest: true, chests: ["gold"], mats: { ore: 16, fragment: 8 } },
-  { day: 25, label: "Flawed Lapis gem + 250 gold", gems: [{ gem: "lapis", tier: 2 }], gold: 250 },
-  { day: 26, label: "1,300 gold", gold: 1300 },
-  { day: 27, label: "10 Armor Fragments + 5 Soul Essence", mats: { fragment: 10, essence: 5 } },
-  { day: 28, label: "Flawed Emerald + Flawed Sapphire gems", gems: [{ gem: "emerald", tier: 2 }, { gem: "sapphire", tier: 2 }] },
-  { day: 29, label: "1,700 gold", gold: 1700 },
-  { day: 30, label: "Grand Gold Chest + 24 Ember Ore + Flawed Amethyst gem", chest: true, chests: ["gold", "gold"], mats: { ore: 24, fragment: 14, essence: 6 }, gems: [{ gem: "amethyst", tier: 2 }] },
+  { day: 1, label: "600 gold + Chipped Ruby + Chipped Sapphire gems", gold: 600, gems: [{ gem: "ruby", tier: 1 }, { gem: "sapphire", tier: 1 }] },
+  { day: 2, label: "10 Ember Ore + 6 Beast Hide + Chipped Emerald gem", mats: { ore: 10, hide: 6 }, gems: [{ gem: "emerald", tier: 1 }] },
+  { day: 3, label: "Gold Chest + 12 Ember Ore + 6 Armor Fragments", chest: true, chests: ["gold"], mats: { ore: 12, fragment: 6 } },
+  { day: 4, label: "800 gold + Flawed Emerald gem", gold: 800, gems: [{ gem: "emerald", tier: 2 }] },
+  { day: 5, label: "8 Armor Fragments + 6 Soul Essence + 4 Beast Hide", mats: { fragment: 8, essence: 6, hide: 4 } },
+  { day: 6, label: "Gem Chest + Flawed Topaz gem + 14 Ember Ore", chest: true, chests: ["gem"], mats: { ore: 14 }, gems: [{ gem: "topaz", tier: 2 }] },
+  { day: 7, label: "1,200 gold + Chipped Ruby + Chipped Aquamarine gems", gold: 1200, gems: [{ gem: "ruby", tier: 1 }, { gem: "aquamarine", tier: 1 }] },
+  { day: 8, label: "Gold Chest + 18 Ember Ore + 10 Armor Fragments", chest: true, chests: ["gold"], mats: { ore: 18, fragment: 10 } },
+  { day: 9, label: "1,500 gold + Flawed Amethyst gem + 8 Soul Essence", gold: 1500, gems: [{ gem: "amethyst", tier: 2 }], mats: { essence: 8 } },
+  { day: 10, label: "Gem Chest + Flawed Sapphire + Flawed Ruby gems + 20 Ember Ore", chest: true, chests: ["gem"], gems: [{ gem: "sapphire", tier: 2 }, { gem: "ruby", tier: 2 }], mats: { ore: 20 } },
+  { day: 11, label: "2,000 gold + 12 Armor Fragments", gold: 2000, mats: { fragment: 12 } },
+  { day: 12, label: "Gold Chest + 24 Ember Ore + Elite Sigil", chest: true, chests: ["gold"], mats: { ore: 24, sigil: 1 } },
+  { day: 13, label: "2,500 gold + Flawed Tourmaline + Flawed Aquamarine gems", gold: 2500, gems: [{ gem: "tourmaline", tier: 2 }, { gem: "aquamarine", tier: 2 }] },
+  { day: 14, label: "Gem Chest + 16 Soul Essence + 8 Beast Hide", chest: true, chests: ["gem"], mats: { essence: 16, hide: 8 } },
+  { day: 15, label: "3,200 gold + 15 Armor Fragments", gold: 3200, mats: { fragment: 15 } },
+  { day: 16, label: "Gold Chest + Gem Chest + 28 Ember Ore + Flawed Lapis gem", chest: true, chests: ["gold", "gem"], mats: { ore: 28 }, gems: [{ gem: "lapis", tier: 2 }] },
+  { day: 17, label: "4,000 gold + Flawed Emerald + Flawed Sapphire gems + 10 Soul Essence", gold: 4000, gems: [{ gem: "emerald", tier: 2 }, { gem: "sapphire", tier: 2 }], mats: { essence: 10 } },
+  { day: 18, label: "4,500 gold + 20 Armor Fragments + 2 Elite Sigils", gold: 4500, mats: { fragment: 20, sigil: 2 } },
+  { day: 19, label: "Gem Chest + Flawed Amethyst + Flawed Tourmaline gems + 30 Ember Ore", chest: true, chests: ["gem"], gems: [{ gem: "amethyst", tier: 2 }, { gem: "tourmaline", tier: 2 }], mats: { ore: 30 } },
+  { day: 20, label: "6,000 gold + 25 Armor Fragments + 12 Soul Essence", gold: 6000, mats: { fragment: 25, essence: 12 } },
+  { day: 21, label: "Gold Chest + Gem Chest + 36 Ember Ore + 18 Beast Hide", chest: true, chests: ["gold", "gem"], mats: { ore: 36, hide: 18 } },
+  { day: 22, label: "7,500 gold + Flawed Ruby + Flawed Topaz gems + 15 Soul Essence", gold: 7500, gems: [{ gem: "ruby", tier: 2 }, { gem: "topaz", tier: 2 }], mats: { essence: 15 } },
+  { day: 23, label: "9,000 gold + 30 Armor Fragments + 3 Elite Sigils", gold: 9000, mats: { fragment: 30, sigil: 3 } },
+  { day: 24, label: "Gem Chest + Gem Chest + 40 Ember Ore + Flawed Aquamarine gem", chest: true, chests: ["gem", "gem"], mats: { ore: 40 }, gems: [{ gem: "aquamarine", tier: 2 }] },
+  { day: 25, label: "12,000 gold + Flawed Emerald + Flawed Lapis gems + 20 Soul Essence", gold: 12000, gems: [{ gem: "emerald", tier: 2 }, { gem: "lapis", tier: 2 }], mats: { essence: 20 } },
+  { day: 26, label: "Gold Chest + Gem Chest + 45 Ember Ore + 25 Armor Fragments + 2 Elite Sigils", chest: true, chests: ["gold", "gem"], mats: { ore: 45, fragment: 25, sigil: 2 } },
+  { day: 27, label: "15,000 gold + 35 Armor Fragments + 20 Soul Essence", gold: 15000, mats: { fragment: 35, essence: 20 } },
+  { day: 28, label: "Gem Chest + Gem Chest + Clear Amethyst + Clear Tourmaline gems + 50 Ember Ore", chest: true, chests: ["gem", "gem"], gems: [{ gem: "amethyst", tier: 3 }, { gem: "tourmaline", tier: 3 }], mats: { ore: 50 } },
+  { day: 29, label: "18,000 gold + Clear Ruby + Clear Sapphire gems + 4 Elite Sigils", gold: 18000, gems: [{ gem: "ruby", tier: 3 }, { gem: "sapphire", tier: 3 }], mats: { sigil: 4 } },
+  { day: 30, label: "Grand VIP Vault: 25,000 gold + 2 Gold Chests + 2 Gem Chests + Clear Emerald + Clear Topaz gems + 60 ore + 40 fragments + 30 essence", gold: 25000, chest: true, chests: ["gold", "gold", "gem", "gem"], gems: [{ gem: "emerald", tier: 3 }, { gem: "topaz", tier: 3 }], mats: { ore: 60, fragment: 40, essence: 30 } },
 ];
 
 /** Greek day key, so the board offers exactly one gift per server day. */

@@ -31,14 +31,14 @@ import { battleEssenceGain, enlightenmentUnlocked, rollSoulShards } from "./enli
 import { DUNGEON_STAMINA, POTION_STAMINA, addPotions, rollStaminaPotion, spendStamina, staminaBlocker } from "./stamina";
 import { arenaBlocker, spendArenaFight } from "./arena-limits";
 import { addRenown, renownGain } from "./renown";
-import { CharacterSelect, ProfilePanel } from "./CharacterSelect";
+import { CharacterSelect } from "./CharacterSelect";
+import { ProfilePanel } from "./ProfilePanel";
 import { Battle, type Fighter } from "./Battle";
 import { Campaign, Forge, HeroHall, Oracle, Temple, heroFighter, type StartBattle } from "./panels";
 import { Arena } from "./Arena";
 import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
 import { RelicTrials } from "./RelicTrials";
-import { LongRoad } from "./LongRoad";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
 import { addStones, rollStoneDrop } from "./enchant";
@@ -266,7 +266,6 @@ export function Game() {
           {open === "hall" && <ThroneHall onClose={() => setOpen(null)} />}
           {open === "armory" && <HeroHall onClose={() => setOpen(null)} />}
           {open === "bestiary" && <Bestiary h={hero} onClose={() => setOpen(null)} />}
-          {open === "road" && <LongRoad onClose={() => setOpen(null)} start={start} />}
           {open === "calendar" && <EventCalendar h={hero} onClose={() => setOpen(null)} start={start} />}
           {open === 'premium' && <PremiumShop onClose={()=>setOpen(null)} />}
           {open === 'auction' && <AuctionHousePanel onClose={()=>setOpen(null)} />}
@@ -426,13 +425,12 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "road" | "calendar" | 'premium' | 'auction' | 'quests' | 'notes' | 'settings';
+type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "calendar" | 'premium' | 'auction' | 'quests' | 'notes' | 'settings';
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIconName }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", icon: "bag" },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", icon: "hammer" },
   { id: "gems", label: "Gem Workshop", tip: "Cut, socket & fuse gems", icon: "gem" },
   { id: "daily", label: "Daily Rewards", tip: "30-day reward board", icon: "gift" },
-  { id: "road", label: "Long Road", tip: "Endless regions past the campaign", icon: "star" },
   { id: "calendar", label: "Events", tip: "World event calendar & reminders", icon: "calendar" },
   { id: "friends", label: "Friends", tip: "Friends & messages", icon: "goblet" },
   { id: "profile", label: "Profile", tip: "Your hero profile", icon: "profile" },

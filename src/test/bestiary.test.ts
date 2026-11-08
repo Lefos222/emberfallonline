@@ -29,12 +29,12 @@ describe('audited bestiary', () => {
     for (const e of ROSTER) expect(abilities.has(e.signatureAbilityId)).toBe(true);
     const ids = new Set(ROSTER.map(e => e.id));
     for (const table of Object.values(ENCOUNTER_TABLES)) for (const id of table) expect(ids.has(id)).toBe(true);
-    expect(encounterEntry('road', 60).id).toBe('enemy-0-0');
+    expect(encounterEntry('elite', 60).id).toBe('enemy-0-0');
     expect(encounterEntry('dungeon', BATTLE_BOSSES.length - 1).id).toBe('boss-vulkan');
     for (const table of [ENCOUNTER_TABLES.dungeon, ENCOUNTER_TABLES.spire]) {
       for (const id of table) expect(ROSTER.find((e) => e.id === id)?.portrait).not.toBe(true);
     }
-    expect(() => encounterEntry('road', -1)).toThrow();
+    expect(() => encounterEntry('elite', -1)).toThrow();
   });
   it('never invents discovery or defeats', () => {
     const h: { kills?: Record<string, number> } = {};

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { scrollXp } from "./scrolls";
 import { Crown, Lock, Skull, Sparkles, Swords } from "lucide-react";
-import { invCap, heroStats, makeItem, type Item } from "./data";
+import { foeRating, invCap, heroStats, makeItem, type Item } from "./data";
 import { update, useGame } from "./store";
 import { Gold, Panel, fmt } from "./ui";
 import { Sprite } from "./Sprite";
@@ -120,7 +120,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
           const max = Math.min(MAX_DIFFICULTY, c + 1);
           const d = Math.min(diff[id] ?? max, max);
           const foe = challengeFoe(id, d, mod);
-          const ratio = power / Math.max(1, foe.atk * 2 + foe.def * 1.5 + foe.hp * 0.2);
+          const ratio = power / Math.max(1, foeRating(foe));
           const rw = challengeRewards(id, d, mod);
           return (
             <div key={id} className={`slot p-3 ${unlocked ? "" : "opacity-60"}`}>

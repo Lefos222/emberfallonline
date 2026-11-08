@@ -1,3 +1,5 @@
+import { MAX_LEVEL, WORLD_DRIFT } from "./data";
+
 // ============= Recurring world events: deterministic schedules + time-zone-aware display =============
 // Schedules are pure functions of the Greek clock (Europe/Athens), so every player agrees on when
 // an event opens no matter what their own device clock or time zone says. Nothing here reads window
@@ -26,7 +28,18 @@ export function greekDayStart(ts: number): number {
   return ts - ((((ts + off) % D) + D) % D);
 }
 
-export type EventKind = "boss" | "dungeon" | "caravan" | "season";
+export type EventKind = "siege" | "hunt" | "duel" | "rift" | "bloodmoon";
+
+/** What one win in an event pays beyond its gold and XP (see EventCalendar's payout). */
+export interface EventBonus {
+  /** Multiplier on the encounter's gold and XP. */
+  mult: number;
+  mats?: Partial<Record<import("./crafting").Mat, number>>;
+  gem?: { type: import("./crafting").GemType; tier: number };
+  chest?: boolean;
+  /** Siege-style events pay every EVENT_BOSS_KILLS_REQUIRED-th win, not on every win. */
+  gated?: boolean;
+}
 
 export interface WorldEvent {
   id: string;
@@ -34,7 +47,6 @@ export interface WorldEvent {
   kind: EventKind;
   /** Recurrence interval in ms. */
   everyMs: number;
-  /** UTC epoch ms of a known occurrence start. Weekly and longer events keep this fixed grid. */
   /** Greek wall-clock hour the window opens. Sub-day events are pinned to Greek midnight, so their
    *  openings land on the same round Greek hours all year instead of drifting with summer time. */
   greekHour?: number;
@@ -43,62 +55,115 @@ export interface WorldEvent {
   durationMs: number;
   blurb: string;
   reward: string;
+  bonus: EventBonus;
   /** Encounter tier fed to the real foe/reward factories. */
   stage: number;
 }
 
+/**
+ * The reworked world events. Each one is a different kind of fight with its own reward table:
+ * rifts pay sigils, hunts pay hides and essence, duels pay fragments, astral rifts pay starshards
+ * and crystals, and the three-day Blood Moon pays the biggest purse of all. None of them are the
+ * old boss/dungeon/caravan loop.
+ */
 export const WORLD_EVENTS: WorldEvent[] = [
   {
-    id: "world-boss",
-    name: "Emberfall World Boss",
-    kind: "boss",
-    everyMs: 2 * H,
+    id: "rift-siege",
+    name: "Rift Siege",
+    kind: "siege",
+    everyMs: 4 * H,
     anchor: Date.UTC(2026, 0, 1, 0, 0, 0),
     greekHour: 0,
-    durationMs: 45 * 60_000,
-    blurb: "A different tyrant invades every two hours. Defeat it during the invasion window.",
-    reward: "Rare+ weapons or jewelry, Boss Cores, crafting materials, gold and experience",
-    stage: 40,
+    durationMs: 35 * 60_000,
+    blurb: "A rift tears open and a siege champion steps through. Repel three pushes during the breach.",
+    reward: "1.6× gold and XP, Ember Ore, Armor Fragments, an Elite Sigil and a Flawed Sapphire",
+    bonus: { mult: 1.6, mats: { ore: 20, fragment: 12, sigil: 1 }, gem: { type: "sapphire", tier: 2 }, gated: true },
+    stage: 30,
   },
   {
-    id: "timed-dungeon",
-    name: "Timed Dungeon",
-    kind: "dungeon",
-    everyMs: 6 * H,
-    anchor: Date.UTC(2026, 0, 1, 2, 0, 0),
-    greekHour: 2,
-    durationMs: 30 * 60_000,
-    blurb: "A short, sharp dungeon run with upgraded drops while the gate holds.",
-    reward: "Dungeon loot, gold and experience",
-    stage: 28,
-  },
-  {
-    id: "caravan",
-    name: "Treasure Caravan",
-    kind: "caravan",
-    everyMs: 2 * H,
+    id: "bounty-hunt",
+    name: "Bounty Hunt",
+    kind: "hunt",
+    everyMs: 3 * H,
     anchor: Date.UTC(2026, 0, 1, 1, 0, 0),
     greekHour: 1,
-    durationMs: 15 * 60_000,
-    blurb: "A guarded caravan crosses the road; escort it to claim the cargo.",
-    reward: "Gold, crafting materials and a loot roll",
-    stage: 14,
+    durationMs: 25 * 60_000,
+    blurb: "A marked beast is loose in the wilds. Every win pays a full hunter's bounty.",
+    reward: "1.25× gold and XP, Beast Hide, Soul Essence, Emberbloom, a Flawed Emerald and a Gold Chest",
+    bonus: { mult: 1.25, mats: { hide: 24, essence: 14, bloom: 10 }, gem: { type: "emerald", tier: 2 }, chest: true },
+    stage: 24,
   },
   {
-    id: "harvest-season",
-    name: "Harvest Season",
-    kind: "season",
-    everyMs: 7 * D,
-    anchor: Date.UTC(2026, 0, 5, 0, 0, 0),
-    durationMs: 2 * D,
-    blurb: "A weekly two-day hunt for the season's champion.",
-    reward: "Seasonal encounter loot, gold and experience",
-    stage: 60,
+    id: "champion-duel",
+    name: "Champion's Duel",
+    kind: "duel",
+    everyMs: 5 * H,
+    anchor: Date.UTC(2026, 0, 1, 2, 0, 0),
+    greekHour: 2,
+    durationMs: 20 * 60_000,
+    blurb: "A rival champion answers your banner. Win the duel for the crowd's purse.",
+    reward: "1.5× gold and XP, Armor Fragments, Soul Essence and a Flawed Ruby",
+    bonus: { mult: 1.5, mats: { fragment: 18, essence: 10 }, gem: { type: "ruby", tier: 2 } },
+    stage: 35,
+  },
+  {
+    id: "astral-rift",
+    name: "Astral Rift",
+    kind: "rift",
+    everyMs: 8 * H,
+    anchor: Date.UTC(2026, 0, 1, 3, 0, 0),
+    greekHour: 3,
+    durationMs: 40 * 60_000,
+    blurb: "The sky splits over a sleeping constellation. Hold the line while it pours starlight.",
+    reward: "1.4× gold and XP, Starshards, Arcane Crystals, Soul Essence and a Flawed Amethyst",
+    bonus: { mult: 1.4, mats: { starshard: 6, crystal: 10, essence: 18 }, gem: { type: "amethyst", tier: 2 } },
+    stage: 45,
+  },
+  {
+    id: "blood-moon",
+    name: "Blood Moon Rising",
+    kind: "bloodmoon",
+    everyMs: 72 * H,
+    anchor: Date.UTC(2026, 0, 2, 0, 0, 0),
+    durationMs: 6 * H,
+    blurb: "Once every three days the moon turns red. Hunt its herald for the season's greatest purse.",
+    reward: "2.2× gold and XP, Boss Cores, Elite Sigils, Starshards, a Clear Topaz and a Gold Chest",
+    bonus: { mult: 2.2, mats: { bossCore: 2, sigil: 3, starshard: 10 }, gem: { type: "topaz", tier: 3 }, chest: true, gated: true },
+    stage: 55,
   },
 ];
 
-/** Boss-event rewards pay out on the fifth boss kill, never on a single hit (see event-rewards.ts). */
-export const EVENT_BOSS_KILLS_REQUIRED = 5;
+/** Gated events (sieges and the Blood Moon) pay on the third win, never on a single hit (see event-rewards.ts). */
+export const EVENT_BOSS_KILLS_REQUIRED = 3;
+
+/** The stage an event's encounter and rewards use for a hero of this level. */
+export function eventStage(ev: WorldEvent, heroLevel: number): number {
+  const lv = Math.max(1, Math.min(MAX_LEVEL, Math.round(heroLevel)));
+  return Math.max(ev.stage, Math.min(lv, ev.stage + WORLD_DRIFT));
+}
+
+/** One readable line describing what a win in this event pays on top of gold and XP. */
+export function eventBonusLines(ev: WorldEvent): string[] {
+  const { bonus } = ev;
+  const lines: string[] = [];
+  for (const [m, n] of Object.entries(bonus.mats ?? {}) as [import("./crafting").Mat, number][])
+    lines.push(`${n} ${MAT_NAME[m]}`);
+  if (bonus.gem) lines.push(`1 ${GEM_TIER_NAME[bonus.gem.tier - 1] ?? ""} ${GEM_NAME[bonus.gem.type]} gem`.replace("  ", " "));
+  if (bonus.chest) lines.push("Gold Chest (Vault)");
+  return lines;
+}
+
+/** Minimal names for event lines, so events.ts stays free of the crafting UI's runtime imports. */
+const MAT_NAME: Record<import("./crafting").Mat, string> = {
+  ore: "Ember Ore", essence: "Soul Essence", starshard: "Starshard", bossCore: "Boss Core",
+  fragment: "Armor Fragment", sigil: "Elite Sigil", hide: "Beast Hide", bloom: "Emberbloom",
+  crystal: "Arcane Crystal", enchantStone: "Enchantment Stone", fateStone: "Fate Stone",
+};
+const GEM_NAME: Record<import("./crafting").GemType, string> = {
+  ruby: "Ruby", emerald: "Emerald", sapphire: "Sapphire", topaz: "Topaz",
+  amethyst: "Amethyst", tourmaline: "Tourmaline", aquamarine: "Aquamarine", lapis: "Lapis",
+};
+const GEM_TIER_NAME = ["Chipped", "Flawed", "Clear", "Polished", "Flawless", "Radiant", "Royal", "Sovereign", "Celestial", "Ascendant", "Eternal", "Primordial"];
 
 export type EventStatus =
   | { state: "live"; startedAt: number; endsAt: number; msLeft: number }

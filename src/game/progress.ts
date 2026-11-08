@@ -14,7 +14,6 @@ export interface ProgressState {
   conquest?: { tokens?: number };
   kills?: Record<string, number>;
   quests?: string[];
-  road?: { best: number };
   drills?: Record<string, number>;
   talents?: Record<string, number>;
   passives?: Record<string, number>;
@@ -54,9 +53,9 @@ export function recordEnhance(h: ProgressState, newEnh: number) {
 }
 
 // ---------- Achievements ----------
-export type AchCategory = "Combat" | "Bosses" | "Progression" | "Crafting" | "Arena" | "Collection" | "Conquest" | "Enchanting" | "Bestiary" | "Exploration" | "Guild" | "Training" | "Astrals" | "Gems" | "Synthesis" | "Relics" | "Treasure" | "Wealth";
+export type AchCategory = "Endless" | "Combat" | "Bosses" | "Progression" | "Crafting" | "Arena" | "Collection" | "Conquest" | "Enchanting" | "Bestiary" | "Exploration" | "Guild" | "Training" | "Astrals" | "Gems" | "Synthesis" | "Relics" | "Treasure" | "Wealth";
 /** Every category in the order the Throne Hall lists them. */
-export const ACH_CATEGORIES: AchCategory[] = ["Combat", "Bosses", "Progression", "Crafting", "Arena", "Collection", "Astrals", "Gems", "Synthesis", "Relics", "Conquest", "Enchanting", "Bestiary", "Exploration", "Guild", "Training", "Treasure", "Wealth"];
+export const ACH_CATEGORIES: AchCategory[] = ["Endless", "Combat", "Bosses", "Progression", "Crafting", "Arena", "Collection", "Astrals", "Gems", "Synthesis", "Relics", "Conquest", "Enchanting", "Bestiary", "Exploration", "Guild", "Training", "Treasure", "Wealth"];
 export interface Achievement { id: string; cat: AchCategory; name: string; desc: string; goal: number; gold: number; title?: string; value: (h: ProgressState) => number }
 
 const rec = (h: ProgressState) => ({ ...emptyRecord(), ...(h.record ?? {}) });
@@ -87,6 +86,29 @@ const synthWorn = (h: ProgressState) => Object.keys(h.synth?.worn ?? {}).length;
 const relicPieces = (h: ProgressState) => Object.values(h.relics?.found ?? {}).filter((n) => n > 0).length;
 const relicClears = (h: ProgressState) => sum(h.relics?.clears);
 
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+
+/**
+ * Broken ladders never run out: each family is one rule with a rising list of goals, so the
+ * achievement tab keeps giving new rungs long after the hand-written list is exhausted.
+ */
+const endless = (
+  cat: AchCategory,
+  desc: string,
+  value: (h: ProgressState) => number,
+  id: string,
+  label: string,
+  goals: number[],
+  goldPerGoal: number,
+  title?: string,
+): Achievement[] =>
+  goals.map((goal, i) => ({
+    cat, desc, value, id: `${id}_${goal}`, goal,
+    name: `${label} ${ROMAN[i] ?? i + 1}`,
+    gold: Math.round(goal * goldPerGoal),
+    title: i === goals.length - 1 ? title : undefined,
+  }));
+
 export const ACHIEVEMENTS: Achievement[] = [
   ...tiers({ cat: "Combat", desc: "Win battles", value: (h) => rec(h).wins }, "wins", ["Blooded", "Veteran", "Warmaster"], [10, 100, 1000], [200, 2000, 20000], [undefined, "Veteran", "Warmaster"]),
   ...tiers({ cat: "Bosses", desc: "Defeat bosses", value: (h) => rec(h).bosses }, "boss", ["Giant Slayer", "Bane of Tyrants", "Godkiller"], [1, 10, 50], [500, 5000, 30000], [undefined, "Tyrantbane", "Godkiller"]),
@@ -115,8 +137,6 @@ export const ACHIEVEMENTS: Achievement[] = [
   ...tiers({ cat: "Collection", desc: "Own distinct Astral species", value: (h) => new Set((h.astrals ?? []).map((a) => a.base)).size }, "astral2", ["Star Tamer", "Astral Lord"], [5, 10], [2000, 10000], [undefined, "Astral Lord"]),
   // Bestiary: total monster defeats across every species
   ...tiers({ cat: "Bestiary", desc: "Defeat monsters", value: (h) => sum(h.kills) }, "kills", ["Beast Hunter", "Naturalist", "Bestiary Master"], [25, 250, 1000], [600, 4000, 20000], [undefined, undefined, "Beastbane"]),
-  // Exploration: Long Road distance
-  ...tiers({ cat: "Exploration", desc: "Reach Long Road stages", value: (h) => h.road?.best ?? 0 }, "road", ["Roadwarden", "Horizon Walker"], [25, 100], [2500, 20000], [undefined, "Horizon Walker"]),
   // Exploration: region quests claimed
   ...tiers({ cat: "Exploration", desc: "Claim region quests", value: (h) => (h.quests ?? []).length }, "quests", ["Contract Taker", "Realm Completionist"], [4, 10], [800, 8000], [undefined, "Realm Completionist"]),
   // Bosses: named challenge bosses cleared at any difficulty
@@ -176,7 +196,6 @@ export const ACHIEVEMENTS: Achievement[] = [
   ...tiers({ cat: "Bestiary", desc: "Defeat distinct monster species", value: (h) => Object.keys(h.kills ?? {}).length }, "species", ["Field Guide", "Zoologist", "Menagerie", "Living Bestiary"], [5, 25, 60, 100], [1200, 8000, 40000, 150000], [undefined, undefined, undefined, "Living Bestiary"]),
 
   // ---- Exploration, extended ----
-  ...tiers({ cat: "Exploration", desc: "Reach Long Road stages", value: (h) => h.road?.best ?? 0 }, "road3", ["Long Hauler", "Far Wanderer", "End of the Road"], [150, 200, 300], [60000, 120000, 250000], [undefined, undefined, "End of the Road"]),
   ...tiers({ cat: "Exploration", desc: "Claim region quests", value: (h) => (h.quests ?? []).length }, "quests3", ["Odd Job", "District Hero", "Realm Champion"], [2, 6, 8], [400, 4000, 30000], [undefined, undefined, "Realm Champion"]),
   ...tiers({ cat: "Exploration", desc: "Clear dungeons", value: (h) => sum(h.dungeons) }, "dungeons", ["Dungeon Diver", "Dungeon Delver", "Dungeon Conqueror", "Dungeon Sovereign"], [1, 5, 20, 50], [800, 5000, 30000, 120000], [undefined, undefined, undefined, "Dungeon Sovereign"]),
   ...tiers({ cat: "Exploration", desc: "Plant your banner on the world map", value: (h) => (h as { worldCastle?: unknown }).worldCastle ? 1 : 0 }, "banner", ["Banner Lord"], [1], [5000], ["Banner Lord"]),
@@ -193,6 +212,18 @@ export const ACHIEVEMENTS: Achievement[] = [
 
   // ---- Wealth ----
   ...tiers({ cat: "Wealth", desc: "Hold gold at once", value: (h) => h.gold ?? 0 }, "gold", ["Pocket Change", "Wealthy", "Rich", "Fortune's Own"], [10000, 100000, 1000000, 5000000], [500, 3000, 15000, 60000], [undefined, undefined, undefined, "Fortune's Own"]),
+
+  // ---- Endless ladders: the climb keeps paying out ----
+  ...endless("Endless", "Win battles", (h) => rec(h).wins, "ewins", "Reaver", [2000, 5000, 10000, 25000, 50000, 100000], 20, "Deathless Reaver"),
+  ...endless("Endless", "Fight any battle", (h) => rec(h).battles, "ebattles", "Campaigner", [10000, 25000, 50000, 100000, 250000], 5, "Unbroken Campaigner"),
+  ...endless("Endless", "Defeat bosses", (h) => rec(h).bosses, "ebosses", "Tyrant", [100, 250, 500, 1000, 2500], 100, "Tyrant Unbound"),
+  ...endless("Endless", "Win arena fights", (h) => rec(h).arenaWins, "earena", "Pit Champion", [250, 500, 1000, 2500], 60, "Undisputed Champion"),
+  ...endless("Endless", "Clear campaign stages", (h) => h.stage - 1, "estage", "Trailblazer", [150, 200, 300, 500, 750, 1000], 500, "End of the Map"),
+  ...endless("Endless", "Climb Endless Conquest floors", (h) => h.spire - 1, "espire", "Climber", [300, 500, 750, 1000, 1500], 300, "Skybreaker"),
+  ...endless("Endless", "Reach character level", (h) => h.level, "elevel", "Emberforged", [100, 110, 120, 130, 140], 2000, "Ember Incarnate"),
+  ...endless("Endless", "Gain Ascension levels", (h) => h.paragon, "easc", "Ascended", [100, 150, 200, 300, 500], 5000, "Beyond Ascension"),
+  ...endless("Endless", "Defeat monsters", (h) => sum(h.kills), "ekills", "Hunter", [1000, 2500, 5000, 10000, 25000], 5, "Apex Hunter"),
+  ...endless("Endless", "Learn barracks drill ranks", (h) => sum(h.drills), "edrills", "Drilled", [100, 200, 300, 500], 500, "Living Weapon"),
 ];
 
 export const achProgress = (h: ProgressState, a: Achievement) => Math.min(a.goal, Math.max(0, a.value(h)));

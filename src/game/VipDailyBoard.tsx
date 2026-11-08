@@ -18,8 +18,9 @@ import {
 } from "./daily-rewards";
 
 /**
- * The VIP board: a second thirty-day track that only VIP 3 members can claim. It pays the same
- * kind of small gifts as the free board, a little richer, and never Diamonds.
+ * The VIP board: a second thirty-day track that only VIP 3 members can claim. It is far richer
+ * than the free board — several gifts every day, more gold, better gems, gem chests
+ * and elite sigils — while still never paying Diamonds (that wallet is server-owned).
  */
 export function VipDailyBoard() {
   const { hero } = useGame();
@@ -76,12 +77,12 @@ export function VipDailyBoard() {
                 ? `A second thirty-day board for members — next up is VIP day ${next} of ${DAILY_REWARD_DAYS}${
                     cycles > 0 ? ` · ${cycles} full cycle${cycles > 1 ? "s" : ""} finished` : ""
                   }.`
-                : `A second thirty-day board, a little richer than the free one — it opens at VIP ${VIP_BOARD_MIN_LEVEL}.`}
+                : `A second thirty-day board stacked with gold, gems, chests and materials — it opens at VIP ${VIP_BOARD_MIN_LEVEL}.`}
             </p>
             <p className="text-xs text-muted-foreground">
               {unlocked
                 ? `${today.label} · it refills at Greek midnight, separately from the free board.`
-                : `${VIP_BOARD_LOCKED} It pays gold, materials, level 1-2 gems and gold chests — never Diamonds.`}
+                : `${VIP_BOARD_LOCKED} Members receive far more gold, better gems, extra chests and rare materials — never Diamonds.`}
             </p>
           </div>
           <div className="flex items-center gap-3">

@@ -11,9 +11,9 @@ describe('endless specialization branches', () => {
       if (!branch?.ability) throw new Error('Missing endless ability');
       const ability = branch.ability;
       const talents = Object.fromEntries(spec.talents.filter(t => t.tier < 5).map(t => [t.id, t.max]));
-      const h: TalentState = { cls, level: 90, paragon: 10, spec: spec.id, talents, road: { cleared: 200, best: 200 } };
+      const h: TalentState = { cls, level: 90, paragon: 10, spec: spec.id, talents };
       it(`${spec.name} ability is learnable without milestone, spec or tier gates`, () => {
-        expect(learnBlocker({ ...h, road: { cleared: 90, best: 0 } }, branch.id)).toBeNull();
+        expect(learnBlocker(h, branch.id)).toBeNull();
         expect(learnBlocker(h, branch.id)).toBeNull();
         expect(learnBlocker({ ...h, spec: undefined }, branch.id)).toBeNull();
         expect(talentSkills(SKILLS[cls], h).some(s => s.id === ability.id)).toBe(false);

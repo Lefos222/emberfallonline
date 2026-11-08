@@ -1,26 +1,28 @@
 import { describe, expect, it } from "vitest";
 import {
   countdown,
+  eventBonusLines,
   occurrenceKey,
   reminderDue,
   REMIND_LEAD_MS,
   statusOf,
   timeIn,
   WORLD_EVENTS,
-  type WorldEvent,
 } from "@/game/events";
 
 const H = 3_600_000;
 const D = 24 * H;
-const boss = WORLD_EVENTS.find((e) => e.id === "world-boss");
-if (!boss) throw new Error("World boss schedule missing");
+const siege = WORLD_EVENTS.find((e) => e.id === "rift-siege");
+if (!siege) throw new Error("Rift Siege schedule missing");
+// Greek-hour windows: the anchor is 02:00 Greek time, and the first siege opens at 04:00 Greek.
+const firstLive = siege.anchor + 2 * H;
 
 describe("world event schedules", () => {
-  it("world bosses recur every two hours", () => {
-    expect(boss.everyMs).toBe(2 * H);
-    const next = statusOf(boss.anchor + 2 * H, boss);
+  it("rifts reopen every four hours", () => {
+    expect(siege.everyMs).toBe(4 * H);
+    const next = statusOf(firstLive + 4 * H + 60_000, siege);
     expect(next.state).toBe("live");
-    if (next.state === "live") expect(next.startedAt).toBe(boss.anchor + 2 * H);
+    if (next.state === "live") expect(next.startedAt).toBe(firstLive + 4 * H);
   });
   it("every event is well-formed and uniquely identified", () => {
     expect(new Set(WORLD_EVENTS.map((e) => e.id)).size).toBe(WORLD_EVENTS.length);
@@ -28,43 +30,54 @@ describe("world event schedules", () => {
       expect(e.everyMs).toBeGreaterThan(e.durationMs);
       expect(e.durationMs).toBeGreaterThan(0);
       expect(e.stage).toBeGreaterThan(0);
+      expect(e.bonus.mult).toBeGreaterThan(0);
       expect(Number.isFinite(e.anchor)).toBe(true);
     }
   });
+  it("runs a different kind of fight for every event", () => {
+    const kinds = WORLD_EVENTS.map((e) => e.kind);
+    expect(new Set(kinds).size).toBe(WORLD_EVENTS.length);
+    // The old boss/dungeon/caravan/season loop is gone entirely.
+    for (const old of ["boss", "dungeon", "caravan", "season"]) expect(kinds).not.toContain(old);
+  });
 
   it("reports a running event as live with the time left until it closes", () => {
-    const now = boss.anchor + 30 * 60_000; // 30 min into a 45 min window
-    const s = statusOf(now, boss);
+    const now = firstLive + 30 * 60_000; // 30 min into a 35 min window
+    const s = statusOf(now, siege);
     expect(s.state).toBe("live");
     if (s.state === "live") {
-      expect(s.startedAt).toBe(boss.anchor);
-      expect(s.endsAt).toBe(boss.anchor + 45 * 60_000);
-      expect(s.msLeft).toBe(15 * 60_000);
+      expect(s.startedAt).toBe(firstLive);
+      expect(s.endsAt).toBe(firstLive + 35 * 60_000);
+      expect(s.msLeft).toBe(5 * 60_000);
     }
   });
 
   it("counts down to the next occurrence once the current one has closed", () => {
-    const now = boss.anchor + 50 * 60_000; // window closed 5 min ago
-    const s = statusOf(now, boss);
+    const now = firstLive + 50 * 60_000; // window closed 15 min ago
+    const s = statusOf(now, siege);
     expect(s.state).toBe("upcoming");
     if (s.state === "upcoming") {
-      expect(s.startsAt).toBe(boss.anchor + 2 * H);
-      expect(s.msLeft).toBe(2 * H - 50 * 60_000);
+      expect(s.startsAt).toBe(firstLive + 4 * H);
+      expect(s.msLeft).toBe(4 * H - 50 * 60_000);
     }
   });
 
   it("holds the same schedule before the first occurrence", () => {
-    const s = statusOf(boss.anchor - 10 * 60_000, boss);
+    const s = statusOf(firstLive - 10 * 60_000, siege);
     expect(s.state).toBe("upcoming");
-    if (s.state === "upcoming") expect(s.startsAt).toBe(boss.anchor);
+    if (s.state === "upcoming") expect(s.startsAt).toBe(firstLive);
   });
 
-  it("keeps a weekly season on a seven-day cycle", () => {
-    const season = WORLD_EVENTS.find((e) => e.kind === "season")!;
-    expect(season.everyMs).toBe(7 * D);
-    const s = statusOf(season.anchor + 3 * D, season);
+  it("keeps the Blood Moon on a three-day cycle", () => {
+    const moon = WORLD_EVENTS.find((e) => e.kind === "bloodmoon")!;
+    expect(moon.everyMs).toBe(3 * D);
+    const s = statusOf(moon.anchor + 1 * D, moon);
     expect(s.state).toBe("upcoming");
-    if (s.state === "upcoming") expect(s.startsAt).toBe(season.anchor + 7 * D);
+    if (s.state === "upcoming") expect(s.startsAt).toBe(moon.anchor + 3 * D);
+  });
+
+  it("describes every bonus a winning event pays", () => {
+    for (const e of WORLD_EVENTS) expect(eventBonusLines(e).length).toBeGreaterThan(0);
   });
 });
 
@@ -98,21 +111,21 @@ describe("time-zone-aware display", () => {
 
 describe("reminders", () => {
   it("fires only inside the lead window before an opening", () => {
-    const soon = boss.anchor - 2 * 60_000;
-    const later = boss.anchor - 2 * H;
-    expect(reminderDue(soon, boss)).toBe(true);
-    expect(reminderDue(later, boss)).toBe(false);
+    const soon = firstLive - 2 * 60_000;
+    const later = firstLive - 2 * H;
+    expect(reminderDue(soon, siege)).toBe(true);
+    expect(reminderDue(later, siege)).toBe(false);
   });
   it("does not fire while the event is already running", () => {
-    expect(reminderDue(boss.anchor + 60_000, boss)).toBe(false);
+    expect(reminderDue(firstLive + 60_000, siege)).toBe(false);
   });
   it("keys one reminder per occurrence, so it cannot fire twice", () => {
-    const before = occurrenceKey(boss, boss.anchor - 60_000);
-    const inside = occurrenceKey(boss, boss.anchor + 60_000);
-    const nextCycle = occurrenceKey(boss, boss.anchor + 2 * H - 60_000);
-    expect(before).toBe(`${boss.id}:starts:${boss.anchor}`);
-    expect(inside).toBe(`${boss.id}:ends:${boss.anchor + boss.durationMs}`);
-    expect(nextCycle).toBe(`${boss.id}:starts:${boss.anchor + 2 * H}`);
+    const before = occurrenceKey(siege, firstLive - 60_000);
+    const inside = occurrenceKey(siege, firstLive + 60_000);
+    const nextCycle = occurrenceKey(siege, firstLive + 4 * H - 60_000);
+    expect(before).toBe(`${siege.id}:starts:${firstLive}`);
+    expect(inside).toBe(`${siege.id}:ends:${firstLive + siege.durationMs}`);
+    expect(nextCycle).toBe(`${siege.id}:starts:${firstLive + 4 * H}`);
     expect(new Set([before, inside, nextCycle]).size).toBe(3);
   });
   it("uses the shared five minute lead", () => {

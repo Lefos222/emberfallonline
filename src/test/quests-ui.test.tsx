@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { QuestsButton, QuestsPanel } from "@/game/Quests";
-import { ProfilePanel } from "@/game/CharacterSelect";
+import { ProfilePanel } from "@/game/ProfilePanel";
 import { AvatarIcon } from "@/game/AvatarIcon";
 import { newHero } from "@/game/data";
 import { getState, setHero } from "@/game/store";
@@ -51,6 +51,7 @@ describe("profile portraits", () => {
     const hero = newHero("Gallerist", "mage");
     setHero(hero);
     render(<ProfilePanel onClose={() => {}} />);
+    fireEvent.click(screen.getByRole("tab", { name: "Appearance" }));
 
     expect(screen.getAllByRole("button", { name: /^Portrait \d+$/ }).length).toBe(20);
 

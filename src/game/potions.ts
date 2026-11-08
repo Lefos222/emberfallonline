@@ -114,7 +114,7 @@ export function activePotionBuffs(h: Pick<PotionState, "potionBuffs">, now = Dat
 export function potionFx(h: Pick<PotionState, "potionBuffs">, now = Date.now()): BonusFx {
   const out: BonusFx = {
     atkPct: 0, matkPct: 0, defPct: 0, mdefPct: 0, hpPct: 0, crit: 0, critDmg: 0,
-    acc: 0, dodge: 0, block: 0, pen: 0, mpen: 0, heal: 0,
+    acc: 0, dodge: 0, block: 0, pen: 0, mpen: 0, heal: 0, loot: 0, goldScale: 0,
   };
   for (const id of Object.keys(activePotionBuffs(h, now)) as PotionId[]) {
     const buff = POTIONS[id]?.buff;

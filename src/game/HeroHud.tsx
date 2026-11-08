@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Cloud, CloudOff, IdCard, LogOut, Settings, Trophy, Users, Volume2, VolumeX, Gift } from "lucide-react";
 import { AvatarIcon } from "./AvatarIcon";
-import { Portrait, frameClass } from "./CharacterSelect";
+import { Portrait } from "./CharacterSelect";
+import { frameClass } from "./profile-frames";
 import { heroAppearance } from "./appearance";
 import { CLASSES, heroStats, type Hero } from "./data";
 import { premiumState } from "./economy";

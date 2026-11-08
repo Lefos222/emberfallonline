@@ -11,7 +11,7 @@ export function goldScale(level = 1) {
 /** A gold price scaled for a hero's level. */
 export const scaledGold = (base: number, level = 1) => Math.round(base * goldScale(level));
 
-/** Every gold reward earned in play — battles, the Long Road, arenas and chests — pays this much
+/** Every gold reward earned in play — battles, arenas, events and chests — pays this much
  *  more than its table prints, so the hero's purse fills a little faster. The bonus scales gently
  *  with the hero's level so endgame gold keeps pace with the rising costs. */
 export const GOLD_GAIN_BONUS = 0.21;

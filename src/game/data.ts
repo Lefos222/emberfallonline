@@ -333,8 +333,6 @@ export interface Hero {
   passives?: Record<string, number>;
   /** Insight banked for the passive tree; earned from real campaign, elite, boss and activity results. */
   insight?: number;
-  /** Endless "Long Road" progression beyond the campaign (see longroad.ts). */
-  road?: { stage: number; wave: number; best: number; cleared: number };
   /** Endless Conquest: tokens earned from cleared floors and spent in the Conquest Gate (see conquest.ts). */
   conquest?: { tokens?: number; blitzDay?: string; blitzUsed?: number };
   /** A blitz that is still out on its ten-minute run, with the rewards it will pay when it lands (see blitz-run.ts). */
@@ -531,9 +529,11 @@ export function normalizeHero(h: Hero): Hero {
     // Cut gem sockets stay inside the forge's limit whatever a save claims.
     if (it && it.holes) it.holes = Math.max(0, Math.min(MAX_SOCKETS, Math.floor(it.holes)));
   }
-  const legacy = h as unknown as { anc?: unknown; ancTower?: unknown };
+  const legacy = h as unknown as { anc?: unknown; ancTower?: unknown; road?: unknown };
   delete legacy.anc;
   delete legacy.ancTower;
+  // The Long Road is gone: its save cursor is dropped so the Campaign Gate is the only endless path.
+  delete legacy.road;
   // Gems from older saves are remapped onto the eight chart families (see crafting.ts).
   migrateGems(h);
   // Astrals are clamped onto the six-colour, ten-level ladder (see crafting.ts).
@@ -605,8 +605,52 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   const dodge = Math.min(30, +(c.dodge + at.agi * 0.06 + tf.dodge).toFixed(1));
   const atk = MAGIC[h.cls] ? matk : patk;
   const def = Math.round((pdef + mdef) / 2);
-  const power = Math.round(atk * 2 + def * 1.5 + hp * 0.2 + crit * 10 + (critDmg - 150) * 4 + pen * 25 + acc * 15 + dodge * 15 + block * 15 + heal * 5);
+  const raw = atk * 2 + def * 1.5 + hp * 0.2 + crit * 10 + (critDmg - 150) * 4 + pen * 25 + acc * 15 + dodge * 15 + block * 15 + heal * 5;
+  const power = battleRating(raw, L, h.paragon);
   return { hp, atk, def, crit, dodge, power, patk, matk, pdef, mdef, critDmg, pen, acc, block, heal };
+}
+
+/**
+ * Battle Rating is the hero's combat score (the same stats every upgrade feeds) amplified by a
+ * level curve. That keeps the number climbing into the hundreds of thousands instead of stalling
+ * around a hundred thousand at the cap, so every upgrade is worth a visible chunk of rating.
+ * Level 1 is unchanged; a level 140 hero sits near 500,000, and Ascension keeps pushing past it.
+ */
+export const RATING_CAP = 500_000;
+export const ratingScale = (level: number, paragon = 0) => {
+  const lv = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
+  return 1 + Math.pow(lv / MAX_LEVEL, 1.7) * 2.4 + Math.max(0, paragon) * 0.03;
+};
+/** Apply the rating curve to a raw combat score. */
+export const battleRating = (raw: number, level: number, paragon = 0) =>
+  Math.round(raw * ratingScale(level, paragon));
+
+/** A foe's Battle Rating on the same curve, so "Easy / Fair / Deadly" compares like with like. */
+export const foeRating = (foe: Pick<Foe, "hp" | "atk" | "def" | "level">) =>
+  battleRating(foe.atk * 2 + foe.def * 1.5 + foe.hp * 0.2, foe.level);
+
+/** How many levels above a chosen stage the world may scale its foes. */
+export const WORLD_DRIFT = 20;
+
+/**
+ * Enemies level up with the hero: a hero far above a stage meets tougher versions of that stage's
+ * foes, up to WORLD_DRIFT levels higher. A level-100 hero returning to stage 1 fights level-21
+ * Goblins instead of a tutorial, while the next stage they have not cleared still waits at its
+ * own level, so progress is never walled by over-levelling.
+ */
+export function scaledFoe<T extends Foe>(foe: T, heroLevel: number): T {
+  const lv = Math.max(1, Math.floor(heroLevel));
+  if (lv <= foe.level) return foe;
+  const target = Math.min(lv, foe.level + WORLD_DRIFT);
+  const mult = Math.pow(1.03, target - foe.level);
+  return {
+    ...foe,
+    level: target,
+    hp: Math.round(foe.hp * mult),
+    atk: Math.round(foe.atk * mult),
+    def: Math.round(foe.def * Math.sqrt(mult)),
+    boss: foe.boss,
+  };
 }
 
 export function heroStats(h: Hero): Stats { return computeStats(h, { gear: true, attrs: true, asc: true, talents: true }); }

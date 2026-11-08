@@ -54,7 +54,7 @@ export const REGIONS: Region[] = [
     path: [[78, 30], [82, 26], [86, 22], [89, 18], [92, 14]] },
 ];
 export const STAGES_PER_REGION = 10;
-export const CAMPAIGN_STAGES = REGIONS.length * STAGES_PER_REGION;
+/** The campaign has no final stage: region content cycles while stages keep counting up. */
 const ENEMY_COLS = [0, 2, 3, 4, 1, 5, 7, 9, 11];
 
 export const regionOf = (stage: number) => REGIONS[Math.min(REGIONS.length - 1, Math.floor((stage - 1) / STAGES_PER_REGION))]!;

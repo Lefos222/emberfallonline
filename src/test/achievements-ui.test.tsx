@@ -15,7 +15,7 @@ describe("throne hall achievements", () => {
     for (const name of [
       "Beast Hunter",
       "Bestiary Master",
-      "Roadwarden",
+      "Reaver VI",
       "Realm Completionist",
       "Titan Slayer",
       "Guild Paragon",
