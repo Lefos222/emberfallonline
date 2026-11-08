@@ -2,11 +2,11 @@ import theme from "@/assets/theme.mp3.asset.json";
 
 /**
  * The game's music, in the order players see it in the settings panel. The original theme is the
- * default; the second track is the newer score shipped with the game.
+ * default; the second track is the Sibling Showdown score shipped with the game.
  */
 export const SOUNDTRACKS = [
   { id: "original", name: "Original theme", note: "The Emberfall soundtrack", url: theme.url },
-  { id: "embers", name: "New theme", note: "The newer, darker score", url: "/audio/ember-soundtrack.mp3" },
+  { id: "sibling-showdown", name: "Sibling Showdown", note: "The duel score", url: "/audio/sibling-showdown.mp3" },
 ] as const;
 
 export type SoundtrackId = (typeof SOUNDTRACKS)[number]["id"];
