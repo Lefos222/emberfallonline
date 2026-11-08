@@ -423,15 +423,15 @@ export function newHero(name: string, cls: HeroClass): Hero {
 
 /** Levels past this point are where the grind starts — the opening acts stay quick on purpose. */
 export const LATE_LEVEL = 20;
-/** Fights a level costs below LATE_LEVEL. Raised for version 1.00: five fights a level, so the
+/** Fights a level costs below LATE_LEVEL. Raised to ten fights a level, so the
  *  opening still teaches the game but no longer showers levels. */
-export const EASY_FIGHTS = 5;
-/** Extra fights every level past LATE_LEVEL adds on top of the one below it (+26 each). */
-export const GRIND_FIGHTS = 26;
+export const EASY_FIGHTS = 10;
+/** Extra fights every level past LATE_LEVEL adds on top of the one below it (+52 each). */
+export const GRIND_FIGHTS = 52;
 
 /** Fights one level costs, counted in cleared fights at the hero's own level.
- *  Levels 1–19 cost five fights each; from level 20 every level asks for twenty-six fights more
- *  than the one before it (31, 57, 83 …), which is the wall the whole late game is built on and
+ *  Levels 0–19 cost ten fights each; from level 20 every level asks for fifty-two fights more
+ *  than the one before it (62, 114, 166 …), which is the wall the whole late game is built on and
  *  the reason daily play matters. Level 1.00 deliberately made this climb far longer. */
 export function fightsToLevel(level: number) {
   const lv = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));

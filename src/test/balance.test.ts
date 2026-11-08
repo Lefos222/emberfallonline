@@ -117,14 +117,21 @@ function seeded(seed: number) {
   return () => (x = (x * 1664525 + 1013904223) % 4294967296) / 4294967296;
 }
 
-describe("five fights a level, then twenty-six more every level", () => {
-  it("costs exactly five fights a level up to level 19", () => {
+describe("ten fights a level, then fifty-two more every level", () => {
+  it("doubles the baseline leveling requirements without reducing fight rewards", () => {
+    expect(EASY_FIGHTS).toBe(10);
+    expect(GRIND_FIGHTS).toBe(52);
+    expect(xpToNext({ level: 0, paragon: 0 })).toBe(10 * stageRewards(1).xp);
+    expect(fightsToLevel(20)).toBe(62);
+    expect(fightsToLevel(21)).toBe(114);
+  });
+  it("costs exactly ten fights a level up to level 19", () => {
     for (const lv of [1, 5, 10, 17, 19]) {
       expect(fightsToLevel(lv)).toBe(EASY_FIGHTS);
       expect(xpToNext({ level: lv, paragon: 0 })).toBe(EASY_FIGHTS * stageRewards(lv).xp);
     }
   });
-  it("adds twenty-six fights to each level past 20", () => {
+  it("adds fifty-two fights to each level past 20", () => {
     expect(fightsToLevel(20)).toBe(EASY_FIGHTS + GRIND_FIGHTS);
     for (let lv = 20; lv < MAX_LEVEL; lv++) {
       expect(fightsToLevel(lv + 1) - fightsToLevel(lv)).toBe(GRIND_FIGHTS);
@@ -207,7 +214,7 @@ describe("campaign balance", () => {
     for (const stage of [5, 10, 17]) {
       expect(xpToNext({ level: stage, paragon: 0 }) / stageRewards(stage).xp).toBe(EASY_FIGHTS);
     }
-    // From level 20 that count climbs by twenty-six every level.
+    // From level 20 that count climbs by fifty-two every level.
     for (const stage of [40, 50, 60, 80]) {
       expect(xpToNext({ level: stage, paragon: 0 }) / stageRewards(stage).xp).toBe(fightsToLevel(stage));
     }
