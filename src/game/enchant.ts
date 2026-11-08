@@ -28,6 +28,8 @@ export const STONE_COLORS = [
 export const STONE_PRICE = [4000, 9000, 20000, 45000, 95000, 190000, 380000, 760000, 1500000];
 /** Gold added to two stones to forge the next grade (grades 1 → 2 up to 8 → 9). */
 export const COMBINE_GOLD = [200, 400, 600, 800, 1000, 1400, 1800, 2200];
+/** Chance a stone survives a failed enchantment, so a bad roll is not always a total loss. */
+export const STONE_FAIL_SAVE_CHANCE = 0.25;
 
 export const clampStone = (level: number) =>
   Math.max(1, Math.min(STONE_LEVELS, Math.round(Number.isFinite(level) ? level : 1)));
@@ -108,6 +110,22 @@ export function combineStones(
   return null;
 }
 
+/**
+ * Forge every pair of stones the hero holds, lowest grade first, so a full pouch can be tidied in
+ * one press. Stops when a pair cannot be paid for and reports how many were made.
+ */
+export function combineAllStones(h: StoneState & { gold: number; level?: number }): { made: number; error?: string } {
+  let made = 0;
+  for (let lvl = 1; lvl < STONE_LEVELS; lvl += 1) {
+    while (stoneCount(h, lvl) >= 2) {
+      const err = combineStones(h, lvl);
+      if (err) return { made, error: err };
+      made += 1;
+    }
+  }
+  return { made };
+}
+
 /** The grade a hero of this level usually finds, before the fight's own bonus. */
 export const stoneGradeFor = (level: number) => clampStone(1 + Math.floor(Math.max(0, level) / 12));
 
@@ -121,9 +139,9 @@ export function rollStoneDrop(
   elite = false,
   rand = Math.random,
 ): { level: number; n: number } | null {
-  const chance = boss ? 1 : elite ? 0.6 : 0.35;
+  const chance = boss ? 1 : elite ? 0.62 : 0.37;
   if (rand() >= chance) return null;
-  const swing = rand() < 0.3 ? 1 : 0;
+  const swing = rand() < 0.33 ? 1 : 0;
   const grade = clampStone(stoneGradeFor(level) + (boss ? 2 : elite ? 1 : 0) + swing);
   const n = boss && rand() < 0.5 ? 2 : 1;
   return { level: grade, n };

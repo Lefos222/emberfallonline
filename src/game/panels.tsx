@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { trainingCost, trainAttribute } from './building-content';
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Shield, Heart, Swords, Clover, Sparkles, Trophy, Gem, Hammer, Trash2, Skull, Backpack } from "lucide-react";
+import { Shield, Heart, Swords, Clover, Sparkles, Trophy, Gem, Hammer, Trash2, Skull, Backpack, Layers } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import { adviseStrategy } from "@/lib/quests.functions";
@@ -21,8 +21,8 @@ import { Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { MatIcon, StoneIcon } from "./MatIcon";
 import { Vault } from "./Vault";
 import { GearCodex } from "./GearCodex";
-import { MAX_SOCKETS, MATS, REFINE, cutHole, holeCost, matCount, refine, scrapItem, scrapYield, socketCount, sockets, type Mat } from "./crafting";
-import { STONE_LEVELS, combineGold, combineStones, heldStoneLevels, spendStones, stoneBonus, stoneCount, stoneName } from "./enchant";
+import { MAX_SOCKETS, MATS, REFINE, matCount, refine, scrapItem, scrapYield, socketCount, sockets, type Mat } from "./crafting";
+import { STONE_FAIL_SAVE_CHANCE, STONE_LEVELS, combineAllStones, combineGold, combineStones, heldStoneLevels, spendStones, stoneBonus, stoneCount, stoneName } from "./enchant";
 import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
@@ -377,13 +377,17 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
       if (stoneCount(hero, stoneLvl) < stoneCost) return;
       // Even the rarest stone never guarantees the step: the roll keeps its sliver of bad luck.
       const ok = Math.random() < enhanceStoneChance(sel, stoneLvl);
+      // A failed roll sometimes leaves one stone unspent, so a bad attempt is not always a total loss.
+      const survived = !ok && Math.random() < STONE_FAIL_SAVE_CHANCE ? 1 : 0;
       update((h) => {
-        spendStones(h, stoneLvl, stoneCost);
+        spendStones(h, stoneLvl, stoneCost - survived);
         const pos = sel.eq ? posOf(h.equipment, sel.id) : undefined;
         const target = pos ? h.equipment[pos] : h.inventory.find((i) => i.id === sel.id);
         if (target && ok) { target.enh++; recordEnhance(h, target.enh); }
       });
-      setMsg(ok ? { ok, t: `Success! +${sel.enh + 1} (Lv ${stoneLvl} stone)` } : { ok, t: "The stone cracked… failed" });
+      setMsg(ok
+        ? { ok, t: `Success! +${sel.enh + 1} (Lv ${stoneLvl} stone)` }
+        : { ok, t: survived ? "The stone cracked… failed — one stone survived" : "The stone cracked… failed" });
     } else {
       const cost = enhanceCost(sel, hero.level);
       if (hero.gold < cost) return;
@@ -469,22 +473,17 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
               </button>
 
               <div className="slot p-3">
-                <div className="mb-2 flex items-center gap-2 font-display text-sm"><Gem className="h-4 w-4" />Gem sockets</div>
-                <div className="mb-2 flex items-center gap-1.5">
+                <div className="mb-2 flex items-center justify-between font-display text-sm">
+                  <span className="flex items-center gap-2"><Gem className="h-4 w-4" />Gem sockets</span>
+                  <span className="text-xs text-muted-foreground">{socketCount(sel)}/{MAX_SOCKETS} holes</span>
+                </div>
+                <div className="flex items-center gap-1.5">
                   {Array.from({ length: MAX_SOCKETS }, (_, i) => (
                     <span key={i} title={sockets(sel)[i] ? "Gem socketed" : "Empty socket"}
                       className={`h-5 w-5 rounded-sm border ${i < socketCount(sel) ? (sockets(sel)[i] ? "border-gold bg-gold/60" : "border-gold bg-black/40") : "border-border/60 bg-black/20"}`} />
                   ))}
-                  <span className="ml-1 text-xs text-muted-foreground">{socketCount(sel)}/{MAX_SOCKETS} holes</span>
                 </div>
-                <button className="btn-gold w-full py-2 text-sm"
-                  disabled={socketCount(sel) >= MAX_SOCKETS || hero.gold < holeCost(sel, hero.level)}
-                  onClick={() => update((h) => { const e = cutHole(h, sel.id); setMsg(!e ? { ok: true, t: "Cut a new gem socket" } : { ok: false, t: e }); })}>
-                  {socketCount(sel) >= MAX_SOCKETS
-                    ? `All ${MAX_SOCKETS} sockets cut`
-                    : <>Cut a gem socket <Gold n={holeCost(sel, hero.level)} className="text-primary-foreground" /></>}
-                </button>
-                <p className="mt-1 text-[11px] text-muted-foreground">Every piece of gear can hold up to {MAX_SOCKETS} gems. Fill them at the Gem Workshop.</p>
+                <p className="mt-2 text-[11px] text-muted-foreground">Sockets are cut and filled at the Gem Workshop — every piece of gear can hold up to {MAX_SOCKETS} gems.</p>
               </div>
 
               <div className="slot p-3">
@@ -502,6 +501,19 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                     <p className="text-xs text-muted-foreground">Nothing to forge yet — stones drop from won battles and are sold in the Auction House shop.</p>
                   )}
                 </div>
+                {heldStoneLevels(hero).some((lvl) => lvl < STONE_LEVELS && stoneCount(hero, lvl) >= 2) && (
+                  <button className="btn-ghost mt-2 flex w-full items-center justify-center gap-1 px-2 py-1 text-xs"
+                    title="Forge every pair you hold into the next grade"
+                    onClick={() => update((h) => {
+                      const r = combineAllStones(h);
+                      setMsg(r.made
+                        ? { ok: true, t: `Forged ${r.made} stone${r.made === 1 ? "" : "s"} into higher grades` }
+                        : { ok: false, t: r.error ?? "No pairs to forge" });
+                    })}>
+                    <Layers className="h-3.5 w-3.5" />Forge every pair
+                  </button>
+                )}
+                <p className="mt-2 text-[11px] text-muted-foreground">A stone that fails an enchantment survives {Math.round(STONE_FAIL_SAVE_CHANCE * 100)}% of the time, so a bad roll still keeps one in the pouch.</p>
               </div>
 
               <div className="slot p-3">

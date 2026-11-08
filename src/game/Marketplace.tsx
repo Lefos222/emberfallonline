@@ -24,6 +24,9 @@ const cutPrice = (gold: number) => Math.max(1, Math.round(gold * (1 - SHOP_DISCO
 export const SHOP_STOCK: { id: PotionId; name: string; note: string; price: number }[] = [
   { id: "stamina", name: "Stamina Potion", note: `+50 stamina · ${POTION_PER_DAY} a day`, price: POTIONS.stamina.shop },
   { id: "strength", name: "Elixir of Strength", note: "+20% physical attack for 30 minutes", price: POTIONS.strength.shop },
+  { id: "warding", name: "Elixir of Warding", note: "+25% physical & magic defence for 30 minutes", price: POTIONS.warding.shop },
+  { id: "fortune", name: "Draught of Fortune", note: "+8% crit chance · +15% crit damage for 30 minutes", price: POTIONS.fortune.shop },
+  { id: "sorcery", name: "Elixir of Sorcery", note: "+20% magic attack for 30 minutes", price: POTIONS.sorcery.shop },
 ];
 
 /** Gold one shop good costs for this hero. */

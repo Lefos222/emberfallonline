@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Elixir of Warding">
+  <defs>
+    <linearGradient id="wardingGlass" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#dff4ff" stop-opacity="0.75"/>
+      <stop offset="45%" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#7fb6cf" stop-opacity="0.65"/>
+    </linearGradient>
+    <linearGradient id="wardingLiquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a9ecff"/>
+      <stop offset="55%" stop-color="#3f9ec4"/>
+      <stop offset="100%" stop-color="#1c5c7d"/>
+    </linearGradient>
+    <linearGradient id="wardingCork" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c69a63"/>
+      <stop offset="100%" stop-color="#7a5330"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="32" cy="59" rx="15" ry="3" fill="#000" opacity="0.35"/>
+  <path d="M26 8h12v9l7 9c2 2.5 3 5 3 8v14a8 8 0 0 1-8 8H24a8 8 0 0 1-8-8V34c0-3 1-5.5 3-8l7-9z"
+        fill="url(#wardingLiquid)" stroke="#0d1b26" stroke-width="2"/>
+  <path d="M20 35h24v11a6 6 0 0 1-6 6H26a6 6 0 0 1-6-6z" fill="url(#wardingGlass)" stroke="none"/>
+  <path d="M26 8h12v9l7 9c2 2.5 3 5 3 8v14a8 8 0 0 1-8 8H24a8 8 0 0 1-8-8V34c0-3 1-5.5 3-8l7-9z"
+        fill="none" stroke="#0d1b26" stroke-width="2"/>
+  <path d="M25 22c-2 2.6-3 5-3 8v13" fill="none" stroke="#ffffff" stroke-opacity="0.75" stroke-width="2" stroke-linecap="round"/>
+  <rect x="24" y="4" width="16" height="8" rx="2.5" fill="url(#wardingCork)" stroke="#33220f" stroke-width="2"/>
+  <path d="M32 33l7 6-2.4 9H27.4L25 39z" fill="#eaf9ff" stroke="#1c5c7d" stroke-width="1.4" stroke-opacity="0.9"/>
+  <path d="M32 33v15M25 39h14" stroke="#1c5c7d" stroke-width="1" fill="none" stroke-opacity="0.7"/>
+  <circle cx="32" cy="44" r="9" fill="none" stroke="#d7f6ff" stroke-opacity="0.45" stroke-width="1.2"/>
+</svg>

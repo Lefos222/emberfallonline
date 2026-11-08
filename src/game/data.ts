@@ -169,7 +169,7 @@ export function rarityCap(level: number): number {
  */
 export function rollRarity(stage: number, luck: number, minRarity = 0, level = stage): number {
   const r = Math.random() * 100 - Math.min(10, stage * 0.05 + luck * 0.025);
-  const rolled = r < 0.1 ? 5 : r < 0.6 ? 4 : r < 2.5 ? 3 : r < 8 ? 2 : r < 30 ? 1 : 0;
+  const rolled = r < 0.12 ? 5 : r < 0.7 ? 4 : r < 2.8 ? 3 : r < 8.6 ? 2 : r < 31 ? 1 : 0;
   return Math.min(rarityCap(level), Math.max(rolled, minRarity));
 }
 
@@ -213,7 +213,7 @@ export function buyPrice(it: Item, level = 1) { return scaledGold(sellValue(it) 
  */
 export function enhanceCost(it: Item, level = 1) { return scaledGold(it.ilvl * 2.4 * Math.pow(it.enh + 1, 1.4), level); }
 /** Success chance falls gently with the enhancement level, never below the master smith's floor. */
-export function enhanceChance(it: Item) { return Math.max(0.35, 1 - it.enh * 0.022); }
+export function enhanceChance(it: Item) { return Math.max(0.37, 1 - it.enh * 0.021); }
 /** True when the piece is already at the forge's highest enhancement. */
 export const enhanceMaxed = (it: Item) => it.enh >= ENHANCE_MAX;
 /** Enchantment Stones needed to enhance: 1 per 3 enhancement levels. */

@@ -385,7 +385,7 @@ export const ASTRAL_COLORS = ["#e6e9ef", "#3fbf5a", "#3b82f6", "#a855f7", "#facc
 /** How much of its species bonus each rarity carries: a Red Astral is worth far more than a White one. */
 export const ASTRAL_RARITY_POWER = [1, 1.35, 1.8, 2.4, 3.2, 4.5];
 /** Lucky Shot / summon odds in % per rarity (index = rarity). Must match the lucky_shot database function. */
-export const ASTRAL_ODDS = [40, 30, 17, 9, 3.5, 0.5];
+export const ASTRAL_ODDS = [38.5, 30, 17, 9.5, 4.4, 0.6];
 export const ASTRAL_SLOTS = 8;
 /** Slots 1-3 are open from the start; every further slot wakes every 10 levels. */
 export const ASTRAL_SLOT_LEVELS = [1, 1, 1, 10, 20, 30, 40, 50];

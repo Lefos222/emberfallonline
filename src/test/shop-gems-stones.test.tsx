@@ -8,6 +8,7 @@ import {
   stoneShopPrice,
 } from "@/game/Marketplace";
 import { Forge } from "@/game/panels";
+import { GemWorkshop } from "@/game/Workshop";
 import { makeItem, newHero } from "@/game/data";
 import { MAX_SOCKETS, cutHole, holeCost, insertGem, socketCount, sockets } from "@/game/crafting";
 import {
@@ -18,7 +19,7 @@ import {
   stoneCount,
   stonePrice,
 } from "@/game/enchant";
-import { setHero } from "@/game/store";
+import { getState, setHero } from "@/game/store";
 import { fmt } from "@/game/ui";
 
 const hero = () => {
@@ -129,10 +130,29 @@ describe("gem socket cutting", () => {
   });
 });
 
+describe("gem workshop socket cutting", () => {
+  afterEach(() => setHero(null));
+
+  it("cuts the hole from the Gem Workshop", () => {
+    const h = hero();
+    const piece = makeItem("warrior", 20, 1, "weapon");
+    h.inventory = [piece];
+    setHero(h);
+    const cost = holeCost(piece, h.level);
+    render(<GemWorkshop onClose={() => {}} />);
+
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(piece.name) }));
+    fireEvent.click(screen.getByRole("button", { name: /Cut a gem socket/ }));
+
+    expect(socketCount(getState().hero!.inventory[0])).toBe(2);
+    expect(getState().hero!.gold).toBe(5_000_000 - cost);
+  });
+});
+
 describe("forge panel", () => {
   afterEach(() => setHero(null));
 
-  it("offers gem socket cutting and the stone grades", () => {
+  it("shows the sockets but sends socket cutting to the Gem Workshop, and keeps the stone grades", () => {
     const h = hero();
     const piece = makeItem("warrior", 20, 2, "weapon");
     h.inventory = [piece];
@@ -142,7 +162,8 @@ describe("forge panel", () => {
 
     fireEvent.click(screen.getAllByRole("button", { name: new RegExp(piece.name) })[0]!);
     expect(screen.getByText("Gem sockets")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Cut a gem socket/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Cut a gem socket/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/cut and filled at the Gem Workshop/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Enchantment Stone" }));
     expect(screen.getByText("Stone grade")).toBeInTheDocument();
