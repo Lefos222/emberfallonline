@@ -5,9 +5,16 @@ import { heroAppearance } from "./appearance";
 import { CLASSES, heroStats, type Hero } from "./data";
 import { premiumState } from "./economy";
 import { XpBar } from "./panels";
-import { STAMINA_PER_DAY, staminaLeft } from "./stamina";
+import {
+  POTION_STAMINA,
+  STAMINA_PER_DAY,
+  drinkStaminaPotion,
+  potionCount,
+  staminaLeft,
+} from "./stamina";
+import potionArt from "@/assets/stamina-potion.png";
 import { Diamonds, Gold, VoidCrystals, fmt } from "./ui";
-import { leaveCharacter, useGame } from "./store";
+import { leaveCharacter, update, useGame } from "./store";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -122,13 +129,18 @@ export function Hud({
   );
 }
 
-/** Campaign Gate stamina, under the player plate in the top-left HUD. */
+/** Dungeon Gate stamina and the potion pouch, under the player plate in the top-left HUD. */
 export function StaminaBar({ hero }: { hero: Hero }) {
   const left = staminaLeft(hero);
+  const potions = potionCount(hero);
+  const drink = () =>
+    update((h) => {
+      drinkStaminaPotion(h);
+    });
   return (
     <div
       className="hud-stamina-bar"
-      title={`Campaign stamina ${left}/${STAMINA_PER_DAY} — it refills at Greek midnight`}
+      title={`Dungeon stamina ${left}/${STAMINA_PER_DAY} — 10 per dungeon run, refills at Greek midnight`}
     >
       <div className="mb-0.5 flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
         <span className="font-display">Stamina</span>
@@ -136,11 +148,27 @@ export function StaminaBar({ hero }: { hero: Hero }) {
           {left}/{STAMINA_PER_DAY}
         </span>
       </div>
-      <div className="bar-track h-2">
-        <div
-          className="bar-stamina h-full"
-          style={{ width: `${Math.min(100, (left / STAMINA_PER_DAY) * 100)}%` }}
-        />
+      <div className="flex items-center gap-1.5">
+        <div className="bar-track h-2 flex-1">
+          <div
+            className="bar-stamina h-full"
+            style={{ width: `${Math.min(100, (left / STAMINA_PER_DAY) * 100)}%` }}
+          />
+        </div>
+        <button
+          className="flex shrink-0 items-center gap-0.5 rounded bg-black/40 px-1 py-0.5 text-[10px] font-bold disabled:opacity-40"
+          onClick={drink}
+          disabled={potions <= 0}
+          aria-label={`Drink a Stamina Potion (${potions} left)`}
+          title={
+            potions > 0
+              ? `Drink a Stamina Potion: +${POTION_STAMINA} stamina (${potions} left)`
+              : "No Stamina Potions — they are a rare Dungeon Gate drop"
+          }
+        >
+          <img src={potionArt} alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
+          <span>{potions}</span>
+        </button>
       </div>
     </div>
   );

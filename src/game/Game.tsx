@@ -27,6 +27,8 @@ import { authHandoffPending, getState, update, useGame } from "./store";
 import { recordBattle } from "./progress";
 import { BOSS_CRYSTALS } from "./logic";
 import { battleEssenceGain, enlightenmentUnlocked, rollSoulShards } from "./enlightenment";
+import { POTION_STAMINA, addPotions, rollStaminaPotion, spendStamina, staminaBlocker } from "./stamina";
+import { addRenown, renownGain } from "./renown";
 import { CharacterSelect, ProfilePanel } from "./CharacterSelect";
 import { Battle, type Fighter } from "./Battle";
 import { Campaign, Forge, HeroHall, Market, Oracle, Temple, heroFighter, type StartBattle } from "./panels";
@@ -53,7 +55,7 @@ export function Game() {
   const friendRequests = useFriendRequestCount(heroId);
   const nav = useNavigate();
   const [open, setOpen] = useState<ShortcutTarget | null>(null);
-  const [battle, setBattle] = useState<null | { right: Fighter; left: Fighter; auto?: boolean; title: string; onResult: Parameters<StartBattle>[0]["onResult"] }>(null);
+  const [battle, setBattle] = useState<null | { right: Fighter; left: Fighter; auto?: boolean; title: string; dungeon?: boolean; onResult: Parameters<StartBattle>[0]["onResult"] }>(null);
   const [result, setResult] = useState<null | { won: boolean; lines: string[]; loot?: Item | null }>(null);
   const [crafting, setCrafting] = useState(false);
   const [expeditions, setExpeditions] = useState(false);
@@ -109,7 +111,13 @@ export function Game() {
     // A blitz keeps the hero out in the field: nothing fights until the run lands (see blitz-run.ts).
     const blitzLock = battleLockedByBlitz(hero);
     if (blitzLock) { setEntryError(blitzLock); return; }
+    // A Dungeon Gate run costs its stamina up front, so a loss costs exactly as much as a win.
+    if (o.dungeon) {
+      const staminaLock = staminaBlocker(hero);
+      if (staminaLock) { setEntryError(staminaLock); return; }
+    }
     if (hero.blitzRun) update((h) => { settleBlitzRun(h); });
+    if (o.dungeon) update((h) => spendStamina(h));
     starting.current = true; setEntryError("");
     void (async () => {
       try {
@@ -142,6 +150,12 @@ export function Game() {
     if (r.loot && r.loot.rarity >= 2) void announceWorldEvent(heroId, `looted ${r.loot.name}!`);
     if (useGameOverflow() > before && !r.lines.some((l) => /Overflow/.test(l))) r.lines.push("Bag full — loot placed in your Overflow Chest (Armory)");
     if (won) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m)); });
+    // Won fights pay Renown, the hero's own upgrade currency (see renown.ts).
+    if (won) {
+      const gained = renownGain({ boss: !!battle.right.boss, dungeon: !!battle.dungeon, arena: /arena/i.test(battle.title) });
+      update((h) => addRenown(h, gained));
+      r.lines.push(`+${gained} Renown`);
+    }
     // A won fight sometimes leaves a chest on the field: gold is the common find, gems the rare one.
     if (won) {
       const drop = rollBattleChest();
@@ -167,6 +181,14 @@ export function Game() {
       if (shards > 0) {
         update((h) => { h.soulShards = (h.soulShards ?? 0) + shards; });
         r.lines.push(`+${shards} Soul Shard${shards > 1 ? "s" : ""} ✦`);
+      }
+    }
+    // A won dungeon run can leave a Stamina Potion behind — rare, but the only source (see stamina.ts).
+    if (won && battle.dungeon) {
+      const potions = rollStaminaPotion();
+      if (potions > 0) {
+        update((h) => addPotions(h, potions));
+        r.lines.push(`+${potions} Stamina Potion — +${POTION_STAMINA} stamina`);
       }
     }
     setResult({ won, ...r });

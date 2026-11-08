@@ -32,6 +32,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
     start({
       title: `${set.trial} · Rank ${relicRank(hero, rank).label}`,
       right: relicFoe(hero, rank),
+      dungeon: true,
       onResult: async (won, xpMultiplier = 1) => {
         if (!won) return { lines: ["The warden holds the field. The relics stay sealed."] };
         const { grant, addLoot } = await import("./logic");
