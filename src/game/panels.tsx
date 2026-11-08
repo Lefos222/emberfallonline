@@ -12,6 +12,7 @@ import {
   CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import { addConquestTokens, floorTokens } from "./conquest";
+import { outsideXp } from "./xp";
 import { CAMPAIGN_STAMINA, STAMINA_PER_DAY, staminaBlocker, staminaLeft } from "./stamina";
 import { ConquestTokens } from "./ConquestGate";
 import { CampaignBlitz } from "./CampaignBlitz";
@@ -264,7 +265,8 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
         const tokens = spire ? floorTokens(stage) : 0;
         update((h) => {
           // Fighting above the hero's level pays catch-up XP (see catchUpXpFactor).
-          const xp = spire ? 0 : scrollXp(rw.xp * catchUpXpFactor(h.level, stage), xpMultiplier);
+          // The Campaign Gate pays full XP; the Conquest Gate is an out-of-campaign fight, so it pays 30%.
+          const xp = spire ? outsideXp(scrollXp(rw.xp, xpMultiplier)) : scrollXp(rw.xp * catchUpXpFactor(h.level, stage), xpMultiplier);
           const { levels } = grant(h, xp, rw.gold);
           loot = rollLoot(h, stage, foe.boss || spire ? 1 : 0.45, spire ? 2 : foe.boss ? 2 : 0);
           if (loot) addLoot(h, loot);

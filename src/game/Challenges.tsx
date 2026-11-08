@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { scrollXp } from "./scrolls";
+import { outsideXp } from "./xp";
 import { Crown, Lock, Skull, Sparkles, Swords } from "lucide-react";
 import { invCap, heroStats, makeItem, type Item } from "./data";
 import { update, useGame } from "./store";
@@ -49,14 +50,15 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
         const { grant, addLoot, makeDrop, cappedRarity } = await import("./logic");
         let lines: string[] = []; let loot: Item | null = null;
         update((h) => {
-          const { levels } = grant(h, scrollXp(rw.xp, xpMultiplier), rw.gold);
+          const xp = outsideXp(scrollXp(rw.xp, xpMultiplier));
+          const { levels } = grant(h, xp, rw.gold);
           h.challenges = { ...(h.challenges ?? {}), [id]: Math.max(cleared(h, id), d) };
           if (rw.bossCore) addMats(h, { bossCore: rw.bossCore });
           addWeeklyKill(h);
           loot = makeDrop(h.cls, h.level + Math.floor(h.paragon / 2) + d * 2, cappedRarity(rw.minRarity, h.level));
           loot.name = `${TIER_BOSSES[id].name.split(",")[0]}'s ${loot.name.split(" ").slice(1).join(" ")}`;
           const full = h.inventory.length >= invCap(h); addLoot(h, loot); if (full) lines.push("Bag full — gear placed in your Overflow Chest (Armory)");
-          lines = [...lines, `+${fmt(scrollXp(rw.xp, xpMultiplier))} XP`, `+${fmt(rw.gold)} gold`, ...(rw.bossCore ? [`+${rw.bossCore} Boss Core`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+          lines = [...lines, `+${fmt(xp)} XP`, `+${fmt(rw.gold)} gold`, ...(rw.bossCore ? [`+${rw.bossCore} Boss Core`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         return { lines, loot };
       },
@@ -74,11 +76,12 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
         const { grant, rollLoot, addLoot } = await import("./logic");
         let lines: string[] = []; let loot: Item | null = null;
         update((h) => {
-          const { levels } = grant(h, scrollXp(lvl * 60, xpMultiplier), lvl * 12);
+          const xp = outsideXp(scrollXp(lvl * 60, xpMultiplier));
+          const { levels } = grant(h, xp, lvl * 12);
           loot = rollLoot(h, lvl + 5, 0.8, 2);
           if (loot) addLoot(h, loot);
           addMats(h, { essence: 2 });
-          lines = [`+${fmt(scrollXp(lvl * 60, xpMultiplier))} XP`, `+${fmt(lvl * 12)} gold`, "+2 Soul Essence", ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+          lines = [`+${fmt(xp)} XP`, `+${fmt(lvl * 12)} gold`, "+2 Soul Essence", ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         return { lines, loot };
       },

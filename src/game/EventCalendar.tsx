@@ -7,6 +7,7 @@ import { stageRewards, type Hero, type Item } from "./data";
 import type { StartBattle } from "./panels";
 import { update } from "./store";
 import { scrollXp } from "./scrolls";
+import { outsideXp } from "./xp";
 import { confirmEventEntry } from './events.functions';
 import { eventEncounter } from './event-encounters';
 import { recordRosterEncounter } from './bestiary';
@@ -126,7 +127,7 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
             }
             lines.push(`Reward earned after ${EVENT_BOSS_KILLS_REQUIRED} boss kills`);
           }
-          const xp = scrollXp(rw.xp, xpMultiplier);
+          const xp = outsideXp(scrollXp(rw.xp, xpMultiplier));
           const { levels } = grant(hh, xp, rw.gold);
           loot = rollLoot(hh, ev.stage, 1, ev.kind === "boss" ? 2 : 0);
           recordRosterEncounter(hh, foe.rosterId, true);

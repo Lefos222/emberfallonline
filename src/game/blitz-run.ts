@@ -1,5 +1,6 @@
 import type { Hero } from "./data";
 import { grant } from "./logic";
+import { outsideXp } from "./xp";
 
 /**
  * A blitz is a run, not an instant payout: starting one sends the hero out for ten
@@ -70,8 +71,8 @@ export interface BlitzReceipt {
 export function finishBlitzRun(h: Hero): BlitzReceipt | null {
   const run = blitzRun(h);
   if (!run) return null;
-  // Only the Campaign Gate feeds the level bar: a conquest run banks gold and tokens, never XP.
-  const xp = run.gate === "campaign" ? run.xp : 0;
+  // The Campaign Gate blitz pays its XP in full; a conquest run is out-of-campaign, so 30%.
+  const xp = run.gate === "campaign" ? run.xp : outsideXp(run.xp);
   grant(h, xp, run.gold);
   const tokens = run.tokens ?? 0;
   if (tokens)

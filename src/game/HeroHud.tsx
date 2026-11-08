@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Cloud, CloudOff, IdCard, LogOut, Settings, Trophy, Users, Volume2, VolumeX } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Cloud, CloudOff, Gift, IdCard, LogOut, Settings, Trophy, Users, Volume2, VolumeX } from "lucide-react";
 import { AvatarIcon } from "./AvatarIcon";
 import { Portrait, frameClass } from "./CharacterSelect";
 import { heroAppearance } from "./appearance";
@@ -28,6 +28,9 @@ import {
 import { Diamonds, Gold, VoidCrystals, fmt } from "./ui";
 import { leaveCharacter, update, useGame } from "./store";
 import { supabase } from "@/integrations/supabase/client";
+import { FORTUNE_MAX_LEVEL, fortuneCountdown, fortuneReady, fortuneUnlocked, openFortune } from "./fortune";
+import { formatChestCountdown } from "./chests";
+import { titleById } from "./titles";
 
 /**
  * The top-left player card: portrait, name, class, XP, currencies, power and stamina.
@@ -78,10 +81,11 @@ export function Hud({
             </div>
             <div className="mb-1 truncate text-[10px] uppercase tracking-wider text-muted-foreground">
               {CLASSES[hero.cls].name}
-              {me?.title ? ` · ${me.title}` : ""}
+              {(titleById(hero.activeTitle)?.name ?? me?.title) ? ` · ${titleById(hero.activeTitle)?.name ?? me?.title}` : ""}
             </div>
             <XpBar hero={hero} />
           </div>
+          <FortuneChest hero={hero} />
         </div>
         <div className="player-divider" />
         <div className="player-currencies" role="group" aria-label="Currencies and power">
@@ -149,6 +153,60 @@ export function Hud({
           <LogOut className="h-5 w-5" />
         </button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * The fortune chest beside the player card: a common prize every 30 minutes, mostly gold,
+ * for heroes below level 30 (see fortune.ts).
+ */
+function FortuneChest({ hero }: { hero: Hero }) {
+  const [open, setOpen] = useState(false);
+  const [notice, setNotice] = useState<string[] | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!open) return;
+    setNow(Date.now());
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [open]);
+  if (!fortuneUnlocked(hero)) return null;
+  const ready = fortuneReady(hero, now);
+  const claim = () =>
+    update((h) => {
+      try {
+        setNotice(openFortune(h));
+      } catch (e) {
+        setNotice([e instanceof Error ? e.message : "The chest is not ready."]);
+      }
+    });
+  return (
+    <div className="relative shrink-0">
+      <button
+        className={`slot relative flex h-9 w-9 items-center justify-center ${ready ? "ring-2 ring-gold" : "opacity-70"}`}
+        onClick={() => { setOpen((v) => !v); setNotice(null); setNow(Date.now()); }}
+        aria-expanded={open}
+        aria-label="Fortune chest"
+        title={ready ? "Fortune chest — claim your prize" : "Fortune chest refilling"}
+      >
+        <Gift className={`h-5 w-5 ${ready ? "text-gold" : "text-muted-foreground"}`} />
+        {ready && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-r1 ring-2 ring-background" />}
+      </button>
+      {open && (
+        <div className="game-panel absolute right-0 top-full z-40 mt-1 w-56 p-3 text-center text-xs">
+          <div className="font-display text-sm text-gold">Fortune Chest</div>
+          <p className="mt-1 text-muted-foreground">A common prize every 30 minutes until level {FORTUNE_MAX_LEVEL} — mostly gold.</p>
+          {notice ? (
+            <div className="mt-2 space-y-0.5 font-bold text-r1">{notice.map((l) => <div key={l}>{l}</div>)}</div>
+          ) : ready ? (
+            <button className="btn-gold mt-2 w-full py-1.5" onClick={claim}>Open chest</button>
+          ) : (
+            <p className="mt-2 font-bold">Ready in {formatChestCountdown(fortuneCountdown(hero, now))}</p>
+          )}
+          <button className="btn-ghost mt-2 w-full py-1" onClick={() => setOpen(false)}>Close</button>
+        </div>
+      )}
     </div>
   );
 }

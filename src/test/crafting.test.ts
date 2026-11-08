@@ -70,10 +70,10 @@ describe("gems, astrals, crafting", () => {
     h.mats = { starshard: 9999 };
     h.gold = 50_000_000;
     const a = summonAstral(h, () => 0.999) as Exclude<ReturnType<typeof summonAstral>, string>;
-    expect(ASTRAL_RARITY).toEqual(["White", "Green", "Blue", "Purple", "Gold", "Red"]);
+    expect(ASTRAL_RARITY).toEqual(["Grey", "Green", "Blue", "Purple", "Gold", "Red"]);
     expect(a.rarity).toBe(0);
     expect(a.lvl).toBe(1);
-    // Rarity outranks levels: a fresh Red Astral beats a White one at the old ten-level ceiling.
+    // Rarity outranks levels: a fresh Red Astral beats a Grey one at the old ten-level ceiling.
     expect(astralValue({ ...a, rarity: 5, lvl: 1 })).toBeGreaterThan(astralValue({ ...a, rarity: 0, lvl: 10 }));
     expect(astralLabel({ ...a, lvl: 10 })).toMatch(/Lv10$/);
     // Upgrades cost gold and never stop: past the old level 10 they keep going.
@@ -95,11 +95,12 @@ describe("gems, astrals, crafting", () => {
     expect(h.astrals.map((x) => [x.rarity, x.lvl])).toEqual([[5, 1], [0, 40]]);
   });
 
-  it("equipped astrals add stats; summoning costs 10 starshards", () => {
-    const h = newHero("T", "warrior"); h.mats = { starshard: 10 };
+  it("equipped astrals add stats; a grey summon costs 500 gold", () => {
+    const h = newHero("T", "warrior"); h.mats = { starshard: 10 }; h.gold = 500;
     const a = summonAstral(h, () => 0.99);
     expect(typeof a).toBe("object");
-    expect(h.mats.starshard).toBe(0);
+    expect(h.gold).toBe(0);
+    expect(h.mats.starshard).toBe(10);
     const before = heroStats(h).power;
     equipAstral(h, (a as { id: string }).id, 0);
     expect(heroStats(h).power).toBeGreaterThan(before);
