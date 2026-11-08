@@ -17,8 +17,7 @@ describe("barracks stat trainings", () => {
     render(<StatTrainings hero={hero} />);
 
     for (const d of STAT_TRAININGS) expect(screen.getByText(d.name)).toBeInTheDocument();
-    // Stat trainings have no rank cap (except the capped Gold Scaling track), so every one shows "Rank 0".
-    expect(screen.getAllByText(/Rank 0/)).toHaveLength(STAT_TRAININGS.length);
+    expect(screen.getAllByText(/Rank 0\//)).toHaveLength(STAT_TRAININGS.length);
   });
 });
 
