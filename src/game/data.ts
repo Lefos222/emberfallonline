@@ -429,31 +429,26 @@ export function newHero(name: string, cls: HeroClass): Hero {
   };
 }
 
-/** Levels past this point are where the grind starts — the opening acts stay quick on purpose. */
+/** Levels past this point leave the opening acts: the bill starts climbing a curve. */
 export const LATE_LEVEL = 20;
-/** Fights a level costs below LATE_LEVEL. Raised to ten fights a level, so the
- *  opening still teaches the game but no longer showers levels. */
+/** Fights a level costs below LATE_LEVEL — the opening still teaches the game without showering levels. */
 export const EASY_FIGHTS = 10;
-/** Extra fights every level past LATE_LEVEL adds on top of the one below it (+52 each). */
-export const GRIND_FIGHTS = 52;
-/** The deep-endgame wall: from this level one level stops being an evening's work. */
+/** Fights the climb adds at LATE_LEVEL itself (+6), then grows with GRIND_RAMP below. */
+export const GRIND_FIGHTS = 6;
+/** How the extra bill grows level on level: a gentle power curve, never a wall.
+ *  A level costs 16 fights at 20, 46 at 30, 69 at 40, 107 at 60, 141 at 80 and 229 at the cap. */
+export const GRIND_RAMP = 0.75;
+/** Levels past this point are the deep game, where secondary payouts taper (see levelShareScale). */
 export const DEEP_LEVEL = 30;
-/** Fights the wall adds the moment a hero reaches DEEP_LEVEL, on top of the mid-game bill (+1,300). */
-export const DEEP_FIGHTS = 1300;
-/** Extra fights every level past DEEP_LEVEL adds on top of the one below it, over GRIND_FIGHTS (+120). */
-export const DEEP_RAMP = 120;
 
 /** Fights one level costs, counted in cleared fights at the hero's own level.
- *  Levels 0–19 cost ten fights each; from level 20 every level asks for fifty-two fights more
- *  than the one before it (62, 114, 166 …). At level 30 the deep wall lands: the bill jumps by
- *  another 1,300 fights (582 → 1,882) and every level past it grows by 172 fights instead of 52,
- *  so 30→31 alone is a multi-session grind and the road to 80 is measured in months. */
+ *  Levels 1–19 cost ten fights each; from level 20 the bill climbs smoothly (16, 20, 25 … 46 at 30,
+ *  141 at 80) with no cliff, so a level is a session's work and the road to 80 is about five
+ *  thousand wins — weeks of play, never one impossible bill. */
 export function fightsToLevel(level: number) {
   const lv = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
   if (lv < LATE_LEVEL) return EASY_FIGHTS;
-  const mid = EASY_FIGHTS + GRIND_FIGHTS * (lv - LATE_LEVEL + 1);
-  if (lv < DEEP_LEVEL) return mid;
-  return mid + DEEP_FIGHTS + DEEP_RAMP * (lv - DEEP_LEVEL);
+  return EASY_FIGHTS + Math.round(GRIND_FIGHTS * Math.pow(lv - LATE_LEVEL + 1, GRIND_RAMP));
 }
 
 /** XP one fight at this level pays before scrolls and catch-up bonuses (see stageRewards). */

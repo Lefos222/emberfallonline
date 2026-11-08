@@ -1,10 +1,9 @@
-import { DEEP_FIGHTS, DEEP_LEVEL, DEEP_RAMP, EASY_FIGHTS, GRIND_FIGHTS, LATE_LEVEL, fightsToLevel, fightsToNextLevel, xpPerFight, xpToNext, type Hero } from "./data";
+import { EASY_FIGHTS, LATE_LEVEL, fightsToLevel, fightsToNextLevel, xpPerFight, xpToNext, type Hero } from "./data";
 import { fmt } from "./ui";
 
 /**
  * The level bill, spelled out: how far the hero is, how many fights the level still costs and
- * what the next few levels ask for: ten fights a level below 20, then a climbing grind, then the
- * deep-endgame wall from level 30.
+ * what the next few levels ask for: ten fights a level below 20, then a smooth climb with no wall.
  */
 export function LevelProgress({ hero, rows = 0 }: { hero: Hero; rows?: number }) {
   const need = xpToNext(hero);
@@ -47,7 +46,7 @@ function LevelLadder({ level, rows }: { level: number; rows: number }) {
         ))}
       </div>
       <p className="mt-2 text-[11px] text-muted-foreground">
-        Levels 1–{LATE_LEVEL - 1} cost {EASY_FIGHTS} fights each; from level {LATE_LEVEL} every level asks for {GRIND_FIGHTS} more than the one before it, and level {DEEP_LEVEL} opens the deep wall: the bill jumps by another {fmt(DEEP_FIGHTS)} fights and grows by {GRIND_FIGHTS + DEEP_RAMP} every level after that.
+        Levels 1–{LATE_LEVEL - 1} cost {EASY_FIGHTS} fights each. From level {LATE_LEVEL} the bill climbs gently — {fmt(fightsToLevel(20))} fights at 20, {fmt(fightsToLevel(50))} at 50, {fmt(fightsToLevel(80))} at 80 — so every level is a session's work and none of them is a wall.
       </p>
     </div>
   );

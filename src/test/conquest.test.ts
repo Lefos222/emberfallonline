@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BLITZ_PER_DAY, blitz, blitzBlocker, blitzDay, blitzesLeft, blitzesUsed, blitzRewards, buyTokenOffer, conquestTokens, floorTokens, floorsCleared, TOKEN_OFFERS } from "@/game/conquest";
 import { finishBlitzRun } from "@/game/blitz-run";
 import { matCount } from "@/game/crafting";
-import { canEnterConquest, newHero, xpToNext, type Hero } from "@/game/data";
+import { canEnterConquest, newHero, type Hero } from "@/game/data";
 
 const NOW = Date.UTC(2026, 0, 1, 12, 0, 0);
 
@@ -25,9 +25,16 @@ describe("endless conquest", () => {
     expect(floorTokens(1)).toBeGreaterThan(0);
   });
 
-  it("a blitz is a shortcut, not a level: four deep blitzes stay far below one post-wall level", () => {
-    // Floor 80 is far beyond what a level-30 hero has cleared; even that cannot carry 30→31.
-    expect(blitzRewards(80).xp * 4).toBeLessThan(xpToNext({ level: 30, paragon: 0 }) / 2);
+  it("pays no XP at all — every level is earned in the Campaign Gate", () => {
+    expect(blitzRewards(80)).not.toHaveProperty("xp");
+    const h = hero(4); // floors 1..3 cleared
+    expect(blitz(h, 3, NOW)).toBeNull();
+    const before = { xp: h.xp, level: h.level };
+    const receipt = finishBlitzRun(h);
+    expect(receipt?.xp).toBe(0);
+    expect(h.xp).toBe(before.xp);
+    expect(h.level).toBe(before.level);
+    expect(h.gold).toBeGreaterThan(100); // the gold still lands
   });
 
   it("blitzes only up to the deepest floor already cleared", () => {

@@ -37,8 +37,9 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
         </div>
         <p className="text-xs text-muted-foreground">
           Clear floors 1 to a floor you have already beaten without fighting them again. Your record
-          is floor {cap}; a blitz pays those floors' gold and tokens but only 30% of their XP, and it takes ten
-          minutes to run — no battle can start until it lands, and 25 Diamonds finish it on the spot.
+          is floor {cap}; a blitz pays those floors' gold and tokens and no XP — levels are earned in the
+          Campaign Gate only. It takes ten minutes to run — no battle can start until it lands, and 25
+          Diamonds finish it on the spot.
           The blitz is the only limit — the floors themselves never stop, and the allowance returns at
           Greek midnight.
         </p>
@@ -50,7 +51,7 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
           </label>
           <Button disabled={!!blocked || left < 1} onClick={() => update((h) => {
             const err = blitz(h, usable);
-            setMsg(err ? { ok: false, t: err } : { ok: true, t: `Blitz started — floors 1-${usable} will pay +${fmt(preview?.xp ?? 0)} XP, +${fmt(preview?.gold ?? 0)} gold and +${fmt(preview?.tokens ?? 0)} tokens in ten minutes` });
+            setMsg(err ? { ok: false, t: err } : { ok: true, t: `Blitz started — floors 1-${usable} will pay +${fmt(preview?.gold ?? 0)} gold and +${fmt(preview?.tokens ?? 0)} tokens in ten minutes` });
           })}>Blitz</Button>
           <button className="btn-ghost px-3 py-1.5 text-xs" disabled={cap < 1} onClick={() => jump(Math.max(1, cap))}>
             Deepest ({cap})
@@ -58,7 +59,7 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
         </div>
         <BlitzRunCard />
         {blocked ? <p className="mt-2 text-xs text-muted-foreground">{blocked}</p> : preview && (
-          <p className="mt-2 text-xs">Pays <span className="font-bold text-xp">+{fmt(preview.xp)} XP</span>, <Gold n={preview.gold} />, <span className="font-bold text-gold">+{fmt(preview.tokens)} tokens</span>.</p>
+          <p className="mt-2 text-xs">Pays <Gold n={preview.gold} /> and <span className="font-bold text-gold">+{fmt(preview.tokens)} tokens</span> — no XP.</p>
         )}
       </div>
 

@@ -1,6 +1,6 @@
 import { addGem, addMats, GEM_MAX_TIER, type GemType, type Mat } from "./crafting";
 import { addChests, type ChestKind } from "./chests";
-import { BLITZ_RUNNING, BLITZ_XP_SHARE, blitzRunning, startBlitzRun } from "./blitz-run";
+import { BLITZ_RUNNING, blitzRunning, startBlitzRun } from "./blitz-run";
 import { stageRewards, type Hero } from "./data";
 import { greekDayStart } from "./events";
 import { scaledGold } from "./gold";
@@ -90,16 +90,17 @@ export function buyTokenOffer(h: Hero, id: string): string | null {
   return null;
 }
 
-export interface BlitzResult { floors: number; xp: number; gold: number; tokens: number }
+export interface BlitzResult { floors: number; gold: number; tokens: number }
 
-/** What a blitz to `target` pays in total: those floors' gold and tokens, but only 30% of their XP. */
+/** What a blitz to `target` pays in total: those floors' gold and tokens. The Conquest Gate pays
+ *  no XP at all — every level is earned in the Campaign Gate. */
 export function blitzRewards(target: number): BlitzResult {
-  let xp = 0, gold = 0, tokens = 0;
+  let gold = 0, tokens = 0;
   for (let f = 1; f <= target; f++) {
     const r = stageRewards(f, 2);
-    xp += r.xp; gold += r.gold; tokens += floorTokens(f);
+    gold += r.gold; tokens += floorTokens(f);
   }
-  return { floors: target, xp: Math.round(xp * BLITZ_XP_SHARE), gold, tokens };
+  return { floors: target, gold, tokens };
 }
 
 /**
@@ -123,5 +124,6 @@ export function blitz(h: Hero, target: number, now = Date.now()): string | null 
   if (blocked) return blocked;
   const rw = blitzRewards(target);
   spendBlitz(h, now);
-  return startBlitzRun(h, { gate: "conquest", target, xp: rw.xp, gold: rw.gold, tokens: rw.tokens }, now);
+  // The gate pays no XP: a conquest run lands with an empty XP purse (see blitz-run.ts).
+  return startBlitzRun(h, { gate: "conquest", target, xp: 0, gold: rw.gold, tokens: rw.tokens }, now);
 }
