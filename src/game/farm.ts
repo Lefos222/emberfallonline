@@ -13,16 +13,28 @@ import type { Hero } from "./data";
  * the hero save), so a crop keeps growing while the player is offline and survives a refresh.
  */
 
-export type SeedKind = "gold" | "xp";
+export type SeedKind = "gold" | "xp" | "ember" | "moon";
+
+/** Every seed kind, in shop / pouch order. */
+export const SEED_KINDS: readonly SeedKind[] = ["gold", "xp", "ember", "moon"];
+
+/** Display names for each seed kind. */
+export const SEED_LABELS: Record<SeedKind, string> = {
+  gold: "Gold",
+  xp: "XP",
+  ember: "Emberbloom",
+  moon: "Moonroot",
+};
 
 export const FARM_MAX_LEVEL = 16;
 export const FARM_TOTAL_SLOTS = 16;
 /** One plot is tilled from the start; every Farm Level adds one more, so level = plots. */
 export const FARM_STARTING_SLOTS = 1;
 
-const validKind = (kind: SeedKind) => kind === "gold" || kind === "xp";
+const validKind = (kind: SeedKind) => SEED_KINDS.includes(kind);
 const validTier = (tier: number) => Number.isInteger(tier) && tier >= 1 && tier <= FARM_MAX_LEVEL;
-const validSlot = (index: number) => Number.isInteger(index) && index >= 0 && index < FARM_TOTAL_SLOTS;
+const validSlot = (index: number) =>
+  Number.isInteger(index) && index >= 0 && index < FARM_TOTAL_SLOTS;
 const safeWhole = (value: number | undefined, fallback: number) =>
   value !== undefined && Number.isFinite(value) ? Math.floor(value) : fallback;
 
@@ -50,7 +62,8 @@ export const FARM_XP_STEPS: readonly number[] = [
 export const farmXpToNext = (level: number) =>
   level >= FARM_MAX_LEVEL
     ? 0
-    : (FARM_XP_STEPS[Math.max(0, Math.min(FARM_XP_STEPS.length - 1, safeWhole(level, 1) - 1))] ?? 120);
+    : (FARM_XP_STEPS[Math.max(0, Math.min(FARM_XP_STEPS.length - 1, safeWhole(level, 1) - 1))] ??
+      120);
 
 /** The hero's Farm XP inside the current level. */
 export const farmXp = (h: Pick<Hero, "farm">) => Math.max(0, safeWhole(h.farm?.xp, 0));
@@ -77,11 +90,30 @@ export const XP_SEED_PRICES: readonly number[] = [
 /** How long each seed takes to grow, in minutes. Deeper seeds take longer to ripen. */
 export const goldSeedMinutes = (tier: number) => 20 + 5 * (Math.max(1, tier) - 1);
 export const xpSeedMinutes = (tier: number) => 20 + 4 * (Math.max(1, tier) - 1);
+/** Emberbloom grows half again as long as a Gold Seed. */
+export const emberSeedMinutes = (tier: number) => Math.round(goldSeedMinutes(tier) * 1.5);
+/** Moonroot is the slow seed: three times an XP Seed's growing time. */
+export const moonSeedMinutes = (tier: number) => xpSeedMinutes(tier) * 3;
+
+export const seedMinutes = (kind: SeedKind, tier: number) =>
+  kind === "gold"
+    ? goldSeedMinutes(tier)
+    : kind === "xp"
+      ? xpSeedMinutes(tier)
+      : kind === "ember"
+        ? emberSeedMinutes(tier)
+        : moonSeedMinutes(tier);
 
 /** Gold Seed prices are the table above; XP Seeds have their own ladder. */
 export const seedPrice = (kind: SeedKind, tier: number) => {
   const t = Math.max(1, Math.min(FARM_MAX_LEVEL, Math.floor(tier)));
-  return (kind === "gold" ? GOLD_SEED_PRICES[t - 1] : XP_SEED_PRICES[t - 1]) ?? 0;
+  const gold = GOLD_SEED_PRICES[t - 1] ?? 0;
+  const xp = XP_SEED_PRICES[t - 1] ?? 0;
+  if (kind === "gold") return gold;
+  if (kind === "xp") return xp;
+  // Emberbloom costs as much as both basic seeds together; Moonroot twice an XP Seed.
+  if (kind === "ember") return gold + xp;
+  return xp * 2;
 };
 
 /**
@@ -101,16 +133,36 @@ export const xpSeedReward = (tier: number) => {
   return Math.round(step * 0.42);
 };
 
-/** The harvest a seed pays, in its own currency. */
+/** Gold a ripe seed pays: Gold Seeds in full, Emberbloom 75% of a Gold Seed's harvest. */
+export const seedGold = (kind: SeedKind, tier: number) =>
+  kind === "gold"
+    ? goldSeedReward(tier)
+    : kind === "ember"
+      ? Math.round(goldSeedReward(tier) * 0.75)
+      : 0;
+
+/**
+ * Farm XP a ripe seed pays: XP Seeds in full, Emberbloom 60% of an XP Seed, Moonroot 2.2x —
+ * still under one whole level (2.2 x 42% = 92%).
+ */
+export const seedXp = (kind: SeedKind, tier: number) =>
+  kind === "xp"
+    ? xpSeedReward(tier)
+    : kind === "ember"
+      ? Math.round(xpSeedReward(tier) * 0.6)
+      : kind === "moon"
+        ? Math.round(xpSeedReward(tier) * 2.2)
+        : 0;
+
+/** The main harvest a seed pays (gold for Gold Seeds, Farm XP otherwise). */
 export const seedReward = (kind: SeedKind, tier: number) =>
-  kind === "gold" ? goldSeedReward(tier) : xpSeedReward(tier);
+  kind === "gold" ? seedGold(kind, tier) : seedXp(kind, tier);
 
 /** Growing time of a seed in milliseconds. */
-export const seedDurationMs = (kind: SeedKind, tier: number) =>
-  (kind === "gold" ? goldSeedMinutes(tier) : xpSeedMinutes(tier)) * 60_000;
+export const seedDurationMs = (kind: SeedKind, tier: number) => seedMinutes(kind, tier) * 60_000;
 
 export const seedName = (kind: SeedKind, tier: number) =>
-  `${kind === "gold" ? "Gold" : "XP"} Seed · Lv ${Math.max(1, Math.min(FARM_MAX_LEVEL, Math.floor(tier)))}`;
+  `${SEED_LABELS[kind] ?? "XP"} Seed · Lv ${Math.max(1, Math.min(FARM_MAX_LEVEL, Math.floor(tier)))}`;
 
 /** Pouch key for a seed: "gold:3" / "xp:5". */
 export const seedKey = (kind: SeedKind, tier: number) => `${kind}:${Math.max(1, Math.floor(tier))}`;
@@ -185,7 +237,7 @@ export function heldSeeds(
   h: Pick<Hero, "farm">,
 ): { kind: SeedKind; tier: number; count: number }[] {
   const out: { kind: SeedKind; tier: number; count: number }[] = [];
-  for (const kind of ["gold", "xp"] as const) {
+  for (const kind of SEED_KINDS) {
     for (let tier = 1; tier <= FARM_MAX_LEVEL; tier += 1) {
       const count = seedCount(h, kind, tier);
       if (count > 0) out.push({ kind, tier, count });
@@ -203,7 +255,8 @@ export function buySeed(h: Hero, kind: SeedKind, tier: number, qty = 1): string 
   if (t > farm.level) return `Farm level ${t} needed`;
   const count = Math.max(1, Math.floor(qty));
   const total = seedPrice(kind, t) * count;
-  if (!Number.isSafeInteger(total) || !Number.isFinite(h.gold) || h.gold < total) return `Not enough gold — ${total.toLocaleString()} needed`;
+  if (!Number.isSafeInteger(total) || !Number.isFinite(h.gold) || h.gold < total)
+    return `Not enough gold — ${total.toLocaleString()} needed`;
   h.gold -= total;
   const key = seedKey(kind, t);
   farm.seeds[key] = (farm.seeds[key] ?? 0) + count;
@@ -233,7 +286,8 @@ export function plantSeed(
     farm.seeds[key] = (farm.seeds[key] ?? 0) - 1;
   } else {
     const price = seedPrice(kind, t);
-    if (!Number.isFinite(h.gold) || h.gold < price) return `Not enough gold — ${price.toLocaleString()} needed`;
+    if (!Number.isFinite(h.gold) || h.gold < price)
+      return `Not enough gold — ${price.toLocaleString()} needed`;
     h.gold -= price;
   }
   farm.slots[index] = { kind, tier: t, plantedAt: now, readyAt: now + seedDurationMs(kind, t) };
@@ -269,10 +323,18 @@ export function harvestSlot(h: Hero, index: number, now = Date.now()): HarvestRe
   const farm = ensureFarm(h);
   const crop = farm.slots[index];
   if (!crop) return null;
-  if (!validKind(crop.kind) || !validTier(crop.tier) || !Number.isFinite(crop.readyAt) || !Number.isFinite(crop.plantedAt) || crop.readyAt <= crop.plantedAt || now < crop.readyAt) return null;
+  if (
+    !validKind(crop.kind) ||
+    !validTier(crop.tier) ||
+    !Number.isFinite(crop.readyAt) ||
+    !Number.isFinite(crop.plantedAt) ||
+    crop.readyAt <= crop.plantedAt ||
+    now < crop.readyAt
+  )
+    return null;
   farm.slots[index] = null;
-  const gold = crop.kind === "gold" ? goldSeedReward(crop.tier) : 0;
-  const xp = crop.kind === "xp" ? xpSeedReward(crop.tier) : 0;
+  const gold = seedGold(crop.kind, crop.tier);
+  const xp = seedXp(crop.kind, crop.tier);
   if (gold > 0) h.gold += gold;
   const levels = xp > 0 ? addFarmXp(h, xp) : 0;
   return { gold, xp, levels };
@@ -322,7 +384,7 @@ export const timeLeft = (crop: FarmCrop, now = Date.now()) => waitLabel(crop.rea
 
 /** A seed's growing time as words, for the shop and the picker. */
 export function durationLabel(kind: SeedKind, tier: number) {
-  const mins = kind === "gold" ? goldSeedMinutes(tier) : xpSeedMinutes(tier);
+  const mins = seedMinutes(kind, tier);
   if (mins >= 60) return `${Math.floor(mins / 60)}h ${mins % 60 ? `${mins % 60}m` : ""}`.trim();
   return `${mins} min`;
 }
