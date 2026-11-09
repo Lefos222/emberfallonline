@@ -41,20 +41,42 @@ export function Meter({
   );
 }
 
-/** The stamina plate both gates share: what is left, how many runs it pays for, the potion pouch. */
+/**
+ * The stamina plate both gates share: what is left, how many runs it pays for, the potion pouch.
+ * `compact` trims it to the single line the gates' status strips use, so the whole gate fits on
+ * one screen without scrolling.
+ */
 export function StaminaMeter({
   hero,
   cost,
   unit,
+  compact = false,
 }: {
   hero: Hero;
   cost: number;
   unit: "battle" | "run";
+  compact?: boolean;
 }) {
   const left = staminaLeft(hero);
   const runs = Math.floor(left / Math.max(1, cost));
   const potions = potionCount(hero);
   const short = left < cost;
+  if (compact) {
+    return (
+      <div className="slot flex items-center gap-2 px-2.5 py-1.5 text-xs" title={`${cost} per ${unit} · refills at Greek midnight`}>
+        <span className="font-display text-gold">Stamina</span>
+        <b className={short ? "text-hp" : ""}>{fmt(left)}</b>
+        <span className="text-muted-foreground">/ {STAMINA_PER_DAY}</span>
+        <span className="w-16 shrink-0">
+          <Meter value={left} max={STAMINA_PER_DAY} fill="bar-stamina" label="Stamina left today" />
+        </span>
+        <span className="text-muted-foreground">· {runs} {unit}{runs === 1 ? "" : "s"} left</span>
+        {potions > 0 && (
+          <span className="text-muted-foreground">· {potions} potion{potions === 1 ? "" : "s"}</span>
+        )}
+      </div>
+    );
+  }
   return (
     <div className="slot p-3 text-sm">
       <div className="flex items-baseline justify-between gap-2">

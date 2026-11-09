@@ -38,6 +38,8 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
   const [editingCharter, setEditingCharter] = useState(false);
   // The courtyard is the way in: members land on their guild's banner and walk to a room.
   const [location, setLocation] = useState<GuildLocation>("headquarters");
+  // The painted courtyard stays folded away so the room itself opens without scrolling.
+  const [court, setCourt] = useState(false);
   const load = async () => {
     if (!heroId) { setLoaded(true); return; }
     // If the Supabase guild tables are unreachable, still show the panel with a "no guild" view
@@ -194,7 +196,9 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
     {guild && <>
       <GuildHallScene name={guild.name} level={guild.level} members={members.length} power={memberPower}
         relics={{ woken: wokenRelics, total: GUILD_RELICS.length }}
-        role={role} location={location} onSelect={setLocation} />
+        role={role} location={location} court={court}
+        onToggleCourt={() => setCourt((open) => !open)}
+        onSelect={(where) => { setLocation(where); setCourt(false); }} />
 
       {location === "merchant" && <div className="mt-5">
         <GuildContribute />
@@ -214,9 +218,9 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
 
       {location === "headquarters" && <>
         {/* The guild charter: the words every member reads on the way in. */}
-        <div className="mt-4 slot p-4">
+        <div className="mt-3 slot p-3">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="font-display text-xl text-gold">Guild charter</h4>
+            <h4 className="font-display text-lg text-gold">Guild charter</h4>
             {canManage && !editingCharter && <Button variant="outline" size="sm" onClick={() => setEditingCharter(true)}><PenLine className="h-4 w-4" />Edit</Button>}
           </div>
           {editingCharter ? <div className="mt-2 space-y-2">
@@ -244,23 +248,23 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
             </div>
           </div>)}
         </div>}
-        <div className="mt-5 grid gap-6 md:grid-cols-[1fr_1.4fr]">
+        <div className="mt-3 grid gap-4 md:grid-cols-[1fr_1.4fr]">
           <div>
-            <h4 className="font-display text-xl">Members <span className="text-sm text-muted-foreground">{members.length}/30</span></h4>
-            {members.map(memberRow)}
+            <h4 className="font-display text-lg">Members <span className="text-sm text-muted-foreground">{members.length}/30</span></h4>
+            <div className="max-h-64 overflow-y-auto pr-1">{members.map(memberRow)}</div>
             {canManage && <form className="mt-4 flex gap-2" onSubmit={(e) => { e.preventDefault(); void request.run(async () => { await mutate((id) => supabase.rpc("guild_invite", { _hero: id, _target_name: target.trim() })); setTarget(""); }); }}><input aria-label="Hero name to invite" className="slot min-w-0 flex-1 px-2" required value={target} onChange={(e) => setTarget(e.target.value)} /><Button size="icon" aria-label="Invite hero" disabled={request.busy}><UserPlus /></Button></form>}
             <Button variant="outline" className="mt-4" disabled={request.busy} onClick={() => { if (window.confirm("Leave your guild?")) void request.run(() => mutate((id) => supabase.rpc("leave_guild", { _hero: id }))); }}>Leave guild</Button>
           </div>
-          <div><h4 className="mb-2 font-display text-xl">Guild chat</h4><div className="h-72 overflow-y-auto border-y border-border py-2">{messages.length === 0 && <p className="text-sm text-muted-foreground">No guild messages yet.</p>}{messages.map((m) => <p key={m.id} className="mb-2 break-words text-sm"><b className="text-gold">{m.sender_name}</b><span className="ml-2 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span><span className="block">{m.body}</span></p>)}</div>
+          <div><h4 className="mb-2 font-display text-lg">Guild chat</h4><div className="h-56 overflow-y-auto border-y border-border py-2">{messages.length === 0 && <p className="text-sm text-muted-foreground">No guild messages yet.</p>}{messages.map((m) => <p key={m.id} className="mb-2 break-words text-sm"><b className="text-gold">{m.sender_name}</b><span className="ml-2 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span><span className="block">{m.body}</span></p>)}</div>
             <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); void request.run(async () => { if (!heroId) return; const { error } = await supabase.rpc("send_chat", { _hero: heroId, _channel: "guild", _body: body, _to: "00000000-0000-0000-0000-000000000000" }); if (error) throw new Error(error.message); setBody(""); await load(); }); }}><input className="slot min-w-0 flex-1 px-3" aria-label="Guild message" maxLength={200} required value={body} onChange={(e) => setBody(e.target.value)} /><Button size="icon" aria-label="Send guild message" disabled={request.busy || !body.trim()}><Send /></Button></form>
           </div>
         </div>
 
-        {/* The keep also keeps the hall's ledger and deeds. */}
-        <div className="mt-6 border-t border-border pt-5">
-          <h4 className="mb-2 font-display text-xl text-gold">Hall of Records</h4>
+        {/* The keep also keeps the hall's ledger and deeds — folded away until read. */}
+        <details className="mt-4 border-t border-border pt-3">
+          <summary className="cursor-pointer font-display text-lg text-gold">Hall of Records</summary>
           <GuildRecords guild={guild} members={members} memberHeroes={memberHeroes} heroId={heroId} />
-        </div>
+        </details>
       </>}
     </>}
   </Panel>;

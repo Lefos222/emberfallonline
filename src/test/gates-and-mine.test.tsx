@@ -6,6 +6,7 @@ import { Challenges } from "@/game/Challenges";
 import { ConquestTokens } from "@/game/ConquestGate";
 import { newHero } from "@/game/data";
 import { getState, setHero } from "@/game/store";
+import { conquestKeyActive } from "@/game/conquest";
 import { MINE_MAX_LEVEL, mineLevel, minePerHour, mineUpgradeCost } from "@/game/mine";
 
 describe("the Gold Mine building", () => {
@@ -94,5 +95,19 @@ describe("the reworked gates", () => {
     fireEvent.click(screen.getByRole("tab", { name: /Gem Stock/i }));
     expect(screen.getByText(/Conquest Tokens only/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Buy · 25/ })).toBeDisabled();
+  });
+
+  it("lets the conquest blitz add today's Conquest Key for doubled rewards", () => {
+    const hero = newHero("Keyed", "warrior");
+    hero.spire = 21;
+    hero.gold = 1e9;
+    hero.conquest = { tokens: 0 };
+    setHero(hero);
+    render(<ConquestTokens hero={hero} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Use Conquest Key/i }));
+    const after = getState().hero!;
+    expect(conquestKeyActive(after)).toBe(true);
+    expect(after.gold).toBeLessThan(1e9);
   });
 });
