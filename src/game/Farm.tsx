@@ -1,3 +1,9 @@
+import goldSprout from "@/assets/farm-gold-0.webp";
+import goldGrowing from "@/assets/farm-gold-1.webp";
+import goldRipe from "@/assets/farm-gold-2.webp";
+import xpSprout from "@/assets/farm-xp-0.webp";
+import xpGrowing from "@/assets/farm-xp-1.webp";
+import xpRipe from "@/assets/farm-xp-2.webp";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -33,107 +39,16 @@ import {
   type SeedKind,
 } from "./farm";
 
-/**
- * Crop artwork, drawn as inline SVG in the castle's palette instead of emoji: golden wheat for
- * Gold Seeds, violet soul blooms for XP Seeds, each with three growth stages.
- */
-export function CropArt({
-  kind,
-  stage,
-  size = 46,
-}: {
-  kind: SeedKind;
-  stage: 0 | 1 | 2;
-  size?: number;
-}) {
-  const gold = kind === "gold";
-  const leaf = gold ? "oklch(0.66 0.12 128)" : "oklch(0.56 0.13 285)";
-  const crop = gold ? "oklch(0.86 0.15 85)" : "oklch(0.74 0.19 300)";
-  const cropDark = gold ? "oklch(0.64 0.13 72)" : "oklch(0.5 0.17 292)";
-  return (
-    <svg
-      viewBox="0 0 48 48"
-      width={size}
-      height={size}
-      aria-hidden="true"
-      focusable="false"
-      style={{ width: size, height: size, flexShrink: 0, filter: stage === 2 ? `drop-shadow(0 0 6px ${crop})` : undefined }}
-    >
-      <ellipse cx="24" cy="42" rx="15" ry="4" fill="oklch(0.24 0.04 45)" opacity="0.9" />
-      {stage === 0 ? (
-        <>
-          <path
-            d="M24 41 C23 35 24 31 24 28"
-            stroke={leaf}
-            strokeWidth="2.4"
-            fill="none"
-            strokeLinecap="round"
-          />
-          <ellipse cx="19" cy="31" rx="4" ry="2.2" fill={leaf} transform="rotate(-24 19 31)" />
-          <ellipse cx="29" cy="33" rx="4" ry="2.2" fill={leaf} transform="rotate(20 29 33)" />
-        </>
-      ) : stage === 1 ? (
-        <>
-          <path
-            d="M24 41 C22 33 25 27 24 20"
-            stroke={leaf}
-            strokeWidth="2.6"
-            fill="none"
-            strokeLinecap="round"
-          />
-          <ellipse cx="18" cy="32" rx="5" ry="2.6" fill={leaf} transform="rotate(-28 18 32)" />
-          <ellipse cx="30" cy="29" rx="5" ry="2.6" fill={leaf} transform="rotate(24 30 29)" />
-          <ellipse cx="20" cy="25" rx="4.5" ry="2.3" fill={leaf} transform="rotate(-20 20 25)" />
-          {gold ? (
-            <ellipse cx="24" cy="18" rx="3" ry="5" fill={crop} opacity="0.85" />
-          ) : (
-            <polygon points="24,13 27,20 24,24 21,20" fill={crop} opacity="0.85" />
-          )}
-        </>
-      ) : (
-        <>
-          <path
-            d="M24 42 C22 33 25 26 24 18"
-            stroke={leaf}
-            strokeWidth="2.8"
-            fill="none"
-            strokeLinecap="round"
-          />
-          <ellipse cx="17" cy="33" rx="6" ry="3" fill={leaf} transform="rotate(-30 17 33)" />
-          <ellipse cx="31" cy="30" rx="6" ry="3" fill={leaf} transform="rotate(26 31 30)" />
-          {gold ? (
-            <>
-              <ellipse cx="24" cy="11" rx="3.4" ry="6" fill={crop} />
-              <ellipse
-                cx="19.5"
-                cy="15"
-                rx="3"
-                ry="5"
-                fill={cropDark}
-                transform="rotate(-22 19.5 15)"
-              />
-              <ellipse
-                cx="28.5"
-                cy="15"
-                rx="3"
-                ry="5"
-                fill={cropDark}
-                transform="rotate(22 28.5 15)"
-              />
-              <ellipse cx="24" cy="20" rx="3" ry="4.4" fill={cropDark} />
-            </>
-          ) : (
-            <>
-              <polygon points="24,5 29,14 24,21 19,14" fill={crop} />
-              <polygon points="18,12 22,18 18,24 14,18" fill={cropDark} />
-              <polygon points="30,12 34,18 30,24 26,18" fill={cropDark} />
-              <circle cx="24" cy="16" r="2" fill="oklch(0.98 0.04 320)" opacity="0.8" />
-            </>
-          )}
-        </>
-      )}
-    </svg>
-  );
+const cropImages = {
+  gold: [goldSprout, goldGrowing, goldRipe],
+  xp: [xpSprout, xpGrowing, xpRipe],
+};
+
+/** Shared painted growth stages for the fields, seed picker and shop. */
+export function CropArt({ kind, stage, size = 46 }: { kind: SeedKind; stage: 0 | 1 | 2; size?: number }) {
+  return <img src={cropImages[kind][stage]} alt="" aria-hidden="true" loading="lazy"
+    width={256} height={256} className="object-contain"
+    style={{ width: size, height: size, flexShrink: 0 }} />;
 }
 
 /** The farm's progress rail: Farm XP toward the next level, or MAX LEVEL at the top. */
