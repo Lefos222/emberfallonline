@@ -4,17 +4,22 @@ import goldRipe from "@/assets/farm-gold-2.webp";
 import xpSprout from "@/assets/farm-xp-0.webp";
 import xpGrowing from "@/assets/farm-xp-1.webp";
 import xpRipe from "@/assets/farm-xp-2.webp";
+import farmScene from "@/assets/farm-scene.png";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Lock, Sprout, Wheat, Sparkles, Timer, Tractor, Coins } from "lucide-react";
+import { Lock, Sprout, Wheat, Sparkles, Timer, Tractor, Coins, TreeDeciduous } from "lucide-react";
 import type { Hero } from "./data";
 import { getState, update, useGame } from "./store";
 import { Gold, Panel, fmt } from "./ui";
 import {
+  BLOODOAK_COOLDOWN_MS,
   FARM_MAX_LEVEL,
   FARM_TOTAL_SLOTS,
+  bloodoakRewards,
+  bloodoakWaitMs,
   buySeed,
+  chargeBloodoak,
   cropAt,
   cropProgress,
   durationLabel,
@@ -35,6 +40,7 @@ import {
   slotsForLevel,
   timeLeft,
   unlockLevelForSlot,
+  waitLabel,
   xpSeedReward,
   type SeedKind,
 } from "./farm";
@@ -65,7 +71,7 @@ function FarmProgress({ hero }: { hero: Hero }) {
         </span>
         <span className="text-xs text-muted-foreground">
           {maxed ? (
-            "All 18 plots tilled"
+            `All ${FARM_TOTAL_SLOTS} plots tilled`
           ) : (
             <>
               {fmt(farmXp(hero))} / {fmt(need)} Farm XP
@@ -170,6 +176,8 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
   const unlocked = slotsForLevel(level);
   const ripe = readyCount(hero, now);
   const pouch = heldSeeds(hero);
+  const treeReward = bloodoakRewards(level);
+  const treeWait = bloodoakWaitMs(hero, now);
 
   const say = (text: string, bad = false) => {
     setToast({ text, bad });
@@ -222,6 +230,20 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
     else say(`Bought ${qty} × ${seedName(kind, tier)}`);
   };
 
+  const chargeTree = () => {
+    const out: { got: ReturnType<typeof chargeBloodoak> } = { got: null };
+    update((h) => {
+      out.got = chargeBloodoak(h);
+    });
+    const got = out.got;
+    if (!got) {
+      say("The Bloodoak is still recharging.", true);
+      return;
+    }
+    say(`Bloodoak charged · +${fmt(got.gold)} gold · +${fmt(got.xp)} Farm XP`);
+    if (got.levels > 0) setLevelUp(farmLevel(getState().hero ?? hero));
+  };
+
   return (
     <Panel
       title="Farm"
@@ -255,7 +277,16 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
         </p>
       )}
 
-      <div className="farm-field grid grid-cols-3 gap-2 sm:grid-cols-6">
+      <div className="grid items-start gap-3 md:grid-cols-2">
+        <figure className="farm-scene">
+          <img
+            src={farmScene}
+            alt="The farm beneath the blood moon — a fenced field, the barn and the great red Bloodoak"
+            loading="lazy"
+          />
+          <figcaption>The fields by the Campaign Gate, under the Bloodoak</figcaption>
+        </figure>
+        <div className="farm-field grid grid-cols-4 gap-1.5" aria-label="Farm plots">
         {Array.from({ length: FARM_TOTAL_SLOTS }, (_, index) => {
           const locked = index >= unlocked;
           const crop = locked ? null : cropAt(hero, index);
@@ -314,9 +345,47 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
             </Button>
           );
         })}
+        </div>
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
+      <section className="farm-tree slot mt-3 flex flex-wrap items-center gap-3 p-3">
+        <span className="farm-tree-crest" aria-hidden="true">
+          <TreeDeciduous className="h-7 w-7" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="font-display text-sm text-gold">The Bloodoak</div>
+          <p className="text-[11px] text-muted-foreground">
+            Charge the great red tree once every {Math.round(BLOODOAK_COOLDOWN_MS / 60_000)}{" "}
+            minutes for gold and Farm XP.
+          </p>
+          <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs">
+            <Gold n={treeReward.gold} />
+            <span className="text-muted-foreground">·</span>
+            <b className="text-void">{fmt(treeReward.xp)} Farm XP</b>
+            <span className="text-muted-foreground">at Farm Level {level}</span>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          className="btn-gold px-3 py-1.5 text-sm"
+          disabled={treeWait > 0}
+          aria-label={
+            treeWait > 0 ? `Bloodoak recharging — ${waitLabel(treeWait)}` : "Charge the Bloodoak"
+          }
+          onClick={chargeTree}
+        >
+          {treeWait > 0 ? (
+            <>
+              <Timer className="mr-1 inline h-4 w-4" />
+              {waitLabel(treeWait)}
+            </>
+          ) : (
+            "Charge Bloodoak"
+          )}
+        </Button>
+      </section>
+
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
         <section className="slot p-3">
           <div className="mb-1 flex items-center gap-2 font-display text-sm text-gold">
             <Wheat className="h-4 w-4" />

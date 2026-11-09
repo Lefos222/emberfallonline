@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { newHero } from "@/game/data";
 import {
+  BLOODOAK_COOLDOWN_MS,
   FARM_MAX_LEVEL,
   FARM_STARTING_SLOTS,
   FARM_TOTAL_SLOTS,
   addFarmXp,
+  bloodoakRewards,
+  bloodoakWaitMs,
   buySeed,
+  chargeBloodoak,
   ensureFarm,
   farmLevel,
   farmXpToNext,
@@ -30,7 +34,8 @@ const hero = () => {
 };
 
 describe("the farm ladder", () => {
-  it("tills three plots at level 1 and one more per level, up to eighteen", () => {
+  it("tills one plot at level 1 and one more per level, up to sixteen", () => {
+    expect(FARM_TOTAL_SLOTS).toBe(16);
     expect(slotsForLevel(1)).toBe(FARM_STARTING_SLOTS);
     expect(slotsForLevel(2)).toBe(FARM_STARTING_SLOTS + 1);
     expect(slotsForLevel(FARM_MAX_LEVEL)).toBe(FARM_TOTAL_SLOTS);
@@ -39,11 +44,29 @@ describe("the farm ladder", () => {
     expect(unlockLevelForSlot(FARM_TOTAL_SLOTS - 1)).toBe(FARM_MAX_LEVEL);
   });
 
-  it("starts a new hero at Farm Level 1 with three open plots", () => {
+  it("starts a new hero at Farm Level 1 with one open plot", () => {
     const h = hero();
     expect(farmLevel(h)).toBe(1);
     expect(h.farm?.slots).toHaveLength(FARM_TOTAL_SLOTS);
     expect(h.farm?.slots?.filter((s) => s === null)).toHaveLength(FARM_TOTAL_SLOTS);
+  });
+});
+
+describe("the Bloodoak", () => {
+  it("pays gold and Farm XP once every half hour", () => {
+    const h = hero();
+    const reward = bloodoakRewards(1);
+    const got = chargeBloodoak(h, 1_000_000);
+    expect(got).toEqual({ gold: reward.gold, xp: reward.xp, levels: 0 });
+    expect(h.gold).toBe(1_000_000 + reward.gold);
+    expect(bloodoakWaitMs(h, 1_000_000)).toBe(BLOODOAK_COOLDOWN_MS);
+    expect(chargeBloodoak(h, 1_000_000 + BLOODOAK_COOLDOWN_MS - 1)).toBeNull();
+    expect(chargeBloodoak(h, 1_000_000 + BLOODOAK_COOLDOWN_MS)?.gold).toBe(reward.gold);
+  });
+
+  it("scales its reward with the Farm Level", () => {
+    expect(bloodoakRewards(16).gold).toBeGreaterThan(bloodoakRewards(1).gold);
+    expect(bloodoakRewards(16).xp).toBeGreaterThan(bloodoakRewards(1).xp);
   });
 });
 
@@ -152,6 +175,7 @@ describe("harvesting", () => {
 
   it("harvests every ripe plot at once and skips growing ones", () => {
     const h = hero();
+    h.farm!.level = 3;
     plantSeed(h, 0, "gold", 1, 0);
     plantSeed(h, 1, "gold", 1, 0);
     plantSeed(h, 2, "gold", 1, 0);
