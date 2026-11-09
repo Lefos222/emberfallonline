@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { BLITZ_PER_DAY, blitz, blitzBlocker, blitzDay, blitzesLeft, blitzesUsed, blitzRewards, buyTokenOffer, conquestTokens, floorTokens, floorsCleared, TOKEN_OFFERS } from "@/game/conquest";
+import {
+  BLITZ_PER_DAY, CONQUEST_KEY_MULTIPLIER, activateConquestKey, blitz, blitzBlocker, blitzDay,
+  blitzesLeft, blitzesUsed, blitzRewards, buyTokenOffer, conquestFloorRewards, conquestKeyActive,
+  conquestRewardMultiplier, conquestTokens, floorTokens, floorsCleared, TOKEN_OFFERS,
+} from "@/game/conquest";
 import { finishBlitzRun } from "@/game/blitz-run";
 import { matCount } from "@/game/crafting";
 import { canEnterConquest, newHero, type Hero } from "@/game/data";
@@ -93,6 +97,39 @@ describe("endless conquest", () => {
     expect(blitzBlocker(h, 2000, NOW)).toBeNull(); // far beyond any fixed cap: only today's blitzes matter
     h.conquest = { blitzDay: blitzDay(NOW), blitzUsed: BLITZ_PER_DAY };
     expect(blitzBlocker(h, 2000, NOW)).toMatch(/Floors themselves are unlimited/);
+  });
+
+  it("doubles every gate reward for the day while a Conquest Key is active", () => {
+    const h = hero(11);
+    expect(conquestKeyActive(h, NOW)).toBe(false);
+    expect(conquestRewardMultiplier(h, NOW)).toBe(1);
+
+    expect(activateConquestKey(h, NOW)).toBeNull();
+    expect(conquestKeyActive(h, NOW)).toBe(true);
+    expect(conquestRewardMultiplier(h, NOW)).toBe(CONQUEST_KEY_MULTIPLIER);
+
+    // One key a day: a second purchase is refused and changes nothing.
+    expect(activateConquestKey(h, NOW)).toMatch(/already/i);
+
+    const base = blitzRewards(10);
+    const doubled = blitzRewards(10, CONQUEST_KEY_MULTIPLIER);
+    expect(doubled.tokens).toBe(base.tokens * 2);
+    expect(doubled.gold).toBe(base.gold * 2);
+    expect(conquestFloorRewards(7, 2).tokens).toBe(floorTokens(7) * 2);
+
+    // The key expires with the blitz allowance, at Greek midnight.
+    expect(conquestKeyActive(h, NOW + 86400000)).toBe(false);
+    expect(conquestRewardMultiplier(h, NOW + 86400000)).toBe(1);
+  });
+
+  it("pays a conquest blitz at double rate while the key is active", () => {
+    const h = hero(4); // floors 1..3 cleared
+    h.conquest = { tokens: 0, keyDay: blitzDay(NOW) };
+    const plain = blitzRewards(3);
+    expect(blitz(h, 3, NOW)).toBeNull();
+    expect(h.blitzRun?.tokens).toBe(plain.tokens * CONQUEST_KEY_MULTIPLIER);
+    finishBlitzRun(h);
+    expect(conquestTokens(h)).toBe(plain.tokens * CONQUEST_KEY_MULTIPLIER);
   });
 
   it("spends tokens on equipment materials", () => {

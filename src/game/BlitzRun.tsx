@@ -7,8 +7,8 @@ import { payBlitzSkip } from "./economy-services";
 import { Gold, fmt } from "./ui";
 import { ArtIcon } from "./ArtIcon";
 import {
-  BLITZ_DURATION_MS,
   BLITZ_SKIP_DIAMONDS,
+  blitzRunTotal,
   formatBlitzLeft,
   settleBlitzRun,
   type BlitzReceipt,
@@ -35,8 +35,9 @@ function settleNow(): BlitzReceipt | null {
 }
 
 /**
- * The run a blitz turns into: a ten-minute countdown that locks battles until it lands, with
- * 25 Diamonds paid to finish it on the spot. It pays itself out the moment the clock runs out.
+ * The run a blitz turns into: a long countdown (20 minutes for a shallow climb, up to 50 for a
+ * deep one) that locks battles until it lands, with 25 Diamonds paid to finish it on the spot.
+ * It pays itself out the moment the clock runs out.
  */
 export function BlitzRunCard() {
   const { hero } = useGame();
@@ -53,7 +54,7 @@ export function BlitzRunCard() {
   const run = hero?.blitzRun;
   const endsAt = run?.endsAt ?? 0;
 
-  // The run pays as soon as its ten minutes are up, even while the panel sits open.
+  // The run pays as soon as its clock is up, even while the panel sits open.
   useEffect(() => {
     if (!run || endsAt > now) return;
     const paid = settleNow();
@@ -69,10 +70,8 @@ export function BlitzRunCard() {
   }
 
   const left = Math.max(0, endsAt - now);
-  const pct = Math.min(
-    100,
-    Math.max(0, Math.round(((BLITZ_DURATION_MS - left) / BLITZ_DURATION_MS) * 100)),
-  );
+  const total = blitzRunTotal(run);
+  const pct = Math.min(100, Math.max(0, Math.round(((total - left) / total) * 100)));
   const balance = premiumState(hero).balance;
   const short = balance < BLITZ_SKIP_DIAMONDS;
 
@@ -96,6 +95,7 @@ export function BlitzRunCard() {
         <span className="flex items-center gap-2">
           <Zap className="h-4 w-4" />
           Blitz running · {run.gate === "campaign" ? "campaign" : "conquest"} {run.target}
+          <span className="text-xs font-normal text-muted-foreground">({Math.round(total / 60_000)} min run)</span>
         </span>
         <span className="font-bold tabular-nums">{formatBlitzLeft(left)}</span>
       </div>

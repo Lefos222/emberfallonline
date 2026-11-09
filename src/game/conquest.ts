@@ -30,8 +30,36 @@ export function addConquestTokens(h: Hero, n: number) {
 /** Blitzes a hero may run each Greek day. The floors themselves are never rationed. */
 export const BLITZ_PER_DAY = 3;
 
-/** A hero's blitz allowance, saved with the conquest tokens. */
-export interface BlitzState { conquest?: { tokens?: number; blitzDay?: string; blitzUsed?: number } }
+/** A hero's blitz allowance and Conquest Key, saved with the conquest tokens. */
+export interface BlitzState {
+  conquest?: { tokens?: number; blitzDay?: string; blitzUsed?: number; keyDay?: string };
+}
+
+/* ---------------------------------------------------------------- Conquest Key */
+
+/**
+ * The Conquest Key doubles every reward the Conquest Gate pays for the rest of the Greek day:
+ * the tokens and gold of a cleared floor and of a conquest blitz. It is bought for gold in the
+ * Auction House shop, one per day, and expires at Greek midnight with the blitz allowance.
+ */
+export const CONQUEST_KEY_MULTIPLIER = 2;
+/** Base gold price of a Conquest Key before the shop's own discount and the hero's level scaling. */
+export const CONQUEST_KEY_GOLD = 45000;
+
+/** True while today's Conquest Key is in the hero's pack. */
+export const conquestKeyActive = (h: Pick<Hero, "conquest">, now = Date.now()) =>
+  h.conquest?.keyDay === blitzDay(now);
+
+/** The multiplier the gate's rewards pay right now: 2 with today's key, otherwise 1. */
+export const conquestRewardMultiplier = (h: Pick<Hero, "conquest">, now = Date.now()) =>
+  conquestKeyActive(h, now) ? CONQUEST_KEY_MULTIPLIER : 1;
+
+/** Buy and use today's Conquest Key. Returns an error message, or null on success. */
+export function activateConquestKey(h: Hero, now = Date.now()): string | null {
+  if (conquestKeyActive(h, now)) return "Today's Conquest Key is already in your pack — it lasts until Greek midnight.";
+  h.conquest = { ...(h.conquest ?? {}), keyDay: blitzDay(now) };
+  return null;
+}
 
 /** Greek day the blitz allowance is on, so the count resets at Greek midnight like the dailies. */
 export const blitzDay = (now = Date.now()) => new Date(greekDayStart(now)).toISOString().slice(0, 10);
@@ -96,15 +124,22 @@ export function buyTokenOffer(h: Hero, id: string): string | null {
 
 export interface BlitzResult { floors: number; gold: number; tokens: number }
 
-/** What a blitz to `target` pays in total: those floors' gold and tokens. The Conquest Gate pays
- *  no XP at all — every level is earned in the Campaign Gate. */
-export function blitzRewards(target: number): BlitzResult {
+/**
+ * What blitzing floors 1..target pays in total, at `mult` times the base reward (the Conquest Key
+ * pays 2×). The Conquest Gate pays no XP at all — every level is earned in the Campaign Gate.
+ */
+export function blitzRewards(target: number, mult = 1): BlitzResult {
   let gold = 0, tokens = 0;
   for (let f = 1; f <= target; f++) {
     const r = stageRewards(f, 2);
-    gold += r.gold; tokens += floorTokens(f);
+    gold += r.gold * mult; tokens += floorTokens(f) * mult;
   }
-  return { floors: target, gold, tokens };
+  return { floors: target, gold: Math.round(gold), tokens };
+}
+
+/** What clearing one floor pays right now, key included: its gold and tokens. */
+export function conquestFloorRewards(floor: number, mult = 1) {
+  return { gold: Math.round(stageRewards(floor, 2).gold * mult), tokens: floorTokens(floor) * mult };
 }
 
 /**
@@ -126,7 +161,8 @@ export function blitzBlocker(h: Pick<Hero, "spire" | "blitzRun"> & BlitzState, t
 export function blitz(h: Hero, target: number, now = Date.now()): string | null {
   const blocked = blitzBlocker(h, target, now);
   if (blocked) return blocked;
-  const rw = blitzRewards(target);
+  // Today's Conquest Key doubles what the run banks (see conquestKeyActive).
+  const rw = blitzRewards(target, conquestRewardMultiplier(h, now));
   spendBlitz(h, now);
   // The gate pays no XP: a conquest run lands with an empty XP purse (see blitz-run.ts).
   return startBlitzRun(h, { gate: "conquest", target, xp: 0, gold: rw.gold, tokens: rw.tokens }, now);

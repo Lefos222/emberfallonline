@@ -7,8 +7,10 @@ import { GEMS, GEM_MAX_TIER, GEM_STAT_LABEL, GEM_TYPES, MATS, gemKey, gemValue, 
 import { BlitzRunCard } from "./BlitzRun";
 import {
   BLITZ_PER_DAY, blitz, blitzBlocker, blitzRewards, blitzesLeft, buyConquestGem, buyTokenOffer,
-  conquestTokens, floorTokens, floorsCleared, gemTokenPrice, TOKEN_OFFERS,
+  conquestKeyActive, conquestRewardMultiplier, conquestTokens, floorTokens, floorsCleared,
+  gemTokenPrice, TOKEN_OFFERS,
 } from "./conquest";
+import { blitzDurationMs } from "./blitz-run";
 import type { Hero } from "./data";
 import { update } from "./store";
 import { GameTabs, Gold, fmt } from "./ui";
@@ -42,6 +44,11 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
           </span>
           <span className="slot px-2.5 py-1.5">Deepest floor <b className="text-gold">{cap || "—"}</b></span>
           <span className="slot px-2.5 py-1.5">Blitzes <b className="text-gold">{left}/{BLITZ_PER_DAY}</b></span>
+          {conquestKeyActive(hero) && (
+            <span className="slot border-gold/60 px-2.5 py-1.5 text-gold" title="Today's Conquest Key doubles every reward the gate pays">
+              <b>Conquest Key ×2</b> · until Greek midnight
+            </span>
+          )}
         </div>
       </header>
 
@@ -70,7 +77,10 @@ function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
   const left = blitzesLeft(hero);
   const usable = Math.min(Math.max(1, target || 1), Math.max(1, cap));
   const blocked = blitzBlocker(hero, usable);
-  const preview = blocked ? null : blitzRewards(usable);
+  // Today's Conquest Key doubles what the run banks (see conquest.ts).
+  const keyMult = conquestRewardMultiplier(hero);
+  const preview = blocked ? null : blitzRewards(usable, keyMult);
+  const runMinutes = Math.round(blitzDurationMs(usable) / 60_000);
   const jump = (n: number) => { setTarget(n); setMsg(null); };
   const perFloor = usable > 0 ? Math.max(1, Math.round((preview?.tokens ?? 0) / usable)) : 0;
 
@@ -84,8 +94,9 @@ function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
         <p className="mt-1 text-xs text-muted-foreground">
           A blitz replays floors 1 to a depth you have already beaten, without a single fight.
           It pays those floors' gold and tokens — no XP: levels are earned in the Campaign Gate
-          only. The run takes ten minutes; 25 Diamonds finish it on the spot. The allowance
-          returns at Greek midnight, and the floors themselves are never limited.
+          only. A run takes 20 minutes, and up to 50 for a deep climb; 25 Diamonds finish it on
+          the spot. The allowance returns at Greek midnight, and the floors themselves are never
+          limited.{keyMult > 1 ? " Today's Conquest Key doubles everything this run banks." : ""}
         </p>
 
         <div className="mt-3">
@@ -119,7 +130,7 @@ function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
           const err = blitz(h, usable);
           setMsg(err ? { ok: false, t: err } : {
             ok: true,
-            t: `Blitz started — floors 1-${usable} pay +${fmt(preview?.gold ?? 0)} gold and +${fmt(preview?.tokens ?? 0)} tokens when it lands`,
+            t: `Blitz started — floors 1-${usable} pay +${fmt(preview?.gold ?? 0)} gold and +${fmt(preview?.tokens ?? 0)} tokens in ${runMinutes} minutes`,
           });
         })}>
           <Zap className="mr-1 inline h-4 w-4" />{left < 1 ? "No blitzes left today" : `Blitz floors 1-${usable}`}
@@ -151,6 +162,10 @@ function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
               <div className="flex items-center justify-between gap-2 text-xs">
                 <dt className="text-muted-foreground">Tokens per floor</dt>
                 <dd>≈ {fmt(perFloor)}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-2 text-xs">
+                <dt className="text-muted-foreground">Run time</dt>
+                <dd>{runMinutes} min{keyMult > 1 ? " · Key ×2" : ""}</dd>
               </div>
             </dl>
             <p className="mt-3 text-xs text-muted-foreground">

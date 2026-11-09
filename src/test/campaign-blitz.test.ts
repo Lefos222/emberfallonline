@@ -5,7 +5,7 @@ import {
   campaignBlitzRewards,
   campaignStagesCleared,
 } from "@/game/campaign-blitz";
-import { BLITZ_DURATION_MS, BLITZ_XP_SHARE, blitzRunning, finishBlitzRun } from "@/game/blitz-run";
+import { BLITZ_XP_SHARE, blitzDurationMs, blitzRunning, finishBlitzRun } from "@/game/blitz-run";
 import { blitz, blitzDay, blitzesLeft, blitzesUsed, BLITZ_PER_DAY } from "@/game/conquest";
 import { newHero, stageRewards, type Hero } from "@/game/data";
 
@@ -47,7 +47,7 @@ describe("campaign blitz", () => {
 
     expect(campaignBlitz(h, 3, NOW)).toBeNull();
     expect(h.blitzRun).toMatchObject({ gate: "campaign", target: 3, xp: rw.xp, gold: rw.gold });
-    expect(h.blitzRun?.endsAt).toBe(NOW + BLITZ_DURATION_MS);
+    expect(h.blitzRun?.endsAt).toBe(NOW + blitzDurationMs(3));
     expect(h.gold).toBe(100); // nothing is paid while the run is out
     expect(blitzRunning(h, NOW)).toBe(true);
 

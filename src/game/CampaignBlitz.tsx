@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BLITZ_PER_DAY, blitzesLeft } from "./conquest";
+import { blitzDurationMs } from "./blitz-run";
 import {
   campaignBlitz,
   campaignBlitzBlocker,
@@ -43,9 +44,10 @@ export function CampaignBlitz({ hero }: { hero: Hero }) {
       </div>
       <p className="text-xs text-muted-foreground">
         Clear stages 1 to a stage you have already beaten without fighting them again. Your record
-        is stage {cap}; a blitz pays those stages' gold but only 30% of their XP, and it takes ten
-        minutes to run — no battle can start until it lands, and 25 Diamonds finish it on the spot.
-        It shares the daily blitz allowance with the Conquest Gate, which returns at Greek midnight.
+        is stage {cap}; a blitz pays those stages' gold but only 30% of their XP. A run takes 20
+        minutes, and up to 50 for a deep climb — no battle can start until it lands, and 25
+        Diamonds finish it on the spot. It shares the daily blitz allowance with the Conquest
+        Gate, which returns at Greek midnight.
       </p>
       <div className="mt-3 flex flex-wrap items-end gap-2">
         <label className="text-xs">
@@ -70,7 +72,7 @@ export function CampaignBlitz({ hero }: { hero: Hero }) {
                   ? { ok: false, t: err }
                   : {
                       ok: true,
-                      t: `Blitz started — stages 1-${usable} will pay +${fmt(preview?.xp ?? 0)} XP and +${fmt(preview?.gold ?? 0)} gold in ten minutes`,
+                      t: `Blitz started — stages 1-${usable} will pay +${fmt(preview?.xp ?? 0)} XP and +${fmt(preview?.gold ?? 0)} gold in ${Math.round(blitzDurationMs(usable) / 60_000)} minutes`,
                     },
               );
             })
