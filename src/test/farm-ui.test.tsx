@@ -39,7 +39,7 @@ describe("the farm panel", () => {
     render(<FarmPanel onClose={() => {}} />);
 
     fireEvent.click(screen.getByLabelText("Empty plot 1 — plant a seed"));
-    const dialog = screen.getByText("Plant in plot 1").closest(".game-panel") as HTMLElement;
+    const dialog = screen.getByRole("dialog");
     const plantButton = within(dialog)
       .getAllByRole("button")
       .find((b) => /Plant/.test(b.textContent ?? ""))!;

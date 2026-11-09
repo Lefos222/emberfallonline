@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Lock, Sprout, Wheat, Sparkles, Timer, Tractor, Coins } from "lucide-react";
 import type { Hero } from "./data";
 import { getState, update, useGame } from "./store";
@@ -55,7 +57,7 @@ export function CropArt({
       height={size}
       aria-hidden="true"
       focusable="false"
-      style={{ filter: stage === 2 ? `drop-shadow(0 0 6px ${crop})` : undefined }}
+      style={{ width: size, height: size, flexShrink: 0, filter: stage === 2 ? `drop-shadow(0 0 6px ${crop})` : undefined }}
     >
       <ellipse cx="24" cy="42" rx="15" ry="4" fill="oklch(0.24 0.04 45)" opacity="0.9" />
       {stage === 0 ? (
@@ -193,7 +195,7 @@ function SeedOption({
   const price = seedPrice(kind, tier);
   const affordable = held > 0 || hero.gold >= price;
   const plant = () => {
-    let err: string | null = null;
+    let err: string | null = "Please wait for your character to finish syncing, then try again.";
     update((h) => {
       err = plantSeed(h, slot, kind, tier);
     });
@@ -214,7 +216,7 @@ function SeedOption({
           · held ×{fmt(held)}
         </div>
       </div>
-      <button
+      <Button variant="ghost"
         className="btn-gold px-2.5 py-1 text-xs"
         disabled={!affordable}
         title={affordable ? "Plant this seed" : "Not enough gold"}
@@ -227,7 +229,7 @@ function SeedOption({
             Plant · <Gold n={price} className="text-primary-foreground" />
           </>
         )}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -237,6 +239,8 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
   const [pickSlot, setPickSlot] = useState<number | null>(null);
   const [toast, setToast] = useState<{ text: string; bad?: boolean } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
   const [levelUp, setLevelUp] = useState<number | null>(null);
   // One local ticker keeps growth timers visibly moving; the truth is the saved timestamp.
   const [, setTick] = useState(0);
@@ -254,7 +258,8 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
 
   const say = (text: string, bad = false) => {
     setToast({ text, bad });
-    window.setTimeout(() => setToast(null), 2600);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2600);
   };
 
   const plant = (index: number) => setPickSlot(index);
@@ -294,7 +299,7 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
   };
 
   const buy = (kind: SeedKind, tier: number, qty: number) => {
-    let err: string | null = null;
+    let err: string | null = "Please wait for your character to finish syncing, then try again.";
     update((h) => {
       err = buySeed(h, kind, tier, qty);
     });
@@ -315,14 +320,14 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
         <span className="slot flex items-center gap-1 px-2 py-1" title="Gold in your purse">
           <Gold n={hero.gold} />
         </span>
-        <button
+        <Button variant="ghost"
           className="btn-gold px-3 py-1.5 text-sm"
           disabled={ripe === 0}
           onClick={harvestRipe}
         >
           <Tractor className="mr-1 inline h-4 w-4" />
           Harvest All{ripe > 0 ? ` (${ripe})` : ""}
-        </button>
+        </Button>
       </div>
 
       {toast && (
@@ -343,7 +348,7 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
           const progress = crop ? cropProgress(crop, now) : 0;
           const stage = ready ? 2 : progress >= 0.45 ? 1 : 0;
           return (
-            <button
+            <Button variant="ghost"
               key={index}
               type="button"
               aria-label={
@@ -355,7 +360,7 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
               }
               disabled={locked || (!!crop && !ready)}
               onClick={() => (crop ? harvest(index) : plant(index))}
-              className={`farm-plot relative flex aspect-square flex-col items-center justify-center gap-0.5 p-1 text-center transition ${locked ? "farm-plot-locked" : ready ? "farm-plot-ready anim-pop" : ""}`}
+              className={`farm-plot h-auto min-h-20 whitespace-normal relative flex aspect-square flex-col items-center justify-center gap-0.5 p-1 text-center transition ${locked ? "farm-plot-locked" : ready ? "farm-plot-ready anim-pop" : ""}`}
             >
               {locked ? (
                 <span className="flex flex-col items-center gap-0.5 text-muted-foreground">
@@ -391,7 +396,7 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
                   style={{ width: `${Math.round(progress * 100)}%` }}
                 />
               )}
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -434,14 +439,14 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
             the Farm. Higher tiers unlock as the Farm grows.
           </p>
           <div className="flex flex-wrap gap-1.5">
-            <button className="btn-ghost px-2 py-1 text-xs" onClick={() => buy("gold", level, 1)}>
+            <Button variant="ghost" className="btn-ghost px-2 py-1 text-xs" onClick={() => buy("gold", level, 1)}>
               <Coins className="mr-1 inline h-3.5 w-3.5" />
               Gold Seed Lv {level} · <Gold n={seedPrice("gold", level)} />
-            </button>
-            <button className="btn-ghost px-2 py-1 text-xs" onClick={() => buy("xp", level, 1)}>
+            </Button>
+            <Button variant="ghost" className="btn-ghost px-2 py-1 text-xs" onClick={() => buy("xp", level, 1)}>
               <Sparkles className="mr-1 inline h-3.5 w-3.5" />
               XP Seed Lv {level} · <Gold n={seedPrice("xp", level)} />
-            </button>
+            </Button>
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">
             The full seed catalogue lives in the Shop's Farm tab.
@@ -449,27 +454,15 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
         </section>
       </div>
 
-      {pickSlot !== null && (
-        <div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-background/80 p-4"
-          onClick={() => setPickSlot(null)}
-        >
-          <div
-            className="game-panel anim-pop max-h-[85vh] w-full max-w-lg overflow-y-auto p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="font-display text-lg text-gold">Plant in plot {pickSlot + 1}</h3>
-              <button className="btn-ghost px-2 py-1 text-xs" onClick={() => setPickSlot(null)}>
-                Close
-              </button>
-            </div>
+      <Dialog open={pickSlot !== null} onOpenChange={(open) => { if (!open) setPickSlot(null); }}>
+        <DialogContent aria-describedby={undefined} className="game-panel max-h-[85dvh] w-[calc(100%-2rem)] overflow-y-auto p-4">
+          <DialogTitle className="font-display text-lg text-gold">Plant in plot {(pickSlot ?? 0) + 1}</DialogTitle>
             <div className="space-y-1.5">
               {Array.from({ length: level }, (_, i) => level - i).map((tier) => (
                 <div key={`t${tier}`} className="space-y-1.5">
                   <SeedOption
                     hero={hero}
-                    slot={pickSlot}
+                    slot={pickSlot ?? 0}
                     kind="gold"
                     tier={tier}
                     onDone={(m, bad) => {
@@ -479,7 +472,7 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
                   />
                   <SeedOption
                     hero={hero}
-                    slot={pickSlot}
+                    slot={pickSlot ?? 0}
                     kind="xp"
                     tier={tier}
                     onDone={(m, bad) => {
@@ -490,9 +483,8 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {levelUp !== null && (
         <div
@@ -509,9 +501,9 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
               A new plot is tilled. {slotsForLevel(farmLevel(hero))} of {FARM_TOTAL_SLOTS} plots are
               now yours.
             </p>
-            <button className="btn-gold mt-4 w-full py-2" onClick={() => setLevelUp(null)}>
+            <Button variant="ghost" className="btn-gold mt-4 w-full py-2" onClick={() => setLevelUp(null)}>
               Continue
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -524,7 +516,7 @@ export function FarmShopTab({ hero }: { hero: Hero }) {
   const [notice, setNotice] = useState<{ ok: boolean; t: string } | null>(null);
   const level = farmLevel(hero);
   const buy = (kind: SeedKind, tier: number, qty: number) => {
-    let err: string | null = null;
+    let err: string | null = "Please wait for your character to finish syncing, then try again.";
     update((h) => {
       err = buySeed(h, kind, tier, qty);
     });
@@ -560,7 +552,7 @@ export function FarmShopTab({ hero }: { hero: Hero }) {
                 {kind === "gold" ? (
                   <b className="text-gold">{fmt(reward)} gold</b>
                 ) : (
-                  <b className="text-[#b57bff]">{fmt(reward)} XP</b>
+                  <b className="text-void">{fmt(reward)} XP</b>
                 )}
               </div>
               <div className="text-[10px] text-muted-foreground">Held ×{fmt(held)}</div>
@@ -571,22 +563,22 @@ export function FarmShopTab({ hero }: { hero: Hero }) {
                 </span>
               ) : (
                 <div className="mt-1 flex w-full gap-1">
-                  <button
+                  <Button variant="ghost"
                     className="btn-gold flex-1 px-1 py-1 text-[10px]"
                     disabled={hero.gold < price}
                     aria-label={`Buy ${seedName(kind, tier)}`}
                     onClick={() => buy(kind, tier, 1)}
                   >
                     ×1 · <Gold n={price} className="text-primary-foreground" />
-                  </button>
-                  <button
+                  </Button>
+                  <Button variant="ghost"
                     className="btn-ghost px-1 py-1 text-[10px]"
                     disabled={hero.gold < price * 5}
                     aria-label={`Buy five ${seedName(kind, tier)}`}
                     onClick={() => buy(kind, tier, 5)}
                   >
                     ×5
-                  </button>
+                  </Button>
                 </div>
               )}
             </article>

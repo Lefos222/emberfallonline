@@ -19,9 +19,15 @@ export const FARM_TOTAL_SLOTS = 18;
 /** The first three plots are tilled from the start; every Farm Level adds one more. */
 export const FARM_STARTING_SLOTS = 3;
 
+const validKind = (kind: SeedKind) => kind === "gold" || kind === "xp";
+const validTier = (tier: number) => Number.isInteger(tier) && tier >= 1 && tier <= FARM_MAX_LEVEL;
+const validSlot = (index: number) => Number.isInteger(index) && index >= 0 && index < FARM_TOTAL_SLOTS;
+const safeWhole = (value: number | undefined, fallback: number) =>
+  value !== undefined && Number.isFinite(value) ? Math.floor(value) : fallback;
+
 /** Farm Level for a hero, clamped to the real ladder. */
 export const farmLevel = (h: Pick<Hero, "farm">) =>
-  Math.max(1, Math.min(FARM_MAX_LEVEL, Math.floor(h.farm?.level ?? 1)));
+  Math.max(1, Math.min(FARM_MAX_LEVEL, safeWhole(h.farm?.level, 1)));
 
 /** Plots unlocked at a Farm Level: 3 at level 1, one more per level, all 18 at level 16. */
 export const slotsForLevel = (level: number) =>
@@ -43,10 +49,10 @@ export const FARM_XP_STEPS: readonly number[] = [
 export const farmXpToNext = (level: number) =>
   level >= FARM_MAX_LEVEL
     ? 0
-    : FARM_XP_STEPS[Math.max(0, Math.min(FARM_XP_STEPS.length - 1, level - 1))]!;
+    : (FARM_XP_STEPS[Math.max(0, Math.min(FARM_XP_STEPS.length - 1, safeWhole(level, 1) - 1))] ?? 120);
 
 /** The hero's Farm XP inside the current level. */
-export const farmXp = (h: Pick<Hero, "farm">) => Math.max(0, Math.floor(h.farm?.xp ?? 0));
+export const farmXp = (h: Pick<Hero, "farm">) => Math.max(0, safeWhole(h.farm?.xp, 0));
 
 /** Share of the way to the next Farm Level, 0-1 (1 at the top). */
 export const farmProgress = (h: Pick<Hero, "farm">) => {
@@ -74,7 +80,7 @@ export const xpSeedMinutes = (tier: number) => 20 + 4 * (Math.max(1, tier) - 1);
 /** Gold Seed prices are the table above; XP Seeds have their own ladder. */
 export const seedPrice = (kind: SeedKind, tier: number) => {
   const t = Math.max(1, Math.min(FARM_MAX_LEVEL, Math.floor(tier)));
-  return kind === "gold" ? GOLD_SEED_PRICES[t - 1]! : XP_SEED_PRICES[t - 1]!;
+  return (kind === "gold" ? GOLD_SEED_PRICES[t - 1] : XP_SEED_PRICES[t - 1]) ?? 0;
 };
 
 /**
@@ -90,7 +96,7 @@ export const goldSeedReward = (tier: number) => Math.round(seedPrice("gold", tie
  */
 export const xpSeedReward = (tier: number) => {
   const t = Math.max(1, Math.min(FARM_MAX_LEVEL, Math.floor(tier)));
-  const step = FARM_XP_STEPS[t - 1] ?? FARM_XP_STEPS[FARM_XP_STEPS.length - 1]!;
+  const step = FARM_XP_STEPS[t - 1] ?? 12000;
   return Math.round(step * 0.42);
 };
 
@@ -143,8 +149,8 @@ export function ensureFarm(h: Hero): Required<FarmState> {
   const current = h.farm ?? {};
   const slots = Array.from({ length: FARM_TOTAL_SLOTS }, (_, i) => current.slots?.[i] ?? null);
   const farm: Required<FarmState> = {
-    level: Math.max(1, Math.min(FARM_MAX_LEVEL, Math.floor(current.level ?? 1))),
-    xp: Math.max(0, Math.floor(current.xp ?? 0)),
+    level: farmLevel(h),
+    xp: farmXp(h),
     slots,
     seeds: { ...(current.seeds ?? {}) },
   };
@@ -159,7 +165,7 @@ export function normalizeFarm(h: Hero) {
 
 /** An empty plot the current Farm Level has tilled. */
 export const isSlotUnlocked = (h: Pick<Hero, "farm">, index: number) =>
-  index < slotsForLevel(farmLevel(h));
+  validSlot(index) && index < slotsForLevel(farmLevel(h));
 
 /** The crop in a plot, or null when it is empty (or locked). */
 export const cropAt = (h: Pick<Hero, "farm">, index: number): FarmCrop | null =>
@@ -167,7 +173,7 @@ export const cropAt = (h: Pick<Hero, "farm">, index: number): FarmCrop | null =>
 
 /** Seeds of one kind the hero is carrying. */
 export const seedCount = (h: Pick<Hero, "farm">, kind: SeedKind, tier: number) =>
-  Math.max(0, Math.floor(h.farm?.seeds?.[seedKey(kind, tier)] ?? 0));
+  Math.max(0, safeWhole(h.farm?.seeds?.[seedKey(kind, tier)], 0));
 
 /** Every seed in the pouch, lowest tier first, for the pack list. */
 export function heldSeeds(
@@ -185,12 +191,14 @@ export function heldSeeds(
 
 /** Buy seeds into the pouch. Returns an error string, or null on success. */
 export function buySeed(h: Hero, kind: SeedKind, tier: number, qty = 1): string | null {
+  if (!validKind(kind) || !validTier(tier)) return "Unknown seed";
+  if (!Number.isSafeInteger(qty) || qty < 1) return "Choose a whole number of seeds";
   const farm = ensureFarm(h);
   const t = Math.max(1, Math.min(FARM_MAX_LEVEL, Math.floor(tier)));
   if (t > farm.level) return `Farm level ${t} needed`;
   const count = Math.max(1, Math.floor(qty));
   const total = seedPrice(kind, t) * count;
-  if (h.gold < total) return `Not enough gold — ${total.toLocaleString()} needed`;
+  if (!Number.isSafeInteger(total) || !Number.isFinite(h.gold) || h.gold < total) return `Not enough gold — ${total.toLocaleString()} needed`;
   h.gold -= total;
   const key = seedKey(kind, t);
   farm.seeds[key] = (farm.seeds[key] ?? 0) + count;
@@ -205,6 +213,9 @@ export function plantSeed(
   tier: number,
   now = Date.now(),
 ): string | null {
+  if (!validSlot(index)) return "Unknown plot";
+  if (!validKind(kind) || !validTier(tier)) return "Unknown seed";
+  if (!Number.isFinite(now) || now < 0) return "Invalid planting time";
   const farm = ensureFarm(h);
   const t = Math.max(1, Math.min(FARM_MAX_LEVEL, Math.floor(tier)));
   if (index < 0 || index >= FARM_TOTAL_SLOTS) return "Unknown plot";
@@ -217,7 +228,7 @@ export function plantSeed(
     farm.seeds[key] = (farm.seeds[key] ?? 0) - 1;
   } else {
     const price = seedPrice(kind, t);
-    if (h.gold < price) return `Not enough gold — ${price.toLocaleString()} needed`;
+    if (!Number.isFinite(h.gold) || h.gold < price) return `Not enough gold — ${price.toLocaleString()} needed`;
     h.gold -= price;
   }
   farm.slots[index] = { kind, tier: t, plantedAt: now, readyAt: now + seedDurationMs(kind, t) };
@@ -233,6 +244,7 @@ export interface HarvestResult {
 
 /** Add Farm XP, carrying the excess over, and report how many levels it bought. */
 export function addFarmXp(h: Hero, xp: number): number {
+  if (!Number.isFinite(xp) || xp <= 0) return 0;
   const farm = ensureFarm(h);
   if (farm.level >= FARM_MAX_LEVEL) return 0;
   farm.xp += Math.max(0, Math.floor(xp));
@@ -248,10 +260,11 @@ export function addFarmXp(h: Hero, xp: number): number {
 
 /** Harvest one ripe plot. Returns null when the plot is empty or still growing (so no double harvest). */
 export function harvestSlot(h: Hero, index: number, now = Date.now()): HarvestResult | null {
+  if (!validSlot(index) || !Number.isFinite(now) || now < 0) return null;
   const farm = ensureFarm(h);
   const crop = farm.slots[index];
   if (!crop) return null;
-  if (now < crop.readyAt) return null;
+  if (!validKind(crop.kind) || !validTier(crop.tier) || !Number.isFinite(crop.readyAt) || !Number.isFinite(crop.plantedAt) || crop.readyAt <= crop.plantedAt || now < crop.readyAt) return null;
   farm.slots[index] = null;
   const gold = crop.kind === "gold" ? goldSeedReward(crop.tier) : 0;
   const xp = crop.kind === "xp" ? xpSeedReward(crop.tier) : 0;

@@ -48,6 +48,31 @@ describe("the farm ladder", () => {
 });
 
 describe("seeds", () => {
+  it("rejects invalid quantities without charging gold or issuing seeds", () => {
+    for (const qty of [0, -1, 1.5, NaN, Infinity]) {
+      const h = hero();
+      expect(buySeed(h, "gold", 1, qty)).not.toBeNull();
+      expect(h.gold).toBe(1_000_000);
+      expect(seedCount(h, "gold", 1)).toBe(0);
+    }
+  });
+
+  it("rejects fractional plots and invalid tiers without spending gold", () => {
+    const h = hero();
+    expect(plantSeed(h, 0.5, "gold", 1)).toBe("Unknown plot");
+    expect(plantSeed(h, 0, "gold", NaN)).toBe("Unknown seed");
+    expect(plantSeed(h, 0, "gold", 17)).toBe("Unknown seed");
+    expect(h.gold).toBe(1_000_000);
+    expect(h.farm?.slots?.every((crop) => crop === null)).toBe(true);
+  });
+
+  it("uses a purchased seed without charging a second time", () => {
+    const h = hero();
+    buySeed(h, "gold", 1);
+    expect(plantSeed(h, 0, "gold", 1, 1000)).toBeNull();
+    expect(h.gold).toBe(999_800);
+    expect(seedCount(h, "gold", 1)).toBe(0);
+  });
   it("sells gold seeds into the pouch for the listed price", () => {
     const h = hero();
     const price = seedPrice("gold", 1);
@@ -77,6 +102,22 @@ describe("seeds", () => {
 });
 
 describe("harvesting", () => {
+  it("keeps offline crops through save serialization and pays each crop once", () => {
+    const h = hero();
+    plantSeed(h, 0, "gold", 1, 1000);
+    const restored = JSON.parse(JSON.stringify(h));
+    expect(harvestSlot(restored, 0, 1_201_000)?.gold).toBe(260);
+    expect(harvestSlot(restored, 0, 1_201_000)).toBeNull();
+    expect(restored.gold).toBe(1_000_060);
+  });
+
+  it("rejects an invalid harvest time without clearing the crop", () => {
+    const h = hero();
+    plantSeed(h, 0, "gold", 1, 1000);
+    expect(harvestSlot(h, 0, NaN)).toBeNull();
+    expect(h.farm?.slots?.[0]?.readyAt).toBe(1_201_000);
+    expect(h.gold).toBe(999_800);
+  });
   it("pays gold only once a crop is ripe", () => {
     const h = hero();
     plantSeed(h, 0, "gold", 1, 0);

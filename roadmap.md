@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Current request
+- [x] Repair farm input validation, false success feedback and accessible planting dialog; 20 tests pass, signed-in XP planting persists after refresh, Escape closes the picker, phone has no horizontal overflow. Harvest timing/replay verified in tests, not accelerated on the live character.
 - [x] Deleted all 14 characters in Lovable Cloud; preserved all 18 sign-in accounts. New creation uses the tested level-0 initialization path (4 tests passed); signed-in browser opens the empty-roster creation screen. Publish the creation change for the live site.
 - [x] World reset to level 0 / 0 gold, run in the app (`src/game/world-reset.ts`): every character loaded with an older save is rebuilt and saved back, with no database script; steeper enemy curve after level 30; pre-merge armour outfits restored beside the current pool; codex-only boss portraits kept out of battle; painted icons for every skill-tree and passive node; Armory gear codex for both painted gear updates.
 - [x] Clean 54 newly added outfit/set cutouts and knight set backgrounds; 78 artwork images verified in isolated desktop/phone presentation checks, Knight source directions normalized for shared mirroring. No player saves changed.
