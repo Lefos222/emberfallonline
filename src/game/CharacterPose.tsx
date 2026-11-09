@@ -6,7 +6,7 @@ import { WeaponArc } from './BattleArt';
 import { moveFor } from './skillAnim';
 import type { HeroClass } from './data';
 
-export function CharacterPose({ cls, gender, className = '', synth, look }: { cls: HeroClass; gender: 'male' | 'female'; className?: string; synth?: number | null; look?: number | null }) {
+export function CharacterPose({ cls, gender, className = '', synth, look, weapon }: { cls: HeroClass; gender: 'male' | 'female'; className?: string; synth?: number | null; look?: number | null; weapon?: number | null }) {
   const [replay, setReplay] = useState(0);
   const [actionPose, setActionPose] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -18,7 +18,7 @@ export function CharacterPose({ cls, gender, className = '', synth, look }: { cl
   const move = moveFor({ cls });
   return <div className={`pose-unit relative ${className}`}>
     <div key={replay} className={`relative h-full w-full ${playing ? `anim-${move}` : 'anim-idle'}`}>
-      <CharacterModel cls={cls} gender={gender} pose={playing || actionPose ? 'action' : 'idle'} className="h-full w-full" synth={synth} look={look} />
+      <CharacterModel cls={cls} gender={gender} pose={playing || actionPose ? 'action' : 'idle'} className="h-full w-full" synth={synth} look={look} weapon={weapon} />
       {playing && <WeaponArc move={move} />}
     </div>
     <div className="absolute bottom-1 right-1 flex gap-1">
