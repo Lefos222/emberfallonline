@@ -3,7 +3,6 @@ import { addChests, type ChestKind } from "./chests";
 import { BLITZ_RUNNING, blitzRunning, startBlitzRun } from "./blitz-run";
 import { stageRewards, type Hero } from "./data";
 import { greekDayStart } from "./events";
-import { scaledGold } from "./gold";
 
 /**
  * Endless Conquest. Floors never stop scaling: each one is built from the shared
@@ -17,8 +16,12 @@ export const floorsCleared = (h: Pick<Hero, "spire">) => Math.max(0, h.spire - 1
 /** Conquest Tokens, earned on the floors and spent on the gate's material offers. */
 export const conquestTokens = (h: Pick<Hero, "conquest">) => h.conquest?.tokens ?? 0;
 
+/** Every floor's token payout carries this bump, so the Conquest Gate's own coin drops more often. */
+export const CONQUEST_TOKEN_BONUS = 0.2;
+
 /** Tokens one floor pays. Deeper floors pay more, so the gate keeps rewarding the climb. */
-export const floorTokens = (floor: number) => 4 + Math.floor(floor / 5) + Math.floor(floor / 20);
+export const floorTokens = (floor: number) =>
+  Math.max(1, Math.round((4 + Math.floor(floor / 5) + Math.floor(floor / 20)) * (1 + CONQUEST_TOKEN_BONUS)));
 
 export function addConquestTokens(h: Hero, n: number) {
   h.conquest = { ...(h.conquest ?? {}), tokens: Math.max(0, conquestTokens(h) + n) };
@@ -47,17 +50,18 @@ export function spendBlitz(h: Hero, now = Date.now()) {
   h.conquest = { ...(h.conquest ?? {}), blitzDay: blitzDay(now), blitzUsed: blitzesUsed(h, now) + 1 };
 }
 
-/** Gold a gem costs in the Conquest store: 1,800 for a level 1 gem of any family, then the tier
- *  climbs steeply (level²) so buying socket power at the gate stays a real late-game sink.
- *  Scaled by hero level like every other gold price (see gold.ts). */
-export const gemGoldPrice = (level: number, heroLevel = 1) => scaledGold(1800 * level * level, heroLevel);
+/** Tokens a gem costs at the Conquest Gate: 25 for a level 1 gem of any family, then the tier
+ *  climbs so buying socket power stays a real late-game sink. The gate takes no gold at all —
+ *  Conquest Tokens are the only coin it deals in (see buyConquestGem). */
+export const gemTokenPrice = (level: number) =>
+  Math.round(25 * Math.pow(Math.max(1, Math.min(GEM_MAX_TIER, level)), 1.7));
 
-/** Buy a gem of any family and level with gold at the Conquest Gate. Returns an error message, or null on success. */
+/** Buy a gem of any family and level with Conquest Tokens. Returns an error message, or null on success. */
 export function buyConquestGem(h: Hero, type: GemType, level: number): string | null {
   if (level < 1 || level > GEM_MAX_TIER) return "No such gem level";
-  const cost = gemGoldPrice(level, h.level);
-  if (h.gold < cost) return `Not enough gold — ${cost} needed`;
-  h.gold -= cost;
+  const cost = gemTokenPrice(level);
+  if (conquestTokens(h) < cost) return `Not enough Conquest Tokens — ${cost} needed`;
+  addConquestTokens(h, -cost);
   addGem(h, type, level);
   return null;
 }

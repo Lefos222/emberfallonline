@@ -53,7 +53,8 @@ describe("stamina and the potion pouch in the game", () => {
     render(<Expeditions onClose={() => {}} start={start} />);
     fireEvent.click(screen.getAllByRole("button", { name: /Enter expedition/i })[0]!);
     render(<Challenges onClose={() => {}} start={start} />);
-    fireEvent.click(screen.getByRole("button", { name: /Hunt/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /Elite hunt/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^Hunt/ }));
     render(<RelicTrials onClose={() => {}} start={start} />);
     fireEvent.click(screen.getAllByRole("button", { name: /Begin Rank/i })[0]!);
 

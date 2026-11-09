@@ -7,6 +7,7 @@ import { ArtIcon, type ArtIconName } from "./ArtIcon";
 import { GuildHall } from "./GuildHall";
 import { WorldChat } from "./WorldChat";
 import { FarmPanel } from "./Farm";
+import { GoldMinePanel } from "./GoldMine";
 import { announceOpenEvents, announceWorldEvent } from "./world-events";
 import { FriendsPanel, useFriendRequestCount } from "./FriendsPanel";
 import { ScrollShop } from "./ScrollShop";
@@ -54,7 +55,7 @@ import { VERSION, RELEASE_NOTES } from "./version";
 const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
 
 /** Buildings whose battle leaves the panel open underneath, so the player lands back in it. */
-const BATTLE_PANELS = ["portal", "spire", "worldmap"] as const;
+const BATTLE_PANELS = ["portal", "spire", "worldmap", "guild"] as const;
 
 export function Game() {
   const { hero, heroId, userId, cloud, authReady } = useGame();
@@ -262,7 +263,7 @@ export function Game() {
           {open === "mailbox" && <Mailbox onClose={() => setOpen(null)} />}
           {open === "lucky" && <LuckyShots onClose={() => setOpen(null)} />}
           {open === "daily" && <ActivityBoard onClose={() => setOpen(null)} />}
-          {open === "guild" && <GuildHall onClose={() => setOpen(null)} />}
+          {open === "guild" && <GuildHall onClose={() => setOpen(null)} start={start} />}
           {open === "scrolls" && <ScrollShop onClose={() => setOpen(null)} />}
           {open === "hall" && <ThroneHall onClose={() => setOpen(null)} />}
           {open === "armory" && <HeroHall onClose={() => setOpen(null)} />}
@@ -281,6 +282,7 @@ export function Game() {
           )}
           {open === "portal" && <Campaign onClose={() => setOpen(null)} start={start} />}
           {open === "farm" && <FarmPanel onClose={() => setOpen(null)} />}
+          {open === "mine" && <GoldMinePanel onClose={() => setOpen(null)} />}
           {open === "spire" && (canEnterConquest(hero.level) ? <Campaign spire onClose={() => setOpen(null)} start={start} /> : <ComingSoon id="spire" locked onClose={() => setOpen(null)} />)}
           {open === "forge" && <Forge onClose={() => setOpen(null)} onCraft={() => setCrafting(true)} />}
           {crafting && <Crafting onClose={() => setCrafting(false)} />}

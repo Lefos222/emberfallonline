@@ -2,7 +2,7 @@ import { Shield } from "lucide-react";
 import buildingsArt from "@/assets/guild-hall-buildings.webp";
 
 /** The four buildings of the guild hall (see GuildHall). */
-export type GuildLocation = "headquarters" | "merchant" | "tower" | "reliquary";
+export type GuildLocation = "headquarters" | "merchant" | "tower" | "reliquary" | "wars";
 
 interface GuildBuilding {
   id: GuildLocation;
@@ -137,6 +137,15 @@ export function GuildHallScene({
             <span className="guild-room-hint">{b.hint}</span>
           </button>
         ))}
+        {/* Guild wars have no painted building of their own: the war banner hangs in the courtyard. */}
+        <button
+          aria-pressed={location === "wars"}
+          className={`guild-room ${location === "wars" ? "guild-room-active" : ""}`}
+          onClick={() => onSelect("wars")}
+        >
+          <span className="guild-room-name">Guild Wars</span>
+          <span className="guild-room-hint">Declare war, fight for points & spoils</span>
+        </button>
       </div>
     </section>
   );
