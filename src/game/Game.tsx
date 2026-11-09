@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } fr
 import { CHESTS, addChests, rewardChestReady, rollBattleChest } from "./chests";
 import { vipXpMultiplier } from "./economy";
 import { authHandoffPending, getState, update, useGame } from "./store";
+import { useLang, useT } from "./i18n";
 import { recordBattle } from "./progress";
 import { BOSS_CRYSTALS } from "./logic";
 import { battleEssenceGain, enlightenmentUnlocked, rollSoulShards } from "./enlightenment";
@@ -58,6 +59,7 @@ const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
 const BATTLE_PANELS = ["portal", "spire", "dungeon", "worldmap", "guild"] as const;
 
 export function Game() {
+  const t = useT();
   const { hero, heroId, userId, cloud, authReady } = useGame();
   const friendRequests = useFriendRequestCount(heroId);
   const nav = useNavigate();
@@ -240,13 +242,13 @@ export function Game() {
         <>
           <CastleMap onOpen={setOpen} />
           <ShortcutBar open={open} onOpen={setOpen} friendRequests={friendRequests} chestReady={rewardChestReady(hero)} />
-          <nav aria-label="Rewards" className="game-panel bottom-nav rewards-nav absolute bottom-3 left-3 z-20 flex gap-1 p-1.5">
-            <Button variant="ghost" size="icon" aria-label="Mailbox" title="Mailbox" onClick={() => setOpen("mailbox")}><ArtIcon name="mail" size={24} /></Button>
-            <Button variant="ghost" size="icon" aria-label="Lucky Shots" title="Lucky Shots" onClick={() => setOpen("lucky")}><ArtIcon name="lucky" size={24} /></Button>
-            <Button variant="ghost" size="icon" aria-label="Battle Scrolls" title="Battle Scrolls" onClick={() => setOpen("scrolls")}><ArtIcon name="scroll" size={24} /></Button>
-            <Button variant="ghost" size="icon" aria-label="Bestiary" title="Bestiary" onClick={() => setOpen("bestiary")}><ArtIcon name="spellbook" size={24} /></Button>
-            <Button variant="ghost" size="icon" aria-label="Premium Shop" title="Premium Shop" onClick={()=>setOpen('premium')}><ArtIcon name="diamond" size={24} /></Button>
-            <Button variant="ghost" size="icon" aria-label="Auction House" title="Auction House" onClick={()=>setOpen('auction')}><ArtIcon name="auction" size={24} /></Button>
+          <nav aria-label={t("Rewards")} className="game-panel bottom-nav rewards-nav absolute bottom-3 left-3 z-20 flex gap-1 p-1.5">
+            <Button variant="ghost" size="icon" aria-label={t("Mailbox")} title={t("Mailbox")} onClick={() => setOpen("mailbox")}><ArtIcon name="mail" size={24} /></Button>
+            <Button variant="ghost" size="icon" aria-label={t("Lucky Shots")} title={t("Lucky Shots")} onClick={() => setOpen("lucky")}><ArtIcon name="lucky" size={24} /></Button>
+            <Button variant="ghost" size="icon" aria-label={t("Battle Scrolls")} title={t("Battle Scrolls")} onClick={() => setOpen("scrolls")}><ArtIcon name="scroll" size={24} /></Button>
+            <Button variant="ghost" size="icon" aria-label={t("Bestiary")} title={t("Bestiary")} onClick={() => setOpen("bestiary")}><ArtIcon name="spellbook" size={24} /></Button>
+            <Button variant="ghost" size="icon" aria-label={t("Premium Shop")} title={t("Premium Shop")} onClick={()=>setOpen('premium')}><ArtIcon name="diamond" size={24} /></Button>
+            <Button variant="ghost" size="icon" aria-label={t("Auction House")} title={t("Auction House")} onClick={()=>setOpen('auction')}><ArtIcon name="auction" size={24} /></Button>
           </nav>
           <WorldChat heroId={heroId} />
           <QuestsButton count={claimableLevelQuests(hero)} onClick={() => setOpen("quests")} />
@@ -255,7 +257,7 @@ export function Game() {
             className="game-panel absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded px-2.5 py-1 font-display text-[11px] font-bold text-gold">
             v{VERSION}
           </button>
-          <p className="castle-hint pointer-events-none absolute inset-x-0 top-32 z-20 text-center font-display text-xs text-gold drop-shadow-[0_1px_2px_black]">Tap a building to open it · drag the castle to reach the rest</p>
+          <p className="castle-hint pointer-events-none absolute inset-x-0 top-32 z-20 text-center font-display text-xs text-gold drop-shadow-[0_1px_2px_black]">{t("Tap a building to open it · drag the castle to reach the rest")}</p>
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
           {open === "notes" && <UpdateNotes onClose={() => setOpen(null)} />}
           {open === "settings" && <SettingsPanel settings={sound} onChange={changeSound} onClose={() => setOpen(null)} />}
@@ -276,7 +278,7 @@ export function Game() {
             <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-background/70 p-4 pt-16" onClick={() => setOpen(null)}>
               <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
                 <FriendsPanel heroId={heroId} />
-                <button className="btn-ghost mt-2 w-full py-2" onClick={() => setOpen(null)}>Close</button>
+                <button className="btn-ghost mt-2 w-full py-2" onClick={() => setOpen(null)}>{t("Close")}</button>
               </div>
             </div>
           )}
@@ -340,18 +342,88 @@ function castleClamp(el: HTMLDivElement | null, x: number, y: number) {
   return { x: Math.min(maxX, Math.max(-maxX, x)), y: Math.min(maxY, Math.max(-maxY, y)) };
 }
 
-function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
+/** The castle with its building hotspots; exported so the label layout can be checked. */
+export function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
+  const t = useT();
+  const lang = useLang();
   const [hover, setHover] = useState<string | null>(null);
   const map = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const drag = useRef<null | { x: number; y: number; ox: number; oy: number; moved: boolean }>(null);
   // A tap must still open a building: only a real drag counts as panning.
   const moved = useRef(false);
+
+  // Each building's name is drawn on the building itself. Names differ in length from
+  // language to language and the castle is a different size on every screen, so the
+  // labels are measured and stacked clear of one another before they are painted.
+  const labelNodes = useRef(new Map<string, HTMLSpanElement>());
+  const [labelShift, setLabelShift] = useState<Record<string, number>>({});
+  const laidOut = useRef("");
+
+  const layoutLabels = useCallback(() => {
+    const el = map.current;
+    if (!el) return;
+    const W = el.clientWidth;
+    const H = el.clientHeight;
+    if (!W || !H) return;
+    const taken: { left: number; right: number; top: number; bottom: number }[] = [];
+    const next: Record<string, number> = {};
+    // Big buildings (the ones with the widest hotspots) claim their spot first.
+    const order = [...CASTLE_BUILDINGS].sort((a, b) => b.r - a.r);
+    for (const b of order) {
+      const node = labelNodes.current.get(b.id);
+      const w = node?.offsetWidth ?? 0;
+      const h = node?.offsetHeight ?? 0;
+      if (!w || !h) continue;
+      const cx = (b.x / 100) * W;
+      const cy = (b.y / 100) * H;
+      const top0 = Math.max(2, Math.min(H - h - 2, cy - h / 2));
+      let chosen: number | null = null;
+      // Try the building first, then its own height up and down, alternating sides.
+      for (let step = 0; step < 25 && chosen === null; step += 1) {
+        const dy = (step % 2 === 1 ? 1 : -1) * Math.ceil(step / 2) * (h + 2);
+        const top = Math.max(2, Math.min(H - h - 2, top0 + dy));
+        const left = Math.max(2, Math.min(W - w - 2, cx - w / 2));
+        const box = { left, top, right: left + w, bottom: top + h };
+        const clashes = taken.some(
+          (p) => p.left < box.right && box.left < p.right && p.top < box.bottom && box.top < p.bottom,
+        );
+        if (!clashes) {
+          taken.push(box);
+          chosen = top;
+        }
+      }
+      next[b.id] = chosen === null ? 0 : Math.round(chosen - top0);
+    }
+    const key = JSON.stringify(next);
+    if (key === laidOut.current) return;
+    laidOut.current = key;
+    setLabelShift(next);
+  }, []);
+
   useEffect(() => {
     const onResize = () => setOffset((o) => castleClamp(map.current, o.x, o.y));
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  useLayoutEffect(() => {
+    layoutLabels();
+    const el = map.current;
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      void document.fonts.ready.then(() => layoutLabels());
+    }
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => layoutLabels());
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [layoutLabels]);
+
+  // A new language (or an opened hover card) changes the size of the labels.
+  useLayoutEffect(() => {
+    layoutLabels();
+  }, [layoutLabels, lang, hover]);
+
   return (
     <div
       className="castle-view absolute inset-0 flex items-center justify-center overflow-hidden"
@@ -380,14 +452,20 @@ function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
             style={{ left: `${(i * 37) % 100}%`, animationDuration: `${6 + (i % 5)}s`, animationDelay: `${i * 0.7}s` }} />
         ))}
         {CASTLE_BUILDINGS.map((b) => (
-          <button key={b.id} className={`hotspot${b.id === "farm" ? " hotspot-farm" : ""}`} aria-label={b.name}
+          <button key={b.id} className={`hotspot${b.id === "farm" ? " hotspot-farm" : ""}`} aria-label={t(b.name)}
             style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.r * 2}%`, aspectRatio: "1" }}
-            onMouseEnter={() => setHover(b.id)} onMouseLeave={() => setHover(null)} onClick={(e) => { if (e.detail === 0 || !moved.current) onOpen(b.id); }}>
-            <span className={`hotspot-label ${b.soon ? "opacity-60" : ""} absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded px-2 py-0.5 text-xs transition md:text-sm ${hover === b.id ? "scale-110" : "opacity-90"}`}>
-              {b.name}{b.soon ? " · soon" : ""}
-              {hover === b.id && <span className="block text-[10px] text-foreground/80">{b.desc}</span>}
-            </span>
-          </button>
+            onMouseEnter={() => setHover(b.id)} onMouseLeave={() => setHover(null)} onFocus={() => setHover(b.id)} onBlur={() => setHover(null)}
+            onClick={(e) => { if (e.detail === 0 || !moved.current) onOpen(b.id); }} />
+        ))}
+        {/* Each name sits on its own building; `labelShift` keeps neighbours from colliding. */}
+        {CASTLE_BUILDINGS.map((b) => (
+          <span key={`label-${b.id}`}
+            ref={(node) => { if (node) labelNodes.current.set(b.id, node); else labelNodes.current.delete(b.id); }}
+            className={`hotspot-label pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded px-2 py-0.5 text-center text-xs md:text-sm ${b.soon ? "opacity-60" : ""} ${hover === b.id ? "scale-110" : "opacity-90"}`}
+            style={{ left: `${b.x}%`, top: `${b.y}%`, marginTop: `${labelShift[b.id] ?? 0}px` }}>
+            <span className="block whitespace-nowrap">{t(b.name)}{b.soon ? t(" · soon") : ""}</span>
+            {hover === b.id && <span className="mt-0.5 block max-w-44 whitespace-normal text-[10px] leading-tight text-foreground/80">{t(b.desc)}</span>}
+          </span>
         ))}
       </div>
       <div className="vignette pointer-events-none absolute inset-0" />
@@ -442,22 +520,23 @@ const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIcon
 ];
 
 function ShortcutBar({ open, onOpen, friendRequests = 0, chestReady = false }: { open: ShortcutTarget | null; onOpen: (t: ShortcutTarget) => void; friendRequests?: number; chestReady?: boolean }) {
+  const t = useT();
   return (
-    <nav aria-label="Shortcuts" className="game-panel bottom-nav shortcut-nav pointer-events-auto absolute bottom-3 right-3 z-20 flex gap-1.5 p-1.5">
+    <nav aria-label={t("Shortcuts")} className="game-panel bottom-nav shortcut-nav pointer-events-auto absolute bottom-3 right-3 z-20 flex gap-1.5 p-1.5">
       {SHORTCUTS.map(({ id, label, tip, icon }) => (
-        <button key={id} onClick={() => onOpen(id)} aria-label={label} aria-pressed={open === id}
+        <button key={id} onClick={() => onOpen(id)} aria-label={t(label)} aria-pressed={open === id}
           className={`slot group relative flex h-11 w-11 items-center justify-center transition hover:scale-110 ${open === id ? "ring-2 ring-gold" : ""}`}>
           <ArtIcon name={icon} size={32} className={open === id ? "ring-1 ring-gold" : ""} />
           {id === "daily" && chestReady && (
-            <span aria-label="Reward chest ready" className="absolute -left-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-r1 ring-2 ring-background" />
+            <span aria-label={t("Reward chest ready")} className="absolute -left-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-r1 ring-2 ring-background" />
           )}
           {id === "friends" && friendRequests > 0 && (
-            <span aria-label={`${friendRequests} pending friend requests`} className="absolute -right-1 -top-1 min-w-5 rounded-full bg-blood px-1.5 py-0.5 text-center text-[10px] font-bold text-foreground">
+            <span aria-label={t("{count} pending friend requests", { count: friendRequests })} className="absolute -right-1 -top-1 min-w-5 rounded-full bg-blood px-1.5 py-0.5 text-center text-[10px] font-bold text-foreground">
               {friendRequests > 9 ? "9+" : friendRequests}
             </span>
           )}
           <span role="tooltip" className="hotspot-label pointer-events-none absolute bottom-full right-0 mb-2 hidden whitespace-nowrap rounded px-2 py-1 text-left text-xs group-hover:block group-focus-visible:block">
-            {label}<span className="block text-[10px] text-foreground/80">{tip}</span>
+            {t(label)}<span className="block text-[10px] text-foreground/80">{t(tip)}</span>
           </span>
         </button>
       ))}

@@ -6,11 +6,15 @@ import { GearIcon } from "./GearIcon";
 import { GemIcon } from "./MatIcon";
 import { gemName, gemStatText, parseGem, socketCount, sockets } from "./crafting";
 import { itemStats, itemScore, RARITIES, type Item } from "./data";
+import { useT } from "./i18n";
 
 /** Every window wears the same painted crest in its header, so the castle's screens read as one game. */
 export function Panel({ title, subtitle, art, onClose, children, wide }: {
   title: string; subtitle?: string; art?: ArtIconName; onClose: () => void; children: ReactNode; wide?: boolean;
 }) {
+  // Panel headings are translated in one place, so every screen keeps its frame in the
+  // player's language even while its body copy is still English (see i18n.ts).
+  const t = useT();
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-background/70 p-3 backdrop-blur-sm" onClick={onClose}>
       <div
@@ -20,10 +24,10 @@ export function Panel({ title, subtitle, art, onClose, children, wide }: {
         <div className="flex items-center gap-3 border-b border-border px-4 py-3 md:px-6">
           {art && <span className="panel-crest shrink-0"><ArtIcon name={art} size={26} /></span>}
           <div className="min-w-0 flex-1">
-            <h2 className="panel-title truncate text-xl font-bold md:text-3xl">{title}</h2>
-            {subtitle && <p className="truncate text-xs text-muted-foreground md:text-sm">{subtitle}</p>}
+            <h2 className="panel-title truncate text-xl font-bold md:text-3xl">{t(title)}</h2>
+            {subtitle && <p className="truncate text-xs text-muted-foreground md:text-sm">{t(subtitle)}</p>}
           </div>
-          <button onClick={onClose} className="btn-blood flex h-9 w-9 shrink-0 items-center justify-center" aria-label="Close">
+          <button onClick={onClose} className="btn-blood flex h-9 w-9 shrink-0 items-center justify-center" aria-label={t("Close")}>
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -34,8 +38,9 @@ export function Panel({ title, subtitle, art, onClose, children, wide }: {
 }
 
 export function Gold({ n, className = "" }: { n: number; className?: string }) {
+  const t = useT();
   return (
-    <span className={`inline-flex items-center gap-1 font-bold text-gold ${className}`} title="Gold">
+    <span className={`inline-flex items-center gap-1 font-bold text-gold ${className}`} title={t("Gold")}>
       <GoldCoin size={16} />
       {fmt(n)}
     </span>
@@ -43,8 +48,9 @@ export function Gold({ n, className = "" }: { n: number; className?: string }) {
 }
 
 export function Diamonds({ n, className = "" }: { n: number; className?: string }) {
+  const t = useT();
   return (
-    <span className={"inline-flex items-center gap-1 font-bold text-r3 " + className} title="Diamonds">
+    <span className={"inline-flex items-center gap-1 font-bold text-r3 " + className} title={t("Diamonds")}>
       <ArtIcon name="diamond" size={15} />
       {fmt(n)}
     </span>
@@ -53,8 +59,9 @@ export function Diamonds({ n, className = "" }: { n: number; className?: string 
 
 /** Void Crystals: earned from level-ups and boss victories, spent on advanced barracks training. */
 export function VoidCrystals({ n, className = "" }: { n: number; className?: string }) {
+  const t = useT();
   return (
-    <span className={"inline-flex items-center gap-1 font-bold text-void " + className} title="Void Crystals — earned from level-ups and boss victories">
+    <span className={"inline-flex items-center gap-1 font-bold text-void " + className} title={t("Void Crystals")}>
       <Diamond className="h-4 w-4" />
       {fmt(n)}
     </span>
