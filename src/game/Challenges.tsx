@@ -5,11 +5,12 @@ import { Crown, Lock, Skull, Sparkles, Swords, Trophy } from "lucide-react";
 import { foeRating, invCap, heroStats, makeItem, type Item } from "./data";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
+import { DangerPill, Meter, RewardChip, StaminaMeter } from "./GateUI";
 import { Sprite } from "./Sprite";
 import type { StartBattle } from "./panels";
 import { TIER_BOSSES } from "./world";
 import { addMats } from "./crafting";
-import { DUNGEON_RUNS_PER_DAY, DUNGEON_STAMINA, STAMINA_PER_DAY, staminaLeft } from "./stamina";
+import { DUNGEON_RUNS_PER_DAY, DUNGEON_STAMINA, staminaLeft } from "./stamina";
 import {
   BOSS_ORDER, ENDGAME_LEVEL, MAX_DIFFICULTY, WEEKLY_GOAL, WEEKLY_REWARD, addWeeklyKill, bossUnlocked, canClaimWeekly, challengeFoe, challengeRewards,
   cleared, currentWeekly, eliteFoe, weekIndex, weeklyModifier,
@@ -39,12 +40,31 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
 
   if (hero.level < ENDGAME_LEVEL) {
     return (
-      <Panel title="Dungeon Gate" subtitle="Boss challenges and elite hunts" art="star" onClose={onClose}>
-        {onExpeditions&&<Button className="w-full" onClick={onExpeditions}><Swords/>Material expeditions · Level 1+</Button>}
-        {onRelics&&<Button className="mt-2 w-full" variant="outline" onClick={onRelics}><Sparkles/>Relic Trials · Level 10+</Button>}
-        <div className="py-10 text-center"><Lock className="mx-auto mb-2 h-10 w-10 text-gold" />
-          <p className="font-display text-xl text-gold">Locked</p>
-          <p className="text-muted-foreground">Boss challenges open at level {ENDGAME_LEVEL}. You are level {hero.level}.</p></div>
+      <Panel title="Dungeon Gate" subtitle="Boss challenges, elite hunts, expeditions and relics" art="star" onClose={onClose} wide>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="slot flex flex-col p-4 text-sm">
+            <div className="flex items-center gap-2 font-display text-gold"><Swords className="h-4 w-4" />Material expeditions</div>
+            <p className="mt-1 text-xs text-muted-foreground">Crates of forge materials from held-out sites — the steadiest way to feed the Forge while you level.</p>
+            {onExpeditions && <Button className="mt-auto w-full" onClick={onExpeditions}>Open expeditions</Button>}
+          </div>
+          <div className="slot flex flex-col p-4 text-sm">
+            <div className="flex items-center gap-2 font-display text-gold"><Sparkles className="h-4 w-4" />Relic Trials</div>
+            <p className="mt-1 text-xs text-muted-foreground">Fight your class's relic ranks for the Emberforged, Starweave and Verdant collections.</p>
+            {onRelics && <Button className="mt-auto w-full" variant="outline" onClick={onRelics}>Open relic trials</Button>}
+          </div>
+        </div>
+        <div className="slot mt-3 p-6 text-center">
+          <Lock className="mx-auto mb-2 h-10 w-10 text-gold" />
+          <p className="font-display text-xl text-gold">Boss challenges open at level {ENDGAME_LEVEL}</p>
+          <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+            You are level {hero.level} — {ENDGAME_LEVEL - hero.level} more to go. Keep clearing the Campaign Gate,
+            then come back for boss difficulties, elite hunts and the weekly objective.
+          </p>
+          <div className="mx-auto mt-3 max-w-sm">
+            <Meter value={hero.level} max={ENDGAME_LEVEL} label={`Level ${hero.level} of ${ENDGAME_LEVEL}`} />
+            <div className="mt-1 text-[11px] text-muted-foreground">Level {hero.level} / {ENDGAME_LEVEL}</div>
+          </div>
+        </div>
       </Panel>
     );
   }
@@ -113,21 +133,24 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
   return (
     <Panel title="Dungeon Gate" subtitle="Boss challenges, elite hunts, expeditions and relics" art="star" onClose={onClose} wide>
       {/* The gate's status strip: what a run costs, how the hero stands and this week's twist. */}
-      <div className="mb-3 grid gap-2 sm:grid-cols-3">
+      <div className="mb-4 grid gap-2 sm:grid-cols-3">
+        <StaminaMeter hero={hero} cost={DUNGEON_STAMINA} unit="run" />
         <div className="slot p-3 text-sm">
-          <div className="font-display text-gold">Stamina</div>
-          <div className="text-2xl font-bold text-void">{fmt(stamina)}<span className="text-sm text-muted-foreground"> / {STAMINA_PER_DAY}</span></div>
-          <div className="text-[11px] text-muted-foreground">Each run costs {DUNGEON_STAMINA} · ≈{Math.floor(stamina / DUNGEON_STAMINA)} runs left today</div>
-        </div>
-        <div className="slot p-3 text-sm">
-          <div className="font-display text-gold">Bosses defeated</div>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="font-display text-gold">Boss challenges</span>
+            <span className="text-[11px] text-muted-foreground">{defeated} / {BOSS_ORDER.length} down</span>
+          </div>
           <div className="text-2xl font-bold">{defeated}<span className="text-sm text-muted-foreground"> / {BOSS_ORDER.length}</span></div>
-          <div className="text-[11px] text-muted-foreground">Each boss unlocks the next, and climbs to difficulty {MAX_DIFFICULTY}</div>
+          <Meter value={defeated} max={BOSS_ORDER.length} fill="bar-hp" label="Bosses defeated" className="mt-1.5" />
+          <div className="mt-1 text-[11px] text-muted-foreground">Each boss unlocks the next · difficulties climb to D{MAX_DIFFICULTY}</div>
         </div>
         <div className="slot p-3 text-sm">
-          <div className="font-display text-gold">{mod.name}</div>
-          <div className="text-[11px] text-muted-foreground">{mod.desc}</div>
-          <div className="text-[11px] text-r1">Rewards ×{mod.reward} this week</div>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="font-display text-gold">{mod.name}</span>
+            <span className="text-[11px] font-bold text-r1">×{mod.reward}</span>
+          </div>
+          <p className="mt-1 text-[11px] text-muted-foreground">{mod.desc}</p>
+          <p className="mt-1 text-[11px] text-r1">Boss and elite rewards ×{mod.reward} this week</p>
         </div>
       </div>
 
@@ -151,15 +174,26 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
             const rw = challengeRewards(id, d, mod);
             const previous = i > 0 ? TIER_BOSSES[BOSS_ORDER[i - 1]]?.name : null;
             return (
-              <div key={id} className={`slot flex flex-col p-3 ${unlocked ? "" : "opacity-70"}`}>
+              <div key={id} className={`slot flex flex-col p-3 ${unlocked ? "" : "opacity-75"}`}>
                 <div className="flex gap-3">
-                  <Sprite rect={TIER_BOSSES[id].sprite} className="h-24 w-24 shrink-0" />
+                  <div className="relative shrink-0">
+                    <Sprite rect={TIER_BOSSES[id].sprite} className="h-24 w-24" />
+                    {!unlocked && (
+                      <span className="absolute inset-0 flex items-center justify-center rounded bg-background/60">
+                        <Lock className="h-5 w-5 text-muted-foreground" />
+                      </span>
+                    )}
+                  </div>
                   <div className="min-w-0 flex-1 text-sm">
-                    <div className="font-display text-lg leading-tight">{TIER_BOSSES[id].name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {c ? <>Best clear: difficulty {c}{c >= MAX_DIFFICULTY && <Crown className="ml-1 inline h-3 w-3 text-gold" />}</> : "Never defeated"}
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+                      <span className="font-display text-lg leading-tight">{TIER_BOSSES[id].name}</span>
+                      <span className="shrink-0 rounded border border-border/60 bg-background/60 px-1.5 py-0.5 text-[10px] font-bold">
+                        {c ? `Best D${c}` : "Not yet beaten"}
+                        {c >= MAX_DIFFICULTY && <Crown className="ml-0.5 inline h-3 w-3 text-gold" />}
+                      </span>
                     </div>
-                    <div className="mt-1.5 flex flex-wrap gap-1">
+                    <Meter value={c} max={MAX_DIFFICULTY} fill="bar-hp" label={`${TIER_BOSSES[id].name} best difficulty`} className="mt-1.5" />
+                    <div className="mt-2 flex flex-wrap gap-1" role="group" aria-label={`${TIER_BOSSES[id].name} difficulty`}>
                       {Array.from({ length: max }, (_, k) => k + 1).map((k) => (
                         <button key={k} className={`px-2 py-0.5 text-xs ${d === k ? "btn-gold" : "btn-ghost"}`}
                           aria-pressed={d === k} onClick={() => setDiff({ ...diff, [id]: k })}>D{k}</button>
@@ -168,15 +202,20 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
                         <span key={k} className="rounded px-2 py-0.5 text-xs text-muted-foreground/50" title={`Clear D${k - 1} to open this difficulty`}>D{k}</span>
                       ))}
                     </div>
-                    <div className="mt-1.5 text-xs">HP {fmt(foe.hp)} · ATK {fmt(foe.atk)} · <span className={`font-bold ${danger.c}`}>{danger.t}</span></div>
+                    <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                      <span>HP <b className="text-foreground">{fmt(foe.hp)}</b></span>
+                      <span>ATK <b className="text-foreground">{fmt(foe.atk)}</b></span>
+                      <span>Your power <b className="text-foreground">{fmt(power)}</b></span>
+                      <span className={`font-bold ${danger.c}`}>{danger.t}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                  <span><Gold n={rw.gold} /></span>
-                  <span>{fmt(rw.xp)} XP</span>
-                  {rw.bossCore ? <span>{rw.bossCore} Boss Core</span> : null}
-                  <span className="text-r2">{["", "", "", "Epic", "Legendary", "Mythic"][rw.minRarity] ?? "Rare"}+ gear</span>
-                  <span className="ml-auto">{DUNGEON_STAMINA} stamina</span>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <RewardChip><Gold n={rw.gold} /></RewardChip>
+                  <RewardChip tone="text-xp">{fmt(rw.xp)} XP</RewardChip>
+                  {rw.bossCore ? <RewardChip>{rw.bossCore}× Boss Core</RewardChip> : null}
+                  <RewardChip tone="text-r2">{["", "", "", "Epic", "Legendary", "Mythic"][rw.minRarity] ?? "Rare"}+ gear</RewardChip>
+                  <RewardChip>{DUNGEON_STAMINA} stamina</RewardChip>
                 </div>
                 <button className="btn-blood mt-2 w-full py-1.5" disabled={!unlocked}
                   title={unlocked ? "" : previous ? `Defeat ${previous} first` : "Defeat the previous boss first"}
@@ -192,27 +231,33 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
       )}
 
       {tab === "elite" && (
-        <div className="grid gap-3 md:grid-cols-[1fr_1.2fr]">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <div className="slot flex flex-col items-center p-4 text-center">
             <Sprite rect={elite.sprite} className="h-32 w-32" />
             <div className="font-display text-lg">{elite.name}</div>
-            <div className="text-xs text-muted-foreground">Elite level {elite.level}</div>
-            <div className="mt-1 text-sm">Power {fmt(foeRating(elite))} · <span className={`font-bold ${eliteDanger.c}`}>{eliteDanger.t}</span></div>
+            <div className="text-xs text-muted-foreground">Elite level {elite.level} · {fmt(foeRating(elite))} power</div>
+            <div className="mt-2 flex items-center gap-2">
+              <DangerPill danger={eliteDanger} />
+              <span className="text-[11px] text-muted-foreground">your power {fmt(power)}</span>
+            </div>
           </div>
           <div className="slot flex flex-col p-4 text-sm">
-            <div className="font-display text-gold">Elite Hunt</div>
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="font-display text-gold">Elite Hunt</span>
+              <span className="text-[11px] text-muted-foreground">{Math.floor(stamina / DUNGEON_STAMINA)} runs left today</span>
+            </div>
             <p className="mt-1 text-xs text-muted-foreground">
               A tough elite scaled to your level. The best repeatable source of Soul Essence, with
               a high chance of rare gear. Costs {DUNGEON_STAMINA} stamina per run, win or lose.
             </p>
-            <dl className="mt-3 space-y-1.5">
+            <dl className="mt-3 grid gap-1.5">
               <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Experience</dt><dd className="text-xp">{fmt(lvl * 60)} XP</dd></div>
               <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Gold</dt><dd><Gold n={lvl * 12} /></dd></div>
               <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Materials</dt><dd>+2 Soul Essence</dd></div>
               <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Loot</dt><dd className="text-r2">High chance, Rare+</dd></div>
             </dl>
             <div className="mt-auto pt-3">
-              <Button className="w-full" disabled={stamina < DUNGEON_STAMINA} onClick={fightElite}
+              <Button className="w-full py-2" disabled={stamina < DUNGEON_STAMINA} onClick={fightElite}
                 title={stamina < DUNGEON_STAMINA ? "Out of stamina — it refills at Greek midnight" : "Hunt"}>
                 <Swords className="mr-1 inline h-4 w-4" />Hunt · {DUNGEON_STAMINA} stamina
               </Button>
@@ -223,30 +268,56 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
       )}
 
       {tab === "expeditions" && (
-        <div className="slot p-4 text-sm">
-          <div className="font-display text-lg text-gold">Material expeditions</div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Send the hero to a held-out site for a crate of forge materials — ore, essence,
-            starshards, fragments, sigils and boss cores. Every expedition is a
-            {' '}{DUNGEON_STAMINA}-stamina Dungeon Gate run and opens as the hero levels.
-          </p>
-          {onExpeditions
-            ? <Button className="mt-3 w-full" onClick={onExpeditions}><Swords className="mr-1 inline h-4 w-4" />Open expeditions</Button>
-            : <p className="mt-3 text-xs text-muted-foreground">Close this panel and open Expeditions from the castle.</p>}
+        <div className="grid gap-3 md:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
+          <div className="slot flex flex-col items-center justify-center gap-2 p-4 text-center">
+            <Swords className="h-10 w-10 text-gold" />
+            <div className="font-display text-lg text-gold">Material expeditions</div>
+            <div className="text-[11px] text-muted-foreground">{DUNGEON_STAMINA} stamina per run</div>
+          </div>
+          <div className="slot flex flex-col p-4 text-sm">
+            <p className="text-xs text-muted-foreground">
+              Send the hero to a held-out site for a crate of forge materials — ore, essence,
+              starshards, fragments, sigils and boss cores. Every expedition is a
+              {' '}{DUNGEON_STAMINA}-stamina Dungeon Gate run and opens as the hero levels.
+            </p>
+            <dl className="mt-3 grid gap-1.5 text-xs">
+              <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Pays</dt><dd>Forge materials by the crate</dd></div>
+              <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Costs</dt><dd>{DUNGEON_STAMINA} stamina, win or lose</dd></div>
+              <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Opens</dt><dd>Level 1+ · deeper sites with your level</dd></div>
+            </dl>
+            <div className="mt-auto pt-3">
+              {onExpeditions
+                ? <Button className="w-full" onClick={onExpeditions}><Swords className="mr-1 inline h-4 w-4" />Open expeditions</Button>
+                : <p className="text-xs text-muted-foreground">Close this panel and open Expeditions from the castle.</p>}
+            </div>
+          </div>
         </div>
       )}
 
       {tab === "relics" && (
-        <div className="slot p-4 text-sm">
-          <div className="font-display text-lg text-gold">Relic Trials</div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Fight your class's relic ranks for the only source of the Emberforged, Starweave and
-            Verdant collections. Every win recovers a piece, and each piece levels with you.
-            A trial is a {DUNGEON_STAMINA}-stamina Dungeon Gate run.
-          </p>
-          {onRelics
-            ? <Button className="mt-3 w-full" onClick={onRelics}><Sparkles className="mr-1 inline h-4 w-4" />Open relic trials</Button>
-            : <p className="mt-3 text-xs text-muted-foreground">Close this panel and open Relic Trials from the castle.</p>}
+        <div className="grid gap-3 md:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
+          <div className="slot flex flex-col items-center justify-center gap-2 p-4 text-center">
+            <Sparkles className="h-10 w-10 text-gold" />
+            <div className="font-display text-lg text-gold">Relic Trials</div>
+            <div className="text-[11px] text-muted-foreground">{DUNGEON_STAMINA} stamina per run</div>
+          </div>
+          <div className="slot flex flex-col p-4 text-sm">
+            <p className="text-xs text-muted-foreground">
+              Fight your class's relic ranks for the only source of the Emberforged, Starweave and
+              Verdant collections. Every win recovers a piece, and each piece levels with you.
+              A trial is a {DUNGEON_STAMINA}-stamina Dungeon Gate run.
+            </p>
+            <dl className="mt-3 grid gap-1.5 text-xs">
+              <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Pays</dt><dd>One relic piece per win</dd></div>
+              <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Costs</dt><dd>{DUNGEON_STAMINA} stamina, win or lose</dd></div>
+              <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Opens</dt><dd>Rank by rank · each piece levels with you</dd></div>
+            </dl>
+            <div className="mt-auto pt-3">
+              {onRelics
+                ? <Button className="w-full" onClick={onRelics}><Sparkles className="mr-1 inline h-4 w-4" />Open relic trials</Button>
+                : <p className="text-xs text-muted-foreground">Close this panel and open Relic Trials from the castle.</p>}
+            </div>
+          </div>
         </div>
       )}
 
@@ -264,9 +335,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
               <Trophy className="h-4 w-4 text-r4" />
             </div>
             <p className="mt-1 text-xs text-muted-foreground">Defeat {WEEKLY_GOAL} challenge bosses this week · resets Monday 00:00 UTC.</p>
-            <div className="bar-track mt-2 h-2.5" role="progressbar" aria-label="Weekly objective" aria-valuemin={0} aria-valuemax={WEEKLY_GOAL} aria-valuenow={Math.min(weekly.kills, WEEKLY_GOAL)}>
-              <div className="farm-bar h-full" style={{ width: `${Math.round((Math.min(weekly.kills, WEEKLY_GOAL) / WEEKLY_GOAL) * 100)}%` }} />
-            </div>
+            <Meter value={Math.min(weekly.kills, WEEKLY_GOAL)} max={WEEKLY_GOAL} label="Weekly objective" className="mt-2" />
             <div className="mt-1 text-xs">{Math.min(weekly.kills, WEEKLY_GOAL)} / {WEEKLY_GOAL} bosses defeated</div>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
               <Gold n={WEEKLY_REWARD.gold} />

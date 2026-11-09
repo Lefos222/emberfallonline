@@ -88,18 +88,31 @@ function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
           returns at Greek midnight, and the floors themselves are never limited.
         </p>
 
-        <div className="mt-3 flex flex-wrap items-end gap-2">
-          <label className="text-xs">Blitz to floor
-            <input aria-label="Blitz target floor" type="number" min={1} max={Math.max(1, cap)} value={target}
-              onChange={(e) => jump(Math.max(1, Number(e.target.value) || 1))}
-              className="mt-1 block w-24 rounded border border-border bg-background p-2 text-sm" />
-          </label>
-          <button className="btn-ghost px-3 py-1.5 text-xs" disabled={cap < 1} onClick={() => jump(Math.max(1, cap))}>
-            Deepest ({cap})
-          </button>
-          <button className="btn-ghost px-3 py-1.5 text-xs" disabled={cap < 1} onClick={() => jump(Math.max(1, cap - 9))}>
-            Last 10
-          </button>
+        <div className="mt-3">
+          <div className="flex items-baseline justify-between gap-2 text-xs">
+            <span className="text-muted-foreground">Blitz depth</span>
+            <span className="font-display text-gold">Floor {usable} of {Math.max(1, cap)}</span>
+          </div>
+          <input aria-label="Blitz target floor" type="range" min={1} max={Math.max(1, cap)} value={usable}
+            disabled={cap < 1} onChange={(e) => jump(Number(e.target.value))}
+            className="mt-1 w-full accent-[var(--gold)]" />
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs">
+            <label className="flex items-center gap-1 text-muted-foreground">
+              Type
+              <input aria-label="Blitz depth typed" type="number" min={1} max={Math.max(1, cap)} value={target}
+                onChange={(e) => jump(Math.max(1, Number(e.target.value) || 1))}
+                className="w-20 rounded border border-border bg-background px-2 py-1 text-sm text-foreground" />
+            </label>
+            <button className="btn-ghost px-2 py-1 text-xs" disabled={cap < 1} onClick={() => jump(Math.max(1, cap))}>
+              Deepest ({cap})
+            </button>
+            <button className="btn-ghost px-2 py-1 text-xs" disabled={cap < 1} onClick={() => jump(Math.max(1, cap - 9))}>
+              Last 10
+            </button>
+            <button className="btn-ghost px-2 py-1 text-xs" disabled={cap < 1} onClick={() => jump(Math.max(1, Math.round(cap / 2)))}>
+              Halfway
+            </button>
+          </div>
         </div>
 
         <Button className="mt-3 w-full py-2" disabled={!!blocked || left < 1} onClick={() => update((h) => {
