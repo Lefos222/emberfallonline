@@ -1,11 +1,12 @@
 import type { Hero } from "./data";
 
 /**
- * The Farm: the castle's farming destination, opened from the tree beside the Campaign Gate.
+ * The Farm: the castle's farming destination, opened from the red tree beside the Campaign Gate.
  *
  * Progression is deliberately small and self-contained: the Farm has its own level (1-16),
- * fed only by Farm XP from harvested XP Seeds, and every level permanently unlocks one more
- * plot of the eighteen the fields hold. Gold Seeds are the gold side of the same choice.
+ * fed only by Farm XP, and every level permanently unlocks one more plot of the sixteen the
+ * fields hold — one plot at level 1, all sixteen at level 16. Gold Seeds are the gold side of
+ * the same choice, and the Bloodoak in the middle of the fields pays both every half hour.
  *
  * All seeds, prices, durations and rewards live in the tables below, so the whole economy of
  * the Farm can be tuned from here. Growing is timestamp-based (`plantedAt` / `readyAt` stored on
@@ -15,9 +16,9 @@ import type { Hero } from "./data";
 export type SeedKind = "gold" | "xp";
 
 export const FARM_MAX_LEVEL = 16;
-export const FARM_TOTAL_SLOTS = 18;
-/** The first three plots are tilled from the start; every Farm Level adds one more. */
-export const FARM_STARTING_SLOTS = 3;
+export const FARM_TOTAL_SLOTS = 16;
+/** One plot is tilled from the start; every Farm Level adds one more, so level = plots. */
+export const FARM_STARTING_SLOTS = 1;
 
 const validKind = (kind: SeedKind) => kind === "gold" || kind === "xp";
 const validTier = (tier: number) => Number.isInteger(tier) && tier >= 1 && tier <= FARM_MAX_LEVEL;
@@ -29,7 +30,7 @@ const safeWhole = (value: number | undefined, fallback: number) =>
 export const farmLevel = (h: Pick<Hero, "farm">) =>
   Math.max(1, Math.min(FARM_MAX_LEVEL, safeWhole(h.farm?.level, 1)));
 
-/** Plots unlocked at a Farm Level: 3 at level 1, one more per level, all 18 at level 16. */
+/** Plots unlocked at a Farm Level: 1 at level 1, one more per level, all 16 at level 16. */
 export const slotsForLevel = (level: number) =>
   Math.min(FARM_TOTAL_SLOTS, FARM_STARTING_SLOTS + Math.max(0, Math.floor(level) - 1));
 
@@ -128,19 +129,22 @@ export interface FarmCrop {
 export interface FarmState {
   level?: number;
   xp?: number;
-  /** Eighteen plots; `null` is an empty (or still locked) plot. */
+  /** Sixteen plots; `null` is an empty (or still locked) plot. */
   slots?: (FarmCrop | null)[];
   /** Seeds bought from the shop and not yet planted, keyed "gold:tier" / "xp:tier". */
   seeds?: Record<string, number>;
+  /** Epoch milliseconds of the last Bloodoak charge; 0 (or absent) means never charged. */
+  treeChargedAt?: number;
 }
 
-/** A brand-new farm: level 1, no XP, eighteen plots of which three are tilled. */
+/** A brand-new farm: level 1, no XP, sixteen plots of which one is tilled. */
 export function newFarm(): Required<FarmState> {
   return {
     level: 1,
     xp: 0,
     slots: Array.from({ length: FARM_TOTAL_SLOTS }, () => null),
     seeds: {},
+    treeChargedAt: 0,
   };
 }
 
@@ -153,6 +157,7 @@ export function ensureFarm(h: Hero): Required<FarmState> {
     xp: farmXp(h),
     slots,
     seeds: { ...(current.seeds ?? {}) },
+    treeChargedAt: Math.max(0, safeWhole(current.treeChargedAt, 0)),
   };
   h.farm = farm;
   return farm;
@@ -303,19 +308,58 @@ export function cropProgress(crop: FarmCrop, now = Date.now()) {
   return Math.max(0, Math.min(1, (now - crop.plantedAt) / span));
 }
 
-/** "1h 05m" / "12:34" / "Ready" for a plot's remaining time. */
-export function timeLeft(crop: FarmCrop, now = Date.now()) {
-  const left = crop.readyAt - now;
-  if (left <= 0) return "Ready";
-  const mins = Math.ceil(left / 60_000);
+/** "1h 05m" / "12:34" / "Ready" for a countdown in milliseconds. */
+export function waitLabel(ms: number) {
+  if (!Number.isFinite(ms) || ms <= 0) return "Ready";
+  const mins = Math.ceil(ms / 60_000);
   if (mins >= 60) return `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, "0")}m`;
-  const secs = Math.ceil(left / 1000);
+  const secs = Math.ceil(ms / 1000);
   return `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
 }
+
+/** "1h 05m" / "12:34" / "Ready" for a plot's remaining time. */
+export const timeLeft = (crop: FarmCrop, now = Date.now()) => waitLabel(crop.readyAt - now);
 
 /** A seed's growing time as words, for the shop and the picker. */
 export function durationLabel(kind: SeedKind, tier: number) {
   const mins = kind === "gold" ? goldSeedMinutes(tier) : xpSeedMinutes(tier);
   if (mins >= 60) return `${Math.floor(mins / 60)}h ${mins % 60 ? `${mins % 60}m` : ""}`.trim();
   return `${mins} min`;
+}
+
+// ---------- The Bloodoak ----------
+
+/** The great red tree in the middle of the fields can be charged once every half hour. */
+export const BLOODOAK_COOLDOWN_MS = 30 * 60_000;
+
+/**
+ * What one charge pays at a Farm Level: gold that grows with the level, and a slice of the
+ * Farm XP that level needs — never a whole level, so the fields still matter most.
+ */
+export function bloodoakRewards(level: number) {
+  const lv = Math.max(1, Math.min(FARM_MAX_LEVEL, safeWhole(level, 1)));
+  const step = FARM_XP_STEPS[Math.min(FARM_XP_STEPS.length - 1, lv - 1)] ?? 120;
+  return { gold: 300 + 120 * (lv - 1), xp: Math.max(10, Math.round(step * 0.12)) };
+}
+
+/** When the Bloodoak is next chargeable; 0 while it is ready now. */
+export function bloodoakReadyAt(h: Pick<Hero, "farm">) {
+  const at = safeWhole(h.farm?.treeChargedAt, 0);
+  return at > 0 ? at + BLOODOAK_COOLDOWN_MS : 0;
+}
+
+/** Milliseconds until the next charge (0 when it is ready). */
+export const bloodoakWaitMs = (h: Pick<Hero, "farm">, now = Date.now()) =>
+  Math.max(0, bloodoakReadyAt(h) - now);
+
+/** Charge the Bloodoak for gold and Farm XP; null while it is still recharging. */
+export function chargeBloodoak(h: Hero, now = Date.now()): HarvestResult | null {
+  if (!Number.isFinite(now) || now < 0) return null;
+  if (now < bloodoakReadyAt(h)) return null;
+  const farm = ensureFarm(h);
+  const { gold, xp } = bloodoakRewards(farm.level);
+  farm.treeChargedAt = now;
+  h.gold += gold;
+  const levels = addFarmXp(h, xp);
+  return { gold, xp, levels };
 }

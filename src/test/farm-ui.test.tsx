@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { newHero } from "@/game/data";
 import { FarmPanel, FarmShopTab } from "@/game/Farm";
 import {
+  bloodoakRewards,
   ensureFarm,
   farmLevel,
   farmXpToNext,
@@ -22,15 +23,28 @@ const hero = () => {
 describe("the farm panel", () => {
   afterEach(() => setHero(null));
 
-  it("shows Farm Level 1 with three tilled plots and fifteen locked ones", () => {
+  it("shows Farm Level 1 with one tilled plot and fifteen locked ones", () => {
     setHero(hero());
     render(<FarmPanel onClose={() => {}} />);
 
     expect(screen.getByText("Farm Level")).toBeInTheDocument();
-    expect(screen.getByText("3 / 18 plots")).toBeInTheDocument();
-    for (let i = 1; i <= 3; i += 1)
-      expect(screen.getByLabelText(`Empty plot ${i} — plant a seed`)).toBeInTheDocument();
-    expect(screen.getByLabelText("Plot 4 locked — Farm Level 2 required")).toBeInTheDocument();
+    expect(screen.getByText("1 / 16 plots")).toBeInTheDocument();
+    expect(screen.getByLabelText("Empty plot 1 — plant a seed")).toBeInTheDocument();
+    expect(screen.getByLabelText("Plot 2 locked — Farm Level 2 required")).toBeInTheDocument();
+    expect(screen.getAllByLabelText(/locked — Farm Level \d+ required/)).toHaveLength(15);
+  });
+
+  it("charges the Bloodoak for gold and Farm XP, then shows its cooldown", () => {
+    setHero(hero());
+    const before = getState().hero!.gold;
+    render(<FarmPanel onClose={() => {}} />);
+
+    fireEvent.click(screen.getByLabelText("Charge the Bloodoak"));
+
+    const after = getState().hero!;
+    expect(after.gold).toBe(before + bloodoakRewards(1).gold);
+    expect(screen.getByLabelText(/Bloodoak recharging/)).toBeDisabled();
+    expect(screen.getByRole("status").textContent).toContain("Bloodoak charged");
   });
 
   it("plants a seed from the planting dialog", () => {

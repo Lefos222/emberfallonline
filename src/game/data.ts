@@ -430,7 +430,7 @@ export interface Hero {
   dailyChest?: { last?: number; claims?: number };
   /** Astral summon counter for RNG gating (see crafting.ts). */
   astralSummons?: number;
-  /** The Farm: its own level, Farm XP, eighteen plots and the seed pouch (see farm.ts). */
+  /** The Farm: its own level, Farm XP, sixteen plots, the Bloodoak and the seed pouch (see farm.ts). */
   farm?: FarmState;
 
 }
@@ -563,7 +563,7 @@ export function normalizeHero(h: Hero): Hero {
   normalizeAstrals(h);
   // Synthesis gear survives every save round-trip; unknown or un-forged pieces are dropped.
   normalizeSynth(h);
-  // Every character has a farm: older saves get level 1, three tilled plots and no crops.
+  // Every character has a farm: older saves get level 1, one tilled plot and no crops.
   normalizeFarm(h);
   return h;
 }
@@ -826,9 +826,10 @@ export const BUILDINGS = [
   { id: "forge", name: "Blacksmith", x: 63.5, y: 44, r: 4.5, desc: "Enhance & salvage gear", soon: false },
   { id: "oracle", name: "Quest Board", x: 42, y: 52, r: 3.5, desc: "AI-generated quests", soon: false , shortcut: true },
   { id: "portal", name: "Campaign Gate", x: 72, y: 54, r: 5.5, desc: "Campaign stages", soon: false },
-  // The Farm lives in the tree immediately right of the Campaign Gate — the plot is painted into
-  // the castle art, so this hotspot only makes that tree the Farm's door.
-  { id: "farm", name: "Farm", x: 82.5, y: 53, r: 4.3, desc: "Seeds, crops & farm levels", soon: false },
+  // The Farm lives on the red tree immediately right of the Campaign Gate — the tree is painted
+  // into the castle art (its canopy sits near 80-84% / 50-53%), so this hotspot makes that tree
+  // the Farm's door. It keeps clear of the gate's own hotspot so each tap opens its own screen.
+  { id: "farm", name: "Farm", x: 82, y: 51.5, r: 4.6, desc: "Seeds, crops & the Bloodoak", soon: false },
   { id: "spire", name: "Conquest Gate", x: 17, y: 46, r: 5, desc: "Endless Conquest · Lv 10+", soon: false },
   { id: "arena", name: "Arena", x: 50, y: 31, r: 6.5, desc: "Fight real players", soon: false },
   { id: "market", name: "Auction House", x: 44, y: 82, r: 5, desc: "Catalogue, shop & player auctions", soon: false },
