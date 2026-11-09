@@ -78,6 +78,10 @@ export function GuildHallScene({
           </p>
         </div>
       </header>
+      <p className="guild-hall-help">
+        Every part of your guild lives in this courtyard — tap a painted building, or pick a room
+        below. Leaders and officers keep the charter, answer applications and take the guild to war.
+      </p>
       <div className="guild-hall-view" role="tablist" aria-label="Guild Hall buildings">
         <img
           src={buildingsArt}
@@ -144,7 +148,7 @@ export function GuildHallScene({
           onClick={() => onSelect("wars")}
         >
           <span className="guild-room-name">Guild Wars</span>
-          <span className="guild-room-hint">Declare war, fight for points & spoils</span>
+          <span className="guild-room-hint">5v5 – 100v100 · 2 attacks each</span>
         </button>
       </div>
     </section>

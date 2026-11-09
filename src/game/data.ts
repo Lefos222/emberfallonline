@@ -358,8 +358,9 @@ export interface Hero {
   passives?: Record<string, number>;
   /** Insight banked for the passive tree; earned from real campaign, elite, boss and activity results. */
   insight?: number;
-  /** Endless Conquest: tokens earned from cleared floors and spent in the Conquest Gate (see conquest.ts). */
-  conquest?: { tokens?: number; blitzDay?: string; blitzUsed?: number };
+  /** Endless Conquest: tokens earned from cleared floors and spent in the Conquest Gate, plus the
+   *  blitz allowance and the Greek day today's Conquest Key covers (see conquest.ts). */
+  conquest?: { tokens?: number; blitzDay?: string; blitzUsed?: number; keyDay?: string };
   /** A blitz that is still out on its ten-minute run, with the rewards it will pay when it lands (see blitz-run.ts). */
   blitzRun?: {
     gate: "campaign" | "conquest";

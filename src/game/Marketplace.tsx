@@ -1,8 +1,9 @@
 import { itemName } from "./i18n";
 import { useEffect, useState } from "react";
-import { Clock, Gavel, Store, Trash2 } from "lucide-react";
+import { Clock, Gavel, KeyRound, Store, Trash2 } from "lucide-react";
 import { AuctionBoard } from "./AuctionHouse";
 import { CATALOGUE_DISCOUNT, buyCatalogueItem, catalogueHour, cataloguePrice, catalogueRefreshAt, catalogueStock } from "./catalogue";
+import { CONQUEST_KEY_GOLD, activateConquestKey, conquestKeyActive } from "./conquest";
 import { invCap, RARITIES, type Hero } from "./data";
 import { scaledGold } from "./gold";
 import { POTIONS, addPotion, potionHeld, type PotionId } from "./potions";
@@ -45,6 +46,18 @@ export function buyShopGood(h: Hero, id: PotionId): string | null {
   h.gold -= price;
   addPotion(h, id);
   return null;
+}
+
+/** Gold today's Conquest Key costs in the shop, after the house discount. */
+export const conquestKeyShopPrice = (level = 1) => cutPrice(scaledGold(CONQUEST_KEY_GOLD, level));
+
+/** Buy today's Conquest Key: double every Conquest Gate reward until Greek midnight. */
+export function buyConquestKey(h: Hero): string | null {
+  if (conquestKeyActive(h)) return "Today's Conquest Key is already in your pack — it lasts until Greek midnight.";
+  const price = conquestKeyShopPrice(h.level);
+  if (h.gold < price) return `Not enough gold — ${fmt(price)} needed`;
+  h.gold -= price;
+  return activateConquestKey(h);
 }
 
 /** Gold one Fate Stone costs in the shop, after the house discount. */
@@ -148,6 +161,42 @@ function ShopTab({ hero }: { hero: Hero }) {
           );
         })}
       </div>
+
+      <div className="mt-5 mb-2 flex flex-wrap items-baseline justify-between gap-1">
+        <span className="font-display text-sm text-gold">Conquest Key</span>
+        <span className="text-xs text-muted-foreground">{conquestKeyActive(hero) ? "Active until Greek midnight" : "One use · doubled conquest rewards"}</span>
+      </div>
+      <p className="mb-2 text-xs text-muted-foreground">
+        A key bought today doubles every reward the Conquest Gate pays until Greek midnight: double
+        gold and double Conquest Tokens from every floor you clear and from every conquest blitz.
+      </p>
+      {(() => {
+        const price = conquestKeyShopPrice(hero.level);
+        const active = conquestKeyActive(hero);
+        return (
+          <article className={`slot flex items-center gap-3 p-3 sm:max-w-md ${active ? "border-gold/60" : ""}`}>
+            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border ${active ? "border-gold text-gold" : "border-border text-muted-foreground"}`}>
+              <KeyRound className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-bold">Conquest Key</div>
+              <div className="text-[11px] text-muted-foreground">
+                {active ? "In your pack — double gold and tokens at the gate today" : "Double gold and tokens at the Conquest Gate for the day"}
+              </div>
+            </div>
+            {active ? (
+              <span className="text-xs font-bold text-gold">Active</span>
+            ) : (
+              <button className="btn-gold px-3 py-1.5 text-sm" disabled={hero.gold < price}
+                aria-label="Buy a Conquest Key"
+                title={hero.gold < price ? "Not enough gold" : "Buy a Conquest Key"}
+                onClick={() => update((h) => { say(buyConquestKey(h), "today's Conquest Key"); })}>
+                <Gold n={price} className="text-primary-foreground" />
+              </button>
+            )}
+          </article>
+        );
+      })()}
 
       <div className="mt-5 mb-2 font-display text-sm text-gold">Enchantment Stones · nine grades</div>
       <p className="mb-2 text-xs text-muted-foreground">

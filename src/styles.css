@@ -548,6 +548,11 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   clip-path: polygon(50% 0, 100% 12%, 100% 62%, 50% 100%, 0 62%, 0 12%);
   box-shadow: 0 0 18px oklch(0.55 0.22 30 / 0.6);
 }
+.guild-hall-help {
+  position: relative; z-index: 2;
+  margin: 0; padding: 0 1rem 0.6rem;
+  font-size: 0.72rem; line-height: 1.45; color: var(--muted-foreground);
+}
 .guild-hall-view { position: relative; display: block; width: 100%; aspect-ratio: 1376 / 768; overflow: hidden; }
 .guild-hall-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; -webkit-user-select: none; user-select: none; }
 .guild-hall-ember { position: absolute; bottom: 0; z-index: 1; width: 0.25rem; height: 0.25rem; border-radius: 999px; background: var(--gold); pointer-events: none; }
@@ -588,18 +593,33 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   font-size: 0.6rem; font-weight: 700; color: var(--primary-foreground);
   background: var(--gold-gradient);
 }
-.guild-hall-rooms { display: none; }
-@media (max-width: 767px) {
-  .guild-hall-rooms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; padding: 0.6rem 0.75rem 0.85rem; }
-  .guild-room {
-    display: flex; flex-direction: column; gap: 0.1rem; padding: 0.4rem 0.5rem;
-    border-radius: var(--radius-md); border: 1px solid oklch(0.42 0.08 30 / 0.9);
-    background: linear-gradient(180deg, oklch(0.17 0.04 22 / 0.92), oklch(0.1 0.03 20 / 0.96));
-    text-align: left;
-  }
-  .guild-room-active { border-color: var(--gold); box-shadow: 0 0 16px -6px var(--gold); }
-  .guild-room-name { font-family: var(--font-display); font-size: 0.82rem; }
-  .guild-room-hint { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
+/* The rooms are a plain, labelled way into every part of the hall, so a player never has to
+   guess which painted building does what: always visible, two columns on phones and phones
+   only, growing to a single row of labelled rooms on wider screens. */
+.guild-hall-rooms {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem 0.85rem;
+}
+.guild-room {
+  display: flex; flex-direction: column; gap: 0.1rem; padding: 0.45rem 0.55rem;
+  border-radius: var(--radius-md); border: 1px solid oklch(0.42 0.08 30 / 0.9);
+  background: linear-gradient(180deg, oklch(0.17 0.04 22 / 0.92), oklch(0.1 0.03 20 / 0.96));
+  text-align: left; cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.guild-room:hover, .guild-room:focus-visible {
+  border-color: oklch(0.8 0.12 78 / 0.9);
+  box-shadow: 0 0 14px -6px oklch(0.78 0.16 70 / 0.8);
+}
+.guild-room-active { border-color: var(--gold); box-shadow: 0 0 16px -6px var(--gold); }
+.guild-room-name { font-family: var(--font-display); font-size: 0.82rem; color: var(--gold); }
+.guild-room-hint { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
+@media (min-width: 640px) {
+  .guild-hall-rooms { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .guild-room-name { font-size: 0.86rem; }
+  .guild-room-hint { font-size: 0.62rem; }
 }
 
 /* World-chat event lines (level-ups, good drops, event openings) read as heraldry, not chatter. */

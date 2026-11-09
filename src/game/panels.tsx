@@ -12,7 +12,9 @@ import {
   SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, enchantStoneGrade, goldEnhanceAllowed, ENHANCE_MAX, ENHANCE_GOLD_LIMIT, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
   CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, scaledFoe, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
-import { addConquestTokens, conquestTokens, floorTokens } from "./conquest";
+import {
+  addConquestTokens, conquestKeyActive, conquestRewardMultiplier, conquestTokens, floorTokens,
+} from "./conquest";
 import { CAMPAIGN_STAMINA, staminaBlocker, staminaLeft } from "./stamina";
 import { ConquestTokens } from "./ConquestGate";
 import { CampaignBlitz } from "./CampaignBlitz";
@@ -243,6 +245,9 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   // Enemies level up with the hero (see scaledFoe): old stages never become a free tutorial.
   const foe = scaledFoe(stageFoe(stage, mult), hero.level);
   const rw = stageRewards(stage, spire ? 2 : 1);
+  // Today's Conquest Key doubles every Conquest Gate payout (see conquest.ts).
+  const keyOn = spire && conquestKeyActive(hero);
+  const keyMult = keyOn ? 2 : 1;
   const s = heroStats(hero);
   const foePower = foeRating(foe);
   const ratio = s.power / foePower;
@@ -269,23 +274,26 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
         const { grant, rollLoot, addLoot } = await import("./logic");
         let lines: string[] = [];
         let loot: Item | null = null;
-        // Clearing a floor pays Conquest Tokens; deeper floors pay more. The gate pays no XP at
-        // all — the Campaign Gate is the only place a hero earns levels.
-        const tokens = spire ? floorTokens(stage) : 0;
+        // Clearing a floor pays Conquest Tokens; deeper floors pay more, and today's Conquest Key
+        // doubles both the floor's gold and its tokens. The gate pays no XP at all — the Campaign
+        // Gate is the only place a hero earns levels.
+        const keyMult = spire ? conquestRewardMultiplier(hero) : 1;
+        const tokens = spire ? floorTokens(stage) * keyMult : 0;
+        const gold = spire ? Math.round(rw.gold * keyMult) : rw.gold;
         update((h) => {
           // Fighting above the hero's level pays catch-up XP (see catchUpXpFactor).
           // Non-campaign (Conquest) fights pay 30% XP but never enough to level up.
           const xp = spire
             ? Math.max(0, Math.min(Math.round(rw.xp * 0.3 * xpMultiplier), Math.max(0, xpToNext(h) - h.xp - 1)))
             : scrollXp(rw.xp * catchUpXpFactor(h.level, stage), xpMultiplier);
-          const { levels } = grant(h, xp, rw.gold);
+          const { levels } = grant(h, xp, gold);
           loot = rollLoot(h, stage, foe.boss || spire ? 1 : 0.45, spire ? 2 : foe.boss ? 2 : 0);
           if (loot) addLoot(h, loot);
           if (tokens) addConquestTokens(h, tokens);
           if (spire && stage === h.spire) h.spire++;
           if (!spire && stage === h.stage) h.stage++;
           h.wins++;
-          lines = [...(xp ? [`+${fmt(xp)} XP`] : []), `+${fmt(rw.gold)} gold`, ...(tokens ? [`+${tokens} Conquest Tokens`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+          lines = [...(xp ? [`+${fmt(xp)} XP`] : []), `+${fmt(gold)} gold`, ...(tokens ? [`+${tokens} Conquest Tokens${keyMult > 1 ? " (Conquest Key ×2)" : ""}`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         if (stage === max) setStage(stage + 1);
         return { lines, loot };
@@ -319,7 +327,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
           <div className="text-2xl font-bold">{max}</div>
           <div className="mt-1 text-[11px] text-muted-foreground">
             {spire
-              ? <>Floors never stop scaling · {fmt(floorTokens(max))} tokens at the frontier</>
+              ? <>Floors never stop scaling · {fmt(floorTokens(max) * keyMult)} tokens at the frontier{keyOn ? " · Key ×2" : ""}</>
               : <>Boss at stage {nextBoss} · {nextBoss - stage} to go</>}
           </div>
         </div>
@@ -330,11 +338,13 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             {spire
-              ? <span className="flex items-center gap-1 font-bold text-gold"><ConquestCoin size={16} />+{fmt(floorTokens(stage))}</span>
+              ? <span className="flex items-center gap-1 font-bold text-gold"><ConquestCoin size={16} />+{fmt(floorTokens(stage) * keyMult)}</span>
               : <span className="font-bold text-xp">+{fmt(rw.xp)} XP</span>}
-            <Gold n={rw.gold} />
+            <Gold n={spire ? Math.round(rw.gold * keyMult) : rw.gold} />
           </div>
-          <div className="mt-1 text-[11px] text-muted-foreground">{(spire || foe.boss) ? "Rare+ loot guaranteed" : "Sometimes drops gear"}</div>
+          <div className="mt-1 text-[11px] text-muted-foreground">
+            {keyOn ? "Conquest Key active · rewards doubled today" : (spire || foe.boss) ? "Rare+ loot guaranteed" : "Sometimes drops gear"}
+          </div>
         </div>
       </div>
 
@@ -390,10 +400,10 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {spire
-                  ? <RewardChip tone="text-gold"><ConquestCoin size={16} />+{fmt(floorTokens(stage))} tokens</RewardChip>
+                  ? <RewardChip tone="text-gold"><ConquestCoin size={16} />+{fmt(floorTokens(stage) * keyMult)} tokens</RewardChip>
                   : <RewardChip tone="text-xp">+{fmt(rw.xp)} XP</RewardChip>}
-                <RewardChip><Gold n={rw.gold} /></RewardChip>
-                <RewardChip tone="text-r2">{(spire || foe.boss) ? "Rare+ loot guaranteed" : "Gear may drop"}</RewardChip>
+                <RewardChip><Gold n={spire ? Math.round(rw.gold * keyMult) : rw.gold} /></RewardChip>
+                <RewardChip tone="text-r2">{keyOn ? "Conquest Key ×2" : (spire || foe.boss) ? "Rare+ loot guaranteed" : "Gear may drop"}</RewardChip>
               </div>
               {!spire && (
                 <div className="mt-2">

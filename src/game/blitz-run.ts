@@ -2,13 +2,30 @@ import type { Hero } from "./data";
 import { grant } from "./logic";
 
 /**
- * A blitz is a run, not an instant payout: starting one sends the hero out for ten
- * minutes. The rewards land when the run ends, every battle is locked while it lasts,
- * and 25 Diamonds finish it on the spot.
+ * A blitz is a run, not an instant payout: starting one sends the hero up the climb. The
+ * rewards land when the run ends, every battle is locked while it lasts, and 25 Diamonds
+ * finish it on the spot. A shallow run takes 20 minutes; a run that sweeps a deep climb
+ * takes up to 50, so the long ones cost the hero real time.
  */
 
-/** How long a blitz run takes. */
-export const BLITZ_DURATION_MS = 10 * 60_000;
+/** The shortest a blitz can take — a shallow run. */
+export const BLITZ_MIN_MS = 20 * 60_000;
+
+/** The longest a blitz can take — a run to the deepest floors. */
+export const BLITZ_MAX_MS = 50 * 60_000;
+
+/** Blitz depth (floors or stages covered) at which a run takes the full 50 minutes. */
+export const BLITZ_FULL_DEPTH = 100;
+
+/**
+ * How long a blitz to `target` floors (or stages) takes: 20 minutes for a shallow run, rising
+ * one minute per few floors to the 50-minute cap at BLITZ_FULL_DEPTH. Whole minutes, so the
+ * countdown always reads cleanly.
+ */
+export function blitzDurationMs(target: number): number {
+  const depth = Math.min(1, Math.max(0, (Math.max(1, Math.floor(target || 1)) - 1) / (BLITZ_FULL_DEPTH - 1)));
+  return (20 + Math.round(depth * 30)) * 60_000;
+}
 
 /** Version 1.00: a campaign blitz pays 70% less XP than fighting those stages, so it is a gold and
  *  clear shortcut rather than the fastest way to level. The Conquest Gate's blitz pays no XP at all. */
@@ -29,6 +46,9 @@ export const blitzRun = (h: Pick<Hero, "blitzRun">) => h.blitzRun ?? null;
 /** Milliseconds left on the run; 0 when nothing is running. */
 export const blitzLeft = (h: Pick<Hero, "blitzRun">, now = Date.now()) =>
   h.blitzRun ? Math.max(0, h.blitzRun.endsAt - now) : 0;
+
+/** The whole length of a run, so a progress bar can tell how far along it is. */
+export const blitzRunTotal = (run: Pick<BlitzRun, "target">) => blitzDurationMs(run.target);
 
 /** True while the hero is out on a blitz — no battles can start until it lands. */
 export const blitzRunning = (h: Pick<Hero, "blitzRun">, now = Date.now()) => blitzLeft(h, now) > 0;
@@ -53,7 +73,7 @@ export function startBlitzRun(
   now = Date.now(),
 ): string | null {
   if (blitzRunning(h, now)) return BLITZ_RUNNING;
-  h.blitzRun = { ...run, startedAt: now, endsAt: now + BLITZ_DURATION_MS };
+  h.blitzRun = { ...run, startedAt: now, endsAt: now + blitzDurationMs(run.target) };
   return null;
 }
 
@@ -80,7 +100,7 @@ export function finishBlitzRun(h: Hero): BlitzReceipt | null {
   return { gate: run.gate, target: run.target, xp, gold: run.gold, tokens };
 }
 
-/** Pay the run once its ten minutes are up. Returns the receipt, or null while it still runs. */
+/** Pay the run once its clock is up. Returns the receipt, or null while it still runs. */
 export function settleBlitzRun(h: Hero, now = Date.now()): BlitzReceipt | null {
   return blitzRunning(h, now) ? null : finishBlitzRun(h);
 }
