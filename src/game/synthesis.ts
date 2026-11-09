@@ -1,5 +1,6 @@
 import type { Hero, HeroClass } from "./data";
 import { matCount, zeroFx, type BonusFx, type Mat } from "./crafting";
+import { locValues } from "./i18n";
 
 /**
  * Synthesis — the long-term armour progression of Ember Fall.
@@ -17,13 +18,13 @@ export type SynthSlot = "helmet" | "chest" | "belt" | "boots" | "ring1" | "ring2
 
 export const SYNTH_SLOTS: SynthSlot[] = ["helmet", "chest", "belt", "boots", "ring1", "ring2", "sigil", "weapon"];
 
-export const SYNTH_SLOT_LABEL: Record<SynthSlot, string> = {
+export const SYNTH_SLOT_LABEL: Record<SynthSlot, string> = locValues({
   helmet: "Helmet", chest: "Chestplate", belt: "Belt", boots: "Boots",
   ring1: "Ring I", ring2: "Ring II", sigil: "Sigil", weapon: "Weapon",
-};
+});
 
 /** The class weapon every set carries (the game's classes already fight with these). */
-export const SYNTH_WEAPON: Record<HeroClass, string> = { warrior: "Sword", mage: "Wand", archer: "Bow" };
+export const SYNTH_WEAPON: Record<HeroClass, string> = locValues({ warrior: "Sword", mage: "Wand", archer: "Bow" });
 
 /** Character level the forge's Synthesis tab opens at, before the first set exists. */
 export const SYNTH_UNLOCK_LEVEL = 30;

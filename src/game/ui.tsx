@@ -6,7 +6,7 @@ import { GearIcon } from "./GearIcon";
 import { GemIcon } from "./MatIcon";
 import { gemName, gemStatText, parseGem, socketCount, sockets } from "./crafting";
 import { itemStats, itemScore, RARITIES, type Item } from "./data";
-import { useT } from "./i18n";
+import { itemName, useT } from "./i18n";
 
 /** Every window wears the same painted crest in its header, so the castle's screens read as one game. */
 export function Panel({ title, subtitle, art, onClose, children, wide }: {
@@ -96,7 +96,7 @@ export function ItemSlot({ item, size = 56, onClick, selected, empty }: { item?:
   return (
     <button
       onClick={onClick}
-      aria-label={item ? `${item.name}${item.enh > 0 ? ` +${item.enh}` : ""} — ${RARITIES[item.rarity].name} item level ${item.ilvl}` : typeof empty === "string" ? `Empty ${empty.toLowerCase()} slot` : "Empty slot"}
+      aria-label={item ? `${itemName(item.name)}${item.enh > 0 ? ` +${item.enh}` : ""} — ${RARITIES[item.rarity].name} item level ${item.ilvl}` : typeof empty === "string" ? `Empty ${empty.toLowerCase()} slot` : "Empty slot"}
       className={`slot relative flex shrink-0 items-center justify-center transition hover:scale-105 ${item ? `rarity-${item.rarity}` : ""} ${selected ? "ring-2 ring-gold" : ""}`}
       style={{ width: size + 8, height: size + 8 }}
     >
@@ -129,7 +129,7 @@ export function ItemCard({ item, compare, actions }: { item: Item; compare?: Ite
         <ItemSlot item={item} size={64} />
         <div className="min-w-0">
           <div className="font-display font-bold leading-tight" style={{ color: `var(--r${item.rarity})` }}>
-            {item.name} {item.enh > 0 && `+${item.enh}`}
+            {itemName(item.name)} {item.enh > 0 && `+${item.enh}`}
           </div>
           <div className="text-xs text-muted-foreground">{RARITIES[item.rarity].name} · {item.slot} · iLvl {item.ilvl}</div>
           {delta !== null && <div className={`text-xs font-bold ${delta >= 0 ? "text-r1" : "text-hp"}`}>{delta >= 0 ? "▲ Upgrade" : "▼ Weaker"} ({delta >= 0 ? "+" : ""}{delta} power)</div>}

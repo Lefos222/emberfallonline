@@ -1,3 +1,4 @@
+import { itemName } from "./i18n";
 import { useState } from "react";
 import { Gem, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -74,10 +75,10 @@ export function GuildShopPanel() {
         {GUILD_SHOP.map((item) => (
           <button key={item.id} className="slot flex items-center justify-between gap-2 p-2 text-left text-xs" disabled={coins < item.cost}
             title={item.desc}
-            onClick={() => update((h) => { const err = buyGuildShopItem(h, item.id); say(!err, err ?? `Bought ${item.name}!`); })}>
+            onClick={() => update((h) => { const err = buyGuildShopItem(h, item.id); say(!err, err ?? `Bought ${itemName(item.name)}!`); })}>
             <span className="flex min-w-0 items-center gap-1.5">
               <MatIcon mat={item.mat} size={18} />
-              <span className="truncate">{item.name}</span>
+              <span className="truncate">{itemName(item.name)}</span>
             </span>
             <span className="shrink-0 font-bold text-gold">{fmt(item.cost)} c</span>
           </button>

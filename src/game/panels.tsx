@@ -1,3 +1,4 @@
+import { itemName, tName } from "./i18n";
 import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { trainingCost, trainAttribute } from './building-content';
@@ -204,7 +205,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
       </div>
       {selItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" role="dialog" aria-modal="true"
-          aria-label={`${selItem.name} details`} onClick={() => setSel(null)}>
+          aria-label={`${itemName(selItem.name)} details`} onClick={() => setSel(null)}>
           <div className="game-panel anim-pop w-full max-w-md p-4" onClick={(e) => e.stopPropagation()}>
             <ItemCard
               item={selItem}
@@ -262,7 +263,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
       title: spire ? `Endless Conquest · Floor ${stage}` : `${zone.name} · Stage ${stage}`,
       auto,
       stamina: staminaCost || undefined,
-      right: { ...foe, name: foe.boss ? `${foe.name}` : foe.name },
+      right: { ...foe, name: tName(foe.name) },
       onResult: async (won, xpMultiplier = 1) => {
         if (!won) return { lines: ["Defeated… grow stronger and return."] };
         const { grant, rollLoot, addLoot } = await import("./logic");
@@ -351,13 +352,13 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
               <img src={worldMap} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-45" />
               <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/30 to-background" aria-hidden="true" />
               <div className="absolute inset-x-10 bottom-6 h-8 rounded-full bg-blood/50 blur-xl" aria-hidden="true" />
-              <img src={foe.img} alt={foe.name} className="relative h-full w-full object-contain anim-idle" />
+              <img src={foe.img} alt={tName(foe.name)} className="relative h-full w-full object-contain anim-idle" />
               {foe.boss && <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-blood px-2 py-0.5 font-display text-sm"><Skull className="h-4 w-4" />BOSS</div>}
               <div className="absolute right-2 top-2"><DangerPill danger={danger} /></div>
             </div>
             <div className="border-t border-border/60 px-3 py-2">
               <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-                <span className="font-display text-lg leading-tight">{foe.name}</span>
+                <span className="font-display text-lg leading-tight">{tName(foe.name)}</span>
                 <span className="text-[11px] text-muted-foreground">Enemy level {foe.level} · {fmt(foePower)} power</span>
               </div>
               <div className="mt-1.5 grid grid-cols-3 gap-1 text-center text-[11px]">
@@ -482,7 +483,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
     update((h) => { scrapItem(h, sel.id); });
     setArmed(null);
     setSelId(null);
-    setMsg({ ok: true, t: "Salvaged " + sel.name + ": " + gain });
+    setMsg({ ok: true, t: "Salvaged " + itemName(sel.name) + ": " + gain });
   };
   // Salvaging worn gear takes a second, explicit confirmation and unequips it first.
   const salvageEquipped = () => {
@@ -493,7 +494,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
     setWarn(null);
     setArmed(null);
     setSelId(null);
-    setMsg({ ok: true, t: "Unequipped and salvaged " + it.name + ": " + gain });
+    setMsg({ ok: true, t: "Unequipped and salvaged " + itemName(it.name) + ": " + gain });
   };
   const enhance = () => {
     if (!sel || enhanceMaxed(sel)) return;
@@ -721,7 +722,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                   </>
                 ) : (
                   <button className={"w-full py-2 " + (armed === sel.id ? "btn-blood" : "btn-ghost")} onClick={salvage}>
-                    {armed === sel.id ? "Confirm - destroy " + sel.name : "Salvage this piece"}
+                    {armed === sel.id ? "Confirm - destroy " + itemName(sel.name) : "Salvage this piece"}
                   </button>
                 )}
               </section>
@@ -785,7 +786,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" role="alertdialog" aria-modal="true" aria-label="Confirm salvaging equipped gear">
           <div className="game-panel anim-pop w-full max-w-md p-5">
             <div className="mb-2 flex items-center gap-2 font-display text-xl text-blood"><Trash2 className="h-5 w-5" />This gear is equipped</div>
-            <p className="text-sm"><b>{warn.name}</b> is worn right now. Salvaging it will unequip and permanently destroy it, returning its materials and socketed gems. This cannot be undone.</p>
+            <p className="text-sm"><b>{itemName(warn.name)}</b> is worn right now. Salvaging it will unequip and permanently destroy it, returning its materials and socketed gems. This cannot be undone.</p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button className="btn-ghost flex-1 py-2" onClick={() => setWarn(null)}>Keep it equipped</button>
               <button className="btn-blood flex-1 py-2" onClick={salvageEquipped}>Unequip and destroy</button>

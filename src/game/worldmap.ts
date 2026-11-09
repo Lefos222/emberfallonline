@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CLASSES, battleRating, stageFoe, type Foe, type HeroClass } from "./data";
 import { dungeonFoe, DUNGEONS, enemySprite, type SpriteRect } from "./world";
 import { goldGain } from "./gold";
+import { locAll, locList } from "./i18n";
 
 /** World map raid kinds and their server-enforced daily allowances (UTC day). */
 export const RAID_LIMITS = { gold: 30, ore: 24, boss: 12 } as const;
@@ -91,7 +92,7 @@ export const MAX_ZOOM = 6;
 
 export type Terrain = "plains" | "forest" | "desert" | "swamp" | "volcanic" | "snow" | "coast" | "astral";
 
-export const TERRAIN: Record<Terrain, { name: string; tint: [number, number, number] }> = {
+export const TERRAIN: Record<Terrain, { name: string; tint: [number, number, number] }> = locAll({
   plains: { name: "The Heartlands", tint: [78, 88, 58] },
   forest: { name: "Thornwood", tint: [48, 70, 45] },
   desert: { name: "Ashen Waste", tint: [112, 96, 62] },
@@ -100,7 +101,7 @@ export const TERRAIN: Record<Terrain, { name: string; tint: [number, number, num
   snow: { name: "Frostspine", tint: [94, 101, 112] },
   coast: { name: "Shattered Coast", tint: [58, 74, 96] },
   astral: { name: "Starfall Reach", tint: [64, 56, 96] },
-};
+}, ["name"]);
 
 export const terrainName = (t: Terrain) => TERRAIN[t].name;
 
@@ -151,7 +152,7 @@ export interface WorldRegion {
 }
 
 /** The painted biomes of the map art, in reading order. */
-export const WORLD_REGIONS: WorldRegion[] = [
+export const WORLD_REGIONS: WorldRegion[] = locAll([
   { id: "frozen-crown", name: "The Frozen Crown", terrain: "snow", x: 2, y: 1, w: 54, h: 20 },
   { id: "obsidian-wastes", name: "The Obsidian Wastes", terrain: "volcanic", x: 58, y: 1, w: 22, h: 32 },
   { id: "autumnwood", name: "Autumnwood", terrain: "forest", x: 80, y: 1, w: 18, h: 28 },
@@ -162,10 +163,10 @@ export const WORLD_REGIONS: WorldRegion[] = [
   { id: "sunken-isles", name: "The Sunken Isles", terrain: "coast", x: 1, y: 54, w: 26, h: 44 },
   { id: "mire-fen", name: "Mire Fen", terrain: "swamp", x: 26, y: 70, w: 26, h: 28 },
   { id: "shattered-coast", name: "The Shattered Coast", terrain: "volcanic", x: 52, y: 58, w: 46, h: 40 },
-];
+], ["name"]);
 
 /** Points of interest the art itself paints: lookouts, not raid targets. */
-const LANDMARKS: { name: string; x: number; y: number; desc: string; terrain: Terrain }[] = [
+const LANDMARKS: { name: string; x: number; y: number; desc: string; terrain: Terrain }[] = locAll([
   { name: "The Great Citadel", x: 48, y: 47, desc: "EmberFall's high seat, ringed by rivers — the heart of the realm.", terrain: "plains" },
   { name: "Pyramids of the Ashen Waste", x: 9, y: 37, desc: "Sun-bleached tombs older than any kingdom.", terrain: "desert" },
   { name: "The Frozen Crown", x: 34, y: 7, desc: "Glaciers and aurora light over the northern peaks.", terrain: "snow" },
@@ -188,9 +189,9 @@ const LANDMARKS: { name: string; x: number; y: number; desc: string; terrain: Te
   { name: "Graven Stones", x: 12, y: 60, desc: "Nine standing stones cut with the names of dead kings.", terrain: "coast" },
   { name: "Tower of the Ninth Bell", x: 30, y: 84, desc: "A leaning tower half-swallowed by the fen.", terrain: "swamp" },
   { name: "The Emberfall Gate", x: 52, y: 61, desc: "The old southern road out of the Heartlands, still burning.", terrain: "volcanic" },
-];
+], ["name"], ["desc"]);
 
-const GOLD_NAMES = [
+const GOLD_NAMES = locList([
   "Sunken Treasury",
   "Gilded Hollow",
   "Merchant's Folly",
@@ -205,8 +206,8 @@ const GOLD_NAMES = [
   "The Pale Mint",
   "Goldwater Sink",
   "Lantern Vault",
-];
-const ORE_NAMES = [
+]);
+const ORE_NAMES = locList([
   "Verdant Warrens",
   "Mossvein Cavern",
   "Thornpick Delve",
@@ -221,8 +222,8 @@ const ORE_NAMES = [
   "The Sunken Seam",
   "Ironbell Quarry",
   "Hollowvein Works",
-];
-const BOSS_NAMES = [
+]);
+const BOSS_NAMES = locList([
   "Iron Overlord",
   "Gorefiend",
   "Ember Titan",
@@ -238,8 +239,8 @@ const BOSS_NAMES = [
   "Mother Cinder",
   "The Ninth Bell",
   "Hollowmaw",
-];
-const RUIN_NAMES = [
+]);
+const RUIN_NAMES = locList([
   "Ruined Keep",
   "Broken Spire",
   "Fallen Bastion",
@@ -255,8 +256,8 @@ const RUIN_NAMES = [
   "Saltstone Hold",
   "The Weeping Court",
   "Nine Bell Ruin",
-];
-const CACHE_NAMES = [
+]);
+const CACHE_NAMES = locList([
   "Sealed Vault",
   "The Old Mint",
   "Forgotten Treasury",
@@ -267,7 +268,7 @@ const CACHE_NAMES = [
   "The Root Cellar",
   "Tidebound Hoard",
   "The Quiet Cache",
-];
+]);
 const LORD_FIRST = [
   "Aldric", "Bryn", "Cassia", "Dorian", "Eira", "Fenrir", "Gwen", "Halvard", "Ilsa", "Jorund",
   "Kael", "Lyra", "Magnus", "Nadia", "Osric", "Perrin", "Quill", "Rhea", "Soren", "Tamsin",

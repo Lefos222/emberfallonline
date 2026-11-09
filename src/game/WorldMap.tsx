@@ -1,3 +1,4 @@
+import { tName } from "./i18n";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Castle,
@@ -715,7 +716,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Player castle</p>
-                  <h3 className="truncate font-display text-xl text-gold">{picked.name}</h3>
+                  <h3 className="truncate font-display text-xl text-gold">{tName(picked.name)}</h3>
                 </div>
                 <button
                   onClick={() => setPicked(null)}

@@ -1,3 +1,4 @@
+import { itemName } from "./i18n";
 import { AstralIcon, MatIcon, GemIcon } from "./MatIcon";
 import { CharacterModel } from "./CharacterModel";
 import { useState } from "react";
@@ -59,7 +60,7 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
           <div className="max-h-96 space-y-1 overflow-y-auto">
             {gear.map((it) => (
               <button key={it.id} onClick={() => setSelId(it.id)} className={`slot w-full px-2 py-1.5 text-left text-sm ${selId === it.id ? "ring-2 ring-gold" : ""}`} style={{ borderColor: `var(--r${it.rarity})` }}>
-                {it.name} <span className="text-xs text-muted-foreground">{sockets(it).filter(Boolean).length}/{socketCount(it)}</span>
+                {itemName(it.name)} <span className="text-xs text-muted-foreground">{sockets(it).filter(Boolean).length}/{socketCount(it)}</span>
               </button>
             ))}
           </div>
@@ -412,7 +413,7 @@ export function Crafting({ onClose }: { onClose: () => void }) {
       if (!recipe) return;
       const out = craft(h, recipe, invCap(h), () => makeItem(h.cls, ilvl, recipe.rarity, at), at);
       if (typeof out !== 'string' && !['rare','epic','legend','mythic'].includes(recipe.id)) out.name = `${recipe.name} ${at}`;
-      if (typeof out === "string") say(false, out); else { setLast(out); say(true, `Forged ${out.name}!`); }
+      if (typeof out === "string") say(false, out); else { setLast(out); say(true, `Forged ${itemName(out.name)}!`); }
     });
     setTimeout(() => setBusy(false), 400);
   };

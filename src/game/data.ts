@@ -1,4 +1,5 @@
 import warriorImg from "@/assets/heroes/knight-male-idle.png";
+import { locAll } from "./i18n";
 import mageImg from "@/assets/heroes/mage-male-idle.png";
 import archerImg from "@/assets/heroes/archer-male-idle.png";
 import skeletonImg from "@/assets/enemy-skeleton.png";
@@ -54,20 +55,20 @@ export const bagRowCost = (h: { bagRows?: number; level?: number }) => scaledGol
 export const CLASSES: Record<
   HeroClass,
   { name: string; img: string; hp: number; atk: number; def: number; crit: number; dodge: number; color: string; weaponName: string }
-> = {
+> = locAll({
   warrior: { name: "Knight", img: warriorImg, hp: 1.35, atk: 1, def: 1.35, crit: 0, dodge: 2, color: "var(--blood)", weaponName: "Blade" },
   mage: { name: "Mage", img: mageImg, hp: 0.85, atk: 1.4, def: 0.85, crit: 5, dodge: 4, color: "var(--r3)", weaponName: "Wand" },
   archer: { name: "Archer", img: archerImg, hp: 1, atk: 1.15, def: 1, crit: 12, dodge: 10, color: "var(--r1)", weaponName: "Bow" },
-};
+}, ["name"]);
 
-export const RARITIES = [
+export const RARITIES = locAll([
   { name: "Common", mult: 1 },
   { name: "Uncommon", mult: 1.25 },
   { name: "Rare", mult: 1.6 },
   { name: "Epic", mult: 2.1 },
   { name: "Legendary", mult: 2.8 },
   { name: "Mythic", mult: 3.8 },
-];
+], ["name"]);
 
 export interface Item {
   id: string;
@@ -111,10 +112,10 @@ export const ATLAS_BAND_H = 1072;
 export const ATLAS_BANDS = 2;
 export const ATLAS_H = ATLAS_BAND_H * ATLAS_BANDS;
 /** Both painted gear updates, kept side by side so old and new equipment always coexist. */
-export const GEAR_ERAS = [
+export const GEAR_ERAS = locAll([
   { band: 0, name: "Classic", note: "Original class gear sheet" },
   { band: 1, name: "Relic", note: "Relic collection sheet" },
-] as const;
+], ["name"], ["note"]);
 
 /** Where one icon sits inside its band; `band` picks the painted sheet the icon is drawn from. */
 export function iconRect(item: Pick<Item, "slot" | "cls" | "icon">, band = 0): { x: number; y: number; w: number; h: number } {
@@ -705,12 +706,12 @@ export const powerOf = (s: { hp: number; atk: number; def: number; crit: number 
 export function attrCost(points: number) { return Math.round(10 * Math.pow(1.09, points)); }
 
 // ---------- Enemies ----------
-export const ENEMIES = {
+export const ENEMIES = locAll({
   goblin: { name: "Goblin Brute", img: goblinImg },
   skeleton: { name: "Bone Reaver", img: skeletonImg },
   demon: { name: "Crimson Fiend", img: demonImg },
   dragon: { name: "Blood-Moon Wyrm", img: dragonImg },
-} as const;
+}, ["name"] as const);
 export type EnemyType = keyof typeof ENEMIES;
 
 export interface Foe { name: string; img: string; hp: number; atk: number; def: number; crit: number; dodge: number; level: number; boss?: boolean; flip?: boolean }
@@ -790,7 +791,7 @@ export function stageRewards(stage: number, mult = 1) {
 
 // ---------- Skills ----------
 export interface Skill { id: string; name: string; mult: number; hits?: number; cd: number; heal?: number; stun?: boolean; crit?: boolean; icon: string }
-export const SKILLS: Record<HeroClass, Skill[]> = {
+export const SKILLS: Record<HeroClass, Skill[]> = locAll({
   warrior: [
     { id: "strike", name: "Strike", mult: 1, cd: 0, icon: "sword" },
     { id: "cleave", name: "Cleave", mult: 1.9, cd: 3, icon: "axe" },
@@ -806,7 +807,7 @@ export const SKILLS: Record<HeroClass, Skill[]> = {
     { id: "volley", name: "Volley", mult: 0.75, hits: 3, cd: 3, icon: "wind" },
     { id: "snipe", name: "Death Snipe", mult: 2.6, cd: 5, crit: true, icon: "crosshair" },
   ],
-};
+}, ["name"]);
 
 /** Battle abilities for a hero, including skill-tree upgrades. */
 export const heroSkills = (h: Hero): Skill[] => talentSkills(SKILLS[h.cls], h);

@@ -6,6 +6,7 @@
 import { GEMS, GEM_TIER_NAMES, GEM_TYPES, addGem, addMats, type GemType } from "./crafting";
 import type { Hero } from "./data";
 import { goldGain } from "./gold";
+import { locAll, locList, locValues } from "./i18n";
 
 export type ChestKind = "gold" | "gem";
 
@@ -15,7 +16,7 @@ export interface ChestDef {
   desc: string;
 }
 
-export const CHESTS: Record<ChestKind, ChestDef> = {
+export const CHESTS: Record<ChestKind, ChestDef> = locAll({
   gold: {
     id: "gold",
     name: "Gold Chest",
@@ -26,7 +27,7 @@ export const CHESTS: Record<ChestKind, ChestDef> = {
     name: "Gem Chest",
     desc: "A cursed coffer humming with cut stones. Open it for gems and essence.",
   },
-};
+}, ["name"], ["desc"]);
 
 export const CHEST_KINDS = Object.keys(CHESTS) as ChestKind[];
 

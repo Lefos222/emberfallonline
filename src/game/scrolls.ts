@@ -1,11 +1,12 @@
 import type { FighterInput } from './combat';
 import { object } from './services-contract';
+import { locAll } from "./i18n";
 
-export const SCROLLS = {
+export const SCROLLS = locAll({
   dmg: { name: 'Damage Scroll', price: 2000, bonus: 20 },
   def: { name: 'Defence Scroll', price: 2000, bonus: 20 },
   xp: { name: 'Experience Scroll', price: 1500, bonus: 20 },
-} as const;
+}, ["name"] as const);
 export type ScrollKind = keyof typeof SCROLLS;
 export const isScroll = (v: unknown): v is ScrollKind => typeof v === 'string' && v in SCROLLS;
 export function scrollState(hero: unknown) {

@@ -1,3 +1,4 @@
+import { itemName } from "./i18n";
 import { useState } from "react";
 import {
   CLASSES,
@@ -73,8 +74,8 @@ export function GearCodex({ cls }: { cls: HeroClass }) {
                 return (
                   <button key={icon} type="button"
                     className={`rounded p-0.5 transition hover:ring-2 hover:ring-gold ${pick?.slot === slot && pick.icon === icon ? "ring-2 ring-gold" : ""}`}
-                    aria-label={`${it.name} ${slot} icon ${icon + 1}`}
-                    title={`${it.name} · ATK ${s.atk} · DEF ${s.def} · HP ${s.hp} · CRIT ${s.crit}%`}
+                    aria-label={`${itemName(it.name)} ${slot} icon ${icon + 1}`}
+                    title={`${itemName(it.name)} · ATK ${s.atk} · DEF ${s.def} · HP ${s.hp} · CRIT ${s.crit}%`}
                     onClick={() => setPick({ slot, icon })}>
                     <GearIcon item={it} size={32} />
                   </button>
@@ -89,7 +90,7 @@ export function GearCodex({ cls }: { cls: HeroClass }) {
         <div className="mt-3 flex items-center gap-3 rounded border border-gold/40 bg-background/60 p-2" role="status">
           <GearIcon item={picked} size={54} />
           <div>
-            <div className="font-display text-sm text-gold">{picked.name}</div>
+            <div className="font-display text-sm text-gold">{itemName(picked.name)}</div>
             <div className="text-xs">
               ATK +{pickedStats.atk} · DEF +{pickedStats.def} · HP +{pickedStats.hp} · CRIT +{pickedStats.crit}%
             </div>

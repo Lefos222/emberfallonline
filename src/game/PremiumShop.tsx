@@ -1,3 +1,4 @@
+import { tName } from "./i18n";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArtIcon } from "./ArtIcon";
@@ -80,7 +81,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
               return (
                 <article key={pack.id} className="slot flex flex-col gap-2 p-4">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-display text-lg">{pack.name}</h3>
+                    <h3 className="font-display text-lg">{tName(pack.name)}</h3>
                     {pack.tag && (
                       <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-gold">
                         {pack.tag}
@@ -117,7 +118,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
             {GOLD_PACKS.map((pack) => (
               <article key={pack.id} className="slot flex items-center justify-between gap-3 p-4">
                 <div>
-                  <h3 className="font-display text-lg">{pack.name}</h3>
+                  <h3 className="font-display text-lg">{tName(pack.name)}</h3>
                   <p className="text-sm">
                     <Gold n={pack.gold} />
                   </p>
@@ -205,7 +206,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                 className="slot flex flex-col items-center gap-2 p-4 text-center"
               >
                 {offer.kind === "gold" ? <GoldChestIcon size={64} /> : <GemChestIcon size={64} />}
-                <h3 className="font-display text-lg">{offer.name}</h3>
+                <h3 className="font-display text-lg">{tName(offer.name)}</h3>
                 <p className="text-xs text-muted-foreground">{offer.description}</p>
                 <p className="text-[11px] text-muted-foreground">
                   In your vault:{" "}
@@ -231,7 +232,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                 <p className="font-display text-lg text-gold">
                   <ArtIcon name="crown" className="mr-1" size={22} />
                   VIP {p.vip.level}
-                  {activePlan ? ` — ${activePlan.name}` : ""}
+                  {activePlan ? ` — ${tName(activePlan.name)}` : ""}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Active until {new Date(p.vip.until).toLocaleString()}
@@ -253,7 +254,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-display text-lg">
-                      VIP {plan.level} — {plan.name}
+                      VIP {plan.level} — {tName(plan.name)}
                     </h3>
                     <span className="shrink-0 rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-gold">
                       {plan.days} days

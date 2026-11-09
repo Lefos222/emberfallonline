@@ -1,3 +1,4 @@
+import { itemName } from "./i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from '@tanstack/react-start';
 import { Bell, BellOff, Calendar, X } from "lucide-react";
@@ -139,7 +140,7 @@ export function EventCalendar({ h, onClose, start }: { h: Hero; onClose: () => v
           if (ev.bonus.gem) addGem(hh, ev.bonus.gem.type, ev.bonus.gem.tier);
           if (ev.bonus.chest) addChests(hh, "gold");
           lines.push(`+${fmt(rw.gold)} gold`, `+${fmt(xp)} XP`, ...eventBonusLines(ev));
-          if (loot) lines.push(`Loot: ${(loot as Item).name}`);
+          if (loot) lines.push(`Loot: ${itemName((loot as Item).name)}`);
           if (levels > 0) lines.push(`Level up! Now level ${hh.level}`);
         });
         return { lines, loot };

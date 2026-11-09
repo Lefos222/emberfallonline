@@ -1,3 +1,4 @@
+import { tName } from "./i18n";
 import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { scrollXp } from "./scrolls";
@@ -75,7 +76,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
     const foe = challengeFoe(id, d, mod);
     const rw = challengeRewards(id, d, mod);
     start({
-      title: `Boss Challenge · ${TIER_BOSSES[id].name} · Difficulty ${d}`,
+      title: `Boss Challenge · ${tName(TIER_BOSSES[id].name)} · Difficulty ${d}`,
       right: foe,
       dungeon: true,
       onResult: async (won, xpMultiplier = 1) => {
@@ -186,14 +187,14 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
                   </div>
                   <div className="min-w-0 flex-1 text-sm">
                     <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-                      <span className="font-display text-lg leading-tight">{TIER_BOSSES[id].name}</span>
+                      <span className="font-display text-lg leading-tight">{tName(TIER_BOSSES[id].name)}</span>
                       <span className="shrink-0 rounded border border-border/60 bg-background/60 px-1.5 py-0.5 text-[10px] font-bold">
                         {c ? `Best D${c}` : "Not yet beaten"}
                         {c >= MAX_DIFFICULTY && <Crown className="ml-0.5 inline h-3 w-3 text-gold" />}
                       </span>
                     </div>
-                    <Meter value={c} max={MAX_DIFFICULTY} fill="bar-hp" label={`${TIER_BOSSES[id].name} best difficulty`} className="mt-1.5" />
-                    <div className="mt-2 flex flex-wrap gap-1" role="group" aria-label={`${TIER_BOSSES[id].name} difficulty`}>
+                    <Meter value={c} max={MAX_DIFFICULTY} fill="bar-hp" label={`${tName(TIER_BOSSES[id].name)} best difficulty`} className="mt-1.5" />
+                    <div className="mt-2 flex flex-wrap gap-1" role="group" aria-label={`${tName(TIER_BOSSES[id].name)} difficulty`}>
                       {Array.from({ length: max }, (_, k) => k + 1).map((k) => (
                         <button key={k} className={`px-2 py-0.5 text-xs ${d === k ? "btn-gold" : "btn-ghost"}`}
                           aria-pressed={d === k} onClick={() => setDiff({ ...diff, [id]: k })}>D{k}</button>

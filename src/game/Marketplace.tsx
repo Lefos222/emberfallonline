@@ -1,3 +1,4 @@
+import { itemName } from "./i18n";
 import { useEffect, useState } from "react";
 import { Clock, Gavel, Store, Trash2 } from "lucide-react";
 import { AuctionBoard } from "./AuctionHouse";
@@ -96,13 +97,13 @@ function CatalogueTab({ hero }: { hero: Hero }) {
           const price = cataloguePrice(it, hero.level);
           return (
             <article key={it.id} className={`slot rarity-${it.rarity} flex flex-col items-center gap-1 p-2 text-center`}>
-              <button onClick={() => setPreview(it.id)} aria-label={`Inspect ${it.name}`}>
+              <button onClick={() => setPreview(it.id)} aria-label={`Inspect ${itemName(it.name)}`}>
                 <GearIcon item={it} size={52} />
               </button>
-              <div className="w-full truncate text-[11px] font-bold">{it.name}</div>
+              <div className="w-full truncate text-[11px] font-bold">{itemName(it.name)}</div>
               <div className="text-[10px] text-muted-foreground">{RARITIES[it.rarity].name} · iLvl {it.ilvl}</div>
               <button className="btn-gold mt-1 w-full px-1 py-1 text-[11px]" disabled={hero.gold < price || hero.inventory.length >= invCap(hero)}
-                onClick={() => update((h) => { const err = buyCatalogueItem(h, it.id); setNotice(err ? { ok: false, t: err } : { ok: true, t: `Bought ${it.name} for ${fmt(price)} gold` }); })}
+                onClick={() => update((h) => { const err = buyCatalogueItem(h, it.id); setNotice(err ? { ok: false, t: err } : { ok: true, t: `Bought ${itemName(it.name)} for ${fmt(price)} gold` }); })}
                 title={hero.gold < price ? "Not enough gold" : "Buy"}>
                 <Gold n={price} className="text-primary-foreground" />
               </button>

@@ -1,9 +1,10 @@
 import type { HeroClass, Item, Slot } from "./data";
 import { scaledGold } from "./gold";
+import { locAll, locList, locValues } from "./i18n";
 
 // ---------- Materials ----------
 export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone" | "fateStone";
-export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity: number }> = {
+export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity: number }> = locAll({
   ore: { name: "Ember Ore", desc: "Common ore used in crafting and gem cutting.", src: "Every won battle (more in higher regions)", rarity: 0 },
   essence: { name: "Soul Essence", desc: "Distilled souls used in crafting and gem fusion.", src: "Tougher fights, elites, bosses", rarity: 2 },
   starshard: { name: "Starshard", desc: "Summons and upgrades Astrals.", src: "Battles (15%), bosses, weekly activities", rarity: 3 },
@@ -15,7 +16,7 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   crystal: { name: "Arcane Crystal", desc: "Crystallised mana. Refines into Starshards.", src: "Elites and Dungeon Gate bosses", rarity: 2 },
   enchantStone: { name: "Enchantment Stone", desc: "A resonant stone used to enchant gear at the Forge instead of gold. Grade 1 of 9 — two of a grade forge the next (see enchant.ts).", src: "Won battles, Auction House shop, guild and Conquest shops", rarity: 3 },
   fateStone: { name: "Fate Stone", desc: "A rare rune-cut stone that refines gear at the Forge instead of gold. One adds a flat +25% to the roll and is spent win or lose (see fate.ts).", src: "Rare battle drops, Auction House shop", rarity: 4 },
-};
+}, ["name"], ["desc", "src"]);
 type Mats = Partial<Record<Mat, number>>;
 
 export interface CraftState {
@@ -100,11 +101,11 @@ export interface BonusFx {
   loot: number; goldScale: number;
 }
 export type StatKey = keyof BonusFx;
-export const STAT_LABEL: Record<StatKey, string> = {
+export const STAT_LABEL: Record<StatKey, string> = locValues({
   atkPct: "% Physical Attack", matkPct: "% Magic Attack", defPct: "% Physical Defense", mdefPct: "% Magic Defense", hpPct: "% Max HP",
   crit: "% Crit Chance", critDmg: "% Crit Damage", acc: "% Accuracy", dodge: "% Dodge", block: "% Block", pen: "% Armor Pen", mpen: "% Magic Pen", heal: "% Healing Power",
   loot: "% Loot Chance", goldScale: "% Gold Scaling",
-};
+});
 export const zeroFx = (): BonusFx => ({ atkPct: 0, matkPct: 0, defPct: 0, mdefPct: 0, hpPct: 0, crit: 0, critDmg: 0, acc: 0, dodge: 0, block: 0, pen: 0, mpen: 0, heal: 0, loot: 0, goldScale: 0 });
 export const addFx = (a: BonusFx, b: Partial<BonusFx>) => { for (const k of Object.keys(b) as StatKey[]) a[k] += b[k] ?? 0; return a; };
 
@@ -113,7 +114,7 @@ export const addFx = (a: BonusFx, b: Partial<BonusFx>) => { for (const k of Obje
 export type GemType = "ruby" | "emerald" | "sapphire" | "topaz" | "amethyst" | "tourmaline" | "aquamarine" | "lapis";
 /** The stat a gem family feeds. Flat stats are added as-is; ratings convert to percents. */
 export type GemStat = "patk" | "pdef" | "matk" | "mdef" | "crit" | "hp" | "charisma" | "block";
-export const GEMS: Record<GemType, { name: string; stat: GemStat; color: string; classes: string; note: string }> = {
+export const GEMS: Record<GemType, { name: string; stat: GemStat; color: string; classes: string; note: string }> = locAll({
   ruby: { name: "Ruby", stat: "patk", color: "#d4283c", classes: "Knight · Archer", note: "Physical attack" },
   emerald: { name: "Emerald", stat: "pdef", color: "#23a85a", classes: "Knight", note: "Physical defence" },
   sapphire: { name: "Sapphire", stat: "matk", color: "#2f6fe0", classes: "Mage", note: "Magic attack" },
@@ -122,10 +123,10 @@ export const GEMS: Record<GemType, { name: string; stat: GemStat; color: string;
   tourmaline: { name: "Tourmaline", stat: "hp", color: "#e0528f", classes: "Knight · Mage", note: "Maximum health" },
   aquamarine: { name: "Aquamarine", stat: "charisma", color: "#3fc7d6", classes: "Any", note: "Charisma — healing power" },
   lapis: { name: "Lapis", stat: "block", color: "#2a3f9e", classes: "Knight", note: "Block chance" },
-};
+}, ["name", "classes"], ["note"]);
 export const GEM_TYPES = Object.keys(GEMS) as GemType[];
 export const GEM_MAX_TIER = 12;
-export const GEM_TIER_NAMES = ["Chipped", "Flawed", "Clear", "Polished", "Flawless", "Radiant", "Royal", "Sovereign", "Celestial", "Ascendant", "Eternal", "Primordial"];
+export const GEM_TIER_NAMES = locList(["Chipped", "Flawed", "Clear", "Polished", "Flawless", "Radiant", "Royal", "Sovereign", "Celestial", "Ascendant", "Eternal", "Primordial"]);
 /** The gem chart: each family's value at levels 1-12. Attack, defence and health are flat
  *  stats; crit, charisma and block are ratings of 20 points per percent (the game's stat caps
  *  still apply, so every upgrade keeps moving the stat until it saturates). */
@@ -143,10 +144,10 @@ export const GEM_VALUES: Record<GemStat, number[]> = {
 export const GEM_RATING_PER_POINT = 20;
 const GEM_RATED: GemStat[] = ["crit", "charisma", "block"];
 export const isRatedGemStat = (s: GemStat) => GEM_RATED.includes(s);
-export const GEM_STAT_LABEL: Record<GemStat, string> = {
+export const GEM_STAT_LABEL: Record<GemStat, string> = locValues({
   patk: "Physical Attack", pdef: "Physical Defence", matk: "Magic Attack", mdef: "Magic Defence",
   crit: "Crit Chance", hp: "Max HP", charisma: "Charisma (Healing)", block: "Block Chance",
-};
+});
 /** Gem keys look like "ruby:3". */
 export const gemKey = (t: GemType, tier: number) => `${t}:${tier}`;
 export function parseGem(k: string): { type: GemType; tier: number } | null {
@@ -346,7 +347,7 @@ export interface AstralSpecies {
  * saves expect, and gain a small second bonus so they stay worth raising.
  * Keep keys in sync with the bases array in the lucky_shot database function: never rename a key.
  */
-export const ASTRAL_BASES: Record<string, AstralSpecies> = {
+export const ASTRAL_BASES: Record<string, AstralSpecies> = locAll({
   ember: { name: "Ember Wyrm", kind: "offense", family: "chaos", stats: [["atkPct", 1.5], ["critDmg", 1.5]], power: "Firebrand: stokes your weapons with living flame", color: "#e2571f" },
   arcana: { name: "Arcane Moth", kind: "offense", family: "void", stats: [["matkPct", 1.5], ["mpen", 0.15]], power: "Spellweave: threads raw arcana through your spells", color: "#6f6ee6" },
   aegis: { name: "Aegis Turtle", kind: "defense", family: "shadow", stats: [["defPct", 1.5], ["block", 0.15]], power: "Bulwark: raises a shield of solid stone around you", color: "#5d8f6d" },
@@ -372,17 +373,17 @@ export const ASTRAL_BASES: Record<string, AstralSpecies> = {
   nightmare: { name: "Nightmare Sigil", kind: "defense", family: "void", stats: [["mdefPct", 1.4], ["dodge", 0.25]], power: "Sleepwalker: blows pass through the dream of you", color: "#2a2a6e" },
   lantern: { name: "Soul Lantern", kind: "utility", family: "shadow", stats: [["heal", 2], ["hpPct", 0.8]], power: "Kindled Souls: every fallen foe leaves a little light behind", color: "#c9a227" },
   starfall: { name: "Starfall Shard", kind: "offense", family: "void", stats: [["matkPct", 1.4], ["crit", 0.35]], power: "Falling Star: a splinter of sky that detonates in your wake", color: "#3f6ad8" },
-};
+}, ["name"]);
 
-export const ASTRAL_FAMILIES: { id: AstralFamily; name: string; blurb: string }[] = [
+export const ASTRAL_FAMILIES: { id: AstralFamily; name: string; blurb: string }[] = locAll([
   { id: "shadow", name: "Shadow", blurb: "Endurance, evasion and the deep cold" },
   { id: "chaos", name: "Chaos", blurb: "Raw force, crits and armour-breaking" },
   { id: "void", name: "Void", blurb: "Magic, accuracy and stolen life" },
-];
+], ["name"], ["blurb"]);
 
 /** The six rarity colours every Astral is born into: Grey, Green, Blue, Purple, Gold, Red. */
-export const ASTRAL_RARITY = ["Grey", "Green", "Blue", "Purple", "Gold", "Red"];
-export const ASTRAL_RARITY_NOTE = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"];
+export const ASTRAL_RARITY = locList(["Grey", "Green", "Blue", "Purple", "Gold", "Red"]);
+export const ASTRAL_RARITY_NOTE = locList(["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"]);
 export const ASTRAL_TIER = ASTRAL_RARITY_NOTE;
 export const ASTRAL_COLORS = ["#9ca3af", "#3fbf5a", "#3b82f6", "#a855f7", "#facc15", "#e11d48"];
 /** How much of its species bonus each rarity carries: a Red Astral is worth far more than a White one. */

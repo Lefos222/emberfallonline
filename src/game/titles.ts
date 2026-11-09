@@ -1,5 +1,7 @@
 import type { BonusFx } from "./crafting";
 import type { Hero } from "./data";
+import { locAll } from "./i18n";
+
 
 /**
  * Titles are earned by reaching milestones and grant permanent stat buffs while equipped.
@@ -104,7 +106,7 @@ export function titleFx(h: Hero): BonusFx {
   return { atkPct: 0, matkPct: 0, defPct: 0, mdefPct: 0, hpPct: 0, crit: 0, critDmg: 0, acc: 0, dodge: 0, block: 0, pen: 0, mpen: 0, heal: 0, loot: 0, goldScale: 0, ...t.buff };
 }
 
-export const TITLES: TitleDef[] = [
+export const TITLES: TitleDef[] = locAll([
   // Silver tier
   { id: "novice", name: "Novice", tier: 0, desc: "A first step into the world.", howToEarn: "Reach level 5", buff: { atkPct: 2, hpPct: 2 }, earned: (h) => h.level >= 5 },
   { id: "scout", name: "Scout", tier: 0, desc: "An eye for the road ahead.", howToEarn: "Clear 5 campaign stages", buff: { acc: 2, dodge: 1 }, earned: (h) => h.stage - 1 >= 5 },
@@ -148,4 +150,4 @@ export const TITLES: TitleDef[] = [
   ...ascensionLadder(),
   ...victoryLadder(),
   ...campaignLadder(),
-];
+], ["name", "howToEarn"], ["desc"]);
