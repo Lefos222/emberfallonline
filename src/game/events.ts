@@ -1,4 +1,5 @@
 import { MAX_LEVEL, WORLD_DRIFT } from "./data";
+import { locAll } from "./i18n";
 
 // ============= Recurring world events: deterministic schedules + time-zone-aware display =============
 // Schedules are pure functions of the Greek clock (Europe/Athens), so every player agrees on when
@@ -66,7 +67,7 @@ export interface WorldEvent {
  * and crystals, and the three-day Blood Moon pays the biggest purse of all. None of them are the
  * old boss/dungeon/caravan loop.
  */
-export const WORLD_EVENTS: WorldEvent[] = [
+export const WORLD_EVENTS: WorldEvent[] = locAll([
   {
     id: "rift-siege",
     name: "Rift Siege",
@@ -131,7 +132,7 @@ export const WORLD_EVENTS: WorldEvent[] = [
     bonus: { mult: 2.2, mats: { bossCore: 2, sigil: 3, starshard: 10 }, gem: { type: "topaz", tier: 3 }, chest: true, gated: true },
     stage: 55,
   },
-];
+], ["name"], ["blurb", "reward"]);
 
 /** Gated events (sieges and the Blood Moon) pay on the third win, never on a single hit (see event-rewards.ts). */
 export const EVENT_BOSS_KILLS_REQUIRED = 3;

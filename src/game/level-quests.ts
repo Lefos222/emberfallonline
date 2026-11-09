@@ -1,3 +1,4 @@
+import { locAll } from "./i18n";
 import { levelShareScale, xpToNext, type Hero } from "./data";
 import { grant } from "./logic";
 
@@ -17,7 +18,7 @@ interface QuestDef {
   growth: number;
 }
 
-const DEFS: Record<QuestKind, QuestDef> = {
+const DEFS: Record<QuestKind, QuestDef> = locAll({
   wins: { name: "Blood on the Blade", desc: "Win {n} battles", base: 3, growth: 0.5 },
   stages: { name: "Push the Frontier", desc: "Clear {n} campaign stages", base: 2, growth: 0.25 },
   kills: { name: "Cull the Horde", desc: "Slay {n} monsters", base: 10, growth: 3 },
@@ -26,7 +27,7 @@ const DEFS: Record<QuestKind, QuestDef> = {
   crafts: { name: "Master of the Forge", desc: "Craft {n} items", base: 1, growth: 0.1 },
   arena: { name: "Arena Glory", desc: "Win {n} arena duels", base: 1, growth: 0.15 },
   floors: { name: "Climb the Spire", desc: "Clear {n} Conquest floors", base: 1, growth: 0.15 },
-};
+}, ["name"], ["desc"]);
 
 /** The order quests rotate through, so consecutive levels never hand out the same three. */
 const ORDER: QuestKind[] = [

@@ -1,5 +1,6 @@
 import type { Hero } from "./data";
 import { scaledGold } from "./gold";
+import { locAll } from "./i18n";
 
 type Levels = { buildings?: Record<string, number> };
 
@@ -28,7 +29,7 @@ export const BATCH_UNLOCKS: { level: number; size: number }[] = [
   { level: 15, size: 50 },
   { level: 25, size: 100 },
 ];
-export const BARRACKS_UNLOCKS: { level: number; name: string; desc: string }[] = [
+export const BARRACKS_UNLOCKS: { level: number; name: string; desc: string }[] = locAll([
   { level: 3, name: "Squad drills", desc: "+5 points in one training batch" },
   { level: 6, name: "Company drills", desc: "+10 points in one training batch" },
   { level: 10, name: "Legion drills", desc: "+25 points in one training batch" },
@@ -38,7 +39,7 @@ export const BARRACKS_UNLOCKS: { level: number; name: string; desc: string }[] =
   { level: 30, name: "Elite instructors", desc: "Training gold cost drops a further 5%" },
   { level: 40, name: "Void drillmasters", desc: "Advanced training ranks cost less crystal" },
   { level: 50, name: "Grandmasters at arms", desc: "Training gold cost drops a further 5%" },
-];
+], ["name"], ["desc"]);
 /** Spend gold to raise the barracks one level. Returns an error string, or null on success. */
 export function upgradeBarracks(h: Hero): string | null {
   const level = barracksLevel(h);

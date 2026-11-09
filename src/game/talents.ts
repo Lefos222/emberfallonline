@@ -1,3 +1,4 @@
+import { locName, locText } from "./i18n";
 import type { HeroClass, Skill } from "./data";
 
 /** Stat bonuses a talent can grant per rank. Percent keys multiply the base stat. */
@@ -97,6 +98,19 @@ export const TREES: Record<HeroClass, Spec[]> = {
     ] },
   ],
 };
+
+// Every specialisation, talent and unlocked ability follows the player's language.
+for (const specs of Object.values(TREES)) {
+  for (const spec of specs) {
+    locName(spec, ["name"]);
+    locText(spec, ["blurb"]);
+    for (const talent of spec.talents) {
+      locName(talent, ["name"]);
+      locText(talent, ["desc"]);
+      if (talent.ability) locName(talent.ability, ["name"]);
+    }
+  }
+}
 
 /** Painted icon (see SkillIcon) for talent nodes that don't unlock an ability of their own. */
 const TALENT_ICONS: Record<string, string> = {

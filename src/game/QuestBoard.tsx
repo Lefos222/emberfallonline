@@ -38,7 +38,7 @@ export function QuestBoard({ onClose }: { onClose: () => void }) {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
           {DAILY_QUESTS.length} commissions, {claimed} claimed · every one pays gold, XP and materials ·
-          {questPointHint} · resets in <b className="text-gold">{countdown(boardResetAt(now) - now)}</b> (Greek midnight)
+          {questPointHint()} · resets in <b className="text-gold">{countdown(boardResetAt(now) - now)}</b> (Greek midnight)
         </p>
         {bonusNote && <p className="text-sm font-bold text-gold" aria-live="polite">{bonusNote}</p>}
       </div>

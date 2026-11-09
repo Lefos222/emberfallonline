@@ -1,3 +1,5 @@
+import { tName } from "./i18n";
+import { itemName } from "./i18n";
 import { useState } from "react";
 import { Lock, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,7 +32,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
   const fight = (rank: RelicRank) => {
     if (!relicUnlocked(hero, rank)) return;
     start({
-      title: `${set.trial} · Rank ${relicRank(hero, rank).label}`,
+      title: `${tName(set.trial)} · Rank ${relicRank(hero, rank).label}`,
       right: relicFoe(hero, rank),
       dungeon: true,
       onResult: async (won, xpMultiplier = 1) => {
@@ -49,7 +51,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
           loot = roll.item;
           const full = h.inventory.length >= invCap(h);
           addLoot(h, roll.item);
-          lines.push(`+${fmt(xp)} XP`, `+${fmt(rw.gold)} gold`, `Recovered ${roll.item.name}`);
+          lines.push(`+${fmt(xp)} XP`, `+${fmt(rw.gold)} gold`, `Recovered ${itemName(roll.item.name)}`);
           if (first) lines.push("+1 Insight — new relic discovered");
           if (full) lines.push("Bag full — the relic waits in your Overflow Chest (Armory)");
           if (levels) lines.push(`LEVEL UP ×${levels}!`);
@@ -73,7 +75,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
         <div className="absolute inset-0 flex flex-col justify-center gap-0.5 p-4">
           <div className="font-display text-2xl text-gold md:text-3xl">{set.name}</div>
           <p className="max-w-lg text-xs text-muted-foreground md:text-sm">{set.blurb}</p>
-          <p className="text-xs">Recovered <b>{recovered}</b>/{set.pieces.length} · Worn <b>{worn}</b> · {set.trial}</p>
+          <p className="text-xs">Recovered <b>{recovered}</b>/{set.pieces.length} · Worn <b>{worn}</b> · {tName(set.trial)}</p>
         </div>
       </div>
 

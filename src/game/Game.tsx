@@ -27,7 +27,7 @@ import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } fr
 import { CHESTS, addChests, rewardChestReady, rollBattleChest } from "./chests";
 import { vipXpMultiplier } from "./economy";
 import { authHandoffPending, getState, update, useGame } from "./store";
-import { useLang, useT } from "./i18n";
+import { itemName, useLang, useT } from "./i18n";
 import { recordBattle } from "./progress";
 import { BOSS_CRYSTALS } from "./logic";
 import { battleEssenceGain, enlightenmentUnlocked, rollSoulShards } from "./enlightenment";
@@ -167,7 +167,7 @@ export function Game() {
     // World chat hears about the milestones worth bragging about, never about ordinary fights.
     const after = getState().hero;
     if (after && after.level > levelBefore) void announceWorldEvent(heroId, `reached level ${after.level}!`);
-    if (r.loot && r.loot.rarity >= 2) void announceWorldEvent(heroId, `looted ${r.loot.name}!`);
+    if (r.loot && r.loot.rarity >= 2) void announceWorldEvent(heroId, `looted ${itemName(r.loot.name)}!`);
     if (useGameOverflow() > before && !r.lines.some((l) => /Overflow/.test(l))) r.lines.push("Bag full — loot placed in your Overflow Chest (Armory)");
     if (won) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m)); });
     // Won fights pay Renown, the hero's own upgrade currency (see renown.ts).

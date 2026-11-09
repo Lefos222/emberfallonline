@@ -1,3 +1,4 @@
+import { locAll } from "./i18n";
 import type { Hero, HeroClass } from "./data";
 import type { TalentFx } from "./talents";
 
@@ -13,7 +14,7 @@ const node = (group: Passive["group"], id: string, name: string, desc: string, t
   group, id, name, desc, tier, fx, max: 4, cost: tier,
   ...(prereq ? { prereq: { id: prereq, rank: 2 } } : {}),
 });
-export const PASSIVES: readonly Passive[] = [
+export const PASSIVES: readonly Passive[] = locAll([
   node("general", "field_medicine", "Field Medicine", "Improve every healing skill and combat potion.", 1, { heal: 2 }),
   node("general", "brace", "Impact Brace", "Turn incoming strikes into blocks.", 1, { block: 1 }),
   node("general", "trail_sense", "Trail Sense", "Read evasive opponents rather than gambling on criticals.", 1, { acc: 1 }),
@@ -42,7 +43,7 @@ export const PASSIVES: readonly Passive[] = [
   node("archer", "a_camp", "Hidden Camp", "Build endurance and efficient recovery.", 2, { hpPct: 2, heal: 2 }, "a_herbal"),
   node("archer", "a_gap", "Gap Reader", "Place arrows through armor even against evasive prey.", 3, { acc: 2, pen: 1 }, "a_retreat"),
   node("archer", "a_return", "Safe Return", "Prioritize survival and healing on long hunts.", 3, { dodge: 1, heal: 3 }, "a_camp"),
-];
+], ["name"], ["desc"]);
 /** Painted ability icon (see SkillIcon) for every passive node. */
 const PASSIVE_ICONS: Record<string, string> = {
   field_medicine: "heart", brace: "shield", trail_sense: "scan", provisions: "potion",

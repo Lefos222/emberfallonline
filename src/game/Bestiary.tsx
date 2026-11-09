@@ -1,3 +1,4 @@
+import { tName } from "./i18n";
 import { useState } from 'react';
 import type { Hero } from './data';
 import { Panel, fmt } from './ui';
@@ -25,9 +26,9 @@ export function Bestiary({ h, onClose }: { h: Hero; onClose: () => void }) {
       const s = e.sprite, scale = Math.min(120 / s.w, 126 / s.h);
       return <article key={e.id} className="rounded border bg-background/60 p-3 text-center" style={{ borderColor: known ? tierColors[e.tier - 1] : 'var(--border)' }}>
         <div className="flex h-32 items-center justify-center">
-          {known ? <div role="img" aria-label={e.name} style={{ width: s.w * scale, height: s.h * scale, backgroundImage: `url("${s.url}")`, backgroundSize: `${SHEET_W * scale}px ${SHEET_H * scale}px`, backgroundPosition: `${-s.x * scale}px ${-s.y * scale}px`, backgroundRepeat: 'no-repeat' }} /> : <span className="text-sm text-muted-foreground">Undiscovered</span>}
+          {known ? <div role="img" aria-label={tName(e.name)} style={{ width: s.w * scale, height: s.h * scale, backgroundImage: `url("${s.url}")`, backgroundSize: `${SHEET_W * scale}px ${SHEET_H * scale}px`, backgroundPosition: `${-s.x * scale}px ${-s.y * scale}px`, backgroundRepeat: 'no-repeat' }} /> : <span className="text-sm text-muted-foreground">Undiscovered</span>}
         </div>
-        <h3 className="font-display font-bold" style={{ color: known ? tierColors[e.tier - 1] : undefined }}>{known ? e.name : 'Unknown creature'}</h3>
+        <h3 className="font-display font-bold" style={{ color: known ? tierColors[e.tier - 1] : undefined }}>{known ? tName(e.name) : 'Unknown creature'}</h3>
         <p className="text-xs text-muted-foreground">{known ? `Tier ${e.tier} · Lv ${e.levelBand[0]}–${e.levelBand[1]}` : 'Encounter to reveal'}</p>
         <p className="mt-2 text-sm">{progress.state === 'defeated' ? `Defeated · ${fmt(progress.count!)} kills` : progress.state === 'seen' ? 'Seen · no recorded defeats' : 'Defeat count unknown'}</p>
       </article>;

@@ -1,3 +1,4 @@
+import { itemName } from "./i18n";
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Gavel, RefreshCw } from 'lucide-react';
@@ -42,7 +43,7 @@ export function AuctionBoard() {
     : !!gem && qty >= 1 && qty <= gemHeld
   );
   const list = () => {
-    if (cat === 'equipment' && item) return run(`Listed ${item.name} for ${fmt(price)} Gold`, () => listItem(item, price));
+    if (cat === 'equipment' && item) return run(`Listed ${itemName(item.name)} for ${fmt(price)} Gold`, () => listItem(item, price));
     if (cat === 'gems' && gem) return run(`Listed ${qty} × ${gemName(gem)} for ${fmt(price)} Gold`, () => listGem(gem, qty, price));
   };
 
@@ -67,7 +68,7 @@ export function AuctionBoard() {
           <label className="text-xs">Bag item
             <select aria-label="Equipment to sell" value={itemId} onChange={e => setItemId(e.target.value)} className="mt-1 block w-64 rounded border border-border bg-background p-2">
               <option value="">Choose…</option>
-              {bag.map(i => <option key={i.id} value={i.id}>{i.name}{i.enh > 0 ? ` +${i.enh}` : ''} · iLvl {i.ilvl}</option>)}
+              {bag.map(i => <option key={i.id} value={i.id}>{itemName(i.name)}{i.enh > 0 ? ` +${i.enh}` : ''} · iLvl {i.ilvl}</option>)}
             </select>
           </label>
         ))}
@@ -96,7 +97,7 @@ export function AuctionBoard() {
         </Button>
         {cat === 'equipment' && item && (
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
-            <GearIcon item={item} size={36} />{item.name} · iLvl {item.ilvl} · sells whole, sockets included
+            <GearIcon item={item} size={36} />{itemName(item.name)} · iLvl {item.ilvl} · sells whole, sockets included
           </span>
         )}
       </div>

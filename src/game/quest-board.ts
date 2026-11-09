@@ -1,6 +1,7 @@
 import { levelShareScale, xpToNext, type Hero } from "./data";
 import type { Mat } from "./crafting";
 import { greekDayStart } from "./events";
+import { locAll, t } from "./i18n";
 
 /** One daily commission. Progress is measured against a snapshot taken on the first visit of the
  *  Greek day, so every counter below is a lifetime value read straight from the hero save. */
@@ -13,14 +14,14 @@ export interface DailyQuest {
 const gemTotal = (h: Hero) => Object.values(h.gems ?? {}).reduce((a, n) => a + n, 0);
 const attrTotal = (h: Hero) => Object.values(h.attrs).reduce((a, n) => a + n, 0);
 
-export const DAILY_QUESTS: DailyQuest[] = [
+export const DAILY_QUESTS: DailyQuest[] = locAll([
   { id: "level", name: "Rise Through the Ranks", desc: "Gain a character level", target: 1, mat: "essence", mats: 2, gold: 180, count: (h) => h.level + h.paragon * 10 },
   { id: "astral", name: "Bind New Astrals", desc: "Summon or capture 2 Astrals", target: 2, mat: "starshard", mats: 2, gold: 220, count: (h) => (h.astrals ?? []).length },
   { id: "gems", name: "Cut Three Gems", desc: "Cut 3 gems from Ember Ore", target: 3, mat: "ore", mats: 3, gold: 150, count: gemTotal },
   { id: "train", name: "Drill the Troops", desc: "Train 5 attribute points", target: 5, mat: "essence", mats: 2, gold: 130, count: attrTotal },
   { id: "battle", name: "Win Five Battles", desc: "Win 5 fights anywhere", target: 5, mat: "fragment", mats: 1, gold: 200, count: (h) => h.record?.wins ?? 0 },
   { id: "enhance", name: "Temper the Steel", desc: "Succeed at 3 enhancements", target: 3, mat: "essence", mats: 2, gold: 170, count: (h) => h.record?.enhances ?? 0 },
-];
+], ["name"], ["desc"]);
 
 /** A commission pays a share of the next level; past the deep wall that share shrinks (see levelShareScale),
  *  so the board keeps mattering without becoming a bypass around the level-30 grind. */
@@ -36,7 +37,7 @@ export function questPointBonus(rand: () => number = Math.random): QuestPointBon
   return { skill: rand() < QUEST_POINT_CHANCE, insight: rand() < QUEST_POINT_CHANCE };
 }
 /** Human label for a quest's bonus payout chance, shown on the board. */
-export const questPointHint = "25% chance of a bonus skill point and 25% of bonus Insight";
+export const questPointHint = () => t("25% chance of a bonus skill point and 25% of bonus Insight");
 
 export type BoardState = { day: string; base: Record<string, number>; claimed: string[] };
 

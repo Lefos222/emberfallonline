@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { CONTENT } from "./content-i18n";
 
 /**
  * The game's language: English, Greek or Polish, picked by hand by the player.
@@ -68,11 +69,16 @@ export function useLang(): Lang {
   return useSyncExternalStore(subscribe, getLang, () => "en" as Lang);
 }
 
-function lookup(phrase: string, forLang: Lang): string {
+/** The exact translation of a phrase, or undefined when the dictionary has no row for it. */
+function exact(phrase: string, forLang: Lang): string | undefined {
   if (forLang === "en") return phrase;
-  const row = TRANSLATIONS[phrase];
-  if (!row) return phrase;
+  const row = TRANSLATIONS[phrase] ?? CONTENT[phrase];
+  if (!row) return undefined;
   return forLang === "el" ? row[0] : row[1];
+}
+
+function lookup(phrase: string, forLang: Lang): string {
+  return exact(phrase, forLang) ?? phrase;
 }
 
 function fill(text: string, vars?: Record<string, string | number>) {
@@ -92,6 +98,202 @@ export function useT() {
   const current = useLang();
   return (phrase: string, vars?: Record<string, string | number>) =>
     fill(lookup(phrase, current), vars);
+}
+
+/**
+ * Translate a composed name — "Bloodforged Plate of Ruin", "Chipped Ruby", "Gold Wolf Lv3" —
+ * by matching its word groups against the dictionary, longest group first. Words with no row
+ * stay exactly as they are, so proper nouns and numbers survive untouched.
+ */
+/** Title requirements and quest lines carry a number: translate the sentence around it. */
+const NAME_TEMPLATES: [RegExp, string][] = [
+  [/^Clear ([\d.,]+) [Cc]ampaign stages$/, "Clear {n} Campaign stages"],
+  [/^Clear ([\d.,]+) Endless Conquest floors$/, "Clear {n} Endless Conquest floors"],
+  [/^Win ([\d.,]+) battles$/, "Win {n} battles"],
+  [/^Win ([\d.,]+) arena fights$/, "Win {n} arena fights"],
+  [/^Reach level ([\d.,]+)$/, "Reach level {n}"],
+  [/^Reach Ascension ([\d.,]+)$/, "Reach Ascension {n}"],
+  [/^Defeat ([\d.,]+) bosses$/, "Defeat {n} bosses"],
+  [/^Defeat ([\d.,]+) monsters$/, "Defeat {n} monsters"],
+  [/^Craft ([\d.,]+) items at the Forge$/, "Craft {n} items at the Forge"],
+  [/^Own ([\d.,]+) Astrals$/, "Own {n} Astrals"],
+];
+
+export function translateName(text: string, forLang: Lang): string {
+  if (forLang === "en" || !text) return text;
+  const whole = exact(text, forLang);
+  if (whole !== undefined) return whole;
+  for (const [pattern, key] of NAME_TEMPLATES) {
+    const match = pattern.exec(text);
+    if (match) return fill(lookup(key, forLang), { n: match[1]! });
+  }
+  const words = text.split(/\s+/).filter(Boolean);
+  const out: string[] = [];
+  for (let i = 0; i < words.length;) {
+    let hit: string | undefined;
+    let used = 1;
+    for (let n = Math.min(5, words.length - i); n >= 1; n--) {
+      const found = exact(words.slice(i, i + n).join(" "), forLang);
+      if (found !== undefined) {
+        hit = found;
+        used = n;
+        break;
+      }
+    }
+    if (hit !== undefined) {
+      out.push(hit);
+      i += used;
+      continue;
+    }
+    const lv = /^Lv(\d+)$/.exec(words[i]!);
+    if (lv) out.push(fill(lookup("Lv {n}", forLang), { n: lv[1]! }));
+    else out.push(words[i]!);
+    i += 1;
+  }
+  return out.join(" ");
+}
+
+/** Translate one composed name in the current language (for code outside a component). */
+export function tName(text: string): string {
+  return translateName(text, lang);
+}
+
+/** The hook for names: `const tn = useTName();` then `tn("Chipped Ruby")`. */
+export function useTName() {
+  const current = useLang();
+  return (text: string) => translateName(text, current);
+}
+
+const GEAR_PREFIXES = [
+  "Worn",
+  "Iron",
+  "Bloodforged",
+  "Moonlit",
+  "Dread",
+  "Abyssal",
+  "Crimson",
+  "Soulbound",
+  "Eclipse",
+  "Ancient",
+  "Emberforged",
+  "Starweave",
+  "Verdant",
+];
+const GEAR_SUFFIXES = [
+  "of Ash",
+  "of the Moon",
+  "of Ruin",
+  "of Kings",
+  "of the Void",
+  "of Eternity",
+];
+
+/**
+ * Translate a piece of gear's stored name. Unlike a plain phrase, a gear name is built as
+ * "<prefix> <noun> <suffix>", and Greek and Polish put the qualifiers after the noun, so the
+ * parts are translated separately and rejoined in that order. Boss drops carry an owner
+ * ("Gorefiend's Plate of Ruin"), which is set before the piece it names.
+ */
+function itemNameIn(name: string, forLang: Lang): string {
+  if (forLang === "en" || !name) return name;
+  const whole = exact(name, forLang);
+  if (whole !== undefined) return whole;
+  const owned = /^(.+)'s (.+)$/.exec(name);
+  if (owned) return `${itemNameIn(owned[2]!, forLang)} — ${translateName(owned[1]!, forLang)}`;
+  let rest = name;
+  let prefix = "";
+  for (const p of GEAR_PREFIXES) {
+    if (rest.startsWith(p + " ")) {
+      prefix = p;
+      rest = rest.slice(p.length + 1);
+      break;
+    }
+  }
+  let suffix = "";
+  for (const s of GEAR_SUFFIXES) {
+    if (rest.endsWith(" " + s)) {
+      suffix = s;
+      rest = rest.slice(0, -(s.length + 1));
+      break;
+    }
+  }
+  return [
+    translateName(rest, forLang),
+    prefix ? (exact(prefix, forLang) ?? prefix) : "",
+    suffix ? (exact(suffix, forLang) ?? suffix) : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+/** Translate a gear name in the current language (for code outside a component). */
+export function itemName(name: string): string {
+  return itemNameIn(name, lang);
+}
+
+/** The hook for gear names: `const gearName = useItemName();` then `gearName(it.name)`. */
+export function useItemName() {
+  const current = useLang();
+  return (name: string) => itemNameIn(name, current);
+}
+
+// ---------------------------------------------------------------------------
+// Localising the game's content dictionaries
+// ---------------------------------------------------------------------------
+// Materials, gems, skills, titles and the rest are plain data objects that the whole game reads.
+// Turning their text fields into language-aware getters here means every existing `MATS[k].name`
+// or `GEMS[t].name` in the UI follows the player's language without a second lookup at each
+// site — and a name that has no translation row still reads exactly as it did before.
+
+function defineText<T extends object>(obj: T, field: string, render: (value: string) => string) {
+  const raw = (obj as Record<string, unknown>)[field];
+  if (typeof raw !== "string") return;
+  Object.defineProperty(obj, field, {
+    get: () => render(raw),
+    enumerable: true,
+    configurable: true,
+  });
+}
+
+/** Make the named fields follow composed names ("Chipped Ruby", "Flamecrown"). */
+export function locName<T extends object>(obj: T, fields: readonly string[] = ["name"]): T {
+  for (const field of fields) defineText(obj, field, tName);
+  return obj;
+}
+
+/** Make the named fields follow whole-phrase translations (descriptions, notes, sentences). */
+export function locText<T extends object>(obj: T, fields: readonly string[]): T {
+  for (const field of fields) defineText(obj, field, (value) => t(value));
+  return obj;
+}
+
+/** Localise a map of records (or of arrays of records): MATS, GEMS, SKILLS, TITLES and friends. */
+export function locAll<T>(
+  map: T,
+  names: readonly string[] = ["name"],
+  texts: readonly string[] = [],
+): T {
+  for (const value of Object.values(map as Record<string, unknown>)) {
+    const rows = Array.isArray(value) ? value : [value];
+    for (const row of rows) {
+      if (!row || typeof row !== "object") continue;
+      if (names.length) locName(row, names);
+      if (texts.length) locText(row, texts);
+    }
+  }
+  return map;
+}
+
+/** Localise a map of one-word labels (`{ attack: "attack", … }`). */
+export function locValues<T extends Record<string, string>>(map: T): T {
+  for (const key of Object.keys(map)) defineText(map, key, (value) => t(value));
+  return map;
+}
+
+/** Localise a list of names (`["Chipped", "Flawed", …]`). */
+export function locList<T extends readonly string[]>(list: T): T {
+  list.forEach((_, index) => defineText(list as unknown as object, String(index), tName));
+  return list;
 }
 
 /** English phrase → [Ελληνικά, Polski]. Rows are added as screens are translated. */

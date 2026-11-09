@@ -1,4 +1,5 @@
 import type { Hero } from "./data";
+import { locValues } from "./i18n";
 
 /**
  * The Farm: the castle's farming destination, opened from the red tree beside the Campaign Gate.
@@ -19,12 +20,12 @@ export type SeedKind = "gold" | "xp" | "ember" | "moon";
 export const SEED_KINDS: readonly SeedKind[] = ["gold", "xp", "ember", "moon"];
 
 /** Display names for each seed kind. */
-export const SEED_LABELS: Record<SeedKind, string> = {
+export const SEED_LABELS: Record<SeedKind, string> = locValues({
   gold: "Gold",
   xp: "XP",
   ember: "Emberbloom",
   moon: "Moonroot",
-};
+});
 
 export const FARM_MAX_LEVEL = 16;
 export const FARM_TOTAL_SLOTS = 16;

@@ -1,4 +1,5 @@
 import { scaledGold } from "./gold";
+import { locAll, locValues } from "./i18n";
 import { barracksLevel } from "./barracks";
 import { zeroFx } from "./crafting";
 import type { BonusFx, StatKey } from "./crafting";
@@ -24,13 +25,13 @@ export interface Drill {
   desc: string;
 }
 
-export const DRILL_STAT_LABEL: Record<DrillStat, string> = {
+export const DRILL_STAT_LABEL: Record<DrillStat, string> = locValues({
   atkPct: "attack", defPct: "defense", hpPct: "health", crit: "crit chance", acc: "accuracy", dodge: "dodge",
   block: "block", heal: "healing power",
-};
+});
 
 /** Health is the drill yard's first lesson and its deepest one, so every hero can always buy more life. */
-export const DRILLS: Drill[] = [
+export const DRILLS: Drill[] = locAll([
   { id: "vitality", name: "Vital Reserves", stat: "hpPct", per: 2, max: 10, base: 800, barracks: 1, desc: "Deep-breathing drills that widen your well of life." },
   { id: "weapons", name: "Weapon Drill", stat: "atkPct", per: 1, max: 10, base: 900, barracks: 1, desc: "Drill every swing until the arm never tires." },
   { id: "shields", name: "Shield Wall Drill", stat: "defPct", per: 1, max: 10, base: 900, barracks: 3, desc: "Locking shields, rank after rank." },
@@ -41,7 +42,7 @@ export const DRILLS: Drill[] = [
   { id: "marksman", name: "Marksman Drill", stat: "acc", per: 0.5, max: 8, base: 1000, barracks: 14, desc: "Nothing but the mark and the breath." },
   { id: "guardwork", name: "Guard Drill", stat: "block", per: 0.5, max: 10, base: 1600, barracks: 16, desc: "Turn the blade aside instead of taking it." },
   { id: "footwork", name: "Footwork Drill", stat: "dodge", per: 0.5, max: 8, base: 1000, barracks: 18, desc: "Steps that leave a blade cutting air." },
-];
+], ["name"], ["desc"]);
 
 /** What a hero must bring to the drill yard to be trained. */
 export interface DrillState { drills?: Record<string, number>; buildings?: Record<string, number>; gold: number; level: number }

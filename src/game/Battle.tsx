@@ -1,3 +1,4 @@
+import { tName } from "./i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   FastForward, Skull, Zap,
@@ -188,14 +189,14 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
         <div className="flex items-center gap-1.5 rounded-full bg-background/70 px-3 py-1 backdrop-blur" aria-label="Turn order">
           <span className="mr-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Round {s.round}</span>
           {order.map((u, i) => (
-            <div key={u.id + i} title={u.name}
+            <div key={u.id + i} title={tName(u.name)}
               className={`h-8 w-8 overflow-hidden rounded-full border-2 bg-card ${i === 0 ? "border-gold scale-110 shadow-[0_0_12px_var(--gold)]" : u.side === "hero" ? "border-r1" : "border-blood"}`}>
               {u.cls || !u.sprite ? <BattleCharacter u={u} /> : <Sprite rect={u.sprite} className="w-full" />}
             </div>
           ))}
         </div>
         <div className={`font-display text-sm ${myTurn ? "text-gold" : "text-muted-foreground"}`}>
-          {s.over ? "" : myTurn ? (skill ? (skill.target === "multi" ? `Choose up to ${skill.maxTargets} targets` : "Choose a target") : "Your turn — choose a skill") : `${actor?.name ?? ""}'s turn…`}
+          {s.over ? "" : myTurn ? (skill ? (skill.target === "multi" ? `Choose up to ${skill.maxTargets} targets` : "Choose a target") : "Your turn — choose a skill") : `${actor ? tName(actor.name) : ""}'s turn…`}
         </div>
       </div>
 
@@ -277,12 +278,12 @@ function UnitView({ u, anim, effect, move, victory, floats, active, targetable, 
   const h = u.boss ? "battle-figure boss-figure" : small ? "battle-figure small-figure" : "battle-figure";
   return (
     <Button variant="ghost" type="button" onClick={onClick} disabled={!onClick || dead}
-      aria-label={`${u.name}${targetable ? " (valid target)" : ""}`}
+      aria-label={`${tName(u.name)}${targetable ? " (valid target)" : ""}`}
       className={`relative h-auto min-w-0 shrink-0 flex flex-col items-center p-0 hover:bg-transparent transition-all duration-500 battle-unit disabled:opacity-100 ${dead ? "pointer-events-none battle-death" : ""} ${targetable ? "cursor-crosshair" : "cursor-default"}`}>
       {/* Nameplate */}
       <div className={`mb-1 w-full max-w-44 rounded-md bg-background/75 px-2 py-1 text-left backdrop-blur ${active ? "ring-2 ring-gold" : ""}`}>
         <div className="flex items-center justify-between gap-1 truncate text-[11px] font-bold">
-          <span className="truncate">{u.boss && <Skull className="mr-0.5 inline h-3 w-3 text-blood" />}{u.elite && <span className="text-r4">★ </span>}{u.name}</span>
+          <span className="truncate">{u.boss && <Skull className="mr-0.5 inline h-3 w-3 text-blood" />}{u.elite && <span className="text-r4">★ </span>}{tName(u.name)}</span>
           <span className="text-muted-foreground">Lv {u.level}</span>
         </div>
         <div className="bar-track mt-0.5 h-2.5"><div className="bar-hp h-full transition-all duration-300" style={{ width: `${(u.hp / u.maxHp) * 100}%` }} /></div>
