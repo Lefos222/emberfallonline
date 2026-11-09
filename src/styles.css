@@ -521,6 +521,8 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
    Painted armour and set art are drawn looking the other way from the base class
    model; flipping them keeps the hero facing right in every wearing. */
 .hero-model-flip { transform: scaleX(-1); }
+/* Worn weapon art held at the hero's side, above the body art. */
+.hero-model > img.hero-weapon { inset: auto 4% 6% auto; width: 30%; height: 82%; z-index: 2; transform: rotate(14deg); transform-origin: center bottom; filter: drop-shadow(0 4px 6px oklch(0 0 0 / 0.55)); pointer-events: none; }
 
 /* ---------- Guild Hall courtyard ----------
    The hall opens on the painted courtyard: the merchant's stall, the master skill tower,

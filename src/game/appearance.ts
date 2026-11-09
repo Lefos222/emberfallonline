@@ -74,9 +74,11 @@ export function gearLook(h: { equipment?: GearRecord }, gender: Gender): number 
 export function heroAppearance(
   h: Pick<Hero, "equipment" | "synth">,
   gender: Gender,
-): { synth: number | null; look: number | null } {
+): { synth: number | null; look: number | null; weapon: number | null } {
   const synth = appearanceTier(h);
-  return synth ? { synth, look: null } : { synth: null, look: gearLook(h, gender) };
+  // The weapon style follows the worn weapon only; armour picks only the outfit.
+  const weapon = weaponLookOf(h.equipment?.weapon);
+  return synth ? { synth, look: null, weapon } : { synth: null, look: gearLook(h, gender), weapon };
 }
 
 /**
@@ -86,4 +88,48 @@ export function heroAppearance(
 export function armourArt(cls: HeroClass, gender: Gender, look: number): string | undefined {
   if (!Number.isFinite(look) || look < 0) return undefined;
   return VARIANTS[`${cls}-${gender}`]?.[Math.floor(look)];
+}
+
+/**
+ * Weapon appearance. Every painted weapon in src/assets/weapons (`<class>-<n>.webp`)
+ * is in its class pool; a worn weapon derives its look from its own id, so each sword,
+ * staff or bow keeps one style and swapping weapons swaps the style. Weapon art never
+ * touches the armour look and armour never touches the weapon.
+ */
+const WEAPON_ART = import.meta.glob("../assets/weapons/*.webp", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+
+const WEAPONS: Record<string, string[]> = (() => {
+  const groups: Record<string, { url: string; index: number }[]> = {};
+  for (const [key, url] of Object.entries(WEAPON_ART)) {
+    const m = /(warrior|mage|archer)-(\d+)\.webp$/.exec(key);
+    if (m) (groups[m[1]] ??= []).push({ url, index: Number(m[2]) });
+  }
+  const out: Record<string, string[]> = {};
+  for (const [cls, list] of Object.entries(groups))
+    out[cls] = list.sort((a, b) => a.index - b.index).map((v) => v.url);
+  return out;
+})();
+
+export function weaponCount(cls: HeroClass): number {
+  return WEAPONS[cls]?.length ?? 0;
+}
+
+/** The stable style of one weapon, or null when it has no id or its class has no art. */
+export function weaponLookOf(item: Pick<Item, "id" | "cls"> | null | undefined): number | null {
+  if (!item?.id) return null;
+  const count = weaponCount(item.cls);
+  if (count < 1) return null;
+  let hash = 7;
+  for (let i = 0; i < item.id.length; i += 1)
+    hash = (Math.imul(hash, 37) + item.id.charCodeAt(i)) >>> 0;
+  return hash % count;
+}
+
+export function weaponArt(cls: HeroClass, look: number): string | undefined {
+  if (!Number.isFinite(look) || look < 0) return undefined;
+  return WEAPONS[cls]?.[Math.floor(look)];
 }
