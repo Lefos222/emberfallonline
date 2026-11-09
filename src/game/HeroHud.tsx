@@ -30,6 +30,7 @@ import { Diamonds, Gold, VoidCrystals, fmt } from "./ui";
 import { leaveCharacter, update, useGame } from "./store";
 import { supabase } from "@/integrations/supabase/client";
 import { dailyChestReady, dailyChestCountdown, formatDailyChestCountdown, claimDailyChest, DAILY_CHEST_MAX_LEVEL } from "./daily-chest";
+import { useT } from "./i18n";
 
 /**
  * The top-left player card: portrait, name, class, XP, currencies, power and stamina.
@@ -47,6 +48,7 @@ export function Hud({
   onProfile: () => void;
   onSettings: () => void;
 }) {
+  const t = useT();
   const { hero, gender, chars, heroId } = useGame();
   const me = chars?.find((c) => c.id === heroId);
   const frame = me?.frame ?? "iron";
@@ -60,7 +62,7 @@ export function Hud({
             className={`player-portrait ${frameClass(frame)}`}
             onClick={onProfile}
             aria-label={`Profile — level ${hero.level}${hero.paragon > 0 ? `, ascension ${hero.paragon}` : ""}`}
-            title="Open your profile"
+            title={t("Open your profile")}
           >
             {hero.avatar !== undefined ? (
               <AvatarIcon index={hero.avatar} fill className="block h-full w-full" />
@@ -86,11 +88,11 @@ export function Hud({
           </div>
         </div>
         <div className="player-divider" />
-        <div className="player-currencies" role="group" aria-label="Currencies and power">
+        <div className="player-currencies" role="group" aria-label={t("Currencies and power")}>
           <Gold n={hero.gold} />
           <Diamonds n={premiumState(hero).balance} />
           <VoidCrystals n={hero.voidCrystals ?? 0} />
-          <span className="font-bold" title="Power">
+          <span className="font-bold" title={t("Power")}>
             <Trophy className="text-r4" />
             {fmt(s.power)}
           </span>
@@ -104,22 +106,22 @@ export function Hud({
         <button
           className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10"
           onClick={() => setMuted(!muted)}
-          aria-label="Music"
-          title={muted ? "Unmute music" : "Mute music"}
+          aria-label={t("Music")}
+          title={t(muted ? "Unmute music" : "Mute music")}
         >
           {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5 text-gold" />}
         </button>
         <button
           className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10"
           onClick={onSettings}
-          aria-label="Game settings"
-          title="Game settings"
+          aria-label={t("Game settings")}
+          title={t("Game settings")}
         >
           <Settings className="h-5 w-5" />
         </button>
         <span
           className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10"
-          title={`Cloud: ${cloud}`}
+          title={t("Cloud: {state}", { state: cloud })}
         >
           {cloud === "error" ? (
             <CloudOff className="h-5 w-5 text-hp" />
@@ -132,15 +134,15 @@ export function Hud({
         <button
           className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10"
           onClick={onProfile}
-          aria-label="Profile"
+          aria-label={t("Profile")}
         >
           <IdCard className="h-5 w-5" />
         </button>
         <button
           className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10"
           onClick={() => void leaveCharacter()}
-          aria-label="Switch character"
-          title="Switch character"
+          aria-label={t("Switch character")}
+          title={t("Switch character")}
         >
           <Users className="h-5 w-5" />
         </button>
@@ -149,7 +151,7 @@ export function Hud({
           onClick={async () => {
             if (await leaveCharacter()) await supabase.auth.signOut();
           }}
-          aria-label="Sign out"
+          aria-label={t("Sign out")}
         >
           <LogOut className="h-5 w-5" />
         </button>
@@ -160,6 +162,7 @@ export function Hud({
 
 /** Daily stamina and the potion pouch, under the player plate in the top-left HUD. */
 export function StaminaBar({ hero }: { hero: Hero }) {
+  const t = useT();
   const [shelf, setShelf] = useState(false);
   const [notice, setNotice] = useState<{ ok: boolean; t: string } | null>(null);
   const left = staminaLeft(hero);
@@ -177,7 +180,7 @@ export function StaminaBar({ hero }: { hero: Hero }) {
       title={`Stamina ${left}/${STAMINA_PER_DAY} — ${CAMPAIGN_STAMINA} per Campaign Gate battle, ${DUNGEON_STAMINA} per dungeon run, refills at Greek midnight`}
     >
       <div className="mb-0.5 flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
-        <span className="font-display">Stamina</span>
+        <span className="font-display">{t("Stamina")}</span>
         <span className={left < CAMPAIGN_STAMINA ? "font-bold text-hp" : "font-bold text-foreground"}>
           {left}/{STAMINA_PER_DAY}
         </span>
@@ -192,7 +195,7 @@ export function StaminaBar({ hero }: { hero: Hero }) {
         <button
           className="flex shrink-0 items-center gap-0.5 rounded bg-black/40 px-1 py-0.5 text-[10px] font-bold"
           onClick={() => { setShelf(true); setNotice(null); }}
-          aria-label={`Potion pouch (${potions} stamina potions)`}
+          aria-label={t("Potion pouch")}
           title={`Potion pouch — ${potions} Stamina Potion${potions === 1 ? "" : "s"}, ${drinksLeft}/${POTION_PER_DAY} drinks left today`}
         >
           <img src={POTIONS.stamina.art} alt="" aria-hidden="true" className="h-5 w-5 object-contain" />

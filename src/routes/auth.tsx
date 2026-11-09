@@ -5,6 +5,8 @@ import castle from "@/assets/castle.jpg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { setUser } from "@/game/store";
+import { useT } from "@/game/i18n";
+import { LanguagePicker } from "@/game/LanguagePicker";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -21,6 +23,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
+  const t = useT();
   const nav = useNavigate();
   const [mode, setMode] = useState<"in" | "up" | "forgot">("in");
   const [email, setEmail] = useState("");
@@ -43,10 +46,10 @@ function AuthPage() {
   }, []);
 
   const friendly = (m: string) => {
-    if (/unauthori[sz]ed|not enabled|provider/i.test(m)) return "Google sign-in couldn't start right now. Please try again, or use email and password.";
-    if (/popup/i.test(m)) return "Your browser blocked the sign-in window. Allow pop-ups for this site and try again.";
-    if (/email not confirmed/i.test(m)) return "Please confirm your email first — check your inbox.";
-    if (/invalid login/i.test(m)) return "Wrong email or password.";
+    if (/unauthori[sz]ed|not enabled|provider/i.test(m)) return t("Google sign-in couldn't start right now. Please try again, or use email and password.");
+    if (/popup/i.test(m)) return t("Your browser blocked the sign-in window. Allow pop-ups for this site and try again.");
+    if (/email not confirmed/i.test(m)) return t("Please confirm your email first — check your inbox.");
+    if (/invalid login/i.test(m)) return t("Wrong email or password.");
     return m;
   };
 
@@ -55,7 +58,7 @@ function AuthPage() {
     setBusy(true); setMsg(null);
     if (mode === "forgot") {
       const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
-      setMsg(error ? error.message : "If that email has an account, a reset link is on its way.");
+      setMsg(error ? error.message : t("If that email has an account, a reset link is on its way."));
     } else if (mode === "in") {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setMsg(friendly(error.message)); else await enterGame(data.user);
@@ -63,7 +66,7 @@ function AuthPage() {
       const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
       if (error) setMsg(friendly(error.message));
       else if (data.session) await enterGame(data.user);
-      else setMsg("Check your email to confirm your account.");
+      else setMsg(t("Check your email to confirm your account."));
     }
     setBusy(false);
   };
@@ -78,7 +81,7 @@ function AuthPage() {
       if (r.redirected) return;
       const { data } = await supabase.auth.getUser();
       if (data.user) await enterGame(data.user);
-      else setMsg("Sign-in didn't finish. Please try again.");
+      else setMsg(t("Sign-in didn't finish. Please try again."));
     } catch (e) {
       setMsg(friendly(e instanceof Error ? e.message : String(e)));
     } finally { setSocialBusy(null); }
@@ -88,32 +91,33 @@ function AuthPage() {
     <div className="relative flex min-h-screen items-center justify-center p-4">
       <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${castle.url})` }} />
       <div className="absolute inset-0 bg-background/60 vignette" />
+      <div className="absolute right-3 top-3 z-10"><LanguagePicker /></div>
       <div className="game-panel anim-pop relative w-full max-w-sm p-6">
         <h1 className="panel-title mb-1 text-center text-3xl font-bold">EmberFall Online</h1>
-        <p className="mb-5 text-center text-sm text-muted-foreground">{mode === "in" ? "Return to your castle" : mode === "up" ? "Forge a new legend" : "Reset your password"}</p>
+        <p className="mb-5 text-center text-sm text-muted-foreground">{mode === "in" ? t("Return to your castle") : mode === "up" ? t("Forge a new legend") : t("Reset your password")}</p>
         <form onSubmit={submit} className="space-y-3">
-          <input className="slot w-full px-3 py-2 outline-none" type="email" required placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input className="slot w-full px-3 py-2 outline-none" type="email" required placeholder={t("Email")} value={email} onChange={(e) => setEmail(e.target.value)} />
           {mode !== "forgot" && (
             <div className="relative">
-              <input className="slot w-full px-3 py-2 pr-10 outline-none" type={show ? "text" : "password"} required minLength={6} placeholder="Password (min 6)" value={password} onChange={(e) => setPassword(e.target.value)} />
-              <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground" onClick={() => setShow(!show)} aria-label={show ? "Hide password" : "Show password"}>
+              <input className="slot w-full px-3 py-2 pr-10 outline-none" type={show ? "text" : "password"} required minLength={6} placeholder={t("Password (min 6)")} value={password} onChange={(e) => setPassword(e.target.value)} />
+              <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground" onClick={() => setShow(!show)} aria-label={show ? t("Hide password") : t("Show password")}>
                 {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           )}
-          <button className="btn-gold w-full py-2.5" disabled={busy}>{busy ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : mode === "in" ? "Sign in" : mode === "up" ? "Create account" : "Send reset link"}</button>
+          <button className="btn-gold w-full py-2.5" disabled={busy}>{busy ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : mode === "in" ? t("Sign in") : mode === "up" ? t("Create account") : t("Send reset link")}</button>
         </form>
-        <div className="my-4 text-center text-xs text-muted-foreground">or</div>
+        <div className="my-4 text-center text-xs text-muted-foreground">{t("or")}</div>
         <div className="space-y-2">
-          <button type="button" className="btn-blood w-full py-2.5" disabled={!!socialBusy} onClick={() => social("google")}>{socialBusy === "google" ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Continue with Google"}</button>
+          <button type="button" className="btn-blood w-full py-2.5" disabled={!!socialBusy} onClick={() => social("google")}>{socialBusy === "google" ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : t("Continue with Google")}</button>
         </div>
         {msg && <p className="mt-3 text-center text-sm text-gold">{msg}</p>}
         <div className="mt-4 flex justify-between text-sm">
           <button className="text-muted-foreground hover:text-gold" onClick={() => setMode(mode === "up" ? "in" : "up")}>
-            {mode === "up" ? "Have an account? Sign in" : "New here? Sign up"}
+            {mode === "up" ? t("Have an account? Sign in") : t("New here? Sign up")}
           </button>
-          {mode === "in" ? <button className="text-muted-foreground hover:text-gold" onClick={() => setMode("forgot")}>Forgot password?</button>
-            : mode === "forgot" ? <button className="text-muted-foreground hover:text-gold" onClick={() => setMode("in")}>Back to sign in</button> : null}
+          {mode === "in" ? <button className="text-muted-foreground hover:text-gold" onClick={() => setMode("forgot")}>{t("Forgot password?")}</button>
+            : mode === "forgot" ? <button className="text-muted-foreground hover:text-gold" onClick={() => setMode("in")}>{t("Back to sign in")}</button> : null}
         </div>
       </div>
     </div>

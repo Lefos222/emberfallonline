@@ -486,7 +486,11 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
 .battle-actions {
   padding: 1.5rem max(0.75rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
 }
-.castle-map { width: max(100vw, calc(100vh * 1.791)); aspect-ratio: 1920 / 1072; }
+/* The castle keeps its painted proportions and stays at least a full screen tall, so a
+   phone sees a readable castle that is dragged to reach the rest (see castleClamp in
+   Game.tsx). Without `flex: none` the flex row shrinks it to the viewport width, which
+   crushes the building names on top of each other. */
+.castle-map { flex: none; width: max(100vw, calc(100vh * 1.791)); aspect-ratio: 1920 / 1072; }
 .castle-view { touch-action: none; cursor: grab; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .castle-view:active { cursor: grabbing; }
 .castle-hint { display: none; }
@@ -521,8 +525,6 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
    Painted armour and set art are drawn looking the other way from the base class
    model; flipping them keeps the hero facing right in every wearing. */
 .hero-model-flip { transform: scaleX(-1); }
-/* Worn weapon art held at the hero's side, above the body art. */
-.hero-model > img.hero-weapon { inset: auto 4% 6% auto; width: 30%; height: 82%; z-index: 2; transform: rotate(14deg); transform-origin: center bottom; filter: drop-shadow(0 4px 6px oklch(0 0 0 / 0.55)); pointer-events: none; }
 
 /* ---------- Guild Hall courtyard ----------
    The hall opens on the painted courtyard: the merchant's stall, the master skill tower,
