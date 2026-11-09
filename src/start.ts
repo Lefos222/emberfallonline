@@ -25,6 +25,8 @@ const csrfMiddleware = createCsrfMiddleware({
   filter: (ctx) => ctx.handlerType === "serverFn",
 });
 
+// requestMiddleware runs on every request; functionMiddleware only on server functions, where
+// client sendContext is unvalidated input. Append to these arrays, never replace them.
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth],
   requestMiddleware: [errorMiddleware, csrfMiddleware],
