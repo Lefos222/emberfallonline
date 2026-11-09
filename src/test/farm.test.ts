@@ -13,8 +13,10 @@ import {
   ensureFarm,
   farmLevel,
   farmXpToNext,
+  FARM_MASTERY_BONUS,
   goldSeedReward,
   harvestAll,
+  farmMastered,
   harvestSlot,
   heldSeeds,
   plantSeed,
@@ -160,6 +162,28 @@ describe("harvesting", () => {
     const got = harvestSlot(h, 0, crop.readyAt);
     expect(got?.xp).toBe(xpSeedReward(1));
     expect(got?.gold).toBe(0);
+  });
+
+  it("pays 20% more gold and Farm XP once the farm is mastered at Level 16", () => {
+    const h = hero();
+    expect(farmMastered(h)).toBe(false);
+    plantSeed(h, 0, "gold", 1, 0);
+    const crop = h.farm!.slots![0]!;
+    const base = harvestSlot(h, 0, crop.readyAt);
+    expect(base?.gold).toBe(goldSeedReward(1));
+
+    const maxed = hero();
+    maxed.farm = { ...ensureFarm(maxed), level: FARM_MAX_LEVEL, xp: 0 };
+    expect(farmMastered(maxed)).toBe(true);
+    plantSeed(maxed, 0, "gold", 1, 0);
+    const ripe = maxed.farm!.slots![0]!;
+    const boosted = harvestSlot(maxed, 0, ripe.readyAt);
+    expect(boosted?.gold).toBe(Math.round(goldSeedReward(1) * (1 + FARM_MASTERY_BONUS)));
+
+    // The Bloodoak carries the same mastery bonus.
+    const tree = chargeBloodoak(maxed, 10_000);
+    expect(tree?.gold).toBe(Math.round(bloodoakRewards(FARM_MAX_LEVEL).gold * (1 + FARM_MASTERY_BONUS)));
+    expect(tree?.xp).toBe(Math.round(bloodoakRewards(FARM_MAX_LEVEL).xp * (1 + FARM_MASTERY_BONUS)));
   });
 
   it("banks Farm XP into levels and tills a new plot each time", () => {

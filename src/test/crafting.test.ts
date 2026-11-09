@@ -5,7 +5,7 @@ import {
   battleMats, craft, equipAstral, fuseGem, gemValue, insertGem, normalizeAstrals, refine, removeGem, recipeGold,
   recipeMats, scrapItem, scrapYield, summonAstralRandom, summonAstralByRarity, upgradeAstral,
 } from "@/game/crafting";
-import { buyConquestGem, gemGoldPrice } from "@/game/conquest";
+import { buyConquestGem, conquestTokens, gemTokenPrice } from "@/game/conquest";
 
 describe("gems, astrals, crafting", () => {
   it("a socketed ruby raises attack and removing returns the gem", () => {
@@ -34,14 +34,16 @@ describe("gems, astrals, crafting", () => {
     expect(insertGem(h, w.id, 0, "ruby:12")).toBeNull();
     expect(heroStats(h).patk).toBe(before + 780);
   });
-  it("the Conquest Gate sells any gem level for gold", () => {
+  it("the Conquest Gate sells any gem level for Conquest Tokens, never gold", () => {
     const h = newHero("T", "warrior");
-    expect(gemGoldPrice(1, 1)).toBe(1800);
-    h.gold = gemGoldPrice(3, h.level);
+    expect(gemTokenPrice(1)).toBe(25);
+    h.conquest = { tokens: gemTokenPrice(3) };
+    const gold = h.gold;
     expect(buyConquestGem(h, "lapis", 3)).toBeNull();
-    expect(h.gold).toBe(0);
+    expect(conquestTokens(h)).toBe(0);
+    expect(h.gold).toBe(gold);
     expect(h.gems?.["lapis:3"]).toBe(1);
-    expect(buyConquestGem(h, "lapis", 4)).toMatch(/Not enough gold/);
+    expect(buyConquestGem(h, "lapis", 4)).toMatch(/Not enough Conquest Tokens/);
   });
   it("fusing needs 3 gems and consumes them", () => {
     const h = newHero("T", "mage"); h.gold = 10000; h.mats = { essence: 5 };

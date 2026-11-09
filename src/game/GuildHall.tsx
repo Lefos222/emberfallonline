@@ -11,9 +11,11 @@ import { GuildContribute, GuildShopPanel, GuildVaultPanel } from './GuildShop';
 import { GuildSkillTower, GuildReliquary } from './GuildTower';
 import { GuildRecords, type MemberHero } from './GuildRecords';
 import { GuildHallScene, type GuildLocation } from './GuildHallScene';
+import { GuildWars } from './GuildWars';
+import type { StartBattle } from './panels';
 import { GUILD_RELICS, guildTotalRanks, relicUnlocked } from './guild-tower';
 
-export function GuildHall({ onClose }: { onClose: () => void }) {
+export function GuildHall({ onClose, start }: { onClose: () => void; start: StartBattle }) {
   const { heroId, hero } = useGame();
   const request = useRequest();
   const [guild, setGuild] = useState<Tables<"guilds"> | null>(null);
@@ -207,6 +209,8 @@ export function GuildHall({ onClose }: { onClose: () => void }) {
       {location === "reliquary" && <div className="mt-5">
         <GuildReliquary />
       </div>}
+
+      {location === "wars" && <GuildWars heroId={heroId} guildId={guild.id} role={role} start={start} />}
 
       {location === "headquarters" && <>
         {/* The guild charter: the words every member reads on the way in. */}

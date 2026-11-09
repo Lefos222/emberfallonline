@@ -1,27 +1,41 @@
 import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { scrollXp } from "./scrolls";
-import { Crown, Lock, Skull, Sparkles, Swords } from "lucide-react";
+import { Crown, Lock, Skull, Sparkles, Swords, Trophy } from "lucide-react";
 import { foeRating, invCap, heroStats, makeItem, type Item } from "./data";
 import { update, useGame } from "./store";
-import { Gold, Panel, fmt } from "./ui";
+import { GameTabs, Gold, Panel, fmt } from "./ui";
 import { Sprite } from "./Sprite";
 import type { StartBattle } from "./panels";
 import { TIER_BOSSES } from "./world";
 import { addMats } from "./crafting";
+import { DUNGEON_RUNS_PER_DAY, DUNGEON_STAMINA, STAMINA_PER_DAY, staminaLeft } from "./stamina";
 import {
   BOSS_ORDER, ENDGAME_LEVEL, MAX_DIFFICULTY, WEEKLY_GOAL, WEEKLY_REWARD, addWeeklyKill, bossUnlocked, canClaimWeekly, challengeFoe, challengeRewards,
   cleared, currentWeekly, eliteFoe, weekIndex, weeklyModifier,
 } from "./endgame";
 
+type DungeonTab = "bosses" | "elite" | "expeditions" | "relics" | "weekly";
+
+/** A small colour-coded verdict on how the chosen fight compares to the hero. */
+function dangerOf(power: number, foePower: number) {
+  const ratio = power / Math.max(1, foePower);
+  if (ratio > 1.15) return { t: "Fair fight", c: "text-r1" };
+  if (ratio > 0.9) return { t: "Hard", c: "text-r4" };
+  if (ratio > 0.7) return { t: "Very hard", c: "text-hp" };
+  return { t: "Deadly", c: "text-blood" };
+}
+
 export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClose: () => void; start: StartBattle; onExpeditions?:()=>void; onRelics?:()=>void }) {
   const { hero } = useGame();
   const [diff, setDiff] = useState<Record<string, number>>({});
+  const [tab, setTab] = useState<DungeonTab>("bosses");
   if (!hero) return null;
   const lvl = hero.level + hero.paragon;
   const mod = weeklyModifier(weekIndex());
   const weekly = currentWeekly(hero);
   const power = heroStats(hero).power;
+  const stamina = staminaLeft(hero);
 
   if (hero.level < ENDGAME_LEVEL) {
     return (
@@ -92,64 +106,183 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
     addMats(h, { starshard: WEEKLY_REWARD.starshard, bossCore: WEEKLY_REWARD.bossCore });
   });
 
+  const elite = eliteFoe(lvl);
+  const eliteDanger = dangerOf(power, foeRating(elite));
+  const defeated = BOSS_ORDER.filter((id) => cleared(hero, id) > 0).length;
+
   return (
-    <Panel title="Dungeon Gate · Challenges" subtitle="Escalating trials with rare rewards" art="star" onClose={onClose} wide>
-      <div className="mb-4 grid gap-2 md:grid-cols-2">
-        {onRelics&&<Button className="w-full" onClick={onRelics}><Sparkles/>Relic Trials · collect your class relics</Button>}
-        {onExpeditions&&<Button className="w-full" variant="outline" onClick={onExpeditions}><Swords/>Material expeditions</Button>}
-      </div>
-      <div className="mb-4 grid gap-2 md:grid-cols-2">
+    <Panel title="Dungeon Gate" subtitle="Boss challenges, elite hunts, expeditions and relics" art="star" onClose={onClose} wide>
+      {/* The gate's status strip: what a run costs, how the hero stands and this week's twist. */}
+      <div className="mb-3 grid gap-2 sm:grid-cols-3">
         <div className="slot p-3 text-sm">
-          <div className="font-display text-gold">This week's modifier: {mod.name}</div>
-          <div className="text-muted-foreground">{mod.desc} · rewards ×{mod.reward}</div>
+          <div className="font-display text-gold">Stamina</div>
+          <div className="text-2xl font-bold text-void">{fmt(stamina)}<span className="text-sm text-muted-foreground"> / {STAMINA_PER_DAY}</span></div>
+          <div className="text-[11px] text-muted-foreground">Each run costs {DUNGEON_STAMINA} · ≈{Math.floor(stamina / DUNGEON_STAMINA)} runs left today</div>
         </div>
-        <div className="slot flex items-center justify-between gap-2 p-3 text-sm">
-          <div>
-            <div className="font-display text-gold">Weekly objective</div>
-            <div className="text-muted-foreground">Defeat {WEEKLY_GOAL} challenge bosses: {Math.min(weekly.kills, WEEKLY_GOAL)}/{WEEKLY_GOAL}</div>
-            <div className="text-xs"><Gold n={WEEKLY_REWARD.gold} /> + {WEEKLY_REWARD.starshard} Starshards + {WEEKLY_REWARD.bossCore} Boss Cores · resets Monday 00:00 UTC</div>
-          </div>
-          <button className="btn-gold px-3 py-1.5" disabled={!canClaimWeekly(hero)} onClick={claimWeekly}>{weekly.claimed ? "Claimed" : "Claim"}</button>
+        <div className="slot p-3 text-sm">
+          <div className="font-display text-gold">Bosses defeated</div>
+          <div className="text-2xl font-bold">{defeated}<span className="text-sm text-muted-foreground"> / {BOSS_ORDER.length}</span></div>
+          <div className="text-[11px] text-muted-foreground">Each boss unlocks the next, and climbs to difficulty {MAX_DIFFICULTY}</div>
+        </div>
+        <div className="slot p-3 text-sm">
+          <div className="font-display text-gold">{mod.name}</div>
+          <div className="text-[11px] text-muted-foreground">{mod.desc}</div>
+          <div className="text-[11px] text-r1">Rewards ×{mod.reward} this week</div>
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
-        {BOSS_ORDER.map((id, i) => {
-          const unlocked = bossUnlocked(hero, i);
-          const c = cleared(hero, id);
-          const max = Math.min(MAX_DIFFICULTY, c + 1);
-          const d = Math.min(diff[id] ?? max, max);
-          const foe = challengeFoe(id, d, mod);
-          const ratio = power / Math.max(1, foeRating(foe));
-          const rw = challengeRewards(id, d, mod);
-          return (
-            <div key={id} className={`slot p-3 ${unlocked ? "" : "opacity-60"}`}>
-              <div className="flex gap-3">
-                <Sprite rect={TIER_BOSSES[id].sprite} className="h-24 w-24 shrink-0" />
-                <div className="flex-1 text-sm">
-                  <div className="font-display text-lg">{TIER_BOSSES[id].name}</div>
-                  <div className="text-xs text-muted-foreground">Best clear: {c ? `Difficulty ${c}` : "none"}{c >= MAX_DIFFICULTY && <Crown className="ml-1 inline h-3 w-3 text-gold" />}</div>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {Array.from({ length: max }, (_, k) => k + 1).map((k) => (
-                      <button key={k} className={`px-2 py-0.5 text-xs ${d === k ? "btn-gold" : "btn-ghost"}`} onClick={() => setDiff({ ...diff, [id]: k })}>D{k}</button>
-                    ))}
+      <GameTabs label="Dungeon Gate" value={tab} onChange={setTab} tabs={[
+        { id: "bosses", name: "Boss challenges" },
+        { id: "elite", name: "Elite hunt" },
+        { id: "expeditions", name: "Expeditions" },
+        { id: "relics", name: "Relic trials" },
+        { id: "weekly", name: "Weekly", badge: canClaimWeekly(hero) ? 1 : 0 },
+      ]} />
+
+      {tab === "bosses" && (
+        <div className="grid gap-3 md:grid-cols-2">
+          {BOSS_ORDER.map((id, i) => {
+            const unlocked = bossUnlocked(hero, i);
+            const c = cleared(hero, id);
+            const max = Math.min(MAX_DIFFICULTY, c + 1);
+            const d = Math.min(diff[id] ?? max, max);
+            const foe = challengeFoe(id, d, mod);
+            const danger = dangerOf(power, foeRating(foe));
+            const rw = challengeRewards(id, d, mod);
+            const previous = i > 0 ? TIER_BOSSES[BOSS_ORDER[i - 1]]?.name : null;
+            return (
+              <div key={id} className={`slot flex flex-col p-3 ${unlocked ? "" : "opacity-70"}`}>
+                <div className="flex gap-3">
+                  <Sprite rect={TIER_BOSSES[id].sprite} className="h-24 w-24 shrink-0" />
+                  <div className="min-w-0 flex-1 text-sm">
+                    <div className="font-display text-lg leading-tight">{TIER_BOSSES[id].name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {c ? <>Best clear: difficulty {c}{c >= MAX_DIFFICULTY && <Crown className="ml-1 inline h-3 w-3 text-gold" />}</> : "Never defeated"}
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {Array.from({ length: max }, (_, k) => k + 1).map((k) => (
+                        <button key={k} className={`px-2 py-0.5 text-xs ${d === k ? "btn-gold" : "btn-ghost"}`}
+                          aria-pressed={d === k} onClick={() => setDiff({ ...diff, [id]: k })}>D{k}</button>
+                      ))}
+                      {Array.from({ length: MAX_DIFFICULTY - max }, (_, k) => max + k + 1).map((k) => (
+                        <span key={k} className="rounded px-2 py-0.5 text-xs text-muted-foreground/50" title={`Clear D${k - 1} to open this difficulty`}>D{k}</span>
+                      ))}
+                    </div>
+                    <div className="mt-1.5 text-xs">HP {fmt(foe.hp)} · ATK {fmt(foe.atk)} · <span className={`font-bold ${danger.c}`}>{danger.t}</span></div>
                   </div>
-                  <div className="mt-1 text-xs">HP {fmt(foe.hp)} · ATK {fmt(foe.atk)} · <span className={ratio > 1.1 ? "text-r1" : ratio > 0.8 ? "text-r4" : "text-blood"}>{ratio > 1.1 ? "Fair" : ratio > 0.8 ? "Hard" : "Deadly"}</span></div>
-                  <div className="text-xs text-muted-foreground"><Gold n={rw.gold} /> · {fmt(rw.xp)} XP{rw.bossCore ? ` · ${rw.bossCore} Boss Core` : ""} · {["", "", "", "Epic", "Legendary", "Mythic"][rw.minRarity]}+ gear</div>
                 </div>
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  <span><Gold n={rw.gold} /></span>
+                  <span>{fmt(rw.xp)} XP</span>
+                  {rw.bossCore ? <span>{rw.bossCore} Boss Core</span> : null}
+                  <span className="text-r2">{["", "", "", "Epic", "Legendary", "Mythic"][rw.minRarity] ?? "Rare"}+ gear</span>
+                  <span className="ml-auto">{DUNGEON_STAMINA} stamina</span>
+                </div>
+                <button className="btn-blood mt-2 w-full py-1.5" disabled={!unlocked}
+                  title={unlocked ? "" : previous ? `Defeat ${previous} first` : "Defeat the previous boss first"}
+                  onClick={() => fightBoss(i)}>
+                  {unlocked
+                    ? <><Skull className="mr-1 inline h-4 w-4" />Challenge at difficulty {d}</>
+                    : <><Lock className="mr-1 inline h-4 w-4" />{previous ? `Defeat ${previous.split(",")[0]}` : "Locked"}</>}
+                </button>
               </div>
-              <button className="btn-blood mt-2 w-full py-1.5" disabled={!unlocked} title={unlocked ? "" : "Defeat the previous boss first"} onClick={() => fightBoss(i)}>
-                {unlocked ? <><Skull className="mr-1 inline h-4 w-4" />Challenge D{d}</> : <><Lock className="mr-1 inline h-4 w-4" />Defeat the previous boss</>}
-              </button>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
-      <div className="slot mt-4 flex items-center justify-between gap-2 p-3 text-sm">
-        <div><div className="font-display text-gold">Elite Hunt</div><div className="text-muted-foreground">Tough elite monsters at your level. High loot chance and Soul Essence. Repeatable.</div></div>
-        <button className="btn-gold px-4 py-1.5" onClick={fightElite}><Swords className="mr-1 inline h-4 w-4" />Hunt</button>
-      </div>
+      {tab === "elite" && (
+        <div className="grid gap-3 md:grid-cols-[1fr_1.2fr]">
+          <div className="slot flex flex-col items-center p-4 text-center">
+            <Sprite rect={elite.sprite} className="h-32 w-32" />
+            <div className="font-display text-lg">{elite.name}</div>
+            <div className="text-xs text-muted-foreground">Elite level {elite.level}</div>
+            <div className="mt-1 text-sm">Power {fmt(foeRating(elite))} · <span className={`font-bold ${eliteDanger.c}`}>{eliteDanger.t}</span></div>
+          </div>
+          <div className="slot flex flex-col p-4 text-sm">
+            <div className="font-display text-gold">Elite Hunt</div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              A tough elite scaled to your level. The best repeatable source of Soul Essence, with
+              a high chance of rare gear. Costs {DUNGEON_STAMINA} stamina per run, win or lose.
+            </p>
+            <dl className="mt-3 space-y-1.5">
+              <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Experience</dt><dd className="text-xp">{fmt(lvl * 60)} XP</dd></div>
+              <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Gold</dt><dd><Gold n={lvl * 12} /></dd></div>
+              <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Materials</dt><dd>+2 Soul Essence</dd></div>
+              <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Loot</dt><dd className="text-r2">High chance, Rare+</dd></div>
+            </dl>
+            <div className="mt-auto pt-3">
+              <Button className="w-full" disabled={stamina < DUNGEON_STAMINA} onClick={fightElite}
+                title={stamina < DUNGEON_STAMINA ? "Out of stamina — it refills at Greek midnight" : "Hunt"}>
+                <Swords className="mr-1 inline h-4 w-4" />Hunt · {DUNGEON_STAMINA} stamina
+              </Button>
+              {stamina < DUNGEON_STAMINA && <p className="mt-2 text-center text-xs text-hp">No stamina left — drink a potion from the HUD or wait for the reset.</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab === "expeditions" && (
+        <div className="slot p-4 text-sm">
+          <div className="font-display text-lg text-gold">Material expeditions</div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Send the hero to a held-out site for a crate of forge materials — ore, essence,
+            starshards, fragments, sigils and boss cores. Every expedition is a
+            {' '}{DUNGEON_STAMINA}-stamina Dungeon Gate run and opens as the hero levels.
+          </p>
+          {onExpeditions
+            ? <Button className="mt-3 w-full" onClick={onExpeditions}><Swords className="mr-1 inline h-4 w-4" />Open expeditions</Button>
+            : <p className="mt-3 text-xs text-muted-foreground">Close this panel and open Expeditions from the castle.</p>}
+        </div>
+      )}
+
+      {tab === "relics" && (
+        <div className="slot p-4 text-sm">
+          <div className="font-display text-lg text-gold">Relic Trials</div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Fight your class's relic ranks for the only source of the Emberforged, Starweave and
+            Verdant collections. Every win recovers a piece, and each piece levels with you.
+            A trial is a {DUNGEON_STAMINA}-stamina Dungeon Gate run.
+          </p>
+          {onRelics
+            ? <Button className="mt-3 w-full" onClick={onRelics}><Sparkles className="mr-1 inline h-4 w-4" />Open relic trials</Button>
+            : <p className="mt-3 text-xs text-muted-foreground">Close this panel and open Relic Trials from the castle.</p>}
+        </div>
+      )}
+
+      {tab === "weekly" && (
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="slot p-4 text-sm">
+            <div className="font-display text-gold">This week's modifier</div>
+            <div className="mt-1 text-lg">{mod.name}</div>
+            <p className="text-xs text-muted-foreground">{mod.desc}</p>
+            <p className="mt-2 text-xs text-r1">All boss and elite rewards ×{mod.reward} this week.</p>
+          </div>
+          <div className="slot flex flex-col p-4 text-sm">
+            <div className="flex items-center justify-between gap-2">
+              <div className="font-display text-gold">Weekly objective</div>
+              <Trophy className="h-4 w-4 text-r4" />
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Defeat {WEEKLY_GOAL} challenge bosses this week · resets Monday 00:00 UTC.</p>
+            <div className="bar-track mt-2 h-2.5" role="progressbar" aria-label="Weekly objective" aria-valuemin={0} aria-valuemax={WEEKLY_GOAL} aria-valuenow={Math.min(weekly.kills, WEEKLY_GOAL)}>
+              <div className="farm-bar h-full" style={{ width: `${Math.round((Math.min(weekly.kills, WEEKLY_GOAL) / WEEKLY_GOAL) * 100)}%` }} />
+            </div>
+            <div className="mt-1 text-xs">{Math.min(weekly.kills, WEEKLY_GOAL)} / {WEEKLY_GOAL} bosses defeated</div>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+              <Gold n={WEEKLY_REWARD.gold} />
+              <span>{WEEKLY_REWARD.starshard} Starshards</span>
+              <span>{WEEKLY_REWARD.bossCore} Boss Cores</span>
+            </div>
+            <Button className="mt-auto w-full" disabled={!canClaimWeekly(hero)} onClick={claimWeekly}>
+              {weekly.claimed ? "Reward claimed" : canClaimWeekly(hero) ? "Claim weekly reward" : `Defeat ${WEEKLY_GOAL - weekly.kills} more`}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <p className="mt-3 text-[11px] text-muted-foreground">
+        {DUNGEON_RUNS_PER_DAY} runs a day at full stamina · every run spends its stamina on entry, win or lose.
+      </p>
     </Panel>
   );
 }

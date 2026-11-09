@@ -17,6 +17,7 @@ import { renownFx } from "./renown";
 import { potionFx } from "./potions";
 import { titleFx } from "./titles";
 import { normalizeFarm, type FarmState } from "./farm";
+import { normalizeMine, type MineState } from "./mine";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -314,6 +315,8 @@ export interface Hero {
   bagRows?: number;
   /** Upgrade levels of castle buildings, by building id (see barracks.ts). */
   buildings?: Record<string, number>;
+  /** The Gold Mine: its upgrade level and the gold its cart has banked since the hero last collected (see mine.ts). */
+  mine?: MineState;
   /** The banner this hero planted on the world map; every lord can read it (see worldcastles.ts). */
   worldCastle?: { x: number; y: number; at: string };
   /** World Tree: today's bounty ledger and the sealed vaults already broken (see worldtree.ts). */
@@ -565,6 +568,8 @@ export function normalizeHero(h: Hero): Hero {
   normalizeSynth(h);
   // Every character has a farm: older saves get level 1, one tilled plot and no crops.
   normalizeFarm(h);
+  // Every character has a Gold Mine: older saves start at level 1 with an empty cart.
+  normalizeMine(h);
   return h;
 }
 
@@ -837,6 +842,8 @@ export const BUILDINGS = [
   { id: "tower", name: "Magic Tower", x: 66, y: 74, r: 4, desc: "Astral vault · infinite upgrades", soon: false },
   { id: "gems", name: "Gem Workshop", x: 54.5, y: 71, r: 4, desc: "Cut, socket & fuse gems", soon: false },
   { id: "guild", name: "Guild Hall", x: 35, y: 55, r: 4, desc: "Guilds & guild chat", soon: false },
+  // The Gold Mine is the building immediately left of the Guild Hall: the castle's offline earner.
+  { id: "mine", name: "Gold Mine", x: 26, y: 56, r: 4, desc: "Offline gold · collect anytime", soon: false },
   { id: "friends", name: "Friends", x: 0, y: 0, r: 0, desc: "Friends & messages", soon: false, shortcut: true },
   { id: "daily", name: "Daily Rewards", x: 46, y: 66, r: 3.5, desc: "Login rewards & activities", soon: false , shortcut: true },
   { id: "worldmap", name: "World Tree", x: 50, y: 49, r: 4.5, desc: "Explore the world map · raids & bosses", soon: false },

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Gem, Hammer, ShoppingBag, X } from "lucide-react";
+import { ConquestCoin } from "./CoinIcon";
 import { GemIcon, MatIcon } from "./MatIcon";
 import {
   FUSE_COUNT, GEMS, GEM_MAX_TIER, GEM_STAT_LABEL, GEM_TIER_NAMES, GEM_TYPES, MATS,
   craftGem, gemBlocker, gemCraftCost, gemCraftLevel, gemKey, gemName, gemValue, matCount, parseGem,
   type GemType, type Mat,
 } from "./crafting";
-import { buyConquestGem, gemGoldPrice } from "./conquest";
+import { buyConquestGem, conquestTokens, gemTokenPrice } from "./conquest";
 import type { Hero } from "./data";
 import { update } from "./store";
 import { Gold, fmt } from "./ui";
@@ -63,7 +64,8 @@ export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => v
   const g = GEMS[type];
   const cost = gemCraftCost(level, hero.level);
   const blocked = gemBlocker(hero, level);
-  const price = gemGoldPrice(level, hero.level);
+  const price = gemTokenPrice(level);
+  const tokens = conquestTokens(hero);
   const costs: [Mat, number][] = [["ore", cost.ore], ["essence", cost.essence], ["crystal", cost.crystal], ["starshard", cost.starshard], ["bossCore", cost.bossCore]];
 
   const forge = () => update((h) => {
@@ -72,7 +74,7 @@ export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => v
   });
   const buy = () => update((h) => {
     const e = buyConquestGem(h, type, level);
-    setMsg(e ? { ok: false, t: e } : { ok: true, t: `Bought a ${gemName(key)} for ${fmt(price)} gold.` });
+    setMsg(e ? { ok: false, t: e } : { ok: true, t: `Bought a ${gemName(key)} for ${fmt(price)} Conquest Tokens.` });
   });
 
   return (
@@ -84,7 +86,7 @@ export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => v
         </div>
         <p className="mb-3 text-sm text-muted-foreground">
           Eight gem families, twelve levels each — the chart values are the stats a socketed gem grants.
-          Forge with materials, buy with gold at the Conquest Gate, or fuse {FUSE_COUNT} identical gems into the next level.
+          Forge with materials, buy with Conquest Tokens at the Conquest Gate, or fuse {FUSE_COUNT} identical gems into the next level.
         </p>
 
         <div className="mb-2 flex flex-wrap gap-2">
@@ -130,12 +132,12 @@ export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => v
           <button className="btn-gold flex-1 py-2" disabled={!!blocked} title={blocked ?? "Forge with materials"} onClick={forge}>
             <Hammer className="mr-1 inline h-4 w-4" />Forge {GEMS[type].name}
           </button>
-          <button className="btn-ghost flex-1 py-2" disabled={hero.gold < price} title={hero.gold < price ? `Needs ${fmt(price)} gold` : "Buy with gold at the Conquest Gate"} onClick={buy}>
-            <ShoppingBag className="mr-1 inline h-4 w-4" />Buy · <Gold n={price} />
+          <button className="btn-ghost flex-1 py-2" disabled={tokens < price} title={tokens < price ? `Needs ${fmt(price)} Conquest Tokens` : "Buy with Conquest Tokens at the Conquest Gate"} onClick={buy}>
+            <ShoppingBag className="mr-1 inline h-4 w-4" />Buy · <ConquestCoin size={16} /> {fmt(price)}
           </button>
         </div>
         <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground">
-          <span>Gold held: <Gold n={hero.gold} /></span>
+          <span>Conquest Tokens: <b className="text-gold">{fmt(tokens)}</b></span>
           <span>{blocked ? blocked : "Ready to forge."}</span>
         </div>
         {msg && <p role="status" className={`anim-pop mt-2 text-center text-sm ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</p>}

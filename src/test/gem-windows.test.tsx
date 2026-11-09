@@ -38,16 +38,19 @@ describe("gem forge", () => {
     expect(getState().hero?.mats?.ore).toBe(0);
   });
 
-  it("buys gems from the Conquest store for gold", () => {
+  it("buys gems from the Conquest store with Conquest Tokens only", () => {
     const hero = newHero("Gem Tester", "archer");
     hero.spire = 6;
     hero.gold = 5000;
+    hero.conquest = { tokens: 30 };
     setHero(hero);
     render(<ConquestTokens hero={hero} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Buy · 1,800 gold/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /Gem Stock/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Buy · 25/ }));
 
     expect(getState().hero?.gems?.["ruby:1"]).toBe(1);
-    expect(getState().hero?.gold).toBe(3200);
+    expect(getState().hero?.conquest?.tokens).toBe(5);
+    expect(getState().hero?.gold).toBe(5000);
   });
 });

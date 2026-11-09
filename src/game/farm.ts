@@ -28,6 +28,11 @@ export const SEED_LABELS: Record<SeedKind, string> = {
 
 export const FARM_MAX_LEVEL = 16;
 export const FARM_TOTAL_SLOTS = 16;
+/**
+ * Farm Mastery: once all sixteen plots are tilled (Farm Level 16) every gold and Farm XP payout
+ * the fields and the Bloodoak make is worth this much more, so a finished farm keeps paying.
+ */
+export const FARM_MASTERY_BONUS = 0.2;
 /** One plot is tilled from the start; every Farm Level adds one more, so level = plots. */
 export const FARM_STARTING_SLOTS = 1;
 
@@ -67,6 +72,17 @@ export const farmXpToNext = (level: number) =>
 
 /** The hero's Farm XP inside the current level. */
 export const farmXp = (h: Pick<Hero, "farm">) => Math.max(0, safeWhole(h.farm?.xp, 0));
+
+/** True once all sixteen plots are tilled — the fields are mastered (see FARM_MASTERY_BONUS). */
+export const farmMastered = (h: Pick<Hero, "farm">) => farmLevel(h) >= FARM_MAX_LEVEL;
+
+/** The multiplier every gold and Farm XP payout carries (1 until Farm Level 16, then +20%). */
+export const farmMastery = (h: Pick<Hero, "farm">) =>
+  farmMastered(h) ? 1 + FARM_MASTERY_BONUS : 1;
+
+/** A payout with Farm Mastery applied — the numbers the field actually pays. */
+export const withFarmMastery = (amount: number, h: Pick<Hero, "farm">) =>
+  amount > 0 ? Math.round(amount * farmMastery(h)) : 0;
 
 /** Share of the way to the next Farm Level, 0-1 (1 at the top). */
 export const farmProgress = (h: Pick<Hero, "farm">) => {
@@ -333,8 +349,9 @@ export function harvestSlot(h: Hero, index: number, now = Date.now()): HarvestRe
   )
     return null;
   farm.slots[index] = null;
-  const gold = seedGold(crop.kind, crop.tier);
-  const xp = seedXp(crop.kind, crop.tier);
+  // A mastered farm (+20% at Farm Level 16) pays every harvest more.
+  const gold = withFarmMastery(seedGold(crop.kind, crop.tier), h);
+  const xp = withFarmMastery(seedXp(crop.kind, crop.tier), h);
   if (gold > 0) h.gold += gold;
   const levels = xp > 0 ? addFarmXp(h, xp) : 0;
   return { gold, xp, levels };
@@ -419,7 +436,9 @@ export function chargeBloodoak(h: Hero, now = Date.now()): HarvestResult | null 
   if (!Number.isFinite(now) || now < 0) return null;
   if (now < bloodoakReadyAt(h)) return null;
   const farm = ensureFarm(h);
-  const { gold, xp } = bloodoakRewards(farm.level);
+  const base = bloodoakRewards(farm.level);
+  const gold = withFarmMastery(base.gold, h);
+  const xp = withFarmMastery(base.xp, h);
   farm.treeChargedAt = now;
   h.gold += gold;
   const levels = addFarmXp(h, xp);

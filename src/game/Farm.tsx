@@ -16,6 +16,7 @@ import { getState, update, useGame } from "./store";
 import { Gold, Panel, fmt } from "./ui";
 import {
   BLOODOAK_COOLDOWN_MS,
+  FARM_MASTERY_BONUS,
   FARM_MAX_LEVEL,
   FARM_TOTAL_SLOTS,
   bloodoakRewards,
@@ -26,6 +27,7 @@ import {
   cropProgress,
   durationLabel,
   farmLevel,
+  farmMastered,
   farmProgress,
   farmXp,
   farmXpToNext,
@@ -44,6 +46,7 @@ import {
   timeLeft,
   unlockLevelForSlot,
   waitLabel,
+  withFarmMastery,
   type SeedKind,
 } from "./farm";
 
@@ -84,11 +87,11 @@ const PLOT_SPOTS: readonly [number, number][] = [
   [53.9, 82.2],
 ];
 
-/** One line naming everything a seed pays. */
-function rewardText(kind: SeedKind, tier: number) {
+/** One line naming everything a seed pays, with the Farm Mastery bonus once the fields are maxed. */
+function rewardText(kind: SeedKind, tier: number, hero: Pick<Hero, "farm">) {
   const parts: string[] = [];
-  const g = seedGold(kind, tier);
-  const x = seedXp(kind, tier);
+  const g = withFarmMastery(seedGold(kind, tier), hero);
+  const x = withFarmMastery(seedXp(kind, tier), hero);
   if (g > 0) parts.push(`${fmt(g)} gold`);
   if (x > 0) parts.push(`${fmt(x)} Farm XP`);
   return parts.join(" + ");
@@ -135,7 +138,11 @@ function FarmProgress({ hero }: { hero: Hero }) {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="font-display text-lg text-gold">
           Farm Level <b className="text-2xl">{level}</b>
-          {maxed && <span className="ml-2 text-xs text-r1">MAX LEVEL</span>}
+          {maxed && (
+            <span className="ml-2 text-xs text-r1">
+              MAX LEVEL · +{Math.round(FARM_MASTERY_BONUS * 100)}% MASTERY
+            </span>
+          )}
         </span>
         <span className="text-xs text-muted-foreground">
           {maxed ? (
@@ -148,6 +155,11 @@ function FarmProgress({ hero }: { hero: Hero }) {
           <span className="ml-2">
             {slotsForLevel(level)} / {FARM_TOTAL_SLOTS} plots
           </span>
+          {!maxed && (
+            <span className="ml-2 text-gold/80">
+              Level {FARM_MAX_LEVEL} mastery: +{Math.round(FARM_MASTERY_BONUS * 100)}% gold &amp; Farm XP
+            </span>
+          )}
         </span>
       </div>
       {maxed ? (
@@ -196,7 +208,7 @@ function SeedOption({
       <div className="min-w-0 flex-1">
         <div className="text-sm font-bold">{seedName(kind, tier)}</div>
         <div className="text-[11px] text-muted-foreground">
-          {durationLabel(kind, tier)} · pays {rewardText(kind, tier)} · held ×{fmt(held)}
+          {durationLabel(kind, tier)} · pays {rewardText(kind, tier, hero)} · held ×{fmt(held)}
         </div>
       </div>
       <Button
@@ -244,7 +256,12 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
   const unlocked = slotsForLevel(level);
   const ripe = readyCount(hero, now);
   const pouch = heldSeeds(hero);
-  const treeReward = bloodoakRewards(level);
+  const treeBase = bloodoakRewards(level);
+  // Farm Mastery (+20% at Level 16) applies to the Bloodoak too.
+  const treeReward = {
+    gold: withFarmMastery(treeBase.gold, hero),
+    xp: withFarmMastery(treeBase.xp, hero),
+  };
   const treeWait = bloodoakWaitMs(hero, now);
 
   const say = (text: string, bad = false) => {
@@ -633,7 +650,7 @@ export function FarmShopTab({ hero }: { hero: Hero }) {
                 {durationLabel(kind, tier)} · Lv {tier} Farm
               </div>
               <div className="text-[10px]">
-                Pays <b className="text-gold">{rewardText(kind, tier)}</b>
+                Pays <b className="text-gold">{rewardText(kind, tier, hero)}</b>
               </div>
               <div className="text-[10px] text-muted-foreground">Held ×{fmt(held)}</div>
               {locked ? (
