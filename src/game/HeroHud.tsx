@@ -32,6 +32,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { dailyChestReady, dailyChestCountdown, formatDailyChestCountdown, claimDailyChest, DAILY_CHEST_MAX_LEVEL } from "./daily-chest";
 import { useT } from "./i18n";
 
+/** The save state the cloud icon reports, in words the player can read in their language. */
+const CLOUD_STATE: Record<string, string> = {
+  off: "Not signed in",
+  loading: "Loading…",
+  saved: "Saved",
+  saving: "Saving…",
+  error: "Not saved",
+};
+
 /**
  * The top-left player card: portrait, name, class, XP, currencies, power and stamina.
  */
@@ -121,7 +130,7 @@ export function Hud({
         </button>
         <span
           className="slot flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10"
-          title={t("Cloud: {state}", { state: cloud })}
+          title={t("Cloud: {state}", { state: t(CLOUD_STATE[cloud] ?? cloud) })}
         >
           {cloud === "error" ? (
             <CloudOff className="h-5 w-5 text-hp" />

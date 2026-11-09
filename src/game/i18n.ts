@@ -197,6 +197,13 @@ const TRANSLATIONS: Record<string, [el: string, pl: string]> = {
   ],
   "Lv {n}": ["Επ. {n}", "Poz. {n}"],
   Asc: ["Ανάληψη", "Wzn."],
+  "Select {gender} {class}": ["Επίλεξε {gender} {class}", "Wybierz: {gender} {class}"],
+  "Cloud: {state}": ["Cloud: {state}", "Chmura: {state}"],
+  "Not signed in": ["Χωρίς σύνδεση", "Nie zalogowano"],
+  "Loading…": ["Φόρτωση…", "Wczytywanie…"],
+  Saved: ["Αποθηκεύτηκε", "Zapisano"],
+  "Saving…": ["Αποθήκευση…", "Zapisywanie…"],
+  "Not saved": ["Δεν αποθηκεύτηκε", "Nie zapisano"],
 
   // ---------- Castle buildings ----------
   "Throne Hall": ["Αίθουσα του Θρόνου", "Sala Tronowa"],
@@ -218,6 +225,11 @@ const TRANSLATIONS: Record<string, [el: string, pl: string]> = {
   "Daily Rewards": ["Ημερήσιες Ανταμοιβές", "Nagrody dzienne"],
   "World Tree": ["Παγκόσμιο Δέντρο", "Drzewo Świata"],
   " · soon": [" · σύντομα", " · wkrótce"],
+  "Reward chest ready": ["Το μπαούλο ανταμοιβής είναι έτοιμο", "Skrzynia nagród gotowa"],
+  "{count} pending friend requests": [
+    "{count} εκκρεμή αιτήματα φιλίας",
+    "{count} oczekujących zaproszeń do znajomych",
+  ],
   "Tap a building to open it · drag the castle to reach the rest": [
     "Πάτησε ένα κτίριο για να το ανοίξεις · σύρε το κάστρο για τα υπόλοιπα",
     "Dotknij budynku, aby go otworzyć · przeciągnij zamek, by zobaczyć resztę",
