@@ -55,7 +55,7 @@ import { VERSION, RELEASE_NOTES } from "./version";
 const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
 
 /** Buildings whose battle leaves the panel open underneath, so the player lands back in it. */
-const BATTLE_PANELS = ["portal", "spire", "worldmap", "guild"] as const;
+const BATTLE_PANELS = ["portal", "spire", "dungeon", "worldmap", "guild"] as const;
 
 export function Game() {
   const { hero, heroId, userId, cloud, authReady } = useGame();
@@ -142,8 +142,8 @@ export function Game() {
         const active = await beginScrollBattle();
         const current = getState();
         if (!current.hero) return;
-        // The Campaign Gate, Conquest Gate and World Tree stay mounted under the battle, so the
-        // player comes back to the exact screen they fought from instead of the castle.
+        // The Campaign Gate, Conquest Gate, Dungeon Gate and World Tree stay mounted under the
+        // battle, so the player comes back to the exact screen they fought from instead of the castle.
         if (!keepsPanel) setOpen(null);
         setBattle({ ...o, left: scrollFighter({ ...heroFighter(current.hero, heroStats(current.hero), current.gender), gender: current.gender }, active) });
       } catch (e) { setEntryError(e instanceof Error ? e.message : "Battle entry failed."); }

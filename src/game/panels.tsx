@@ -12,12 +12,14 @@ import {
   CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, scaledFoe, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import { addConquestTokens, conquestTokens, floorTokens } from "./conquest";
-import { CAMPAIGN_STAMINA, STAMINA_PER_DAY, staminaBlocker, staminaLeft } from "./stamina";
+import { CAMPAIGN_STAMINA, staminaBlocker, staminaLeft } from "./stamina";
 import { ConquestTokens } from "./ConquestGate";
 import { CampaignBlitz } from "./CampaignBlitz";
 import { LevelProgress } from "./LevelCurve";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
+import { ConquestCoin } from "./CoinIcon";
+import { DangerPill, Meter, RewardChip, StageStepper, StaminaMeter } from "./GateUI";
 import { GemIcon, MatIcon, StoneIcon } from "./MatIcon";
 import { Vault } from "./Vault";
 import { GearCodex } from "./GearCodex";
@@ -249,6 +251,9 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   const staminaCost = spire ? 0 : CAMPAIGN_STAMINA;
   const staminaLock = staminaCost ? staminaBlocker(hero, staminaCost) : null;
   const cleared = Math.max(0, max - 1);
+  // Where the chosen stage sits inside its ten-stage zone, and the next boss stage ahead of it.
+  const stageInZone = ((stage - 1) % 10) + 1;
+  const nextBoss = (Math.floor(stage / 10) + 1) * 10;
   const jump = (n: number) => setStage(Math.max(1, Math.min(Math.max(1, max), Number.isFinite(n) ? Math.floor(n) : 1)));
 
   const fight = () => {
@@ -289,31 +294,46 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
 
   return (
     <Panel title={spire ? "Endless Conquest" : "Campaign Gate"} subtitle={spire ? "Every floor higher than the last" : "Endless stages — the world levels up with you"} art="quest" onClose={onClose} wide>
-      {/* The gate's status strip: how far the hero has come and what a fight costs. */}
-      <div className="mb-3 grid gap-2 sm:grid-cols-3">
+      {/* The gate's status strip: what a run costs, how far the climb goes and what this one pays. */}
+      <div className="mb-4 grid gap-2 sm:grid-cols-3">
+        {spire ? (
+          <div className="slot p-3 text-sm">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="font-display text-gold">Conquest Tokens</span>
+              <span className="text-[11px] text-muted-foreground">the gate's coin</span>
+            </div>
+            <div className="mt-1 flex items-center gap-1.5 font-display text-2xl font-bold text-gold">
+              <ConquestCoin size={22} />{fmt(conquestTokens(hero))}
+            </div>
+            <div className="mt-1 text-[11px] text-muted-foreground">Blitz a cleared floor to earn them again · the gate never pays XP</div>
+          </div>
+        ) : (
+          <StaminaMeter hero={hero} cost={CAMPAIGN_STAMINA} unit="battle" />
+        )}
         <div className="slot p-3 text-sm">
-          <div className="font-display text-gold">{spire ? "Frontier floor" : "Frontier stage"}</div>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="font-display text-gold">{spire ? "Frontier floor" : "Frontier stage"}</span>
+            <span className="text-[11px] text-muted-foreground">{cleared} cleared</span>
+          </div>
           <div className="text-2xl font-bold">{max}</div>
-          <div className="text-[11px] text-muted-foreground">{cleared} already cleared · the world levels up with you</div>
-        </div>
-        <div className="slot p-3 text-sm">
-          <div className="font-display text-gold">{spire ? "Conquest Tokens" : "Stamina"}</div>
-          {spire
-            ? <div className="text-2xl font-bold text-gold">{fmt(conquestTokens(hero))}</div>
-            : <div className="text-2xl font-bold text-void">{fmt(staminaLeft(hero))}<span className="text-sm text-muted-foreground"> / {STAMINA_PER_DAY}</span></div>}
-          <div className="text-[11px] text-muted-foreground">
-            {spire ? "Every cleared floor pays tokens; the gate never pays XP" : `${staminaCost} per battle · ≈${Math.floor(staminaLeft(hero) / Math.max(1, staminaCost))} battles left`}
+          <div className="mt-1 text-[11px] text-muted-foreground">
+            {spire
+              ? <>Floors never stop scaling · {fmt(floorTokens(max))} tokens at the frontier</>
+              : <>Boss at stage {nextBoss} · {nextBoss - stage} to go</>}
           </div>
         </div>
         <div className="slot p-3 text-sm">
-          <div className="font-display text-gold">{spire ? "Next floor pays" : "This stage pays"}</div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="font-display text-gold">{spire ? "This floor pays" : "This stage pays"}</span>
+            {!spire && <span className="text-[11px] text-muted-foreground">{staminaCost} stamina · win or lose</span>}
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
             {spire
-              ? <span className="font-bold text-gold">+{fmt(floorTokens(stage))} tokens</span>
+              ? <span className="flex items-center gap-1 font-bold text-gold"><ConquestCoin size={16} />+{fmt(floorTokens(stage))}</span>
               : <span className="font-bold text-xp">+{fmt(rw.xp)} XP</span>}
             <Gold n={rw.gold} />
           </div>
-          <div className="text-[11px] text-muted-foreground">{(spire || foe.boss) ? "Rare+ loot guaranteed" : "Sometimes drops gear"}</div>
+          <div className="mt-1 text-[11px] text-muted-foreground">{(spire || foe.boss) ? "Rare+ loot guaranteed" : "Sometimes drops gear"}</div>
         </div>
       </div>
 
@@ -324,57 +344,80 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
       ]} />
 
       {tab === "battle" && (
-        <div className="grid items-center gap-6 md:grid-cols-2">
-          <div className="relative h-72 overflow-hidden rounded-lg">
-            <img src={worldMap} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-40" />
-            <div className="absolute inset-0 bg-background/55" aria-hidden="true" />
-            <div className="absolute inset-x-10 bottom-2 h-8 rounded-full bg-blood/50 blur-xl" />
-            <img src={foe.img} alt={foe.name} className="relative h-full w-full object-contain anim-idle" />
-            {foe.boss && <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-blood px-2 py-0.5 font-display text-sm"><Skull className="h-4 w-4" />BOSS</div>}
-            <div className={`absolute bottom-2 left-2 rounded bg-background/80 px-2 py-0.5 text-xs font-bold ${danger.c}`}>{danger.t}</div>
-          </div>
-          <div className="space-y-3 text-center">
-            <div className="text-sm uppercase tracking-widest text-muted-foreground">{spire ? "Floor" : `${zone.name}${zone.cycle > 1 ? ` · Cycle ${zone.cycle}` : ""}`}</div>
-            <div className="flex items-center justify-center gap-2">
-              <button className="btn-blood h-9 w-9" aria-label="Previous stage" onClick={() => jump(stage - 1)} disabled={stage <= 1}>‹</button>
-              <input aria-label={spire ? "Floor to fight" : "Stage to fight"} type="number" min={1} max={max} value={stage}
-                onChange={(e) => jump(Number(e.target.value) || 1)}
-                className="w-24 rounded border border-border bg-background p-2 text-center font-display text-3xl text-gold" />
-              <button className="btn-blood h-9 w-9" aria-label="Next stage" onClick={() => jump(stage + 1)} disabled={stage >= max}>›</button>
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+          {/* What the hero is about to face */}
+          <div className="slot overflow-hidden">
+            <div className="relative h-60 sm:h-72">
+              <img src={worldMap} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-45" />
+              <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/30 to-background" aria-hidden="true" />
+              <div className="absolute inset-x-10 bottom-6 h-8 rounded-full bg-blood/50 blur-xl" aria-hidden="true" />
+              <img src={foe.img} alt={foe.name} className="relative h-full w-full object-contain anim-idle" />
+              {foe.boss && <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-blood px-2 py-0.5 font-display text-sm"><Skull className="h-4 w-4" />BOSS</div>}
+              <div className="absolute right-2 top-2"><DangerPill danger={danger} /></div>
             </div>
-            <div className="flex flex-wrap justify-center gap-1 text-xs">
-              <button className="btn-ghost px-2 py-1" onClick={() => jump(stage - 10)} disabled={stage <= 1}>−10</button>
-              <button className="btn-ghost px-2 py-1" onClick={() => jump(stage - 1)} disabled={stage <= 1}>−1</button>
-              <button className="btn-ghost px-2 py-1" onClick={() => jump(stage + 1)} disabled={stage >= max}>+1</button>
-              <button className="btn-ghost px-2 py-1" onClick={() => jump(stage + 10)} disabled={stage >= max}>+10</button>
-              <button className="btn-ghost px-2 py-1" onClick={() => jump(max)}>Frontier ({max})</button>
-            </div>
-            <div className="font-display text-xl">{foe.name}</div>
-            <div className="text-xs text-muted-foreground">Enemy level {foe.level} · {fmt(foePower)} power</div>
-            <div className="flex justify-center gap-4 text-sm">
-              <span><Trophy className="inline h-4 w-4 text-r4" /> {fmt(s.power)}</span>
-              <span className={`font-bold ${danger.c}`}>{danger.t}</span>
-            </div>
-            <div className="flex justify-center gap-4">
-              {spire
-                ? <span className="font-bold text-gold">+{fmt(floorTokens(stage))} tokens</span>
-                : <span className="font-bold text-xp">+{fmt(rw.xp)} XP</span>}
-              <Gold n={rw.gold} />
-              {(spire || foe.boss) && <span className="font-bold text-r2">Rare+ loot</span>}
-            </div>
-            <label className="flex items-center justify-center gap-2 text-sm">
-              <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} className="accent-[var(--gold)]" /> Auto-battle
-            </label>
-            {!!staminaCost && (
-              <div className={`text-xs ${staminaLock ? "text-hp" : "text-muted-foreground"}`}>
-                <b className="text-foreground">{staminaCost} stamina</b> per battle · {staminaLeft(hero)}/{STAMINA_PER_DAY} left ({Math.floor(staminaLeft(hero) / staminaCost)} battles)
+            <div className="border-t border-border/60 px-3 py-2">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+                <span className="font-display text-lg leading-tight">{foe.name}</span>
+                <span className="text-[11px] text-muted-foreground">Enemy level {foe.level} · {fmt(foePower)} power</span>
               </div>
-            )}
-            <button className="btn-gold w-full py-3 text-xl" onClick={fight} disabled={!!staminaLock} title={staminaLock ?? "Fight"}>
-              <Swords className="mr-2 inline" />{staminaLock ? "OUT OF STAMINA" : "FIGHT"}
-            </button>
-            {staminaLock && <p className="text-xs text-hp">{staminaLock}</p>}
-            {spire && <p className="text-[11px] text-muted-foreground">Conquest floors pay gold and tokens only — levels are earned in the Campaign Gate.</p>}
+              <div className="mt-1.5 grid grid-cols-3 gap-1 text-center text-[11px]">
+                {([["HP", foe.hp], ["ATK", foe.atk], ["DEF", foe.def]] as const).map(([k, v]) => (
+                  <span key={k} className="rounded border border-border/50 bg-background/50 px-1 py-1">
+                    <span className="block text-muted-foreground">{k}</span>
+                    <b>{fmt(v)}</b>
+                  </span>
+                ))}
+              </div>
+              <div className="mt-1.5 flex items-center justify-between text-[11px]">
+                <span className="flex items-center gap-1 text-muted-foreground"><Trophy className="h-3.5 w-3.5 text-r4" />Your power</span>
+                <b className="text-gold">{fmt(s.power)}</b>
+              </div>
+            </div>
+          </div>
+
+          {/* Pick the stage, read the payout, go */}
+          <div className="space-y-3">
+            <StageStepper
+              value={stage} max={max} onChange={jump}
+              title={spire ? "Choose a floor" : `Choose a stage · ${zone.name}${zone.cycle > 1 ? ` · Cycle ${zone.cycle}` : ""}`}
+              noun={spire ? "floor" : "stage"}
+              inputLabel={spire ? "Floor to fight" : "Stage to fight"} />
+            <div className="slot p-3">
+              <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                <span className="font-display text-sm text-gold">This {spire ? "floor" : "stage"} pays</span>
+                <span className="text-[11px] text-muted-foreground">{spire ? "tokens only — no XP here" : `${staminaCost} stamina, win or lose`}</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {spire
+                  ? <RewardChip tone="text-gold"><ConquestCoin size={16} />+{fmt(floorTokens(stage))} tokens</RewardChip>
+                  : <RewardChip tone="text-xp">+{fmt(rw.xp)} XP</RewardChip>}
+                <RewardChip><Gold n={rw.gold} /></RewardChip>
+                <RewardChip tone="text-r2">{(spire || foe.boss) ? "Rare+ loot guaranteed" : "Gear may drop"}</RewardChip>
+              </div>
+              {!spire && (
+                <div className="mt-2">
+                  <Meter value={stageInZone} max={10} label={`Stage ${stageInZone} of 10 in ${zone.name}`} />
+                  <div className="mt-1 text-[11px] text-muted-foreground">Stage {stageInZone} of 10 in {zone.name} · every tenth stage is a boss</div>
+                </div>
+              )}
+            </div>
+            <div className="slot p-3">
+              <label className="flex items-center justify-between gap-2 text-sm">
+                <span>Auto-battle <span className="text-[11px] text-muted-foreground">— the hero fights the whole battle alone</span></span>
+                <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} className="h-4 w-4 accent-[var(--gold)]" />
+              </label>
+              <button className="btn-gold mt-2 w-full py-3 text-xl" onClick={fight} disabled={!!staminaLock} title={staminaLock ?? "Fight"}>
+                <Swords className="mr-2 inline" />{staminaLock ? "OUT OF STAMINA" : "FIGHT"}
+              </button>
+              {staminaLock
+                ? <p className="mt-1.5 text-xs text-hp">{staminaLock}</p>
+                : <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-3 text-[11px] text-muted-foreground">
+                    {staminaCost
+                      ? <><span><b className="text-foreground">{staminaCost} stamina</b> per battle</span><span>{Math.floor(staminaLeft(hero) / staminaCost)} battles left today</span></>
+                      : <span>Conquest battles cost no stamina</span>}
+                  </div>}
+              {spire && <p className="mt-1.5 text-[11px] text-muted-foreground">Conquest floors pay gold and tokens only — levels are earned in the Campaign Gate.</p>}
+            </div>
           </div>
         </div>
       )}
@@ -392,7 +435,13 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
       )}
 
       {tab === "adviser" && (
-        <Advisor hero={hero} stats={s} foe={foe} key={stage + (spire ? "s" : "c")} />
+        <>
+          <p className="mb-1 text-xs text-muted-foreground">
+            Ask the war tactician about this exact fight — it reads both sides' stats and tells you what to
+            watch for before you spend the {spire ? "floor" : "battle"}.
+          </p>
+          <Advisor hero={hero} stats={s} foe={foe} key={stage + (spire ? "s" : "c")} />
+        </>
       )}
     </Panel>
   );
