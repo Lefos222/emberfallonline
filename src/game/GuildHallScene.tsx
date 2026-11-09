@@ -1,4 +1,4 @@
-import { Shield } from "lucide-react";
+import { Map as MapIcon, Shield } from "lucide-react";
 import buildingsArt from "@/assets/guild-hall-buildings.webp";
 
 /** The four buildings of the guild hall (see GuildHall). */
@@ -53,6 +53,8 @@ export function GuildHallScene({
   role,
   location,
   onSelect,
+  court = false,
+  onToggleCourt,
 }: {
   name: string;
   level: number;
@@ -62,6 +64,9 @@ export function GuildHallScene({
   role?: string;
   location: GuildLocation;
   onSelect: (where: GuildLocation) => void;
+  /** The painted courtyard is folded away until asked for, so its rooms are one tap away. */
+  court?: boolean;
+  onToggleCourt?: () => void;
 }) {
   return (
     <section className="guild-hall-scene">
@@ -69,66 +74,75 @@ export function GuildHallScene({
         <span className="guild-hall-emblem" aria-hidden>
           <Shield className="h-5 w-5" />
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h3 className="truncate font-display text-2xl font-black text-gold">{name}</h3>
-          <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Guild level {level} · {members} {members === 1 ? "member" : "members"}
+          <p className="truncate text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+            Level {level} · {members} {members === 1 ? "member" : "members"}
             {power ? ` · ${Math.round(power).toLocaleString()} power` : ""}
             {role ? ` · ${role}` : ""}
           </p>
         </div>
+        <button
+          className="btn-ghost shrink-0 px-2 py-1 text-[11px]"
+          aria-expanded={court}
+          title="Show or hide the painted courtyard"
+          onClick={onToggleCourt}
+        >
+          <MapIcon className="mr-1 inline h-3.5 w-3.5" />{court ? "Hide map" : "Map"}
+        </button>
       </header>
-      <p className="guild-hall-help">
-        Every part of your guild lives in this courtyard — tap a painted building, or pick a room
-        below. Leaders and officers keep the charter, answer applications and take the guild to war.
-      </p>
-      <div className="guild-hall-view" role="tablist" aria-label="Guild Hall buildings">
-        <img
-          src={buildingsArt}
-          alt="The guild hall under the blood moon: the guild merchant, the master skill tower, the tiered skill tower and the guild headquarters"
-          className="guild-hall-art"
-          draggable={false}
-        />
-        {Array.from({ length: 8 }).map((_, i) => (
-          <span
-            key={i}
-            aria-hidden
-            className="anim-ember guild-hall-ember"
-            style={{
-              left: `${8 + i * 11}%`,
-              animationDuration: `${5 + (i % 4)}s`,
-              animationDelay: `${i * 0.6}s`,
-            }}
-          />
-        ))}
-        {BUILDINGS.map((b) => (
-          <button
-            key={b.id}
-            role="tab"
-            aria-selected={location === b.id}
-            aria-label={b.name}
-            className="guild-building"
-            title={`${b.name} — ${b.hint}`}
-            style={{
-              left: `${b.box.left}%`,
-              top: `${b.box.top}%`,
-              width: `${b.box.width}%`,
-              height: `${b.box.height}%`,
-            }}
-            onClick={() => onSelect(b.id)}
-          >
-            {b.id === "reliquary" && relics && (
-              <span className="guild-building-badge">
-                {relics.woken}/{relics.total}
-              </span>
-            )}
-            <span className="guild-building-plate">
-              <b>{b.name}</b>
-              <em>{b.hint}</em>
-            </span>
-          </button>
-        ))}
-      </div>
+      {court && (
+        <>
+          <p className="guild-hall-help">Tap a painted building to walk into it.</p>
+          <div className="guild-hall-view" role="tablist" aria-label="Guild Hall buildings">
+            <img
+              src={buildingsArt}
+              alt="The guild hall under the blood moon: the guild merchant, the master skill tower, the tiered skill tower and the guild headquarters"
+              className="guild-hall-art"
+              draggable={false}
+            />
+            {Array.from({ length: 8 }).map((_, i) => (
+              <span
+                key={i}
+                aria-hidden
+                className="anim-ember guild-hall-ember"
+                style={{
+                  left: `${8 + i * 11}%`,
+                  animationDuration: `${5 + (i % 4)}s`,
+                  animationDelay: `${i * 0.6}s`,
+                }}
+              />
+            ))}
+            {BUILDINGS.map((b) => (
+              <button
+                key={b.id}
+                role="tab"
+                aria-selected={location === b.id}
+                aria-label={b.name}
+                className="guild-building"
+                title={`${b.name} — ${b.hint}`}
+                style={{
+                  left: `${b.box.left}%`,
+                  top: `${b.box.top}%`,
+                  width: `${b.box.width}%`,
+                  height: `${b.box.height}%`,
+                }}
+                onClick={() => onSelect(b.id)}
+              >
+                {b.id === "reliquary" && relics && (
+                  <span className="guild-building-badge">
+                    {relics.woken}/{relics.total}
+                  </span>
+                )}
+                <span className="guild-building-plate">
+                  <b>{b.name}</b>
+                  <em>{b.hint}</em>
+                </span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
       <div className="guild-hall-rooms">
         {BUILDINGS.map((b) => (
           <button

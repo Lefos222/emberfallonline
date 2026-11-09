@@ -22,7 +22,7 @@ import { LevelProgress } from "./LevelCurve";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { ConquestCoin } from "./CoinIcon";
-import { DangerPill, Meter, RewardChip, StageStepper, StaminaMeter } from "./GateUI";
+import { DangerPill, StageStepper, StaminaMeter } from "./GateUI";
 import { GemIcon, MatIcon, StoneIcon } from "./MatIcon";
 import { Vault } from "./Vault";
 import { GearCodex } from "./GearCodex";
@@ -303,49 +303,34 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
 
   return (
     <Panel title={spire ? "Endless Conquest" : "Campaign Gate"} subtitle={spire ? "Every floor higher than the last" : "Endless stages — the world levels up with you"} art="quest" onClose={onClose} wide>
-      {/* The gate's status strip: what a run costs, how far the climb goes and what this one pays. */}
-      <div className="mb-4 grid gap-2 sm:grid-cols-3">
+      {/* The gate's status strip: one line each for stamina, the frontier and this fight's pay. */}
+      <div className="mb-3 flex flex-wrap items-center gap-1.5 text-xs">
         {spire ? (
-          <div className="slot p-3 text-sm">
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="font-display text-gold">Conquest Tokens</span>
-              <span className="text-[11px] text-muted-foreground">the gate's coin</span>
-            </div>
-            <div className="mt-1 flex items-center gap-1.5 font-display text-2xl font-bold text-gold">
-              <ConquestCoin size={22} />{fmt(conquestTokens(hero))}
-            </div>
-            <div className="mt-1 text-[11px] text-muted-foreground">Blitz a cleared floor to earn them again · the gate never pays XP</div>
-          </div>
+          <span className="slot flex items-center gap-1.5 px-2.5 py-1.5" title="Conquest Tokens — the gate's own coin">
+            <ConquestCoin size={18} />
+            <b className="font-display text-base text-gold">{fmt(conquestTokens(hero))}</b>
+            <span className="text-muted-foreground">tokens</span>
+          </span>
         ) : (
-          <StaminaMeter hero={hero} cost={CAMPAIGN_STAMINA} unit="battle" />
+          <StaminaMeter hero={hero} cost={CAMPAIGN_STAMINA} unit="battle" compact />
         )}
-        <div className="slot p-3 text-sm">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="font-display text-gold">{spire ? "Frontier floor" : "Frontier stage"}</span>
-            <span className="text-[11px] text-muted-foreground">{cleared} cleared</span>
-          </div>
-          <div className="text-2xl font-bold">{max}</div>
-          <div className="mt-1 text-[11px] text-muted-foreground">
-            {spire
-              ? <>Floors never stop scaling · {fmt(floorTokens(max) * keyMult)} tokens at the frontier{keyOn ? " · Key ×2" : ""}</>
-              : <>Boss at stage {nextBoss} · {nextBoss - stage} to go</>}
-          </div>
-        </div>
-        <div className="slot p-3 text-sm">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="font-display text-gold">{spire ? "This floor pays" : "This stage pays"}</span>
-            {!spire && <span className="text-[11px] text-muted-foreground">{staminaCost} stamina · win or lose</span>}
-          </div>
-          <div className="mt-1 flex flex-wrap items-center gap-2">
-            {spire
-              ? <span className="flex items-center gap-1 font-bold text-gold"><ConquestCoin size={16} />+{fmt(floorTokens(stage) * keyMult)}</span>
-              : <span className="font-bold text-xp">+{fmt(rw.xp)} XP</span>}
-            <Gold n={spire ? Math.round(rw.gold * keyMult) : rw.gold} />
-          </div>
-          <div className="mt-1 text-[11px] text-muted-foreground">
-            {keyOn ? "Conquest Key active · rewards doubled today" : (spire || foe.boss) ? "Rare+ loot guaranteed" : "Sometimes drops gear"}
-          </div>
-        </div>
+        <span className="slot px-2.5 py-1.5">
+          {spire ? "Deepest floor" : "Frontier"} <b className="text-gold">{max}</b>
+          <span className="text-muted-foreground"> · {cleared} cleared</span>
+        </span>
+        <span className="slot flex items-center gap-1.5 px-2.5 py-1.5" title={`What this ${spire ? "floor" : "stage"} pays`}>
+          {spire
+            ? <span className="flex items-center gap-1 font-bold text-gold"><ConquestCoin size={16} />+{fmt(floorTokens(stage) * keyMult)}</span>
+            : <span className="font-bold text-xp">+{fmt(rw.xp)} XP</span>}
+          <Gold n={spire ? Math.round(rw.gold * keyMult) : rw.gold} />
+        </span>
+        <span className="slot px-2.5 py-1.5 text-muted-foreground">
+          {keyOn
+            ? "Conquest Key ×2 today"
+            : spire
+              ? "Floors never stop scaling"
+              : `Boss at stage ${nextBoss} · ${nextBoss - stage} to go`}
+        </span>
       </div>
 
       <GameTabs label={spire ? "Endless Conquest" : "Campaign Gate"} value={tab} onChange={setTab} tabs={[
@@ -355,10 +340,10 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
       ]} />
 
       {tab === "battle" && (
-        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+        <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
           {/* What the hero is about to face */}
           <div className="slot overflow-hidden">
-            <div className="relative h-60 sm:h-72">
+            <div className="relative h-28 sm:h-48">
               <img src={worldMap} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-45" />
               <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/30 to-background" aria-hidden="true" />
               <div className="absolute inset-x-10 bottom-6 h-8 rounded-full bg-blood/50 blur-xl" aria-hidden="true" />
@@ -366,68 +351,47 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
               {foe.boss && <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-blood px-2 py-0.5 font-display text-sm"><Skull className="h-4 w-4" />BOSS</div>}
               <div className="absolute right-2 top-2"><DangerPill danger={danger} /></div>
             </div>
-            <div className="border-t border-border/60 px-3 py-2">
+            <div className="border-t border-border/60 px-3 py-1.5">
               <div className="flex flex-wrap items-baseline justify-between gap-x-2">
                 <span className="font-display text-lg leading-tight">{tName(foe.name)}</span>
-                <span className="text-[11px] text-muted-foreground">Enemy level {foe.level} · {fmt(foePower)} power</span>
+                <span className="text-[11px] text-muted-foreground">Level {foe.level} · {fmt(foePower)} power</span>
               </div>
-              <div className="mt-1.5 grid grid-cols-3 gap-1 text-center text-[11px]">
+              <div className="mt-1 flex flex-wrap items-center gap-1 text-[11px]">
                 {([["HP", foe.hp], ["ATK", foe.atk], ["DEF", foe.def]] as const).map(([k, v]) => (
-                  <span key={k} className="rounded border border-border/50 bg-background/50 px-1 py-1">
-                    <span className="block text-muted-foreground">{k}</span>
-                    <b>{fmt(v)}</b>
+                  <span key={k} className="rounded border border-border/50 bg-background/50 px-1.5 py-0.5">
+                    <span className="text-muted-foreground">{k}</span> <b>{fmt(v)}</b>
                   </span>
                 ))}
-              </div>
-              <div className="mt-1.5 flex items-center justify-between text-[11px]">
-                <span className="flex items-center gap-1 text-muted-foreground"><Trophy className="h-3.5 w-3.5 text-r4" />Your power</span>
-                <b className="text-gold">{fmt(s.power)}</b>
+                <span className="ml-auto flex items-center gap-1 text-muted-foreground"><Trophy className="h-3.5 w-3.5 text-r4" />You <b className="text-gold">{fmt(s.power)}</b></span>
               </div>
             </div>
           </div>
 
-          {/* Pick the stage, read the payout, go */}
-          <div className="space-y-3">
+          {/* Pick the stage, then go */}
+          <div className="space-y-2">
             <StageStepper
               value={stage} max={max} onChange={jump}
               title={spire ? "Choose a floor" : `Choose a stage · ${zone.name}${zone.cycle > 1 ? ` · Cycle ${zone.cycle}` : ""}`}
               noun={spire ? "floor" : "stage"}
               inputLabel={spire ? "Floor to fight" : "Stage to fight"} />
-            <div className="slot p-3">
-              <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <span className="font-display text-sm text-gold">This {spire ? "floor" : "stage"} pays</span>
-                <span className="text-[11px] text-muted-foreground">{spire ? "tokens only — no XP here" : `${staminaCost} stamina, win or lose`}</span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {spire
-                  ? <RewardChip tone="text-gold"><ConquestCoin size={16} />+{fmt(floorTokens(stage) * keyMult)} tokens</RewardChip>
-                  : <RewardChip tone="text-xp">+{fmt(rw.xp)} XP</RewardChip>}
-                <RewardChip><Gold n={spire ? Math.round(rw.gold * keyMult) : rw.gold} /></RewardChip>
-                <RewardChip tone="text-r2">{keyOn ? "Conquest Key ×2" : (spire || foe.boss) ? "Rare+ loot guaranteed" : "Gear may drop"}</RewardChip>
-              </div>
-              {!spire && (
-                <div className="mt-2">
-                  <Meter value={stageInZone} max={10} label={`Stage ${stageInZone} of 10 in ${zone.name}`} />
-                  <div className="mt-1 text-[11px] text-muted-foreground">Stage {stageInZone} of 10 in {zone.name} · every tenth stage is a boss</div>
-                </div>
-              )}
-            </div>
+            {!spire && (
+              <p className="px-1 text-[11px] text-muted-foreground">Stage {stageInZone} of 10 in {zone.name} · every tenth stage is a boss</p>
+            )}
             <div className="slot p-3">
               <label className="flex items-center justify-between gap-2 text-sm">
-                <span>Auto-battle <span className="text-[11px] text-muted-foreground">— the hero fights the whole battle alone</span></span>
+                <span>Auto-battle <span className="text-[11px] text-muted-foreground">— the hero fights it alone</span></span>
                 <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} className="h-4 w-4 accent-[var(--gold)]" />
               </label>
-              <button className="btn-gold mt-2 w-full py-3 text-xl" onClick={fight} disabled={!!staminaLock} title={staminaLock ?? "Fight"}>
+              <button className="btn-gold mt-2 w-full py-2.5 text-xl" onClick={fight} disabled={!!staminaLock} title={staminaLock ?? "Fight"}>
                 <Swords className="mr-2 inline" />{staminaLock ? "OUT OF STAMINA" : "FIGHT"}
               </button>
               {staminaLock
                 ? <p className="mt-1.5 text-xs text-hp">{staminaLock}</p>
-                : <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-3 text-[11px] text-muted-foreground">
+                : <p className="mt-1.5 text-center text-[11px] text-muted-foreground">
                     {staminaCost
-                      ? <><span><b className="text-foreground">{staminaCost} stamina</b> per battle</span><span>{Math.floor(staminaLeft(hero) / staminaCost)} battles left today</span></>
-                      : <span>Conquest battles cost no stamina</span>}
-                  </div>}
-              {spire && <p className="mt-1.5 text-[11px] text-muted-foreground">Conquest floors pay gold and tokens only — levels are earned in the Campaign Gate.</p>}
+                      ? <><b className="text-foreground">{staminaCost} stamina</b>, win or lose · {Math.floor(staminaLeft(hero) / staminaCost)} battles left today</>
+                      : "Conquest battles cost no stamina"}
+                  </p>}
             </div>
           </div>
         </div>

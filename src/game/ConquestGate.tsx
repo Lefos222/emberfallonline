@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Gem, Sparkles, Swords, Zap } from "lucide-react";
+import { Gem, KeyRound, Sparkles, Swords, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConquestCoin, GemChestIcon, GoldChestIcon } from "./CoinIcon";
 import { GemIcon, MatIcon } from "./MatIcon";
 import { GEMS, GEM_MAX_TIER, GEM_STAT_LABEL, GEM_TYPES, MATS, gemKey, gemValue, type GemType } from "./crafting";
 import { BlitzRunCard } from "./BlitzRun";
+import { buyConquestKey, conquestKeyShopPrice } from "./Marketplace";
 import {
   BLITZ_PER_DAY, blitz, blitzBlocker, blitzRewards, blitzesLeft, buyConquestGem, buyTokenOffer,
   conquestKeyActive, conquestRewardMultiplier, conquestTokens, floorTokens, floorsCleared,
@@ -27,26 +28,20 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
   const left = blitzesLeft(hero);
 
   return (
-    <section className="mt-5 border-t border-border pt-4">
-      <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h3 className="font-display text-xl text-gold">The Conquest Gate</h3>
-          <p className="text-xs text-muted-foreground">
-            Clear floors with your hero, then blitz the ones you have beaten and spend the tokens
-            you earned. The gate takes only Conquest Tokens — never gold.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="slot flex items-center gap-1.5 px-2.5 py-1.5" title="Conquest Tokens">
-            <ConquestCoin size={20} />
+    <section className="mt-4 border-t border-border pt-3">
+      <header className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="font-display text-lg text-gold">The Conquest Gate</h3>
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <span className="slot flex items-center gap-1.5 px-2 py-1" title="Conquest Tokens — the gate's own coin">
+            <ConquestCoin size={18} />
             <b className="font-display text-base text-gold">{fmt(tokens)}</b>
             <span className="text-muted-foreground">tokens</span>
           </span>
-          <span className="slot px-2.5 py-1.5">Deepest floor <b className="text-gold">{cap || "—"}</b></span>
-          <span className="slot px-2.5 py-1.5">Blitzes <b className="text-gold">{left}/{BLITZ_PER_DAY}</b></span>
+          <span className="slot px-2 py-1">Deepest <b className="text-gold">{cap || "—"}</b></span>
+          <span className="slot px-2 py-1">Blitzes <b className="text-gold">{left}/{BLITZ_PER_DAY}</b></span>
           {conquestKeyActive(hero) && (
-            <span className="slot border-gold/60 px-2.5 py-1.5 text-gold" title="Today's Conquest Key doubles every reward the gate pays">
-              <b>Conquest Key ×2</b> · until Greek midnight
+            <span className="slot border-gold/60 px-2 py-1 text-gold" title="Today's Conquest Key doubles every reward the gate pays">
+              <b>Key ×2</b> today
             </span>
           )}
         </div>
@@ -70,7 +65,7 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
   );
 }
 
-/** Blitz floors already beaten: pick a depth, see exactly what it pays, then send the hero out. */
+/** Blitz floors already beaten: pick a depth, add today's Conquest Key if you like, then send the hero out. */
 function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
   const [target, setTarget] = useState(() => Math.max(1, cap || 1));
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
@@ -78,55 +73,70 @@ function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
   const usable = Math.min(Math.max(1, target || 1), Math.max(1, cap));
   const blocked = blitzBlocker(hero, usable);
   // Today's Conquest Key doubles what the run banks (see conquest.ts).
+  const keyOn = conquestKeyActive(hero);
   const keyMult = conquestRewardMultiplier(hero);
+  const keyPrice = conquestKeyShopPrice(hero.level);
   const preview = blocked ? null : blitzRewards(usable, keyMult);
   const runMinutes = Math.round(blitzDurationMs(usable) / 60_000);
   const jump = (n: number) => { setTarget(n); setMsg(null); };
   const perFloor = usable > 0 ? Math.max(1, Math.round((preview?.tokens ?? 0) / usable)) : 0;
+  // The blitz can add today's key itself — the same purchase as the Auction House stall, which
+  // doubles this run and every Conquest Gate reward until Greek midnight.
+  const useKey = () => update((h) => {
+    const err = buyConquestKey(h);
+    setMsg(err
+      ? { ok: false, t: err }
+      : { ok: true, t: "Conquest Key in your pack — this run and every gate reward pay ×2 until Greek midnight." });
+  });
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <div className="slot p-4">
+    <div className="grid gap-3 md:grid-cols-2">
+      <div className="slot p-3">
         <div className="flex items-center justify-between gap-2 font-display text-gold">
           <span className="flex items-center gap-2"><Zap className="h-4 w-4" />Blitz run</span>
           <span className="text-xs text-muted-foreground">{Math.min(left, BLITZ_PER_DAY)}/{BLITZ_PER_DAY} today</span>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          A blitz replays floors 1 to a depth you have already beaten, without a single fight.
-          It pays those floors' gold and tokens — no XP: levels are earned in the Campaign Gate
-          only. A run takes 20 minutes, and up to 50 for a deep climb; 25 Diamonds finish it on
-          the spot. The allowance returns at Greek midnight, and the floors themselves are never
-          limited.{keyMult > 1 ? " Today's Conquest Key doubles everything this run banks." : ""}
-        </p>
 
-        <div className="mt-3">
-          <div className="flex items-baseline justify-between gap-2 text-xs">
-            <span className="text-muted-foreground">Blitz depth</span>
-            <span className="font-display text-gold">Floor {usable} of {Math.max(1, cap)}</span>
-          </div>
-          <input aria-label="Blitz target floor" type="range" min={1} max={Math.max(1, cap)} value={usable}
-            disabled={cap < 1} onChange={(e) => jump(Number(e.target.value))}
-            className="mt-1 w-full accent-[var(--gold)]" />
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs">
-            <label className="flex items-center gap-1 text-muted-foreground">
-              Type
-              <input aria-label="Blitz depth typed" type="number" min={1} max={Math.max(1, cap)} value={target}
-                onChange={(e) => jump(Math.max(1, Number(e.target.value) || 1))}
-                className="w-20 rounded border border-border bg-background px-2 py-1 text-sm text-foreground" />
-            </label>
-            <button className="btn-ghost px-2 py-1 text-xs" disabled={cap < 1} onClick={() => jump(Math.max(1, cap))}>
-              Deepest ({cap})
-            </button>
-            <button className="btn-ghost px-2 py-1 text-xs" disabled={cap < 1} onClick={() => jump(Math.max(1, cap - 9))}>
-              Last 10
-            </button>
-            <button className="btn-ghost px-2 py-1 text-xs" disabled={cap < 1} onClick={() => jump(Math.max(1, Math.round(cap / 2)))}>
-              Halfway
-            </button>
-          </div>
+        <div className="mt-2 flex items-baseline justify-between gap-2 text-xs">
+          <span className="text-muted-foreground">Blitz depth</span>
+          <span className="font-display text-gold">Floor {usable} of {Math.max(1, cap)}</span>
+        </div>
+        <input aria-label="Blitz target floor" type="range" min={1} max={Math.max(1, cap)} value={usable}
+          disabled={cap < 1} onChange={(e) => jump(Number(e.target.value))}
+          className="mt-1 w-full accent-[var(--gold)]" />
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs">
+          <button className="btn-ghost px-2 py-1 text-xs" disabled={cap < 1} onClick={() => jump(Math.max(1, cap))}>
+            Deepest
+          </button>
+          <button className="btn-ghost px-2 py-1 text-xs" disabled={cap < 1} onClick={() => jump(Math.max(1, cap - 9))}>
+            Last 10
+          </button>
+          <button className="btn-ghost px-2 py-1 text-xs" disabled={cap < 1} onClick={() => jump(Math.max(1, Math.round(cap / 2)))}>
+            Halfway
+          </button>
+          <label className="ml-auto flex items-center gap-1 text-muted-foreground">
+            Floor
+            <input aria-label="Blitz depth typed" type="number" min={1} max={Math.max(1, cap)} value={target}
+              onChange={(e) => jump(Math.max(1, Number(e.target.value) || 1))}
+              className="w-16 rounded border border-border bg-background px-1.5 py-1 text-sm text-foreground" />
+          </label>
         </div>
 
-        <Button className="mt-3 w-full py-2" disabled={!!blocked || left < 1} onClick={() => update((h) => {
+        {keyOn ? (
+          <p className="mt-2 flex items-center gap-1.5 rounded border border-gold/60 px-2 py-1 text-xs text-gold">
+            <KeyRound className="h-3.5 w-3.5" />Conquest Key active — this run pays ×{keyMult}
+          </p>
+        ) : (
+          <button className="mt-2 flex w-full items-center justify-between gap-2 rounded border border-border bg-background/40 px-2 py-1 text-xs disabled:opacity-60"
+            disabled={hero.gold < keyPrice}
+            title={hero.gold < keyPrice ? "Not enough gold" : "Doubles this blitz and every gate reward until Greek midnight"}
+            onClick={useKey}>
+            <span className="flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5 text-gold" />Use Conquest Key · ×2 rewards</span>
+            <Gold n={keyPrice} />
+          </button>
+        )}
+
+        <Button className="mt-2 w-full py-2" disabled={!!blocked || left < 1} onClick={() => update((h) => {
           const err = blitz(h, usable);
           setMsg(err ? { ok: false, t: err } : {
             ok: true,
@@ -135,16 +145,24 @@ function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
         })}>
           <Zap className="mr-1 inline h-4 w-4" />{left < 1 ? "No blitzes left today" : `Blitz floors 1-${usable}`}
         </Button>
+        <p className="mt-1 text-center text-[11px] text-muted-foreground">
+          {preview && (
+            <span className="md:hidden">
+              Pays <Gold n={preview.gold} /> and <span className="font-bold text-gold">+{fmt(preview.tokens)} tokens</span> ·{" "}
+            </span>
+          )}
+          {runMinutes} min · 25 Diamonds finish it now · pays no XP
+        </p>
         <BlitzRunCard />
         {blocked && <p className="mt-2 text-xs text-hp">{blocked}</p>}
         {msg && <p role="status" className={`anim-pop mt-2 text-sm ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</p>}
       </div>
 
-      <div className="slot flex flex-col p-4">
-        <div className="font-display text-gold">What this run pays</div>
+      <div className="slot hidden flex-col p-3 md:flex">
+        <div className="font-display text-sm text-gold">What this run pays</div>
         {preview ? (
           <>
-            <dl className="mt-2 space-y-2 text-sm">
+            <dl className="mt-2 space-y-1.5 text-sm">
               <div className="flex items-center justify-between gap-2">
                 <dt className="text-muted-foreground">Floors replayed</dt>
                 <dd className="font-display text-lg">{usable}</dd>
@@ -168,16 +186,14 @@ function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
                 <dd>{runMinutes} min{keyMult > 1 ? " · Key ×2" : ""}</dd>
               </div>
             </dl>
-            <p className="mt-3 text-xs text-muted-foreground">
-              The deepest floor you can reach is {cap}. Every new floor you clear yourself raises
-              that cap, and deeper floors pay more tokens ({fmt(floorTokens(cap || 1))} at the
-              frontier).
+            <p className="mt-2 text-xs text-muted-foreground">
+              Deeper floors pay more tokens ({fmt(floorTokens(cap || 1))} at your deepest, floor {cap}).
             </p>
           </>
         ) : (
           <p className="mt-2 text-sm text-muted-foreground">Clear a floor in the gate above to unlock the blitz.</p>
         )}
-        <p className="mt-auto pt-3 text-[11px] text-muted-foreground">
+        <p className="mt-auto pt-2 text-[11px] text-muted-foreground">
           <Sparkles className="mr-1 inline h-3 w-3" />XP stays in the Campaign Gate — a blitz never levels you.
         </p>
       </div>
@@ -227,19 +243,19 @@ function MarketTab({ hero }: { hero: Hero }) {
   };
 
   return (
-    <div className="space-y-3">
-      <div className="slot flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+    <div className="space-y-2">
+      <div className="slot flex flex-wrap items-center justify-between gap-2 p-2 text-sm">
         <span>Tokens to spend: <b className="text-gold">{fmt(tokens)}</b></span>
-        <span className="text-xs text-muted-foreground">Floors pay tokens; blitzing a floor you have cleared pays them again.</span>
+        <span className="hidden text-xs text-muted-foreground sm:inline">Floors pay tokens; blitzing a cleared floor pays them again.</span>
       </div>
       {msg && <p role="status" className={`anim-pop text-sm ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</p>}
       <div>
         <h4 className="mb-1.5 font-display text-sm text-gold">Chests</h4>
-        <div className="grid gap-1.5 sm:grid-cols-2">{chests.map(offer)}</div>
+        <div className="grid grid-cols-2 gap-1.5">{chests.map(offer)}</div>
       </div>
       <div>
         <h4 className="mb-1.5 font-display text-sm text-gold">Forge materials</h4>
-        <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">{mats.map(offer)}</div>
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">{mats.map(offer)}</div>
       </div>
     </div>
   );
@@ -255,10 +271,10 @@ function GemTab({ hero }: { hero: Hero }) {
   const key = gemKey(gemType, gemLevel);
 
   return (
-    <div className="space-y-3">
-      <div className="slot flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+    <div className="space-y-2">
+      <div className="slot flex flex-wrap items-center justify-between gap-2 p-2 text-sm">
         <span>Tokens to spend: <b className="text-gold">{fmt(tokens)}</b></span>
-        <span className="text-xs text-muted-foreground">Any gem family, any level — bought with Conquest Tokens only.</span>
+        <span className="hidden text-xs text-muted-foreground sm:inline">Any gem family, any level — bought with Conquest Tokens only.</span>
       </div>
 
       <div className="flex flex-wrap gap-1">
@@ -270,7 +286,7 @@ function GemTab({ hero }: { hero: Hero }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-4 gap-1 sm:grid-cols-6 lg:grid-cols-12">
+      <div className="grid grid-cols-6 gap-1 lg:grid-cols-12">
         {Array.from({ length: GEM_MAX_TIER }, (_, i) => i + 1).map((n) => {
           const p = gemTokenPrice(n);
           return (
@@ -302,7 +318,7 @@ function GemTab({ hero }: { hero: Hero }) {
         <p className="text-xs text-hp">You need {fmt(price - tokens)} more tokens for this gem.</p>
       )}
       {msg && <p role="status" className={`anim-pop text-sm ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</p>}
-      <p className="text-[11px] text-muted-foreground">
+      <p className="hidden text-[11px] text-muted-foreground sm:block">
         <Swords className="mr-1 inline h-3 w-3" />Prefer to craft? Gems are also forged from materials in the Gem Workshop.
       </p>
     </div>
