@@ -1,0 +1,1 @@
+- Farm plots are drawn over the painted field in `src/assets/farm-scene.png`; `PLOT_SPOTS` in `src/game/Farm.tsx` holds each plot centre as a % of the picture, so replacing the art means re-measuring them. Seed kinds and their gold/Farm XP payouts all live in `src/game/farm.ts` (`SEED_KINDS`, `seedGold`, `seedXp`).
