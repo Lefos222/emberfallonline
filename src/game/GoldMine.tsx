@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useEffect, useState } from "react";
 import { Coins, Pickaxe, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -66,8 +67,8 @@ export function GoldMinePanel({ onClose }: { onClose: () => void }) {
 
   return (
     <Panel
-      title="Gold Mine"
-      subtitle="Gold while you are away — collect the cart whenever you like"
+      title={tr("Gold Mine")}
+      subtitle={tr("Gold while you are away — collect the cart whenever you like")}
       art="anvil"
       onClose={onClose}
       wide
@@ -87,27 +88,25 @@ export function GoldMinePanel({ onClose }: { onClose: () => void }) {
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
               <div className="font-display text-lg text-gold">
-                Level <b className="text-2xl">{mine.level}</b>
+                 {tr("Level")} <b className="text-2xl">{mine.level}</b>
                 <span className="ml-1 text-xs text-muted-foreground">/ {MINE_MAX_LEVEL}</span>
               </div>
               <p className="text-xs text-muted-foreground">
-                The miners never sleep: every hour this level banks gold, in or out of the game.
-              </p>
+                 {tr("The miners never sleep: every hour this level banks gold, in or out of the game.")} </p>
             </div>
             <div className="text-right">
               <Gold n={mine.perHour} />
-              <span className="block text-[11px] text-muted-foreground">per hour</span>
+              <span className="block text-[11px] text-muted-foreground">{tr("per hour")}</span>
             </div>
           </div>
 
           <div className="mt-4 rounded-md border border-border/60 bg-background/40 p-3">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <span className="font-display text-sm text-gold">The cart</span>
+              <span className="font-display text-sm text-gold">{tr("The cart")}</span>
               <span className="text-xs text-muted-foreground">
-                <b className="text-foreground">{fmt(collectable)}</b> / {fmt(mine.capacity)} gold
-              </span>
+                <b className="text-foreground">{fmt(collectable)}</b> / {fmt(mine.capacity)}  {tr("gold")} </span>
             </div>
-            <div className="bar-track mt-2 h-3" role="progressbar" aria-label="Gold in the cart" aria-valuemin={0} aria-valuemax={Math.round(mine.capacity)} aria-valuenow={collectable}>
+            <div className="bar-track mt-2 h-3" role="progressbar" aria-label={tr("Gold in the cart")} aria-valuemin={0} aria-valuemax={Math.round(mine.capacity)} aria-valuenow={collectable}>
               <div className="farm-bar h-full" style={{ width: `${Math.round(mine.fill * 100)}%` }} />
             </div>
             <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -118,53 +117,46 @@ export function GoldMinePanel({ onClose }: { onClose: () => void }) {
             </p>
             <Button className="mt-3 w-full py-2" disabled={collectable < 1} onClick={collect}>
               <Coins className="mr-1 inline h-4 w-4" />
-              {collectable < 1 ? "Nothing to collect yet" : `Collect ${fmt(collectable)} gold`}
+              {collectable < 1 ? tr("Nothing to collect yet") : `Collect ${fmt(collectable)} gold`}
             </Button>
           </div>
 
           <p className="mt-3 text-xs text-muted-foreground">
-            Gold keeps filling while you fight, farm or are away from the castle. Collecting is
-            always free and never costs anything — the cart simply starts filling again.
-          </p>
+             {tr("Gold keeps filling while you fight, farm or are away from the castle. Collecting is always free and never costs anything — the cart simply starts filling again.")} </p>
         </section>
 
         <section className="slot flex flex-col p-4">
           <div className="flex items-center gap-2 font-display text-gold">
-            <Pickaxe className="h-4 w-4" /> Upgrade the shaft
-          </div>
+            <Pickaxe className="h-4 w-4" />  {tr("Upgrade the shaft")} </div>
           {mine.maxed ? (
             <div className="mt-3 rounded-md border border-r1/50 bg-r1/10 p-3 text-sm">
-              <b className="text-r1">Deepest shaft reached.</b>
+              <b className="text-r1">{tr("Deepest shaft reached.")}</b>
               <p className="mt-1 text-xs text-muted-foreground">
-                Level {MINE_MAX_LEVEL} pays {fmt(minePerHour(MINE_MAX_LEVEL))} gold an hour and holds{" "}
-                {fmt(mineCapacity(MINE_MAX_LEVEL))} gold.
-              </p>
+                 {tr("Level")} {MINE_MAX_LEVEL}  {tr("pays")} {fmt(minePerHour(MINE_MAX_LEVEL))}  {tr("gold an hour and holds")}{" "}
+                {fmt(mineCapacity(MINE_MAX_LEVEL))}  {tr("gold.")} </p>
             </div>
           ) : (
             <>
               <p className="mt-1 text-xs text-muted-foreground">
-                Each level widens the shaft: more gold every hour and a bigger cart.
-              </p>
+                 {tr("Each level widens the shaft: more gold every hour and a bigger cart.")} </p>
               <dl className="mt-3 space-y-1.5 text-sm">
                 <div className="flex justify-between gap-2">
-                  <dt className="text-muted-foreground">Now</dt>
-                  <dd>{fmt(mine.perHour)} gold / hour · holds {fmt(mine.capacity)}</dd>
+                  <dt className="text-muted-foreground">{tr("Now")}</dt>
+                  <dd>{fmt(mine.perHour)}  {tr("gold / hour · holds")} {fmt(mine.capacity)}</dd>
                 </div>
                 <div className="flex justify-between gap-2">
-                  <dt className="text-muted-foreground">Next level</dt>
+                  <dt className="text-muted-foreground">{tr("Next level")}</dt>
                   <dd className="text-r1">
-                    {fmt(mine.nextPerHour ?? 0)} gold / hour · holds {fmt(mineCapacity(mine.level + 1))}
+                    {fmt(mine.nextPerHour ?? 0)}  {tr("gold / hour · holds")} {fmt(mineCapacity(mine.level + 1))}
                   </dd>
                 </div>
               </dl>
               <Button className="mt-auto w-full py-2" disabled={!canAfford} onClick={upgrade}
                 title={canAfford ? "" : `Not enough gold — ${fmt(mine.upgradeCost ?? 0)} needed`}>
-                <Pickaxe className="mr-1 inline h-4 w-4" />Upgrade · {fmt(mine.upgradeCost ?? 0)} gold
-              </Button>
+                <Pickaxe className="mr-1 inline h-4 w-4" />{tr("Upgrade ·")} {fmt(mine.upgradeCost ?? 0)}  {tr("gold")} </Button>
               {!canAfford && (
                 <p className="mt-2 text-center text-[11px] text-hp">
-                  You have <Gold n={hero.gold} /> — {fmt((mine.upgradeCost ?? 0) - hero.gold)} more gold needed.
-                </p>
+                   {tr("You have")} <Gold n={hero.gold} /> — {fmt((mine.upgradeCost ?? 0) - hero.gold)}  {tr("more gold needed.")} </p>
               )}
             </>
           )}

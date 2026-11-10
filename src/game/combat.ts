@@ -1,3 +1,4 @@
+import { locValues, tr } from "./i18n";
 /**
  * Tactical turn-based combat engine (pure, no React).
  * One authoritative set of stats per unit is used both for the UI and for damage resolution.
@@ -208,7 +209,7 @@ function dealHit(s: BattleState, a: Unit, d: Unit, sk: TSkill, ev: CEvent[], mul
   const atk = a.atk * (1 - (status(a, "weaken")?.value ?? 0) / 100);
   for (let i = 0; i < hits && alive(d); i++) {
     const r = calcDamage(atk, d.def, sk.mult * multScale, a.crit, dodge, !!sk.crit, a.critDmg, a.pen + (sk.penBonus ?? 0), a.acc);
-    if (r.miss) { ev.push({ kind: "miss", src: a.id, tgt: d.id, text: "MISS", skill: sk.id }); continue; }
+    if (r.miss) { ev.push({ kind: "miss", src: a.id, tgt: d.id, text: tr("MISS"), skill: sk.id }); continue; }
     let dmg = r.dmg * (1 + (status(d, "mark")?.value ?? 0) / 100);
     const g = status(d, "guard"); if (g) dmg *= 1 - g.value / 100;
     let blocked = false;
@@ -217,24 +218,24 @@ function dealHit(s: BattleState, a: Unit, d: Unit, sk: TSkill, ev: CEvent[], mul
     const b = status(d, "barrier");
     if (b && b.value > 0) {
       const ab = Math.min(b.value, dmg); b.value -= ab; dmg -= ab;
-      ev.push({ kind: "absorb", tgt: d.id, value: ab, text: `ABSORB ${ab}` });
+      ev.push({ kind: "absorb", tgt: d.id, value: ab, text: tr("ABSORB {n}", { n: ab }) });
       if (b.value <= 0) d.statuses = d.statuses.filter((x) => x !== b);
     }
     d.hp = Math.max(0, d.hp - dmg); total += dmg;
-    ev.push({ kind: blocked ? "block" : r.crit ? "crit" : "dmg", src: a.id, tgt: d.id, value: dmg, text: `${blocked ? "BLOCK " : r.crit ? "✦" : ""}${dmg.toLocaleString()}`, skill: sk.id });
+    ev.push({ kind: blocked ? "block" : r.crit ? "crit" : "dmg", src: a.id, tgt: d.id, value: dmg, text: `${blocked ? tr("BLOCK ") : r.crit ? "✦" : ""}${dmg.toLocaleString()}`, skill: sk.id });
   }
   if (total > 0) {
     if (sk.stun) addStatus(d, { kind: "stun", turns: 1, value: 0 }, ev);
     if (sk.applies) addStatus(d, { ...sk.applies, value: sk.applies.kind === "burn" ? Math.round(a.atk * sk.applies.value) : sk.applies.value }, ev);
   } else if (sk.applies && sk.applies.kind !== "burn" && sk.mult === 0) addStatus(d, { ...sk.applies }, ev);
-  if (!alive(d)) ev.push({ kind: "death", tgt: d.id, text: `${d.name} falls!` });
+  if (!alive(d)) ev.push({ kind: "death", tgt: d.id, text: tr("{name} falls!", { name: d.name }) });
   // Counterattack
   const c = status(d, "counter");
   if (c && alive(d) && alive(a) && total > 0) {
     const r = calcDamage(d.atk, a.def, c.value, d.crit, 0, false, d.critDmg, d.pen, 100);
     a.hp = Math.max(0, a.hp - r.dmg);
-    ev.push({ kind: r.crit ? "crit" : "dmg", src: d.id, tgt: a.id, value: r.dmg, text: `COUNTER ${r.dmg}` });
-    if (!alive(a)) ev.push({ kind: "death", tgt: a.id, text: `${a.name} falls!` });
+    ev.push({ kind: r.crit ? "crit" : "dmg", src: d.id, tgt: a.id, value: r.dmg, text: tr("COUNTER {n}", { n: r.dmg }) });
+    if (!alive(a)) ev.push({ kind: "death", tgt: a.id, text: tr("{name} falls!", { name: a.name }) });
   }
   return total;
 }
@@ -246,9 +247,9 @@ function addStatus(u: Unit, st: Status, ev: CEvent[]) {
   ev.push({ kind: "status", tgt: u.id, text: STATUS_LABEL[st.kind] });
 }
 
-export const STATUS_LABEL: Record<StatusKind, string> = {
+export const STATUS_LABEL: Record<StatusKind, string> = locValues({
   guard: "GUARD", barrier: "BARRIER", mark: "MARKED", evade: "EVASIVE", slow: "SLOWED", stun: "STUNNED", burn: "BURNING", weaken: "WEAKENED", counter: "COUNTER",
-};
+});
 
 function healUnit(u: Unit, amount: number, ev: CEvent[]) {
   const amt = Math.round(amount * (1 + u.heal / 100));
@@ -266,7 +267,7 @@ function startTurn(s: BattleState, u: Unit, ev: CEvent[]): boolean {
   const burn = status(u, "burn");
   if (burn) { const d = Math.max(1, burn.value); u.hp = Math.max(0, u.hp - d); ev.push({ kind: "dmg", tgt: u.id, value: d, text: `🔥${d}` }); if (!alive(u)) ev.push({ kind: "death", tgt: u.id, text: `${u.name} burns away!` }); }
   if (!alive(u)) return true;
-  if (status(u, "stun")) { ev.push({ kind: "skip", tgt: u.id, text: "STUNNED" }); return true; }
+  if (status(u, "stun")) { ev.push({ kind: "skip", tgt: u.id, text: tr("STUNNED") }); return true; }
   return false;
 }
 
@@ -308,9 +309,11 @@ export function playerAct(s: BattleState, skillId: string, targets: string[]): A
   else if (sk.applies) for (const t of tg) addStatus(unit(s, t), sk.applies, ev);
   if (sk.selfApplies) addStatus(u, sk.selfApplies, ev);
   if (sk.heal) healUnit(u, sk.target === "self" ? u.maxHp * sk.heal : u.maxHp * sk.heal, ev);
-  if (sk.id === "taunt") for (const t of tg) { const e = unit(s, t); if (e.telegraph) { e.telegraph.turns += 1; ev.push({ kind: "info", tgt: e.id, text: "DELAYED" }); } }
+  if (sk.id === "taunt") for (const t of tg) { const e = unit(s, t); if (e.telegraph) { e.telegraph.turns += 1; ev.push({ kind: "info", tgt: e.id, text: tr("DELAYED") }); } }
   endTurn(s, u);
-  logEv(s, ev, `${u.name} uses ${sk.name}${dealt ? ` for ${dealt.toLocaleString()} damage` : ""}.`);
+  logEv(s, ev, dealt
+      ? tr("{name} uses {skill} for {n} damage.", { name: u.name, skill: sk.name, n: dealt.toLocaleString() })
+      : tr("{name} uses {skill}.", { name: u.name, skill: sk.name }));
   return { ok: true, events: ev };
 }
 
@@ -342,11 +345,11 @@ export function enemyAct(s: BattleState): ActResult {
   if (u.telegraph) {
     u.telegraph.turns--;
     if (u.telegraph.turns <= 0) { sk = u.telegraph.skill; u.telegraph = undefined; }
-    else { ev.push({ kind: "telegraph", src: u.id, text: `${u.name} keeps gathering power…` }); endTurn(s, u); logEv(s, ev, `${u.name} channels.`); return { ok: true, events: ev }; }
+    else { ev.push({ kind: "telegraph", src: u.id, text: tr("{name} keeps gathering power…", { name: u.name }) }); endTurn(s, u); logEv(s, ev, tr("{name} channels.", { name: u.name })); return { ok: true, events: ev }; }
   } else if (u.boss && u.turnsTaken % 3 === 1) {
     u.telegraph = { skill: BOSS_SKILL, turns: 1 };
-    ev.push({ kind: "telegraph", src: u.id, text: `⚠ ${u.name} prepares CATACLYSM! Guard or stun it!` });
-    endTurn(s, u); logEv(s, ev, `${u.name} gathers power.`);
+    ev.push({ kind: "telegraph", src: u.id, text: tr("⚠ {name} prepares CATACLYSM! Guard or stun it!", { name: u.name }) });
+    endTurn(s, u); logEv(s, ev, tr("{name} gathers power.", { name: u.name }));
     return { ok: true, events: ev };
   } else if (u.elite && u.turnsTaken % 3 === 2) sk = ELITE_SKILL;
   else if (u.kit.length) {

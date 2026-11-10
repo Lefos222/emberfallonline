@@ -30,7 +30,7 @@ import { Diamonds, Gold, VoidCrystals, fmt } from "./ui";
 import { leaveCharacter, update, useGame } from "./store";
 import { supabase } from "@/integrations/supabase/client";
 import { dailyChestReady, dailyChestCountdown, formatDailyChestCountdown, claimDailyChest, DAILY_CHEST_MAX_LEVEL } from "./daily-chest";
-import { useT } from "./i18n";
+import { useT , t} from "./i18n";
 
 /** The save state the cloud icon reports, in words the player can read in their language. */
 const CLOUD_STATE: Record<string, string> = {
@@ -78,14 +78,14 @@ export function Hud({
             ) : (
               <Portrait cls={hero.cls} gender={gender} className="w-full" {...heroAppearance(hero, gender)} />
             )}
-            <span className="player-level">Lv {hero.level}</span>
+            <span className="player-level">{t("Lv")} {hero.level}</span>
           </button>
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline gap-1.5">
               <span className="player-name" title={hero.name}>{hero.name}</span>
               {hero.paragon > 0 && (
                 <span className="shrink-0 rounded bg-gold/20 px-1 text-[10px] font-bold text-gold">
-                  Asc {hero.paragon}
+                   {t("Asc")} {hero.paragon}
                 </span>
               )}
             </div>
@@ -222,15 +222,14 @@ export function StaminaBar({ hero }: { hero: Hero }) {
       )}
       {shelf && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" role="dialog" aria-modal="true"
-          aria-label="Potion pouch" onClick={() => setShelf(false)}>
+          aria-label={t("Potion pouch")} onClick={() => setShelf(false)}>
           <div className="game-panel anim-pop w-full max-w-sm p-4" onClick={(e) => e.stopPropagation()}>
             <div className="mb-2 flex items-center justify-between">
-              <div className="font-display text-lg text-gold">Potion pouch</div>
-              <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => setShelf(false)}>Close</button>
+              <div className="font-display text-lg text-gold">{t("Potion pouch")}</div>
+              <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => setShelf(false)}>{t("Close")}</button>
             </div>
             <p className="mb-3 text-xs text-muted-foreground">
-              Stamina {left}/{STAMINA_PER_DAY} · {drinksLeft}/{POTION_PER_DAY} Stamina Potions left today. Restocks at Greek midnight.
-            </p>
+               {t("Stamina")} {left}/{STAMINA_PER_DAY} · {drinksLeft}/{POTION_PER_DAY}  {t("Stamina Potions left today. Restocks at Greek midnight.")} </p>
             {notice && <p role="status" className={`mb-2 text-sm ${notice.ok ? "text-r1" : "text-hp"}`}>{notice.t}</p>}
             <div className="space-y-2">
               {POTION_IDS.map((id) => {
@@ -244,15 +243,15 @@ export function StaminaBar({ hero }: { hero: Hero }) {
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-bold">{def.name} <span className="text-muted-foreground">×{held}</span></div>
                       <div className="text-[11px] text-muted-foreground">{def.desc}</div>
-                      {running > 0 && <div className="text-[11px] font-bold text-r1">Active · {running} min left</div>}
+                      {running > 0 && <div className="text-[11px] font-bold text-r1">{t("Active ·")} {running}  {t("min left")}</div>}
                     </div>
                     <button className="btn-gold shrink-0 px-3 py-1 text-xs" disabled={!!blocked} title={blocked ?? "Use"}
-                      onClick={() => use(id)}>Use</button>
+                      onClick={() => use(id)}>{t("Use")}</button>
                   </div>
                 );
               })}
             </div>
-            <p className="mt-3 text-[11px] text-muted-foreground">Buy more at the Auction House's shop, or find Stamina Potions as a rare dungeon drop.</p>
+            <p className="mt-3 text-[11px] text-muted-foreground">{t("Buy more at the Auction House's shop, or find Stamina Potions as a rare dungeon drop.")}</p>
           </div>
         </div>
       )}
@@ -293,9 +292,9 @@ function DailyChestButton({ hero }: { hero: Hero }) {
       {msg && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" onClick={() => setMsg(null)}>
           <div className="game-panel anim-pop w-full max-w-xs p-4 text-center" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-3 font-display text-lg text-gold">Daily Chest</div>
+            <div className="mb-3 font-display text-lg text-gold">{t("Daily Chest")}</div>
             <p className="text-sm text-r1">{msg}</p>
-            <button className="btn-gold mt-3 w-full py-2 text-sm" onClick={() => setMsg(null)}>Close</button>
+            <button className="btn-gold mt-3 w-full py-2 text-sm" onClick={() => setMsg(null)}>{t("Close")}</button>
           </div>
         </div>
       )}

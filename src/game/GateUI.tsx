@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Hero } from "./data";
 import { STAMINA_PER_DAY, potionCount, staminaLeft } from "./stamina";
@@ -64,15 +65,15 @@ export function StaminaMeter({
   if (compact) {
     return (
       <div className="slot flex items-center gap-2 px-2.5 py-1.5 text-xs" title={`${cost} per ${unit} · refills at Greek midnight`}>
-        <span className="font-display text-gold">Stamina</span>
+        <span className="font-display text-gold">{t("Stamina")}</span>
         <b className={short ? "text-hp" : ""}>{fmt(left)}</b>
         <span className="text-muted-foreground">/ {STAMINA_PER_DAY}</span>
         <span className="w-16 shrink-0">
-          <Meter value={left} max={STAMINA_PER_DAY} fill="bar-stamina" label="Stamina left today" />
+          <Meter value={left} max={STAMINA_PER_DAY} fill="bar-stamina" label={t("Stamina left today")} />
         </span>
-        <span className="text-muted-foreground">· {runs} {unit}{runs === 1 ? "" : "s"} left</span>
+        <span className="text-muted-foreground">· {runs} {unit}{runs === 1 ? "" : "s"}  {t("left")}</span>
         {potions > 0 && (
-          <span className="text-muted-foreground">· {potions} potion{potions === 1 ? "" : "s"}</span>
+          <span className="text-muted-foreground">· {potions}  {t("potion")}{potions === 1 ? "" : "s"}</span>
         )}
       </div>
     );
@@ -80,7 +81,7 @@ export function StaminaMeter({
   return (
     <div className="slot p-3 text-sm">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="font-display text-gold">Stamina</span>
+        <span className="font-display text-gold">{t("Stamina")}</span>
         <span className={`font-bold ${short ? "text-hp" : ""}`}>
           {fmt(left)}
           <span className="text-xs font-normal text-muted-foreground"> / {STAMINA_PER_DAY}</span>
@@ -90,19 +91,18 @@ export function StaminaMeter({
         value={left}
         max={STAMINA_PER_DAY}
         fill="bar-stamina"
-        label="Stamina left today"
+        label={t("Stamina left today")}
         className="mt-1.5"
       />
       <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
         <span>
-          <b className="text-foreground">{cost}</b> per {unit} · ≈
+          <b className="text-foreground">{cost}</b>  {t("per")} {unit} · ≈
           <b className="text-foreground">{runs}</b> {unit}
-          {runs === 1 ? "" : "s"} left
-        </span>
+          {runs === 1 ? "" : "s"}  {t("left")} </span>
         <span>
           {potions > 0
             ? `${potions} potion${potions === 1 ? "" : "s"} in the pouch`
-            : "Refills at Greek midnight"}
+            : t("Refills at Greek midnight")}
         </span>
       </div>
     </div>
@@ -120,7 +120,7 @@ export function DangerPill({
   return (
     <span
       className={`rounded bg-background/85 px-2 py-0.5 font-display text-xs font-bold ${danger.c} ${className}`}
-      title="How this fight compares to your battle rating"
+      title={t("How this fight compares to your battle rating")}
     >
       {danger.t}
     </span>
@@ -214,7 +214,7 @@ export function StageStepper({
           >
             {n}
             {n === top && (
-              <span className="ml-1 text-[10px] uppercase tracking-wide opacity-80">frontier</span>
+              <span className="ml-1 text-[10px] uppercase tracking-wide opacity-80">{t("frontier")}</span>
             )}
           </button>
         ))}

@@ -22,7 +22,7 @@ import {
   vipDailyGold,
   vipPlanFor,
 } from "./economy";
-import { tName } from "./i18n";
+import { tName , tr} from "./i18n";
 import { vipDiscountPct } from "./vip-perks";
 import { VipActivities } from "./VipActivities";
 import {
@@ -65,7 +65,7 @@ function DiamondPrice({
     <span className={className}>
       <s className="mr-1 text-muted-foreground/70">{fmt(base)}◆</s>
       <span className="font-bold text-gold">{fmt(price)}◆</span>
-      <span className="ml-1 text-[10px] font-bold uppercase text-gold">VIP −{off}%</span>
+      <span className="ml-1 text-[10px] font-bold uppercase text-gold">{tr("VIP −")}{off}%</span>
     </span>
   );
 }
@@ -105,15 +105,15 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
 
   return (
     <Panel
-      title="Premium Shop"
-      subtitle="Diamonds, monthly VIP, gold, stones, materials and chests"
+      title={tr("Premium Shop")}
+      subtitle={tr("Diamonds, monthly VIP, gold, stones, materials and chests")}
       art="diamond"
       onClose={onClose}
       wide
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <GameTabs
-          label="Premium Shop"
+          label={tr("Premium Shop")}
           value={tab}
           onChange={setTab}
           tabs={TABS.map((t) => ({ id: t.id, name: t.name }))}
@@ -122,15 +122,14 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
           {vip > 0 && p.vip.until && (
             <span className="slot flex items-center gap-1.5 border-gold/60 px-3 py-1.5 text-xs font-bold text-gold">
               <ArtIcon name="crown" size={16} />
-              VIP {vip}
-              {activePlan ? ` · ${tName(activePlan.name)}` : ""} · ends{" "}
+               {tr("VIP")} {vip}
+              {activePlan ? ` · ${tName(activePlan.name)}` : ""}  {tr("· ends")}{" "}
               {new Date(p.vip.until).toLocaleDateString()}
             </span>
           )}
           <div className="slot flex items-center gap-1.5 px-3 py-1.5 font-display text-lg text-r4">
             <ArtIcon name="diamond" size={20} />
-            {fmt(p.balance)} Diamonds
-          </div>
+            {fmt(p.balance)}  {tr("Diamonds")} </div>
         </div>
       </div>
 
@@ -146,10 +145,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
       {tab === "diamonds" && (
         <div>
           <p className="mb-3 text-sm text-muted-foreground">
-            Real-money packs are paid through Stripe's secure checkout. The server verifies the
-            payment and credits the exact pack before it appears in your wallet — closing the tab
-            early is checked again the next time you open this shop.
-          </p>
+             {tr("Real-money packs are paid through Stripe's secure checkout. The server verifies the payment and credits the exact pack before it appears in your wallet — closing the tab early is checked again the next time you open this shop.")} </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {DIAMOND_PACKS.map((pack) => {
               const total = diamondPackTotal(pack);
@@ -170,10 +166,9 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                   </p>
                   {pack.bonus > 0 ? (
                     <p className="text-xs text-r1">
-                      {fmt(pack.diamonds)} + {fmt(pack.bonus)} bonus Diamonds
-                    </p>
+                      {fmt(pack.diamonds)} + {fmt(pack.bonus)}  {tr("bonus Diamonds")} </p>
                   ) : (
-                    <p className="text-xs text-muted-foreground">One-time Diamond pack</p>
+                    <p className="text-xs text-muted-foreground">{tr("One-time Diamond pack")}</p>
                   )}
                   <p className="mt-auto font-display text-lg text-gold">{money(pack.priceCents)}</p>
                   <Button
@@ -182,7 +177,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                       void run(key, () => buyDiamondPack(pack.id), "Diamonds credited.", true)
                     }
                   >
-                    {busy === key ? "Opening checkout…" : "Buy with card"}
+                    {busy === key ? tr("Opening checkout…") : tr("Buy with card")}
                   </Button>
                 </article>
               );
@@ -198,27 +193,19 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
               <div>
                 <p className="font-display text-lg text-gold">
                   <ArtIcon name="crown" className="mr-1" size={22} />
-                  VIP {vip}
+                   {tr("VIP")} {vip}
                   {activePlan ? ` — ${tName(activePlan.name)}` : ""}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Active until {new Date(p.vip.until).toLocaleString()} · every purchase adds
-                  another {VIP_DAYS} days
-                </p>
+                   {tr("Active until")} {new Date(p.vip.until).toLocaleString()}  {tr("· every purchase adds another")} {VIP_DAYS}  {tr("days")} </p>
                 <p className="text-xs text-r1">
-                  +{vipDiscountPct(vip)}% shop discount · {fmt(dailyGold)} gold every day · faster
-                  blitzes
-                </p>
+                  +{vipDiscountPct(vip)}{tr("% shop discount ·")} {fmt(dailyGold)}  {tr("gold every day · faster blitzes")} </p>
               </div>
             </div>
           )}
 
           <p className="mb-3 rounded-md border border-gold/40 bg-gold/5 px-3 py-2 text-xs text-muted-foreground">
-            <span className="font-bold text-gold">VIP lasts one month ({VIP_DAYS} days).</span> It
-            is not a permanent unlock and never renews by itself. Members get two VIP-only daily
-            activities, two VIP-only world events, a richer daily board, faster blitzes, more gold
-            from every payout and a discount on every Diamond price below.
-          </p>
+            <span className="font-bold text-gold">{tr("VIP lasts one month (")}{VIP_DAYS}  {tr("days).")}</span>  {tr("It is not a permanent unlock and never renews by itself. Members get two VIP-only daily activities, two VIP-only world events, a richer daily board, faster blitzes, more gold from every payout and a discount on every Diamond price below.")} </p>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {VIP_PLANS.map((plan) => {
@@ -232,11 +219,10 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-display text-lg">
-                      VIP {plan.level} — {tName(plan.name)}
+                       {tr("VIP")} {plan.level} — {tName(plan.name)}
                     </h3>
                     <span className="shrink-0 rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-gold">
-                      {plan.days} days
-                    </span>
+                      {plan.days}  {tr("days")} </span>
                   </div>
                   <ul className="flex-1 list-inside list-disc text-xs text-muted-foreground">
                     {plan.perks.map((perk) => (
@@ -247,7 +233,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                     <p className="flex items-center justify-between text-sm">
                       <DiamondPrice base={plan.diamonds} vip={vip} />
                       <span className="text-[11px] text-muted-foreground">
-                        or {money(plan.priceCents)}
+                         {tr("or")} {money(plan.priceCents)}
                       </span>
                     </p>
                     <Button
@@ -264,7 +250,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                       }
                     >
                       {busy === cardKey
-                        ? "Opening checkout…"
+                        ? tr("Opening checkout…")
                         : `Pay with card · ${money(plan.priceCents)}`}
                     </Button>
                     <Button
@@ -276,7 +262,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                         void run(gemKey, () => buyVip(plan.level), `${VIP_DAYS} days of VIP added.`)
                       }
                     >
-                      {busy === gemKey ? "Buying…" : "Buy with Diamonds"}
+                      {busy === gemKey ? tr("Buying…") : tr("Buy with Diamonds")}
                     </Button>
                   </div>
                 </article>
@@ -284,9 +270,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
             })}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            VIP is a separate membership — it does not include Diamond or gold packs. Buying a
-            higher tier while a membership is active keeps the higher tier and adds another month.
-          </p>
+             {tr("VIP is a separate membership — it does not include Diamond or gold packs. Buying a higher tier while a membership is active keeps the higher tier and adds another month.")} </p>
 
           <VipActivities />
         </div>
@@ -296,8 +280,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
         <div>
           {discount > 0 && (
             <p className="mb-2 text-xs font-semibold text-gold">
-              VIP {vip}: {discount}% off every Diamond price in this tab.
-            </p>
+               {tr("VIP")} {vip}: {discount}{tr("% off every Diamond price in this tab.")} </p>
           )}
           <div className="grid gap-3 sm:grid-cols-2">
             {GOLD_PACKS.map((pack) => {
@@ -317,25 +300,21 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                     disabled={busy !== null}
                     onClick={() => void run(key, () => buyGoldPack(pack.id), "Gold credited.")}
                   >
-                    {busy === key ? "Buying…" : "Buy"}
+                    {busy === key ? tr("Buying…") : tr("Buy")}
                   </Button>
                 </article>
               );
             })}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Gold is still earned from battles, quests and raids. These packs are a shortcut — they
-            never unlock anything that cannot be earned by playing.
-          </p>
+             {tr("Gold is still earned from battles, quests and raids. These packs are a shortcut — they never unlock anything that cannot be earned by playing.")} </p>
         </div>
       )}
 
       {tab === "gems" && (
         <div>
           <p className="mb-3 text-sm text-muted-foreground">
-            Small stones start at <DiamondPrice base={GEM_TIER_PRICES[0]} vip={vip} />. Only cut
-            stones are sold — no armour.
-          </p>
+             {tr("Small stones start at")} <DiamondPrice base={GEM_TIER_PRICES[0]} vip={vip} />{tr(". Only cut stones are sold — no armour.")} </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {GEM_TYPES.map((type) => (
               <article key={type} className="slot flex flex-col gap-2 p-3">
@@ -369,8 +348,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
             ))}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Higher tiers are earned by cutting and fusing the lower ones at the Gem Workshop.
-          </p>
+             {tr("Higher tiers are earned by cutting and fusing the lower ones at the Gem Workshop.")} </p>
         </div>
       )}
 
@@ -410,7 +388,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                     </Button>
                   </div>
                   <p className="text-center text-[10px] text-muted-foreground">
-                    Base: 1× {prices.one}◆ · 5× {prices.five}◆
+                     {tr("Base: 1×")} {prices.one}◆ · 5× {prices.five}◆
                     {discount > 0 ? ` · VIP −${discount}%` : ""}
                   </p>
                 </article>
@@ -418,9 +396,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
             })}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Materials are the same ones battles, raids and gathering award. Missing a few Armour
-            Fragments for a piece? The Forge's recipe rows now sell exactly the shortfall.
-          </p>
+             {tr("Materials are the same ones battles, raids and gathering award. Missing a few Armour Fragments for a piece? The Forge's recipe rows now sell exactly the shortfall.")} </p>
         </div>
       )}
 
@@ -438,7 +414,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                   <h3 className="font-display text-lg">{tName(offer.name)}</h3>
                   <p className="text-xs text-muted-foreground">{offer.description}</p>
                   <p className="text-[11px] text-muted-foreground">
-                    In your vault:{" "}
+                     {tr("In your vault:")}{" "}
                     <span className="font-bold text-foreground">
                       {chestCount(hero, offer.kind)}
                     </span>
@@ -452,23 +428,21 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                       void run(key, () => buyChest(offer.kind), "Chest added to your vault.")
                     }
                   >
-                    {busy === key ? "Buying…" : "Buy"}
+                    {busy === key ? tr("Buying…") : tr("Buy")}
                   </Button>
                 </article>
               );
             })}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Chests also drop from won battles and the free reward chest, so this is never the only
-            way to get one.
-          </p>
+             {tr("Chests also drop from won battles and the free reward chest, so this is never the only way to get one.")} </p>
         </div>
       )}
 
       {tab === "history" && (
         <div className="max-h-96 overflow-y-auto">
           {p.history.length === 0 && (
-            <p className="py-6 text-center text-muted-foreground">No Diamond transactions yet.</p>
+            <p className="py-6 text-center text-muted-foreground">{tr("No Diamond transactions yet.")}</p>
           )}
           {[...p.history].reverse().map((entry, i) => (
             <div
@@ -486,9 +460,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
       )}
 
       <p className="mt-4 text-[11px] text-muted-foreground">
-        Every paid purchase goes through Stripe and is verified on the server; every Diamond spend
-        is priced and debited by the server. <Diamonds n={p.balance} /> in your wallet.
-      </p>
+         {tr("Every paid purchase goes through Stripe and is verified on the server; every Diamond spend is priced and debited by the server.")} <Diamonds n={p.balance} />  {tr("in your wallet.")} </p>
     </Panel>
   );
 }

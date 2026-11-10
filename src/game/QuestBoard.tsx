@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useEffect, useState } from "react";
 import { MatIcon } from "./MatIcon";
 import { MATS, matCount } from "./crafting";
@@ -34,12 +35,10 @@ export function QuestBoard({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <Panel title="Quest Board" subtitle="Daily commissions, reset at midnight" art="quest" onClose={onClose} wide>
+    <Panel title={t("Quest Board")} subtitle={t("Daily commissions, reset at midnight")} art="quest" onClose={onClose} wide>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          {DAILY_QUESTS.length} commissions, {claimed} claimed · every one pays gold, XP and materials ·
-          {questPointHint()} · resets in <b className="text-gold">{countdown(boardResetAt(now) - now)}</b> (Greek midnight)
-        </p>
+          {DAILY_QUESTS.length}  {t("commissions,")} {claimed}  {t("claimed · every one pays gold, XP and materials ·")} {questPointHint()}  {t("· resets in")} <b className="text-gold">{countdown(boardResetAt(now) - now)}</b>  {t("(Greek midnight)")} </p>
         {bonusNote && <p className="text-sm font-bold text-gold" aria-live="polite">{bonusNote}</p>}
       </div>
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -48,14 +47,14 @@ export function QuestBoard({ onClose }: { onClose: () => void }) {
             <div className="font-display text-gold">{quest.name}</div>
             <div className="text-xs text-muted-foreground">{quest.desc}</div>
             <div className="bar-track h-2"><div className="bar-xp h-full" style={{ width: Math.round((progress / quest.target) * 100) + "%" }} /></div>
-            <div className="text-xs text-muted-foreground">Progress {progress}/{quest.target}</div>
+            <div className="text-xs text-muted-foreground">{t("Progress")} {progress}/{quest.target}</div>
             <div className="flex flex-wrap items-center gap-1.5 text-xs">
               <span className="slot px-2 py-0.5"><Gold n={quest.gold} className="text-xs" /></span>
-              <span className="slot px-2 py-0.5 font-bold text-xp">{fmt(questXp(hero))} XP</span>
+              <span className="slot px-2 py-0.5 font-bold text-xp">{fmt(questXp(hero))}  {t("XP")}</span>
               <span className="slot px-2 py-0.5"><MatIcon mat={quest.mat} size={14} /> {MATS[quest.mat].name} ×{quest.mats}</span>
             </div>
             <button className="btn-gold mt-auto py-1.5" disabled={done || !complete} onClick={() => claim(quest.id)}>
-              {done ? "Claimed" : complete ? "Claim rewards" : "In progress"}
+              {done ? t("Claimed") : complete ? t("Claim rewards") : t("In progress")}
             </button>
           </div>
         ))}

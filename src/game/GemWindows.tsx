@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useState } from "react";
 import { Gem, Hammer, ShoppingBag, X } from "lucide-react";
 import { ConquestCoin } from "./CoinIcon";
@@ -18,16 +19,16 @@ const modal = "fixed inset-0 z-50 flex items-center justify-center bg-background
 export function GemPicker({ hero, socket, onPick, onForge, onClose }: { hero: Hero; socket: number; onPick: (key: string) => void; onForge: () => void; onClose: () => void }) {
   const owned = Object.entries(hero.gems ?? {}).filter(([, n]) => n > 0).sort();
   return (
-    <div className={modal} role="dialog" aria-modal="true" aria-label="Insert a gem" onClick={onClose}>
+    <div className={modal} role="dialog" aria-modal="true" aria-label={tr("Insert a gem")} onClick={onClose}>
       <div className="game-panel anim-pop max-h-[85vh] w-full max-w-lg overflow-y-auto p-4" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between gap-2">
-          <div className="font-display text-lg text-gold">Insert a gem · socket {socket + 1}</div>
-          <button className="btn-ghost px-2 py-1" onClick={onClose} aria-label="Close"><X className="h-4 w-4" /></button>
+          <div className="font-display text-lg text-gold">{tr("Insert a gem · socket")} {socket + 1}</div>
+          <button className="btn-ghost px-2 py-1" onClick={onClose} aria-label={tr("Close")}><X className="h-4 w-4" /></button>
         </div>
         {owned.length === 0 ? (
           <div className="py-6 text-center">
-            <p className="mb-3 text-muted-foreground">You have no gems in your pouch yet. Forge one from materials first.</p>
-            <button className="btn-gold px-4 py-2" onClick={onForge}><Gem className="mr-1 inline h-4 w-4" />Open the gem forge</button>
+            <p className="mb-3 text-muted-foreground">{tr("You have no gems in your pouch yet. Forge one from materials first.")}</p>
+            <button className="btn-gold px-4 py-2" onClick={onForge}><Gem className="mr-1 inline h-4 w-4" />{tr("Open the gem forge")}</button>
           </div>
         ) : (
           <div className="space-y-1.5">
@@ -38,15 +39,15 @@ export function GemPicker({ hero, socket, onPick, onForge, onClose }: { hero: He
                   <span>
                     <GemIcon type={g.type} /> {gemName(key)} ×{n}
                     <span className="block text-xs text-muted-foreground">
-                      +{gemValue(key)} {GEM_STAT_LABEL[GEMS[g.type].stat]} · best on {GEMS[g.type].classes}
+                      +{gemValue(key)} {GEM_STAT_LABEL[GEMS[g.type].stat]}  {tr("· best on")} {GEMS[g.type].classes}
                       {" · " + GEMS[g.type].note}
                     </span>
                   </span>
-                  <span className="btn-ghost px-2 py-0.5 text-xs">Insert</span>
+                  <span className="btn-ghost px-2 py-0.5 text-xs">{tr("Insert")}</span>
                 </button>
               );
             })}
-            <button className="btn-ghost mt-2 w-full py-1.5 text-xs" onClick={onForge}><Gem className="mr-1 inline h-3 w-3" />Forge another gem</button>
+            <button className="btn-ghost mt-2 w-full py-1.5 text-xs" onClick={onForge}><Gem className="mr-1 inline h-3 w-3" />{tr("Forge another gem")}</button>
           </div>
         )}
       </div>
@@ -78,16 +79,14 @@ export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => v
   });
 
   return (
-    <div className={modal} role="dialog" aria-modal="true" aria-label="Gem forge" onClick={onClose}>
+    <div className={modal} role="dialog" aria-modal="true" aria-label={tr("Gem forge")} onClick={onClose}>
       <div className="game-panel anim-pop max-h-[88vh] w-full max-w-2xl overflow-y-auto p-4" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between gap-2">
-          <div className="font-display text-lg text-gold">Forge a gem</div>
-          <button className="btn-ghost px-2 py-1" onClick={onClose} aria-label="Close"><X className="h-4 w-4" /></button>
+          <div className="font-display text-lg text-gold">{tr("Forge a gem")}</div>
+          <button className="btn-ghost px-2 py-1" onClick={onClose} aria-label={tr("Close")}><X className="h-4 w-4" /></button>
         </div>
         <p className="mb-3 text-sm text-muted-foreground">
-          Eight gem families, twelve levels each — the chart values are the stats a socketed gem grants.
-          Forge with materials, buy with Conquest Tokens at the Conquest Gate, or fuse {FUSE_COUNT} identical gems into the next level.
-        </p>
+           {tr("Eight gem families, twelve levels each — the chart values are the stats a socketed gem grants. Forge with materials, buy with Conquest Tokens at the Conquest Gate, or fuse")} {FUSE_COUNT}  {tr("identical gems into the next level.")} </p>
 
         <div className="mb-2 flex flex-wrap gap-2">
           {GEM_TYPES.map((t) => (
@@ -102,7 +101,7 @@ export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => v
             const k = gemKey(type, n);
             return (
               <button key={n} className={"slot px-1 py-1 text-center text-xs " + (level === n ? "ring-2 ring-gold" : "")} onClick={() => setLevel(n)}>
-                <span className="block font-bold">Lv {n}</span>
+                <span className="block font-bold">{tr("Lv")} {n}</span>
                 <span className="block text-[10px] text-muted-foreground">+{gemValue(k)}</span>
               </button>
             );
@@ -112,10 +111,10 @@ export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => v
         <div className="slot mb-3 flex items-start gap-3 p-3">
           <span className="mt-0.5 shrink-0"><GemIcon type={type} size={32} /></span>
           <div className="min-w-0 text-sm">
-            <div className="font-display text-gold">{gemName(key)} <span className="text-xs text-muted-foreground">· {GEM_TIER_NAMES[level - 1]} · level {level}</span></div>
-            <div>+{gemValue(key)} {GEM_STAT_LABEL[g.stat]} per socketed gem</div>
-            <div className="text-xs text-muted-foreground">Best on {g.classes} · {g.note}</div>
-            <div className="text-xs text-muted-foreground">Unlocks at hero level {gemCraftLevel(level)}</div>
+            <div className="font-display text-gold">{gemName(key)} <span className="text-xs text-muted-foreground">· {GEM_TIER_NAMES[level - 1]}  {tr("· level")} {level}</span></div>
+            <div>+{gemValue(key)} {GEM_STAT_LABEL[g.stat]}  {tr("per socketed gem")}</div>
+            <div className="text-xs text-muted-foreground">{tr("Best on")} {g.classes} · {g.note}</div>
+            <div className="text-xs text-muted-foreground">{tr("Unlocks at hero level")} {gemCraftLevel(level)}</div>
           </div>
         </div>
 
@@ -130,15 +129,15 @@ export function GemCraftWindow({ hero, onClose }: { hero: Hero; onClose: () => v
 
         <div className="flex flex-wrap gap-2">
           <button className="btn-gold flex-1 py-2" disabled={!!blocked} title={blocked ?? "Forge with materials"} onClick={forge}>
-            <Hammer className="mr-1 inline h-4 w-4" />Forge {GEMS[type].name}
+            <Hammer className="mr-1 inline h-4 w-4" />{tr("Forge")} {GEMS[type].name}
           </button>
           <button className="btn-ghost flex-1 py-2" disabled={tokens < price} title={tokens < price ? `Needs ${fmt(price)} Conquest Tokens` : "Buy with Conquest Tokens at the Conquest Gate"} onClick={buy}>
-            <ShoppingBag className="mr-1 inline h-4 w-4" />Buy · <ConquestCoin size={16} /> {fmt(price)}
+            <ShoppingBag className="mr-1 inline h-4 w-4" />{tr("Buy ·")} <ConquestCoin size={16} /> {fmt(price)}
           </button>
         </div>
         <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground">
-          <span>Conquest Tokens: <b className="text-gold">{fmt(tokens)}</b></span>
-          <span>{blocked ? blocked : "Ready to forge."}</span>
+          <span>{tr("Conquest Tokens:")} <b className="text-gold">{fmt(tokens)}</b></span>
+          <span>{blocked ? blocked : tr("Ready to forge.")}</span>
         </div>
         {msg && <p role="status" className={`anim-pop mt-2 text-center text-sm ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</p>}
       </div>

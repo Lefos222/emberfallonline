@@ -29,7 +29,7 @@ import { vipXpMultiplier } from "./economy";
 import { confirmCardPurchase, reconcilePendingPurchases } from "./premium-shop";
 import { openVipActivities } from "./vip-activities";
 import { authHandoffPending, getState, update, useGame } from "./store";
-import { itemName, useLang, useT } from "./i18n";
+import { itemName, useLang, useT , tr} from "./i18n";
 import { recordBattle } from "./progress";
 import { BOSS_CRYSTALS } from "./logic";
 import { battleEssenceGain, enlightenmentUnlocked, rollSoulShards } from "./enlightenment";
@@ -279,7 +279,7 @@ export function Game() {
     if (r.loot && r.loot.rarity >= 2)
       void announceWorldEvent(heroId, `looted ${itemName(r.loot.name)}!`);
     if (useGameOverflow() > before && !r.lines.some((l) => /Overflow/.test(l)))
-      r.lines.push("Bag full — loot placed in your Overflow Chest (Armory)");
+      r.lines.push(t("Bag full — loot placed in your Overflow Chest (Armory)"));
     if (won)
       update((h) => {
         const m = battleMats(h.level + h.paragon, !!battle.right.boss);
@@ -294,14 +294,14 @@ export function Game() {
         arena: /arena/i.test(battle.title),
       });
       update((h) => addRenown(h, gained));
-      r.lines.push(`+${gained} Renown`);
+      r.lines.push(t("+{n} Renown", { n: gained }));
     }
     // A won fight sometimes leaves a chest on the field: gold is the common find, gems the rare one.
     if (won) {
       const drop = rollBattleChest();
       if (drop) {
         update((h) => addChests(h, drop, 1));
-        r.lines.push(`${CHESTS[drop].name} found — open it in the Armory vault`);
+        r.lines.push(t("{name} found — open it in the Armory vault", { name: CHESTS[drop].name }));
       }
     }
     update((h) =>
@@ -318,7 +318,7 @@ export function Game() {
       update((h) => {
         h.voidCrystals = (h.voidCrystals ?? 0) + BOSS_CRYSTALS;
       });
-      r.lines.push(`+${BOSS_CRYSTALS} Void Crystal`);
+      r.lines.push(t("+{n} Void Crystal", { n: BOSS_CRYSTALS }));
     }
     // Battle Essence feeds the Enlightenment track (unlocked at level 20); Soul Shards are a chance drop.
     if (won && enlightenmentUnlocked(getState().hero ?? { level: 0 })) {
@@ -329,7 +329,7 @@ export function Game() {
       update((h) => {
         h.battleEssence = (h.battleEssence ?? 0) + essence;
       });
-      r.lines.push(`+${essence} Battle Essence`);
+      r.lines.push(t("+{n} Battle Essence", { n: essence }));
     }
     if (won) {
       const shards = rollSoulShards(!!battle.right.boss);
@@ -337,7 +337,7 @@ export function Game() {
         update((h) => {
           h.soulShards = (h.soulShards ?? 0) + shards;
         });
-        r.lines.push(`+${shards} Soul Shard${shards > 1 ? "s" : ""} ✦`);
+        r.lines.push(t("+{n} Soul Shards ✦", { n: shards }));
       }
     }
     // Won fights sometimes leave an enchantment stone behind: bosses always, elites often (see enchant.ts).
@@ -346,7 +346,7 @@ export function Game() {
       const stone = rollStoneDrop((live?.level ?? 1) + (live?.paragon ?? 0), !!battle.right.boss);
       if (stone) {
         update((h) => addStones(h, stone.level, stone.n));
-        r.lines.push(`+${stone.n} Lv ${stone.level} Enchantment Stone`);
+        r.lines.push(t("+{n} Lv {level} Enchantment Stone", { n: stone.n, level: stone.level }));
       }
     }
     // A won fight can very rarely leave a Fate Stone behind for the Forge's refinement (see fate.ts).
@@ -354,7 +354,7 @@ export function Game() {
       const fate = rollFateStone(!!battle.right.boss, !!battle.right.elite);
       if (fate > 0) {
         update((h) => addFateStones(h, fate));
-        r.lines.push(`+${fate} Fate Stone${fate > 1 ? "s" : ""}`);
+        r.lines.push(t("+{n} Fate Stones", { n: fate }));
       }
     }
     // A won dungeon run can leave a Stamina Potion behind — rare, but the only source (see stamina.ts).
@@ -362,7 +362,7 @@ export function Game() {
       const potions = rollStaminaPotion();
       if (potions > 0) {
         update((h) => addPotions(h, potions));
-        r.lines.push(`+${potions} Stamina Potion — +${POTION_STAMINA} stamina`);
+        r.lines.push(t("+{n} Stamina Potion — +{amount} stamina", { n: potions, amount: POTION_STAMINA }));
       }
     }
     setResult({ won, ...r });
@@ -374,8 +374,7 @@ export function Game() {
       {!authReady || !userId ? (
         <div className="flex h-full items-center justify-center gap-2 font-display text-lg">
           <Loader2 className="h-5 w-5 animate-spin" />
-          Loading…
-        </div>
+           {tr("Loading…")} </div>
       ) : !hero ? (
         <CharacterSelect />
       ) : (
@@ -465,7 +464,7 @@ export function Game() {
           )}
           <button
             onClick={() => setOpen("notes")}
-            title="Version 1.00 patch notes"
+            title={tr("Version 1.00 patch notes")}
             className="game-panel absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded px-2.5 py-1 font-display text-[11px] font-bold text-gold"
           >
             v{VERSION}
@@ -584,8 +583,7 @@ export function Game() {
                 setEntryError("");
               }}
             >
-              Acknowledge and close
-            </Button>
+               {tr("Acknowledge and close")} </Button>
           </div>
         </div>
       )}
@@ -595,7 +593,7 @@ export function Game() {
             <h2
               className={`font-display text-5xl font-black ${result.won ? "panel-title" : "text-blood"}`}
             >
-              {result.won ? "VICTORY" : "DEFEAT"}
+              {result.won ? tr("VICTORY") : tr("DEFEAT")}
             </h2>
             <div className="my-4 space-y-1 font-display text-lg">
               {result.lines.map((l) => (
@@ -610,8 +608,7 @@ export function Game() {
                 setBattle(null);
               }}
             >
-              Continue
-            </button>
+               {tr("Continue")} </button>
           </div>
         </div>
       )}
@@ -624,7 +621,7 @@ function UpdateNotes({ onClose }: { onClose: () => void }) {
   return (
     <Panel
       title={`Emberfall ${VERSION}`}
-      subtitle="Version 1.00 patch notes"
+      subtitle={tr("Version 1.00 patch notes")}
       art="quest"
       onClose={onClose}
     >
@@ -769,7 +766,7 @@ export function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
       >
         <img
           src={castle.url}
-          alt="Blood moon castle"
+          alt={tr("Blood moon castle")}
           className="absolute inset-0 h-full w-full select-none"
           draggable={false}
         />
@@ -851,19 +848,16 @@ function ComingSoon({
       <div className="py-10 text-center">
         {locked ? (
           <>
-            <p className="mb-2 font-display text-2xl text-gold">Locked</p>
+            <p className="mb-2 font-display text-2xl text-gold">{tr("Locked")}</p>
             <p className="text-muted-foreground">
-              Endless Conquest opens at character level {CONQUEST_LEVEL}. Keep clearing the Campaign
-              Gate to level up.
-            </p>
+               {tr("Endless Conquest opens at character level")} {CONQUEST_LEVEL}{tr(". Keep clearing the Campaign Gate to level up.")} </p>
           </>
         ) : (
           <>
-            <p className="mb-2 font-display text-2xl text-gold">Under construction</p>
+            <p className="mb-2 font-display text-2xl text-gold">{tr("Under construction")}</p>
             <p className="mx-auto max-w-md text-muted-foreground">{SOON_TEXT[id]}</p>
             <p className="mt-3 text-xs text-muted-foreground">
-              This building isn't playable yet — it's coming in a future update.
-            </p>
+               {tr("This building isn't playable yet — it's coming in a future update.")} </p>
           </>
         )}
       </div>

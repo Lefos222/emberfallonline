@@ -1,4 +1,4 @@
-import { itemName } from "./i18n";
+import { itemName , t} from "./i18n";
 import { useState } from "react";
 import {
   CLASSES,
@@ -38,17 +38,14 @@ export function GearCodex({ cls }: { cls: HeroClass }) {
   const pickedStats = picked ? itemStats(picked) : null;
 
   return (
-    <details className="slot mt-4 p-3" aria-label="Gear codex">
+    <details className="slot mt-4 p-3" aria-label={t("Gear codex")}>
       <summary className="cursor-pointer font-display text-sm text-gold">
-        Gear codex · every icon &amp; stat
-      </summary>
+         {t("Gear codex · every icon &amp; stat")} </summary>
       <p className="mt-1 text-[11px] text-muted-foreground">
-        {CLASSES[cls].name} · both painted gear updates are kept side by side. Pick an era, a rarity and any icon.
-        Synthesis sets keep their own separate sheet.
-      </p>
+        {CLASSES[cls].name}  {t("· both painted gear updates are kept side by side. Pick an era, a rarity and any icon. Synthesis sets keep their own separate sheet.")} </p>
 
       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-        <div className="flex gap-1" role="group" aria-label="Gear era">
+        <div className="flex gap-1" role="group" aria-label={t("Gear era")}>
           {GEAR_ERAS.map((era) => (
             <button key={era.name} type="button"
               className={`rounded px-2 py-1 font-bold ${band === era.band ? "rarity-5 text-gold" : "bg-secondary"}`}
@@ -57,10 +54,10 @@ export function GearCodex({ cls }: { cls: HeroClass }) {
           ))}
         </div>
         <select value={rarity} onChange={(e) => setRarity(Number(e.target.value))}
-          className="rounded bg-secondary px-2 py-1" aria-label="Codex rarity">
+          className="rounded bg-secondary px-2 py-1" aria-label={t("Codex rarity")}>
           {RARITIES.map((r, i) => <option key={r.name} value={i}>{r.name}</option>)}
         </select>
-        <span className="text-muted-foreground">Item level 30</span>
+        <span className="text-muted-foreground">{t("Item level 30")}</span>
       </div>
 
       <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -92,11 +89,10 @@ export function GearCodex({ cls }: { cls: HeroClass }) {
           <div>
             <div className="font-display text-sm text-gold">{itemName(picked.name)}</div>
             <div className="text-xs">
-              ATK +{pickedStats.atk} · DEF +{pickedStats.def} · HP +{pickedStats.hp} · CRIT +{pickedStats.crit}%
+               {t("ATK +")}{pickedStats.atk}  {t("· DEF +")}{pickedStats.def}  {t("· HP +")}{pickedStats.hp}  {t("· CRIT +")}{pickedStats.crit}%
             </div>
             <div className="text-[10px] text-muted-foreground">
-              {GEAR_ERAS.find((e) => e.band === band)?.note} · {RARITIES[rarity].name} · item level 30
-            </div>
+              {GEAR_ERAS.find((e) => e.band === band)?.note} · {RARITIES[rarity].name}  {t("· item level 30")} </div>
           </div>
         </div>
       )}

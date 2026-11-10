@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Lock, RefreshCw, Swords, Trophy } from "lucide-react";
@@ -54,11 +55,11 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
   if (!hero) return null;
   if (!userId) {
     return (
-      <Panel title="Blood Arena" subtitle="Challenge any hero on the ladder" art="goblet" onClose={onClose}>
+      <Panel title={t("Blood Arena")} subtitle={t("Challenge any hero on the ladder")} art="goblet" onClose={onClose}>
         <div className="py-10 text-center">
           <Lock className="mx-auto mb-3 h-12 w-12 text-gold" />
-          <p className="mb-4 text-muted-foreground">Sign in to fight real players</p>
-          <Link to="/auth" className="btn-gold inline-block px-6 py-2">Sign in</Link>
+          <p className="mb-4 text-muted-foreground">{t("Sign in to fight real players")}</p>
+          <Link to="/auth" className="btn-gold inline-block px-6 py-2">{t("Sign in")}</Link>
         </div>
       </Panel>
     );
@@ -90,36 +91,36 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
   const refillIn = waitLabel(arenaResetAt(hero) - Date.now());
 
   return (
-    <Panel title="Blood Arena" subtitle="Ladder, duels and ratings" art="goblet" onClose={onClose} wide>
+    <Panel title={t("Blood Arena")} subtitle={t("Ladder, duels and ratings")} art="goblet" onClose={onClose} wide>
       <div className="mb-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-display text-lg">
-        <span className="flex items-center gap-2"><Trophy className="h-6 w-6 text-r4" /> Rating <span className="text-3xl text-gold">{me?.arena_rating ?? 1000}</span></span>
-        {myRank > 0 && <span className="text-sm text-muted-foreground">Rank #{myRank} of {ladder.length}</span>}
+        <span className="flex items-center gap-2"><Trophy className="h-6 w-6 text-r4" />  {t("Rating")} <span className="text-3xl text-gold">{me?.arena_rating ?? 1000}</span></span>
+        {myRank > 0 && <span className="text-sm text-muted-foreground">{t("Rank #")}{myRank}  {t("of")} {ladder.length}</span>}
         <span className={`text-sm ${duelsLeft > 0 ? "text-muted-foreground" : "text-hp"}`}>
           {duelsLeft > 0
             ? `${duelsLeft}/${ARENA_PER_WINDOW} duels left${duelsLeft < ARENA_PER_WINDOW ? ` · refills in ${refillIn}` : ""}`
             : `No duels left — ${ARENA_PER_WINDOW} every 12h, back in ${refillIn}`}
         </span>
-        <button className="btn-blood px-3 py-1 text-sm" onClick={load} aria-label="Refresh arena"><RefreshCw className="inline h-4 w-4" /></button>
+        <button className="btn-blood px-3 py-1 text-sm" onClick={load} aria-label={t("Refresh arena")}><RefreshCw className="inline h-4 w-4" /></button>
       </div>
 
-      <GameTabs label="Arena" value={tab} onChange={setTab} tabs={[
+      <GameTabs label={t("Arena")} value={tab} onChange={setTab} tabs={[
         { id: "duels", name: `Duels (${opponents.length})` },
         { id: "ranks", name: "Leaderboard" },
       ]} />
 
       {tab === "duels" && (
         <div className="grid max-h-[60vh] gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {loading && <div className="col-span-full py-10 text-center text-muted-foreground">Seeking challengers…</div>}
-          {!loading && opponents.length === 0 && <div className="col-span-full py-10 text-center text-muted-foreground">No other heroes yet — invite friends!</div>}
+          {loading && <div className="col-span-full py-10 text-center text-muted-foreground">{t("Seeking challengers…")}</div>}
+          {!loading && opponents.length === 0 && <div className="col-span-full py-10 text-center text-muted-foreground">{t("No other heroes yet — invite friends!")}</div>}
           {opponents.map((o) => {
             const cls = asClass(o.hero_class);
             return (
               <div key={o.id} className="slot flex flex-col items-center p-2 text-center">
                 <CharacterModel cls={cls} gender={asGender(o.gender)} className="h-28" />
                 <div className="w-full truncate font-display">{o.name}</div>
-                <div className="text-xs text-muted-foreground">Lv {o.level} · {CLASSES[cls].name}</div>
+                <div className="text-xs text-muted-foreground">{t("Lv")} {o.level} · {CLASSES[cls].name}</div>
                 <div className="text-sm"><Trophy className="inline h-3 w-3 text-r4" /> {fmt(o.power)} · <span className="text-gold">{o.arena_rating}</span></div>
-                <button className="btn-gold mt-2 w-full py-1" onClick={() => fight(o)} disabled={duelsLeft < 1} title={duelsLeft > 0 ? "Challenge" : `No duels left — the pit reopens in ${refillIn}`}><Swords className="mr-1 inline h-4 w-4" />Challenge</button>
+                <button className="btn-gold mt-2 w-full py-1" onClick={() => fight(o)} disabled={duelsLeft < 1} title={duelsLeft > 0 ? "Challenge" : `No duels left — the pit reopens in ${refillIn}`}><Swords className="mr-1 inline h-4 w-4" />{t("Challenge")}</button>
               </div>
             );
           })}
@@ -129,8 +130,8 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
       {tab === "ranks" && (
         <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
           <div className="max-h-[58vh] overflow-y-auto">
-            <div className="mb-1 font-display text-gold">Realm ladder · every hero in the arena</div>
-            {ladder.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">{loading ? "Loading the ladder…" : "No heroes ranked yet"}</div>}
+            <div className="mb-1 font-display text-gold">{t("Realm ladder · every hero in the arena")}</div>
+            {ladder.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">{loading ? t("Loading the ladder…") : t("No heroes ranked yet")}</div>}
             {ladder.map((o, i) => {
               const cls = asClass(o.hero_class);
               const mine = o.id === heroId;
@@ -138,8 +139,8 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
                 <div key={o.id} className={`flex items-center justify-between border-b border-border/40 py-1 text-sm ${mine ? "text-gold" : ""}`}>
                   <span className="flex min-w-0 items-center gap-2">
                     <span className="w-7 shrink-0 text-right font-display">{i + 1}.</span>
-                    <span className="truncate">{o.name}{mine ? " (you)" : ""}</span>
-                    <span className="shrink-0 text-xs text-muted-foreground">Lv {o.level} · {CLASSES[cls].name}</span>
+                    <span className="truncate">{o.name}{mine ? ` ${t("(you)")}` : ""}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">{t("Lv")} {o.level} · {CLASSES[cls].name}</span>
                   </span>
                   <span className="shrink-0 tabular-nums">{o.arena_rating}</span>
                 </div>
@@ -147,15 +148,15 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
             })}
           </div>
           <div>
-            <div className="mb-1 font-display text-gold">Recent fights</div>
-            {history.length === 0 && <div className="text-sm text-muted-foreground">None yet</div>}
+            <div className="mb-1 font-display text-gold">{t("Recent fights")}</div>
+            {history.length === 0 && <div className="text-sm text-muted-foreground">{t("None yet")}</div>}
             {history.map((m) => {
               const mine = m.attacker_id === heroId;
               const won = mine ? m.attacker_won : !m.attacker_won;
               return (
                 <div key={m.id} className="flex justify-between text-sm">
                   <span>{mine ? `vs ${m.defender_name}` : `${m.attacker_name} attacked`}</span>
-                  <span className={won ? "text-r1" : "text-hp"}>{won ? "WIN" : "LOSS"}</span>
+                  <span className={won ? "text-r1" : "text-hp"}>{won ? t("WIN") : t("LOSS")}</span>
                 </div>
               );
             })}

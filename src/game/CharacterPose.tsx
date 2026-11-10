@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useEffect, useState } from 'react';
 import { Play, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,8 +23,8 @@ export function CharacterPose({ cls, gender, className = '', synth, look }: { cl
       {playing && <WeaponArc move={move} />}
     </div>
     <div className="absolute bottom-1 right-1 flex gap-1">
-      <Button variant="ghost" size="icon" className="bg-background/70" title="Change hero pose" aria-label="Change hero pose" aria-pressed={actionPose} onClick={() => setActionPose(p => !p)}><RefreshCw className="h-4 w-4" /></Button>
-      <Button variant="ghost" size="icon" className="bg-background/70" title="Preview class action" aria-label="Preview class action" onClick={() => { setReplay(n => n + 1); setPlaying(true); }}><Play className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" className="bg-background/70" title={t("Change hero pose")} aria-label={t("Change hero pose")} aria-pressed={actionPose} onClick={() => setActionPose(p => !p)}><RefreshCw className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" className="bg-background/70" title={t("Preview class action")} aria-label={t("Preview class action")} onClick={() => { setReplay(n => n + 1); setPlaying(true); }}><Play className="h-4 w-4" /></Button>
     </div>
   </div>;
 }

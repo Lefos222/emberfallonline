@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useState } from "react";
 import { Check, Hammer, Lock, Shield, Sparkles, X } from "lucide-react";
 import { CharacterModel } from "./CharacterModel";
@@ -44,10 +45,10 @@ function Header({ hero }: { hero: Hero }) {
       <div className="grid gap-1.5 sm:grid-cols-4">
         {cell("Character level", String(synthLevel(hero)), hero.paragon ? `Level ${hero.level} · Ascension ${hero.paragon}` : undefined)}
         {cell("Synthesis progress", `${prog.crafted}/${prog.total} pieces`, `${prog.complete} of ${SYNTH_TIER_COUNT} sets complete`)}
-        {cell("Current set", prog.unlocked ? tierName(prog.unlocked) : "Locked", prog.unlocked ? undefined : `The forge opens at level ${SYNTH_UNLOCK_LEVEL}`)}
-        {cell("Next set", next ? tierName(next) : "None — all unlocked", next ? `Requires level ${SYNTH_LEVELS[next - 1]}` : "The last milestone is reached")}
+        {cell("Current set", prog.unlocked ? tierName(prog.unlocked) : tr("Locked"), prog.unlocked ? undefined : `The forge opens at level ${SYNTH_UNLOCK_LEVEL}`)}
+        {cell("Next set", next ? tierName(next) : tr("None — all unlocked"), next ? `Requires level ${SYNTH_LEVELS[next - 1]}` : tr("The last milestone is reached"))}
       </div>
-      <div className="mt-1.5 h-1.5 overflow-hidden rounded bg-secondary" role="progressbar" aria-label="Synthesis progress" aria-valuemin={0} aria-valuemax={prog.total} aria-valuenow={prog.crafted}>
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded bg-secondary" role="progressbar" aria-label={tr("Synthesis progress")} aria-valuemin={0} aria-valuemax={prog.total} aria-valuenow={prog.crafted}>
         <div className="h-full bg-gold" style={{ width: `${(prog.crafted / prog.total) * 100}%` }} />
       </div>
     </div>
@@ -57,10 +58,10 @@ function Header({ hero }: { hero: Hero }) {
 /** The nine sets, locked ones included. */
 function TierRail({ hero, tier, onPick }: { hero: Hero; tier: number; onPick: (t: number) => void }) {
   return (
-    <div className="mb-3" role="group" aria-label="Synthesis sets">
+    <div className="mb-3" role="group" aria-label={tr("Synthesis sets")}>
       <div className="mb-1 flex items-baseline justify-between">
-        <span className="font-display text-sm text-gold">All nine sets</span>
-        <span className="text-[10px] text-muted-foreground">A new set every ten levels · level {SYNTH_LEVELS[0]} to {SYNTH_LEVELS[SYNTH_TIER_COUNT - 1]}</span>
+        <span className="font-display text-sm text-gold">{tr("All nine sets")}</span>
+        <span className="text-[10px] text-muted-foreground">{tr("A new set every ten levels · level")} {SYNTH_LEVELS[0]}  {tr("to")} {SYNTH_LEVELS[SYNTH_TIER_COUNT - 1]}</span>
       </div>
       <div className="grid grid-cols-3 gap-1 sm:grid-cols-5 lg:grid-cols-9">
         {tierOverview(hero).map((t) => (
@@ -71,10 +72,10 @@ function TierRail({ hero, tier, onPick }: { hero: Hero; tier: number; onPick: (t
             {t.unlocked ? (
               <>
                 <span className={t.crafted === t.total ? "text-r1" : "text-muted-foreground"}>{t.crafted}/{t.total}</span>
-                {t.worn > 0 && <span className="text-gold">worn</span>}
+                {t.worn > 0 && <span className="text-gold">{tr("worn")}</span>}
               </>
             ) : (
-              <><Lock className="h-3 w-3 text-muted-foreground" /><span className="text-muted-foreground">Lv {t.level}</span></>
+              <><Lock className="h-3 w-3 text-muted-foreground" /><span className="text-muted-foreground">{tr("Lv")} {t.level}</span></>
             )}
           </button>
         ))}
@@ -96,9 +97,9 @@ function PieceGrid({ hero, tier, slot, onPick }: { hero: Hero; tier: number; slo
             <PieceIcon slot={s} tier={tier} cls={hero.cls} />
             <span className="w-full truncate text-center font-bold">{label}</span>
             <span className={`w-full truncate text-center ${st.crafted ? "text-r1" : "text-muted-foreground"}`}>
-              {st.worn ? "Worn" : st.crafted ? "Forged" : st.locked ? `Lv ${SYNTH_LEVELS[tier - 1]}` : "Not forged"}
+              {st.worn ? tr("Worn") : st.crafted ? tr("Forged") : st.locked ? `Lv ${SYNTH_LEVELS[tier - 1]}` : tr("Not forged")}
             </span>
-            {st.worn && <span className="absolute right-0.5 top-0.5 rounded bg-gold px-0.5 text-[8px] font-bold uppercase text-background">On</span>}
+            {st.worn && <span className="absolute right-0.5 top-0.5 rounded bg-gold px-0.5 text-[8px] font-bold uppercase text-background">{tr("On")}</span>}
             {st.crafted && !st.worn && <Check className="absolute right-0.5 top-0.5 h-3 w-3 text-r1" aria-hidden="true" />}
           </button>
         );
@@ -120,7 +121,7 @@ function PieceDetail({ hero, tier, slot, act }: {
         <PieceIcon slot={slot} tier={tier} cls={hero.cls} size={28} />
         <div className="min-w-0">
           <div className="truncate font-display text-sm text-gold">{name}</div>
-          <div className="text-[10px] text-muted-foreground">Set {ROMAN[tier - 1]} · level {SYNTH_LEVELS[tier - 1]}{st.crafted ? " · forged" : ""}</div>
+          <div className="text-[10px] text-muted-foreground">{tr("Set")} {ROMAN[tier - 1]}  {tr("· level")} {SYNTH_LEVELS[tier - 1]}{st.crafted ? ` ${tr("· forged")}` : ""}</div>
         </div>
       </div>
       <div className="mb-2 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-r3">
@@ -143,19 +144,18 @@ function PieceDetail({ hero, tier, slot, act }: {
           <button className="btn-gold w-full py-2 text-sm" disabled={!!st.blocker}
             title={st.blocker ?? "Forge this piece"}
             onClick={() => act((h) => craftSynth(h, tier, slot), `Forged ${name}!`)}>
-            <Hammer className="mr-1 inline h-4 w-4" />{st.locked ? `Requires level ${SYNTH_LEVELS[tier - 1]}` : "Forge piece"}
+            <Hammer className="mr-1 inline h-4 w-4" />{st.locked ? `Requires level ${SYNTH_LEVELS[tier - 1]}` : tr("Forge piece")}
           </button>
           {st.blocker && <p className="mt-1 text-[10px] text-hp">{st.blocker}</p>}
-          {!st.blocker && <p className="mt-1 text-[10px] text-r1">Materials ready — the forge is hot.</p>}
+          {!st.blocker && <p className="mt-1 text-[10px] text-r1">{tr("Materials ready — the forge is hot.")}</p>}
         </>
       ) : st.worn ? (
         <button className="btn-ghost w-full py-2 text-sm" onClick={() => act((h) => { unwearSynth(h, slot); return null; }, `Removed ${name}`)}>
-          <X className="mr-1 inline h-4 w-4" />Remove from {SYNTH_SLOT_LABEL[slot].toLowerCase()}
+          <X className="mr-1 inline h-4 w-4" />{tr("Remove from")} {SYNTH_SLOT_LABEL[slot].toLowerCase()}
         </button>
       ) : (
         <button className="btn-gold w-full py-2 text-sm" onClick={() => act((h) => wearSynth(h, tier, slot), `${name} equipped`)}>
-          <Shield className="mr-1 inline h-4 w-4" />Equip piece
-        </button>
+          <Shield className="mr-1 inline h-4 w-4" />{tr("Equip piece")} </button>
       )}
     </div>
   );
@@ -173,7 +173,7 @@ function HeroPreview({ hero, gender }: { hero: Hero; gender: "male" | "female" }
         <div className="mt-1 text-center">
           <div className="font-display text-sm text-gold">{tier ? tierName(tier) : CLASSES[hero.cls].name}</div>
           <div className="text-[10px] text-muted-foreground">
-            {tier ? `${worn.length}/${SYNTH_SLOTS.length} pieces worn` : "Default appearance — no synthesis gear worn"}
+            {tier ? `${worn.length}/${SYNTH_SLOTS.length} pieces worn` : tr("Default appearance — no synthesis gear worn")}
           </div>
         </div>
       </div>
@@ -189,9 +189,7 @@ function HeroPreview({ hero, gender }: { hero: Hero; gender: "male" | "female" }
         })}
       </div>
       <div className="mt-2 border-t border-border/40 pt-1.5 text-[10px] text-muted-foreground">
-        {prog.worn}/{SYNTH_SLOTS.length} worn · {prog.crafted}/{prog.total} forged overall.
-        The appearance follows the highest set you actually wear, and it is saved with your character.
-      </div>
+        {prog.worn}/{SYNTH_SLOTS.length}  {tr("worn ·")} {prog.crafted}/{prog.total}  {tr("forged overall. The appearance follows the highest set you actually wear, and it is saved with your character.")} </div>
     </div>
   );
 }
@@ -201,13 +199,13 @@ function SetBill({ tier }: { tier: number }) {
   const cost = setCost(tier);
   return (
     <div className="slot px-2 py-1.5 text-[10px]">
-      <div className="mb-0.5 flex items-center gap-1 font-display text-xs text-gold"><Sparkles className="h-3 w-3" />Full set {ROMAN[tier - 1]} bill</div>
+      <div className="mb-0.5 flex items-center gap-1 font-display text-xs text-gold"><Sparkles className="h-3 w-3" />{tr("Full set")} {ROMAN[tier - 1]}  {tr("bill")}</div>
       <div className="grid grid-cols-2 gap-x-2">
         {(Object.entries(cost) as [Mat, number][]).map(([m, n]) => (
           <span key={m} className="flex items-center gap-1"><MatIcon mat={m} size={12} />{MATS[m].name} <b className="text-gold">{n}</b></span>
         ))}
       </div>
-      <p className="mt-1 text-muted-foreground">Eight pieces, roughly three weeks of steady grinding.</p>
+      <p className="mt-1 text-muted-foreground">{tr("Eight pieces, roughly three weeks of steady grinding.")}</p>
     </div>
   );
 }
@@ -238,7 +236,7 @@ export function SynthesisPanel({ hero, gender, act }: {
       {msg && <div className={`anim-pop mb-2 text-center font-display ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</div>}
       {!synthUnlocked(hero) && (
         <p className="mb-2 rounded border border-border/60 bg-secondary/40 px-2 py-1.5 text-center text-[11px] text-muted-foreground">
-          <Lock className="mr-0.5 inline h-3 w-3" />Synthesis opens at character level {SYNTH_UNLOCK_LEVEL}. The first set is forged at level {SYNTH_LEVELS[0]}.
+          <Lock className="mr-0.5 inline h-3 w-3" />{tr("Synthesis opens at character level")} {SYNTH_UNLOCK_LEVEL}{tr(". The first set is forged at level")} {SYNTH_LEVELS[0]}.
         </p>
       )}
       <div className="grid gap-3 lg:grid-cols-[220px_minmax(0,1fr)_240px]">
@@ -250,12 +248,12 @@ export function SynthesisPanel({ hero, gender, act }: {
           <div className="mb-1 flex flex-wrap items-baseline justify-between gap-1">
             <span className="font-display text-sm text-gold">{tierName(active)}</span>
             <span className="text-[10px] text-muted-foreground">
-              {locked ? <span className="text-hp"><Lock className="mr-0.5 inline h-3 w-3" />Unlocks at level {SYNTH_LEVELS[active - 1]}</span> : `${prog.crafted}/${prog.total} forged · ${prog.worn} worn`}
+              {locked ? <span className="text-hp"><Lock className="mr-0.5 inline h-3 w-3" />{tr("Unlocks at level")} {SYNTH_LEVELS[active - 1]}</span> : `${prog.crafted}/${prog.total} forged · ${prog.worn} worn`}
             </span>
           </div>
           <PieceGrid hero={hero} tier={active} slot={slot} onPick={(s) => { setSlot(s); setMsg(null); }} />
           {prog.crafted === SYNTH_SLOTS.length && (
-            <p className="mt-1.5 text-center text-[11px] text-r1"><Sparkles className="mr-1 inline h-3 w-3" />Set {ROMAN[active - 1]} complete — every piece forged.</p>
+            <p className="mt-1.5 text-center text-[11px] text-r1"><Sparkles className="mr-1 inline h-3 w-3" />{tr("Set")} {ROMAN[active - 1]}  {tr("complete — every piece forged.")}</p>
           )}
         </div>
         <div className="space-y-2">
@@ -264,8 +262,7 @@ export function SynthesisPanel({ hero, gender, act }: {
         </div>
       </div>
       <p className="mt-2 text-[10px] text-muted-foreground">
-        Materials come from the same grind the castle already runs: battles and bosses for ore, hide, essence and cores, elites and dungeons for sigils and crystals, and refining spare drops at the Forge. No synthesis piece can be bought.
-      </p>
+         {tr("Materials come from the same grind the castle already runs: battles and bosses for ore, hide, essence and cores, elites and dungeons for sigils and crystals, and refining spare drops at the Forge. No synthesis piece can be bought.")} </p>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { itemName } from "./i18n";
+import { itemName , t} from "./i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Bell, BellOff, Calendar, X } from "lucide-react";
@@ -177,32 +177,30 @@ export function EventCalendar({
 
   return (
     <Panel
-      title="World Event Calendar"
-      subtitle="Windows that open on the world clock"
+      title={t("World Event Calendar")}
+      subtitle={t("Windows that open on the world clock")}
       art="calendar"
       onClose={onClose}
       wide
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Ember Fall runs on Greek time — every window opens on the same Greek hour for every
-          player, no matter what your own device clock says. Times below are shown in{" "}
+           {t("Ember Fall runs on Greek time — every window opens on the same Greek hour for every player, no matter what your own device clock says. Times below are shown in")}{" "}
           <span className="font-semibold text-foreground">
-            {tz === "local" ? zoneLabel(now) : tz === GAME_TZ ? "Greek time" : tz}
+            {tz === "local" ? zoneLabel(now) : tz === GAME_TZ ? t("Greek time") : tz}
           </span>
           .
         </p>
         <label className="flex items-center gap-2 text-sm">
-          Show times in
-          <select
+           {t("Show times in")} <select
             className="rounded border border-border bg-background p-2"
             value={tz}
             onChange={(e) => setTz(e.target.value)}
-            aria-label="Time zone"
+            aria-label={t("Time zone")}
           >
             {TZ_CHOICES.map((z) => (
               <option key={z} value={z}>
-                {z === "local" ? "My zone" : z === GAME_TZ ? "Greek time (server)" : z}
+                {z === "local" ? t("My zone") : z === GAME_TZ ? t("Greek time (server)") : z}
               </option>
             ))}
           </select>
@@ -218,7 +216,7 @@ export function EventCalendar({
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Dismiss reminder"
+            aria-label={t("Dismiss reminder")}
             onClick={() => setBanner(null)}
           >
             <X />
@@ -254,8 +252,7 @@ export function EventCalendar({
                     <div>
                       <p className="font-display text-gold">{encounter.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        Level {encounter.level} · {fmt(encounter.hp)} HP
-                      </p>
+                         {t("Level")} {encounter.level} · {fmt(encounter.hp)}  {t("HP")} </p>
                     </div>
                   </div>
                   <h3 className="font-display text-lg font-bold">
@@ -265,23 +262,19 @@ export function EventCalendar({
                     </span>
                     {ev.vipOnly && (
                       <span className="ml-2 rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gold">
-                        VIP only
-                      </span>
+                         {t("VIP only")} </span>
                     )}
                   </h3>
                   <p className="text-sm text-muted-foreground">{ev.blurb}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Reward: {ev.reward}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{t("Reward:")} {ev.reward}</p>
                   {ev.vipOnly && vipLevel < 1 && (
                     <p className="mt-1 text-xs font-semibold text-gold">
-                      VIP members only — one-month memberships are in the Premium Shop.
-                    </p>
+                       {t("VIP members only — one-month memberships are in the Premium Shop.")} </p>
                   )}
                   {isBossEvent(ev) && (
                     <div className="mt-2 max-w-xs">
                       <p className="text-xs font-semibold text-gold">
-                        Event progress {bossKills}/{EVENT_BOSS_KILLS_REQUIRED} — the full purse is
-                        paid on the {EVENT_BOSS_KILLS_REQUIRED}rd win
-                      </p>
+                         {t("Event progress")} {bossKills}/{EVENT_BOSS_KILLS_REQUIRED}  {t("— the full purse is paid on the")} {EVENT_BOSS_KILLS_REQUIRED}{t("rd win")} </p>
                       <progress
                         className="mt-1 h-2 w-full accent-primary"
                         max={EVENT_BOSS_KILLS_REQUIRED}
@@ -300,7 +293,7 @@ export function EventCalendar({
                     {countdown(s.msLeft)}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {s.state === "live" ? "live now · ends" : "opens"} {timeIn(at, tz)}
+                    {s.state === "live" ? t("live now · ends") : t("opens")} {timeIn(at, tz)}
                   </p>
                 </div>
               </div>
@@ -312,12 +305,12 @@ export function EventCalendar({
                   onClick={() => void join(ev)}
                 >
                   {busy
-                    ? "Confirming…"
+                    ? t("Confirming…")
                     : ev.vipOnly && vipLevel < 1
-                      ? "VIP members only"
+                      ? t("VIP members only")
                       : s.state === "live"
-                        ? "Join event"
-                        : "Opens later"}
+                        ? t("Join event")
+                        : t("Opens later")}
                 </Button>
                 <Button
                   size="sm"
@@ -326,10 +319,10 @@ export function EventCalendar({
                   onClick={() => toggle(ev)}
                 >
                   {remind[ev.id] ? <Bell /> : <BellOff />}
-                  {remind[ev.id] ? "Reminder on" : "Remind me"}
+                  {remind[ev.id] ? t("Reminder on") : t("Remind me")}
                 </Button>
                 <span className="ml-auto text-xs text-muted-foreground">
-                  <Calendar /> repeats every{" "}
+                  <Calendar />  {t("repeats every")}{" "}
                   {ev.everyMs >= 24 * 3_600_000
                     ? `${Math.round(ev.everyMs / (24 * 3_600_000))} days`
                     : `${Math.round(ev.everyMs / 3_600_000)} hours`}

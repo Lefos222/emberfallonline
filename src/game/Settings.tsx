@@ -1,7 +1,7 @@
 import { Volume2, VolumeX } from "lucide-react";
 import { SOUNDTRACKS, type AudioSettings } from "./audio";
 import { Panel } from "./ui";
-import { useT } from "./i18n";
+import { useT , t} from "./i18n";
 import { LanguagePicker } from "./LanguagePicker";
 
 /** Game settings: the music volume and the soundtrack the game plays. */
@@ -17,7 +17,7 @@ export function SettingsPanel({
   const t = useT();
   const percent = Math.round(settings.volume * 100);
   return (
-    <Panel title="Settings" subtitle="Music and sound" onClose={onClose}>
+    <Panel title={t("Settings")} subtitle={t("Music and sound")} onClose={onClose}>
       {/* The player picks their language by hand; it is remembered on this device. */}
       <section className="slot mb-4 p-3">
         <h3 className="mb-2 font-display text-sm text-gold">{t("Language")}</h3>

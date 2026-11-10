@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { Swords } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EXPEDITIONS, expeditionFoe } from './building-content';
@@ -30,8 +31,8 @@ export function Expeditions({onClose,start}:{onClose:()=>void;start:StartBattle}
       });return {lines,loot};
     }});
   };
-  return <Panel title="Dungeon Gate · Expeditions" subtitle="Materials by the crate" art="goblet" onClose={onClose} wide><div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{EXPEDITIONS.map((e,i)=>{
+  return <Panel title={t("Dungeon Gate · Expeditions")} subtitle={t("Materials by the crate")} art="goblet" onClose={onClose} wide><div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{EXPEDITIONS.map((e,i)=>{
     const foe=expeditionFoe(hero,i);const unlocked=hero.level+hero.paragon>=e.level;
-    return <article key={e.id} className="slot flex flex-col gap-2 p-4"><Sprite rect={foe.sprite} className="mx-auto h-28 w-28"/><h3 className="font-display text-xl text-gold">{e.name}</h3><p className="text-sm text-muted-foreground">{e.desc}</p><p className="text-sm">{foe.name} · Lv {foe.level}</p><p className="text-xs text-muted-foreground">HP {fmt(foe.hp)} · ATK {fmt(foe.atk)} · DEF {fmt(foe.def)}</p><p className="text-sm"><MatIcon mat={e.material}/> +{e.quantity} {MATS[e.material].name}</p><Button className="mt-auto" disabled={!unlocked} onClick={()=>fight(i)}><Swords/>{unlocked?'Enter expedition':`Level ${e.level} required`}</Button></article>;
+    return <article key={e.id} className="slot flex flex-col gap-2 p-4"><Sprite rect={foe.sprite} className="mx-auto h-28 w-28"/><h3 className="font-display text-xl text-gold">{e.name}</h3><p className="text-sm text-muted-foreground">{e.desc}</p><p className="text-sm">{foe.name}  {t("· Lv")} {foe.level}</p><p className="text-xs text-muted-foreground">{t("HP")} {fmt(foe.hp)}  {t("· ATK")} {fmt(foe.atk)}  {t("· DEF")} {fmt(foe.def)}</p><p className="text-sm"><MatIcon mat={e.material}/> +{e.quantity} {MATS[e.material].name}</p><Button className="mt-auto" disabled={!unlocked} onClick={()=>fight(i)}><Swords/>{unlocked?t("Enter expedition"):`Level ${e.level} required`}</Button></article>;
   })}</div></Panel>;
 }

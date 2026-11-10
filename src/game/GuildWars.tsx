@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useEffect, useState } from "react";
 import { Check, Clock, Flag, RefreshCw, ScrollText, Shield, Swords, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -265,18 +266,14 @@ export function GuildWars({
         <div>
           <h4 className="flex items-center gap-2 font-display text-xl text-gold">
             <Flag className="h-5 w-5" />
-            Guild Wars
-          </h4>
+             {tr("Guild Wars")} </h4>
           <p className="text-xs text-muted-foreground">
-            Declare war in a 5v5 – 100v100 bracket · the other guild accepts or declines · every
-            hero gets {WAR_ATTACKS} attacks and a won attack scores a point · most points in 24
-            hours wins.
-          </p>
+             {tr("Declare war in a 5v5 – 100v100 bracket · the other guild accepts or declines · every hero gets")} {WAR_ATTACKS}  {tr("attacks and a won attack scores a point · most points in 24 hours wins.")} </p>
         </div>
         <Button
           variant="outline"
           size="icon"
-          aria-label="Refresh guild war"
+          aria-label={tr("Refresh guild war")}
           disabled={busy}
           onClick={() => void load()}
         >
@@ -303,8 +300,7 @@ export function GuildWars({
         <div className="slot p-4">
           <div className="mb-2 flex items-center gap-2 font-display text-sm text-gold">
             <ScrollText className="h-4 w-4" />
-            Challenges
-          </div>
+             {tr("Challenges")} </div>
           <div className="space-y-1.5">
             {incoming.map((c) => (
               <div
@@ -313,13 +309,10 @@ export function GuildWars({
               >
                 <span className="min-w-0">
                   <span className="block truncate">
-                    <b className="text-gold">{c.guild?.name ?? "A guild"}</b> challenges you to a{" "}
-                    <b>{warBracket(c.size)}</b> war
-                  </span>
+                    <b className="text-gold">{c.guild?.name ?? "A guild"}</b>  {tr("challenges you to a")}{" "}
+                    <b>{warBracket(c.size)}</b>  {tr("war")} </span>
                   <span className="block text-[11px] text-muted-foreground">
-                    Expires in {waitLabel(new Date(c.expires_at).getTime() - Date.now())} · leader
-                    or officer answers
-                  </span>
+                     {tr("Expires in")} {waitLabel(new Date(c.expires_at).getTime() - Date.now())}  {tr("· leader or officer answers")} </span>
                 </span>
                 {canManage ? (
                   <span className="flex shrink-0 items-center gap-1">
@@ -330,8 +323,7 @@ export function GuildWars({
                       onClick={() => void answer(c, true)}
                     >
                       <Check className="mr-1 h-3.5 w-3.5" />
-                      Accept
-                    </Button>
+                       {tr("Accept")} </Button>
                     <Button
                       size="sm"
                       variant="ghost"
@@ -339,13 +331,11 @@ export function GuildWars({
                       onClick={() => void answer(c, false)}
                     >
                       <X className="mr-1 h-3.5 w-3.5" />
-                      Decline
-                    </Button>
+                       {tr("Decline")} </Button>
                   </span>
                 ) : (
                   <span className="text-xs text-muted-foreground">
-                    Waiting for a leader or officer
-                  </span>
+                     {tr("Waiting for a leader or officer")} </span>
                 )}
               </div>
             ))}
@@ -356,11 +346,9 @@ export function GuildWars({
               >
                 <span className="min-w-0">
                   <span className="block truncate">
-                    Waiting on <b className="text-gold">{c.guild?.name ?? "a guild"}</b> to answer
-                    your <b>{warBracket(c.size)}</b> challenge
-                  </span>
+                     {tr("Waiting on")} <b className="text-gold">{c.guild?.name ?? "a guild"}</b>  {tr("to answer your")} <b>{warBracket(c.size)}</b>  {tr("challenge")} </span>
                   <span className="block text-[11px] text-muted-foreground">
-                    Expires in {waitLabel(new Date(c.expires_at).getTime() - Date.now())}
+                     {tr("Expires in")} {waitLabel(new Date(c.expires_at).getTime() - Date.now())}
                   </span>
                 </span>
                 {canManage && (
@@ -370,8 +358,7 @@ export function GuildWars({
                     disabled={busy}
                     onClick={() => void withdraw(c)}
                   >
-                    Withdraw
-                  </Button>
+                     {tr("Withdraw")} </Button>
                 )}
               </div>
             ))}
@@ -391,27 +378,26 @@ export function GuildWars({
             </div>
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3.5 w-3.5" />
-              War ends in <b className="text-foreground">{waitLabel(remaining)}</b>
+               {tr("War ends in")} <b className="text-foreground">{waitLabel(remaining)}</b>
             </span>
           </div>
 
           <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
             <div>
               <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                Your guild
-              </div>
+                 {tr("Your guild")} </div>
               <div className="font-display text-4xl text-gold">{myScore}</div>
             </div>
             <span className="font-display text-lg text-muted-foreground">:</span>
             <div>
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">They</div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">{tr("They")}</div>
               <div className="font-display text-4xl text-blood">{theirScore}</div>
             </div>
           </div>
           <div
             className="bar-track mt-2 h-2.5"
             role="progressbar"
-            aria-label="War score"
+            aria-label={tr("War score")}
             aria-valuemin={0}
             aria-valuemax={Math.max(1, myScore + theirScore)}
             aria-valuenow={myScore}
@@ -426,30 +412,26 @@ export function GuildWars({
 
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded border border-border/60 px-2.5 py-2 text-sm">
             <span>
-              Your attacks this war:{" "}
+               {tr("Your attacks this war:")}{" "}
               <b className="text-gold">
-                {myAttacksLeft} of {WAR_ATTACKS} left
-              </b>
+                {myAttacksLeft}  {tr("of")} {WAR_ATTACKS}  {tr("left")} </b>
             </span>
             <span className="text-[11px] text-muted-foreground">
-              A won attack scores 1 point · both teams are paid when the war ends
-            </span>
+               {tr("A won attack scores 1 point · both teams are paid when the war ends")} </span>
           </div>
 
           <div className="mt-4">
             <div className="mb-1 flex items-center justify-between gap-2 font-display text-sm">
               <span>
-                Enemy roster · {war.enemies?.length ?? 0}/{war.size}
+                 {tr("Enemy roster ·")} {war.enemies?.length ?? 0}/{war.size}
               </span>
               <span className="text-xs font-normal text-muted-foreground">
-                Attack any of them — each win is a point
-              </span>
+                 {tr("Attack any of them — each win is a point")} </span>
             </div>
             <div className="max-h-72 space-y-1.5 overflow-y-auto pr-1">
               {(war.enemies ?? []).length === 0 && (
                 <p className="text-xs text-muted-foreground">
-                  The enemy guild has no fighters on this war's roster.
-                </p>
+                   {tr("The enemy guild has no fighters on this war's roster.")} </p>
               )}
               {(war.enemies ?? []).map((e) => (
                 <div
@@ -459,8 +441,7 @@ export function GuildWars({
                   <span className="min-w-0">
                     <span className="block truncate font-display">{e.name}</span>
                     <span className="block text-[11px] text-muted-foreground">
-                      Lv {e.level} · {fmt(e.power)} power
-                      {e.attacks > 0 ? ` · you hit them ${e.attacks}×` : ""}
+                       {tr("Lv")} {e.level} · {fmt(e.power)}  {tr("power")} {e.attacks > 0 ? ` · you hit them ${e.attacks}×` : ""}
                     </span>
                   </span>
                   <Button
@@ -472,7 +453,7 @@ export function GuildWars({
                     onClick={() => void fight(e)}
                   >
                     <Swords className="mr-1 h-3.5 w-3.5" />
-                    {myAttacksLeft < 1 ? "Spent" : "Attack"}
+                    {myAttacksLeft < 1 ? tr("Spent") : tr("Attack")}
                   </Button>
                 </div>
               ))}
@@ -487,7 +468,7 @@ export function GuildWars({
                 className={`rounded border px-2 py-1.5 ${r === "win" ? "border-gold/50" : "border-border/60"}`}
               >
                 <b className={r === "win" ? "text-gold" : r === "loss" ? "text-hp" : "text-r4"}>
-                  {r === "win" ? "Victory" : r === "draw" ? "Draw" : "Defeat"}
+                  {r === "win" ? tr("Victory") : r === "draw" ? tr("Draw") : tr("Defeat")}
                 </b>
                 <span className="block text-muted-foreground">
                   {spoilsLine(war.size, r, level)}
@@ -500,15 +481,13 @@ export function GuildWars({
 
       {!war && !outgoing.length && (
         <div className="slot p-4 text-sm">
-          <div className="font-display text-gold">Declare a new war</div>
+          <div className="font-display text-gold">{tr("Declare a new war")}</div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Pick a bracket, then the guild you want to fight. Their leader or officer can accept or
-            decline; an accepted war runs for 24 hours and pays both sides.
-          </p>
+             {tr("Pick a bracket, then the guild you want to fight. Their leader or officer can accept or decline; an accepted war runs for 24 hours and pays both sides.")} </p>
           {canManage ? (
             <div className="mt-3 space-y-3">
               <div>
-                <div className="mb-1 text-xs font-bold text-muted-foreground">Bracket</div>
+                <div className="mb-1 text-xs font-bold text-muted-foreground">{tr("Bracket")}</div>
                 <div className="flex flex-wrap gap-1">
                   {WAR_SIZES.map((n) => (
                     <button
@@ -522,14 +501,13 @@ export function GuildWars({
                   ))}
                 </div>
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Each side fields its {size} strongest members · every hero gets {WAR_ATTACKS}{" "}
-                  attacks
-                </p>
+                   {tr("Each side fields its")} {size}  {tr("strongest members · every hero gets")} {WAR_ATTACKS}{" "}
+                   {tr("attacks")} </p>
               </div>
               <div>
-                <div className="mb-1 text-xs font-bold text-muted-foreground">Challenge</div>
+                <div className="mb-1 text-xs font-bold text-muted-foreground">{tr("Challenge")}</div>
                 {guilds.length === 0 && (
-                  <p className="text-xs text-muted-foreground">No other guilds to challenge yet.</p>
+                  <p className="text-xs text-muted-foreground">{tr("No other guilds to challenge yet.")}</p>
                 )}
                 <div className="grid gap-1.5 sm:grid-cols-2">
                   {guilds.map((g) => (
@@ -540,7 +518,7 @@ export function GuildWars({
                       <span className="min-w-0">
                         <span className="block truncate font-display">{g.name}</span>
                         <span className="block text-[10px] text-muted-foreground">
-                          Guild level {g.level}
+                           {tr("Guild level")} {g.level}
                         </span>
                       </span>
                       <Button
@@ -557,8 +535,7 @@ export function GuildWars({
                         }}
                       >
                         <Flag className="mr-1 h-3.5 w-3.5" />
-                        Challenge
-                      </Button>
+                         {tr("Challenge")} </Button>
                     </div>
                   ))}
                 </div>
@@ -566,8 +543,7 @@ export function GuildWars({
             </div>
           ) : (
             <p className="mt-2 text-xs text-muted-foreground">
-              Only the leader or an officer can declare a war.
-            </p>
+               {tr("Only the leader or an officer can declare a war.")} </p>
           )}
         </div>
       )}
@@ -575,10 +551,9 @@ export function GuildWars({
       <div className="slot p-4">
         <div className="mb-2 flex items-center gap-2 font-display text-sm text-gold">
           <Trophy className="h-4 w-4" />
-          War ledger
-        </div>
+           {tr("War ledger")} </div>
         {history.length === 0 && (
-          <p className="text-xs text-muted-foreground">No finished wars yet.</p>
+          <p className="text-xs text-muted-foreground">{tr("No finished wars yet.")}</p>
         )}
         <div className="space-y-1.5">
           {history.map((h) => (
@@ -588,13 +563,13 @@ export function GuildWars({
             >
               <span className="min-w-0">
                 <span className="block truncate">
-                  vs <b className="text-gold">{h.opponent ?? "a guild"}</b> · {warBracket(h.size)} ·{" "}
+                   {tr("vs")} <b className="text-gold">{h.opponent ?? "a guild"}</b> · {warBracket(h.size)} ·{" "}
                   <span
                     className={
                       h.result === "win" ? "text-r1" : h.result === "loss" ? "text-hp" : "text-r4"
                     }
                   >
-                    {h.result === "win" ? "VICTORY" : h.result === "loss" ? "DEFEAT" : "DRAW"}
+                    {h.result === "win" ? tr("VICTORY") : h.result === "loss" ? tr("DEFEAT") : tr("DRAW")}
                   </span>
                 </span>
                 <span className="block text-[11px] text-muted-foreground">
@@ -602,7 +577,7 @@ export function GuildWars({
                 </span>
               </span>
               {h.claimed ? (
-                <span className="text-xs text-muted-foreground">Spoils claimed</span>
+                <span className="text-xs text-muted-foreground">{tr("Spoils claimed")}</span>
               ) : (
                 <Button
                   size="sm"
@@ -612,8 +587,7 @@ export function GuildWars({
                   onClick={() => claim(h)}
                 >
                   <Trophy className="mr-1 h-3.5 w-3.5" />
-                  Claim spoils
-                </Button>
+                   {tr("Claim spoils")} </Button>
               )}
             </div>
           ))}

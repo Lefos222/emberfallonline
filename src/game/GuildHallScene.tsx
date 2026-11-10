@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { Map as MapIcon, Shield, Swords, ArrowUp, Coins, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import buildingsArt from "@/assets/guild-courtyard.jpg";
@@ -78,7 +79,7 @@ export function GuildHallScene({
         <div className="min-w-0 flex-1">
           <h3 className="truncate font-display text-2xl font-black text-gold">{name}</h3>
           <p className="truncate text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Level {level} · {members} {members === 1 ? "member" : "members"}
+             {t("Level")} {level} · {members} {members === 1 ? t("member") : t("members")}
             {power ? ` · ${Math.round(power).toLocaleString()} power` : ""}
             {role ? ` · ${role}` : ""}
           </p>
@@ -86,18 +87,18 @@ export function GuildHallScene({
         <Button variant="ghost" size="sm"
           className="shrink-0"
           aria-expanded={court}
-          title="Show or hide the painted courtyard"
+          title={t("Show or hide the painted courtyard")}
           onClick={onToggleCourt}
         >
-          <MapIcon className="mr-1 inline h-3.5 w-3.5" />{court ? "Hide map" : "Map"}
+          <MapIcon className="mr-1 inline h-3.5 w-3.5" />{court ? t("Hide map") : t("Map")}
         </Button>
       </header>
       {court && (
         <>
-          <div className="guild-hall-view" role="tablist" aria-label="Guild Hall buildings">
+          <div className="guild-hall-view" role="tablist" aria-label={t("Guild Hall buildings")}>
             <img
               src={buildingsArt}
-              alt="Guild courtyard with a merchant pavilion, crystal training tower, war room and grand headquarters"
+              alt={t("Guild courtyard with a merchant pavilion, crystal training tower, war room and grand headquarters")}
               className="guild-hall-art"
               width={1536} height={1024}
               draggable={false}

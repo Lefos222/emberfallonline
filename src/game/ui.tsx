@@ -6,7 +6,7 @@ import { GearIcon } from "./GearIcon";
 import { GemIcon } from "./MatIcon";
 import { gemName, gemStatText, parseGem, socketCount, sockets } from "./crafting";
 import { itemStats, itemScore, RARITIES, type Item } from "./data";
-import { itemName, useT } from "./i18n";
+import { itemName, useT , tr} from "./i18n";
 
 /** Every window wears the same painted crest in its header, so the castle's screens read as one game. */
 export function Panel({ title, subtitle, art, onClose, children, wide }: {
@@ -131,8 +131,8 @@ export function ItemCard({ item, compare, actions }: { item: Item; compare?: Ite
           <div className="font-display font-bold leading-tight" style={{ color: `var(--r${item.rarity})` }}>
             {itemName(item.name)} {item.enh > 0 && `+${item.enh}`}
           </div>
-          <div className="text-xs text-muted-foreground">{RARITIES[item.rarity].name} · {item.slot} · iLvl {item.ilvl}</div>
-          {delta !== null && <div className={`text-xs font-bold ${delta >= 0 ? "text-r1" : "text-hp"}`}>{delta >= 0 ? "▲ Upgrade" : "▼ Weaker"} ({delta >= 0 ? "+" : ""}{delta} power)</div>}
+          <div className="text-xs text-muted-foreground">{RARITIES[item.rarity].name} · {item.slot}  {tr("· iLvl")} {item.ilvl}</div>
+          {delta !== null && <div className={`text-xs font-bold ${delta >= 0 ? "text-r1" : "text-hp"}`}>{delta >= 0 ? tr("▲ Upgrade") : tr("▼ Weaker")} ({delta >= 0 ? "+" : ""}{delta}  {tr("power)")}</div>}
         </div>
       </div>
       <div className="mt-2 space-y-0.5">
@@ -144,7 +144,7 @@ export function ItemCard({ item, compare, actions }: { item: Item; compare?: Ite
       {gemKeys.length > 0 && (
         <div className="mt-2 border-t border-border/40 pt-2">
           <div className="mb-1 flex items-center justify-between text-xs">
-            <span className="flex items-center gap-1 font-display text-gold"><Gem className="h-3.5 w-3.5" />Socketed gems</span>
+            <span className="flex items-center gap-1 font-display text-gold"><Gem className="h-3.5 w-3.5" />{tr("Socketed gems")}</span>
             <span className="text-muted-foreground">{gemKeys.length}/{socketCount(item)}</span>
           </div>
           <ul className="space-y-0.5">

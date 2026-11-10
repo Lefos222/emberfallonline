@@ -1,4 +1,4 @@
-import { tName } from "./i18n";
+import { tName , t} from "./i18n";
 import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { scrollXp } from "./scrolls";
@@ -41,29 +41,27 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
 
   if (hero.level < ENDGAME_LEVEL) {
     return (
-      <Panel title="Dungeon Gate" subtitle="Boss challenges, elite hunts, expeditions and relics" art="star" onClose={onClose} wide>
+      <Panel title={t("Dungeon Gate")} subtitle={t("Boss challenges, elite hunts, expeditions and relics")} art="star" onClose={onClose} wide>
         <div className="grid gap-3 md:grid-cols-2">
           <div className="slot flex flex-col p-4 text-sm">
-            <div className="flex items-center gap-2 font-display text-gold"><Swords className="h-4 w-4" />Material expeditions</div>
-            <p className="mt-1 text-xs text-muted-foreground">Crates of forge materials from held-out sites — the steadiest way to feed the Forge while you level.</p>
-            {onExpeditions && <Button className="mt-auto w-full" onClick={onExpeditions}>Open expeditions</Button>}
+            <div className="flex items-center gap-2 font-display text-gold"><Swords className="h-4 w-4" />{t("Material expeditions")}</div>
+            <p className="mt-1 text-xs text-muted-foreground">{t("Crates of forge materials from held-out sites — the steadiest way to feed the Forge while you level.")}</p>
+            {onExpeditions && <Button className="mt-auto w-full" onClick={onExpeditions}>{t("Open expeditions")}</Button>}
           </div>
           <div className="slot flex flex-col p-4 text-sm">
-            <div className="flex items-center gap-2 font-display text-gold"><Sparkles className="h-4 w-4" />Relic Trials</div>
-            <p className="mt-1 text-xs text-muted-foreground">Fight your class's relic ranks for the Emberforged, Starweave and Verdant collections.</p>
-            {onRelics && <Button className="mt-auto w-full" variant="outline" onClick={onRelics}>Open relic trials</Button>}
+            <div className="flex items-center gap-2 font-display text-gold"><Sparkles className="h-4 w-4" />{t("Relic Trials")}</div>
+            <p className="mt-1 text-xs text-muted-foreground">{t("Fight your class's relic ranks for the Emberforged, Starweave and Verdant collections.")}</p>
+            {onRelics && <Button className="mt-auto w-full" variant="outline" onClick={onRelics}>{t("Open relic trials")}</Button>}
           </div>
         </div>
         <div className="slot mt-3 p-6 text-center">
           <Lock className="mx-auto mb-2 h-10 w-10 text-gold" />
-          <p className="font-display text-xl text-gold">Boss challenges open at level {ENDGAME_LEVEL}</p>
+          <p className="font-display text-xl text-gold">{t("Boss challenges open at level")} {ENDGAME_LEVEL}</p>
           <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-            You are level {hero.level} — {ENDGAME_LEVEL - hero.level} more to go. Keep clearing the Campaign Gate,
-            then come back for boss difficulties, elite hunts and the weekly objective.
-          </p>
+             {t("You are level")} {hero.level} — {ENDGAME_LEVEL - hero.level}  {t("more to go. Keep clearing the Campaign Gate, then come back for boss difficulties, elite hunts and the weekly objective.")} </p>
           <div className="mx-auto mt-3 max-w-sm">
             <Meter value={hero.level} max={ENDGAME_LEVEL} label={`Level ${hero.level} of ${ENDGAME_LEVEL}`} />
-            <div className="mt-1 text-[11px] text-muted-foreground">Level {hero.level} / {ENDGAME_LEVEL}</div>
+            <div className="mt-1 text-[11px] text-muted-foreground">{t("Level")} {hero.level} / {ENDGAME_LEVEL}</div>
           </div>
         </div>
       </Panel>
@@ -132,20 +130,20 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
   const defeated = BOSS_ORDER.filter((id) => cleared(hero, id) > 0).length;
 
   return (
-    <Panel title="Dungeon Gate" subtitle="Boss challenges, elite hunts, expeditions and relics" art="star" onClose={onClose} wide>
+    <Panel title={t("Dungeon Gate")} subtitle={t("Boss challenges, elite hunts, expeditions and relics")} art="star" onClose={onClose} wide>
       {/* The gate's status strip: one line each for stamina, the bosses down and this week's twist. */}
       <div className="mb-3 flex flex-wrap items-center gap-1.5 text-xs">
         <StaminaMeter hero={hero} cost={DUNGEON_STAMINA} unit="run" compact />
         <span className="slot px-2.5 py-1.5">
-          Bosses <b className="text-gold">{defeated}</b> / {BOSS_ORDER.length}
-          <span className="text-muted-foreground"> · up to D{MAX_DIFFICULTY}</span>
+           {t("Bosses")} <b className="text-gold">{defeated}</b> / {BOSS_ORDER.length}
+          <span className="text-muted-foreground">  {t("· up to D")}{MAX_DIFFICULTY}</span>
         </span>
         <span className="slot px-2.5 py-1.5" title={mod.desc}>
-          {mod.name} <b className="text-r1">rewards ×{mod.reward}</b>
+          {mod.name} <b className="text-r1">{t("rewards ×")}{mod.reward}</b>
         </span>
       </div>
 
-      <GameTabs label="Dungeon Gate" value={tab} onChange={setTab} tabs={[
+      <GameTabs label={t("Dungeon Gate")} value={tab} onChange={setTab} tabs={[
         { id: "bosses", name: "Boss challenges" },
         { id: "elite", name: "Elite hunt" },
         { id: "expeditions", name: "Expeditions" },
@@ -178,7 +176,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
                   <div className="flex items-baseline justify-between gap-1">
                     <span className="truncate font-display text-sm">{tName(TIER_BOSSES[id].name)}</span>
                     <span className="shrink-0 text-[10px] text-muted-foreground">
-                      {c ? <>Best D{c}{c >= MAX_DIFFICULTY && <Crown className="ml-0.5 inline h-3 w-3 text-gold" />}</> : "New"}
+                      {c ? <>{t("Best D")}{c}{c >= MAX_DIFFICULTY && <Crown className="ml-0.5 inline h-3 w-3 text-gold" />}</> : t("New")}
                     </span>
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-1" role="group" aria-label={`${tName(TIER_BOSSES[id].name)} difficulty`}>
@@ -193,10 +191,10 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
                     <Gold n={rw.gold} />
-                    <span className="text-xp">{fmt(rw.xp)} XP</span>
-                    {rw.bossCore ? <span>{rw.bossCore}× core</span> : null}
-                    <span className="text-r2">{["", "", "", "Epic", "Legendary", "Mythic"][rw.minRarity] ?? "Rare"}+ gear</span>
-                    <span>{DUNGEON_STAMINA} stamina · {fmt(foe.hp)} HP</span>
+                    <span className="text-xp">{fmt(rw.xp)}  {t("XP")}</span>
+                    {rw.bossCore ? <span>{rw.bossCore}{t("× core")}</span> : null}
+                    <span className="text-r2">{["", "", "", "Epic", "Legendary", "Mythic"][rw.minRarity] ?? "Rare"}{t("+ gear")}</span>
+                    <span>{DUNGEON_STAMINA}  {t("stamina ·")} {fmt(foe.hp)}  {t("HP")}</span>
                   </div>
                 </div>
                 <button className="btn-blood shrink-0 px-2 py-2 text-xs" disabled={!unlocked}
@@ -204,7 +202,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
                   onClick={() => fightBoss(i)}>
                   {unlocked
                     ? <><Skull className="mr-1 inline h-3.5 w-3.5" />D{d}</>
-                    : <><Lock className="mr-1 inline h-3.5 w-3.5" />Locked</>}
+                    : <><Lock className="mr-1 inline h-3.5 w-3.5" />{t("Locked")}</>}
                 </button>
               </div>
             );
@@ -218,30 +216,27 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
             <Sprite rect={elite.sprite} className="h-20 w-20 shrink-0" />
             <div className="min-w-0">
               <div className="font-display text-lg leading-tight">{elite.name}</div>
-              <div className="text-xs text-muted-foreground">Level {elite.level} · {fmt(foeRating(elite))} power</div>
+              <div className="text-xs text-muted-foreground">{t("Level")} {elite.level} · {fmt(foeRating(elite))}  {t("power")}</div>
               <div className="mt-1 flex items-center justify-center gap-2">
                 <DangerPill danger={eliteDanger} />
-                <span className="text-[11px] text-muted-foreground">you {fmt(power)}</span>
+                <span className="text-[11px] text-muted-foreground">{t("you")} {fmt(power)}</span>
               </div>
             </div>
           </div>
           <div className="slot flex flex-col p-3 text-sm">
             <p className="text-xs text-muted-foreground">
-              An elite scaled to your level — the best repeatable source of Soul Essence, with a
-              high chance of Rare+ gear. {DUNGEON_STAMINA} stamina per run, win or lose.
-            </p>
+               {t("An elite scaled to your level — the best repeatable source of Soul Essence, with a high chance of Rare+ gear.")} {DUNGEON_STAMINA}  {t("stamina per run, win or lose.")} </p>
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-              <span className="text-xp">{fmt(lvl * 60)} XP</span>
+              <span className="text-xp">{fmt(lvl * 60)}  {t("XP")}</span>
               <Gold n={lvl * 12} />
-              <span>+2 Soul Essence</span>
-              <span className="text-r2">Rare+ loot</span>
+              <span>{t("+2 Soul Essence")}</span>
+              <span className="text-r2">{t("Rare+ loot")}</span>
             </div>
             <div className="mt-auto pt-2">
               <Button className="w-full py-2" disabled={stamina < DUNGEON_STAMINA} onClick={fightElite}
                 title={stamina < DUNGEON_STAMINA ? "Out of stamina — it refills at Greek midnight" : "Hunt"}>
-                <Swords className="mr-1 inline h-4 w-4" />Hunt · {DUNGEON_STAMINA} stamina
-              </Button>
-              {stamina < DUNGEON_STAMINA && <p className="mt-2 text-center text-xs text-hp">No stamina left — drink a potion from the HUD or wait for the reset.</p>}
+                <Swords className="mr-1 inline h-4 w-4" />{t("Hunt ·")} {DUNGEON_STAMINA}  {t("stamina")} </Button>
+              {stamina < DUNGEON_STAMINA && <p className="mt-2 text-center text-xs text-hp">{t("No stamina left — drink a potion from the HUD or wait for the reset.")}</p>}
             </div>
           </div>
         </div>
@@ -251,15 +246,13 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
         <div className="slot flex flex-wrap items-center gap-3 p-3 text-sm">
           <Swords className="h-8 w-8 shrink-0 text-gold" />
           <div className="min-w-0 flex-1">
-            <div className="font-display text-gold">Material expeditions</div>
+            <div className="font-display text-gold">{t("Material expeditions")}</div>
             <p className="text-xs text-muted-foreground">
-              A crate of forge materials — ore, essence, starshards, fragments, sigils and boss
-              cores — in {DUNGEON_STAMINA} stamina, win or lose. Deeper sites open as you level.
-            </p>
+               {t("A crate of forge materials — ore, essence, starshards, fragments, sigils and boss cores — in")} {DUNGEON_STAMINA}  {t("stamina, win or lose. Deeper sites open as you level.")} </p>
           </div>
           {onExpeditions
-            ? <Button className="shrink-0" onClick={onExpeditions}><Swords className="mr-1 inline h-4 w-4" />Open expeditions</Button>
-            : <p className="shrink-0 text-xs text-muted-foreground">Open Expeditions from the castle.</p>}
+            ? <Button className="shrink-0" onClick={onExpeditions}><Swords className="mr-1 inline h-4 w-4" />{t("Open expeditions")}</Button>
+            : <p className="shrink-0 text-xs text-muted-foreground">{t("Open Expeditions from the castle.")}</p>}
         </div>
       )}
 
@@ -267,49 +260,46 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
         <div className="slot flex flex-wrap items-center gap-3 p-3 text-sm">
           <Sparkles className="h-8 w-8 shrink-0 text-gold" />
           <div className="min-w-0 flex-1">
-            <div className="font-display text-gold">Relic Trials</div>
+            <div className="font-display text-gold">{t("Relic Trials")}</div>
             <p className="text-xs text-muted-foreground">
-              The only source of the Emberforged, Starweave and Verdant collections. Every win
-              recovers a piece, and each piece levels with you — {DUNGEON_STAMINA} stamina per run.
-            </p>
+               {t("The only source of the Emberforged, Starweave and Verdant collections. Every win recovers a piece, and each piece levels with you —")} {DUNGEON_STAMINA}  {t("stamina per run.")} </p>
           </div>
           {onRelics
-            ? <Button className="shrink-0" onClick={onRelics}><Sparkles className="mr-1 inline h-4 w-4" />Open relic trials</Button>
-            : <p className="shrink-0 text-xs text-muted-foreground">Open Relic Trials from the castle.</p>}
+            ? <Button className="shrink-0" onClick={onRelics}><Sparkles className="mr-1 inline h-4 w-4" />{t("Open relic trials")}</Button>
+            : <p className="shrink-0 text-xs text-muted-foreground">{t("Open Relic Trials from the castle.")}</p>}
         </div>
       )}
 
       {tab === "weekly" && (
         <div className="grid gap-3 md:grid-cols-2">
           <div className="slot p-4 text-sm">
-            <div className="font-display text-gold">This week's modifier</div>
+            <div className="font-display text-gold">{t("This week's modifier")}</div>
             <div className="mt-1 text-lg">{mod.name}</div>
             <p className="text-xs text-muted-foreground">{mod.desc}</p>
-            <p className="mt-2 text-xs text-r1">All boss and elite rewards ×{mod.reward} this week.</p>
+            <p className="mt-2 text-xs text-r1">{t("All boss and elite rewards ×")}{mod.reward}  {t("this week.")}</p>
           </div>
           <div className="slot flex flex-col p-4 text-sm">
             <div className="flex items-center justify-between gap-2">
-              <div className="font-display text-gold">Weekly objective</div>
+              <div className="font-display text-gold">{t("Weekly objective")}</div>
               <Trophy className="h-4 w-4 text-r4" />
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">Defeat {WEEKLY_GOAL} challenge bosses this week · resets Monday 00:00 UTC.</p>
-            <Meter value={Math.min(weekly.kills, WEEKLY_GOAL)} max={WEEKLY_GOAL} label="Weekly objective" className="mt-2" />
-            <div className="mt-1 text-xs">{Math.min(weekly.kills, WEEKLY_GOAL)} / {WEEKLY_GOAL} bosses defeated</div>
+            <p className="mt-1 text-xs text-muted-foreground">{t("Defeat")} {WEEKLY_GOAL}  {t("challenge bosses this week · resets Monday 00:00 UTC.")}</p>
+            <Meter value={Math.min(weekly.kills, WEEKLY_GOAL)} max={WEEKLY_GOAL} label={t("Weekly objective")} className="mt-2" />
+            <div className="mt-1 text-xs">{Math.min(weekly.kills, WEEKLY_GOAL)} / {WEEKLY_GOAL}  {t("bosses defeated")}</div>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
               <Gold n={WEEKLY_REWARD.gold} />
-              <span>{WEEKLY_REWARD.starshard} Starshards</span>
-              <span>{WEEKLY_REWARD.bossCore} Boss Cores</span>
+              <span>{WEEKLY_REWARD.starshard}  {t("Starshards")}</span>
+              <span>{WEEKLY_REWARD.bossCore}  {t("Boss Cores")}</span>
             </div>
             <Button className="mt-auto w-full" disabled={!canClaimWeekly(hero)} onClick={claimWeekly}>
-              {weekly.claimed ? "Reward claimed" : canClaimWeekly(hero) ? "Claim weekly reward" : `Defeat ${WEEKLY_GOAL - weekly.kills} more`}
+              {weekly.claimed ? t("Reward claimed") : canClaimWeekly(hero) ? t("Claim weekly reward") : `Defeat ${WEEKLY_GOAL - weekly.kills} more`}
             </Button>
           </div>
         </div>
       )}
 
       <p className="mt-3 text-[11px] text-muted-foreground">
-        {DUNGEON_RUNS_PER_DAY} runs a day at full stamina · every run spends its stamina on entry, win or lose.
-      </p>
+        {DUNGEON_RUNS_PER_DAY}  {t("runs a day at full stamina · every run spends its stamina on entry, win or lose.")} </p>
     </Panel>
   );
 }

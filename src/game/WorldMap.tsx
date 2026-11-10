@@ -1,4 +1,4 @@
-import { tName } from "./i18n";
+import { tName , t} from "./i18n";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Castle,
@@ -368,7 +368,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-background/70 p-2 backdrop-blur-sm md:p-4">
       <div className="game-panel anim-pop relative flex h-full w-full flex-col overflow-hidden">
         <header className="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border px-3 py-2 md:px-6 md:py-3">
-          <h2 className="panel-title min-w-0 truncate text-xl font-bold md:text-3xl">The World Tree</h2>
+          <h2 className="panel-title min-w-0 truncate text-xl font-bold md:text-3xl">{t("The World Tree")}</h2>
 
           <div className="ml-auto flex flex-wrap items-center gap-1.5 text-[11px] md:gap-2 md:text-xs">
             {(Object.keys(RAID_LIMITS) as RaidKind[]).map((kind) => (
@@ -382,10 +382,10 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
             ))}
             <span className="slot flex items-center gap-1.5 px-2 py-1">
               <span className="h-2.5 w-2.5 rounded-full bg-gold" />
-              Castle raids: <b>{castleRaids}/{CASTLE_RAIDS_PER_DAY}</b>
+               {t("Castle raids:")} <b>{castleRaids}/{CASTLE_RAIDS_PER_DAY}</b>
             </span>
-            <span className="slot flex items-center gap-1.5 px-2 py-1" title="Banners planted by players">
-              <Flag className="h-3 w-3 text-gold" /> Banners: <b>{banners.length}</b>
+            <span className="slot flex items-center gap-1.5 px-2 py-1" title={t("Banners planted by players")}>
+              <Flag className="h-3 w-3 text-gold" />  {t("Banners:")} <b>{banners.length}</b>
             </span>
           </div>
 
@@ -396,7 +396,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
               aria-pressed={showBounties}
             >
               <ScrollText className="h-4 w-4" />
-              <span className="hidden sm:inline">Bounties{claimable > 0 ? ` · ${claimable}` : ""}</span>
+              <span className="hidden sm:inline">{t("Bounties")}{claimable > 0 ? ` · ${claimable}` : ""}</span>
               {claimable > 0 && (
                 <span className="rounded-full bg-gold px-1 text-[9px] font-bold text-background sm:hidden">
                   {claimable}
@@ -406,35 +406,34 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
             <button
               onClick={() => zoomAt(1 / 1.35, size.w / 2, size.h / 2)}
               className="slot flex h-8 w-8 items-center justify-center"
-              aria-label="Zoom out"
+              aria-label={t("Zoom out")}
             >
               <Minus className="h-4 w-4" />
             </button>
             <button
               onClick={() => zoomAt(1.35, size.w / 2, size.h / 2)}
               className="slot flex h-8 w-8 items-center justify-center"
-              aria-label="Zoom in"
+              aria-label={t("Zoom in")}
             >
               <Plus className="h-4 w-4" />
             </button>
             <button
               onClick={() => setCam(clampCamera({ x: WORLD_W / 2, y: WORLD_H / 2, z: fitZoom(size) }, size))}
               className="slot flex h-8 items-center gap-1 px-2 text-[11px]"
-              aria-label="Show the whole realm"
+              aria-label={t("Show the whole realm")}
             >
-              <Compass className="h-4 w-4" /> Realm
-            </button>
+              <Compass className="h-4 w-4" />  {t("Realm")} </button>
             <button
               onClick={() => setPlanting((p) => !p)}
               className={`flex h-8 items-center gap-1 px-2 text-[11px] ${planting ? "btn-gold" : "btn-ghost"}`}
               aria-pressed={planting}
             >
-              <Flag className="h-4 w-4" /> {castle ? "Move banner" : "Plant banner"}
+              <Flag className="h-4 w-4" /> {castle ? t("Move banner") : t("Plant banner")}
             </button>
             <button
               onClick={onClose}
               className="btn-blood ml-1 flex h-9 w-9 items-center justify-center"
-              aria-label="Close world map"
+              aria-label={t("Close world map")}
             >
               <X className="h-5 w-5" />
             </button>
@@ -454,8 +453,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                 setNote("");
               }}
             >
-              dismiss
-            </button>
+               {t("dismiss")} </button>
           </p>
         )}
 
@@ -620,7 +618,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                 <span
                   className="pointer-events-none absolute flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-background/60 bg-background/80 text-gold ring-2 ring-gold backdrop-blur-sm"
                   style={{ left: p.left, top: p.top }}
-                  title="Your castle"
+                  title={t("Your castle")}
                 >
                   <Crown className="h-5 w-5" />
                 </span>
@@ -634,24 +632,19 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
               onClick={(e) => e.stopPropagation()}
             >
               <p className="text-xs">
-                Your banner is not planted yet. Plant it anywhere in the realm — or on an abandoned
-                castle.
-              </p>
+                 {t("Your banner is not planted yet. Plant it anywhere in the realm — or on an abandoned castle.")} </p>
               <div className="mt-2 flex justify-center gap-2">
                 <button onClick={() => setPlanting(true)} className="btn-gold px-3 py-1 text-xs">
-                  Plant my banner
-                </button>
+                   {t("Plant my banner")} </button>
                 <button onClick={showRuin} className="btn-ghost px-3 py-1 text-xs">
-                  Nearest ruin
-                </button>
+                   {t("Nearest ruin")} </button>
               </div>
             </div>
           )}
 
           {planting && (
             <div className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded border border-gold/50 bg-background/90 px-3 py-1.5 text-center text-xs text-gold shadow">
-              Tap anywhere in the realm to raise your banner
-            </div>
+               {t("Tap anywhere in the realm to raise your banner")} </div>
           )}
 
           {showBounties && (
@@ -661,20 +654,19 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Bounty board</p>
-                  <h3 className="font-display text-xl text-gold">Today in the realm</h3>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("Bounty board")}</p>
+                  <h3 className="font-display text-xl text-gold">{t("Today in the realm")}</h3>
                 </div>
                 <button
                   onClick={() => setShowBounties(false)}
-                  aria-label="Dismiss bounties"
+                  aria-label={t("Dismiss bounties")}
                   className="btn-ghost flex h-7 w-7 items-center justify-center"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
               <p className="mt-1 text-[11px] text-muted-foreground">
-                Three bounties rotate every UTC day with the raid allowances.
-              </p>
+                 {t("Three bounties rotate every UTC day with the raid allowances.")} </p>
               {bounties.map((bounty) => {
                 const progress = bountyProgress(hero, bounty.kind);
                 const paid = ledger.claimed.includes(bounty.id);
@@ -683,7 +675,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                   <div key={bounty.id} className="mt-2 rounded border border-border/70 px-2 py-1.5">
                     <div className="flex items-baseline justify-between gap-2">
                       <p className="text-xs font-semibold">{bounty.title}</p>
-                      <p className="text-[11px] text-gold">+{bounty.gold.toLocaleString("en-GB")} gold</p>
+                      <p className="text-[11px] text-gold">+{bounty.gold.toLocaleString("en-GB")}  {t("gold")}</p>
                     </div>
                     <p className="text-[11px] text-muted-foreground">{bounty.blurb}</p>
                     <div className="mt-1 flex items-center gap-2">
@@ -691,15 +683,14 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                         {Math.min(progress, bounty.need)}/{bounty.need}
                       </span>
                       {paid ? (
-                        <span className="ml-auto text-[11px] text-muted-foreground">Paid</span>
+                        <span className="ml-auto text-[11px] text-muted-foreground">{t("Paid")}</span>
                       ) : (
                         <button
                           className="btn-gold ml-auto px-2 py-0.5 text-[11px]"
                           disabled={!ready}
                           onClick={() => claim(bounty)}
                         >
-                          Claim
-                        </button>
+                           {t("Claim")} </button>
                       )}
                     </div>
                   </div>
@@ -715,19 +706,19 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Player castle</p>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("Player castle")}</p>
                   <h3 className="truncate font-display text-xl text-gold">{tName(picked.name)}</h3>
                 </div>
                 <button
                   onClick={() => setPicked(null)}
-                  aria-label="Dismiss castle"
+                  aria-label={t("Dismiss castle")}
                   className="btn-ghost flex h-7 w-7 items-center justify-center"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Level {picked.level} · {regionAt(picked.x, picked.y).name}
+                 {t("Level")} {picked.level} · {regionAt(picked.x, picked.y).name}
               </p>
             </div>
           )}
@@ -746,7 +737,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                 </div>
                 <button
                   onClick={() => setSelected(null)}
-                  aria-label="Dismiss site"
+                  aria-label={t("Dismiss site")}
                   className="btn-ghost flex h-7 w-7 items-center justify-center"
                 >
                   <X className="h-4 w-4" />
@@ -754,12 +745,11 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
               </div>
               <p className="mt-1 text-xs text-muted-foreground">{selected.desc}</p>
               <p className="mt-1 text-xs">
-                Danger <b className="text-gold">Lv {Math.max(selected.level, heroLevel)}</b>
+                 {t("Danger")} <b className="text-gold">{t("Lv")} {Math.max(selected.level, heroLevel)}</b>
                 {selected.lord && (
                   <>
                     {" "}
-                    · {selected.lord.name} · {selected.lord.power.toLocaleString()} power
-                  </>
+                    · {selected.lord.name} · {selected.lord.power.toLocaleString()}  {t("power")} </>
                 )}
               </p>
 
@@ -767,25 +757,21 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                 {selected.kind === "cache" ? (
                   vaultClaimed(hero, selected.id) ? (
                     <p className="text-xs text-muted-foreground">
-                      The seal is broken — this vault stands empty for you.
-                    </p>
+                       {t("The seal is broken — this vault stands empty for you.")} </p>
                   ) : (
                     <button className="btn-gold w-full py-1.5" onClick={() => breakSeal(selected)}>
-                      Break the seal · one-time hoard
-                    </button>
+                       {t("Break the seal · one-time hoard")} </button>
                   )
                 ) : selected.kind === "landmark" ? (
                   <p className="text-xs text-muted-foreground">
-                    A painted wonder of the realm — no raid here, only the view.
-                  </p>
+                     {t("A painted wonder of the realm — no raid here, only the view.")} </p>
                 ) : selected.kind === "ruin" ? (
                   <div className="flex flex-wrap gap-2">
                     <button className="btn-gold flex-1 py-1.5" onClick={() => void plant(selected.x, selected.y)}>
-                      {castle ? "Move banner here" : "Plant banner here"}
+                      {castle ? t("Move banner here") : t("Plant banner here")}
                     </button>
                     <button className="btn-ghost px-3 py-1.5 text-xs" onClick={() => setPlanting(true)}>
-                      Pick another spot
-                    </button>
+                       {t("Pick another spot")} </button>
                   </div>
                 ) : selected.kind === "keep" ? (
                   <button
@@ -793,8 +779,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                     disabled={castleRaids <= 0 || goldLeft <= 0}
                     onClick={() => raid(selected)}
                   >
-                    Raid castle · {castleRaids}/{CASTLE_RAIDS_PER_DAY} left today
-                  </button>
+                     {t("Raid castle ·")} {castleRaids}/{CASTLE_RAIDS_PER_DAY}  {t("left today")} </button>
                 ) : (
                   <button
                     className="btn-gold w-full py-1.5"
@@ -803,7 +788,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                   >
                     {state
                       ? `Raid ${KIND_STYLE[selected.kind].label} · ${raidsLeft(state, selected.kind as RaidKind)} left today`
-                      : "Raid allowances offline"}
+                      : t("Raid allowances offline")}
                   </button>
                 )}
               </div>
@@ -812,11 +797,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
         </div>
 
         <p className="border-t border-border px-3 py-2 text-[11px] text-muted-foreground md:px-6">
-          {WORLD_SITES.length} places of interest stand on one bounded realm — mines, ore dungeons,
-          world bosses, rival castles, ruins, sealed vaults and painted wonders. Drag to travel, scroll
-          or pinch the buttons to zoom, take the day's bounties, and plant your own castle anywhere on
-          it. Banners are shared: every hero the realm holds can raise one.
-        </p>
+          {WORLD_SITES.length}  {t("places of interest stand on one bounded realm — mines, ore dungeons, world bosses, rival castles, ruins, sealed vaults and painted wonders. Drag to travel, scroll or pinch the buttons to zoom, take the day's bounties, and plant your own castle anywhere on it. Banners are shared: every hero the realm holds can raise one.")} </p>
       </div>
     </div>
   );

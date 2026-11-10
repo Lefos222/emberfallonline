@@ -1,4 +1,4 @@
-import { tName } from "./i18n";
+import { tName , t} from "./i18n";
 import { itemName } from "./i18n";
 import { useState } from "react";
 import { Lock, Swords } from "lucide-react";
@@ -64,7 +64,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
   const equipAll = () => update((h) => { equipBestRelics(h); });
 
   return (
-    <Panel title="Relic Trials" subtitle={`${set.name} · every win recovers a piece`} art="star" onClose={onClose} wide>
+    <Panel title={t("Relic Trials")} subtitle={`${set.name} · every win recovers a piece`} art="star" onClose={onClose} wide>
       <div className="relative mb-4 overflow-hidden rounded-lg border border-border">
         <div
           aria-hidden="true"
@@ -75,7 +75,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
         <div className="absolute inset-0 flex flex-col justify-center gap-0.5 p-4">
           <div className="font-display text-2xl text-gold md:text-3xl">{set.name}</div>
           <p className="max-w-lg text-xs text-muted-foreground md:text-sm">{set.blurb}</p>
-          <p className="text-xs">Recovered <b>{recovered}</b>/{set.pieces.length} · Worn <b>{worn}</b> · {tName(set.trial)}</p>
+          <p className="text-xs">{t("Recovered")} <b>{recovered}</b>/{set.pieces.length}  {t("· Worn")} <b>{worn}</b> · {tName(set.trial)}</p>
         </div>
       </div>
 
@@ -91,17 +91,17 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
               <div className="flex items-center gap-2">
                 <Sprite rect={set.boss.sprite} className="h-16 w-16 shrink-0" />
                 <div className="min-w-0">
-                  <div className="font-display text-lg leading-tight">Rank {label}</div>
+                  <div className="font-display text-lg leading-tight">{t("Rank")} {label}</div>
                   <div className="truncate text-xs text-muted-foreground">{set.boss.name}</div>
                   <div className="text-xs text-gold">
-                    {clears ? `Cleared ×${clears}` : unlocked ? "Not yet cleared" : `Level ${level} required`}
+                    {clears ? `Cleared ×${clears}` : unlocked ? t("Not yet cleared") : `Level ${level} required`}
                   </div>
                 </div>
               </div>
-              <div className="text-xs text-muted-foreground">HP {fmt(foe.hp)} · ATK {fmt(foe.atk)} · DEF {fmt(foe.def)}</div>
-              <div className="text-xs"><Gold n={rw.gold} /> · {fmt(rw.xp)} XP · {pool} possible relics</div>
+              <div className="text-xs text-muted-foreground">{t("HP")} {fmt(foe.hp)}  {t("· ATK")} {fmt(foe.atk)}  {t("· DEF")} {fmt(foe.def)}</div>
+              <div className="text-xs"><Gold n={rw.gold} /> · {fmt(rw.xp)}  {t("XP ·")} {pool}  {t("possible relics")}</div>
               <Button className="mt-auto" disabled={!unlocked} onClick={() => fight(rank)}>
-                {unlocked ? <><Swords />Begin Rank {label}</> : <><Lock />Level {level} required</>}
+                {unlocked ? <><Swords />{t("Begin Rank")} {label}</> : <><Lock />{t("Level")} {level}  {t("required")}</>}
               </Button>
             </article>
           );
@@ -112,19 +112,16 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
         <div className="mt-4">
           <ItemCard
             item={relicItem(sel, hero.cls, relicLevel(hero))}
-            actions={<Button variant="ghost" size="sm" onClick={() => setSel(null)}>Close</Button>}
+            actions={<Button variant="ghost" size="sm" onClick={() => setSel(null)}>{t("Close")}</Button>}
           />
           <p className="mt-1 text-xs text-muted-foreground">
-            {sel.blurb} · Recovered {relicFound(hero, sel.id)}× · Found at your current level.
-          </p>
+            {sel.blurb}  {t("· Recovered")} {relicFound(hero, sel.id)}{t("× · Found at your current level.")} </p>
         </div>
       )}
 
-      <h3 className="mt-5 font-display text-lg text-gold">Collection</h3>
+      <h3 className="mt-5 font-display text-lg text-gold">{t("Collection")}</h3>
       <p className="mb-2 text-xs text-muted-foreground">
-        Recovered pieces are ordinary gear: enhance them, socket gems and wear them. Rank I recovers the armour, II the
-        weapons and rings, III the talisman and the mythic pieces.
-      </p>
+         {t("Recovered pieces are ordinary gear: enhance them, socket gems and wear them. Rank I recovers the armour, II the weapons and rings, III the talisman and the mythic pieces.")} </p>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
         {set.pieces.map((piece) => {
           const owned = relicFound(hero, piece.id);
@@ -140,7 +137,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
               <span className="text-[10px]" style={{ color: `var(--r${piece.rarity})` }}>
                 {RARITIES[piece.rarity].name} · {RELIC_RANKS[piece.rank - 1]!.label}
               </span>
-              {!owned && <Lock className="h-3 w-3 text-muted-foreground" aria-label="Not recovered yet" />}
+              {!owned && <Lock className="h-3 w-3 text-muted-foreground" aria-label={t("Not recovered yet")} />}
             </button>
           );
         })}
@@ -148,24 +145,23 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         <div className="slot p-3 text-sm">
-          <div className="font-display text-gold">Set bonuses · {active}/8 worn</div>
+          <div className="font-display text-gold">{t("Set bonuses ·")} {active}{t("/8 worn")}</div>
           {SET_BONUSES.map((b) => (
-            <div key={b.pieces} className={active >= b.pieces ? "text-gold" : "text-muted-foreground"}>{b.pieces} pieces · {b.label}</div>
+            <div key={b.pieces} className={active >= b.pieces ? "text-gold" : "text-muted-foreground"}>{b.pieces}  {t("pieces ·")} {b.label}</div>
           ))}
           {signature && (
             <div className={active >= 6 ? "mt-1 text-gold" : "mt-1 text-muted-foreground"}>
-              6 pieces · {signature.label} <span className="opacity-70">(set signature)</span>
+               {t("6 pieces ·")} {signature.label} <span className="opacity-70">{t("(set signature)")}</span>
             </div>
           )}
         </div>
         <div className="slot flex flex-col justify-between gap-2 p-3 text-sm">
           <div>
-            <div className="font-display text-gold">Wardrobe</div>
+            <div className="font-display text-gold">{t("Wardrobe")}</div>
             <div className="text-muted-foreground">
-              {recovered}/{set.pieces.length} pieces recovered. The first recovery of each piece also banks 1 Insight.
-            </div>
+              {recovered}/{set.pieces.length}  {t("pieces recovered. The first recovery of each piece also banks 1 Insight.")} </div>
           </div>
-          <Button onClick={equipAll}>Equip best relics</Button>
+          <Button onClick={equipAll}>{t("Equip best relics")}</Button>
         </div>
       </div>
     </Panel>

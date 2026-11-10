@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useEffect, useRef, useState } from "react";
 import { Check, Clock, Copy, Loader2, MessageSquare, Search, Swords, UserPlus, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -304,10 +305,10 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
   };
 
   return (
-    <section className="game-panel anim-pop p-4" aria-label="Friends" data-testid="friends-panel">
+    <section className="game-panel anim-pop p-4" aria-label={t("Friends")} data-testid="friends-panel">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="panel-title">Friends</h2>
-        <div className="flex flex-wrap gap-1" role="tablist" aria-label="Friends sections">
+        <h2 className="panel-title">{t("Friends")}</h2>
+        <div className="flex flex-wrap gap-1" role="tablist" aria-label={t("Friends sections")}>
           <button
             type="button"
             role="tab"
@@ -315,7 +316,7 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
             className={`px-3 py-1 text-xs ${tab === "friends" ? "btn-gold" : "slot"}`}
             onClick={() => setTab("friends")}
           >
-            Friends ({friends.length})
+             {t("Friends (")}{friends.length})
           </button>
           <button
             type="button"
@@ -324,7 +325,7 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
             className={`relative px-3 py-1 text-xs ${tab === "requests" ? "btn-gold" : "slot"}`}
             onClick={() => setTab("requests")}
           >
-            Requests ({pending})
+             {t("Requests (")}{pending})
             {incoming.length > 0 && (
               <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-blood px-1 text-center text-[10px] font-bold text-foreground">
                 {incoming.length}
@@ -338,20 +339,18 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
             className={`px-3 py-1 text-xs ${tab === "find" ? "btn-gold" : "slot"}`}
             onClick={() => setTab("find")}
           >
-            Find heroes
-          </button>
+             {t("Find heroes")} </button>
         </div>
       </div>
 
       {!heroId ? (
-        <p className="text-sm text-muted-foreground">Select a character to manage friends.</p>
+        <p className="text-sm text-muted-foreground">{t("Select a character to manage friends.")}</p>
       ) : (
         <>
           {busy && (
             <p role="status" className="py-1 text-xs text-muted-foreground">
               <Loader2 className="mr-1 inline h-3 w-3 animate-spin" />
-              Syncing…
-            </p>
+               {t("Syncing…")} </p>
           )}
           {note && (
             <p role="status" className="py-2 text-sm text-gold">
@@ -369,47 +368,44 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <div className="slot p-2 text-center">
                   <div className="font-display text-xl text-gold">{friends.length}</div>
-                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Friends</div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t("Friends")}</div>
                 </div>
                 <div className="slot p-2 text-center">
                   <div className="font-display text-xl text-r1">{onlineCount}</div>
-                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Online now</div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t("Online now")}</div>
                 </div>
                 <div className="slot p-2 text-center">
                   <div className="font-display text-xl text-gold">{pending}</div>
-                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Pending requests</div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t("Pending requests")}</div>
                 </div>
                 <div className="slot p-2 text-center">
                   <div className="font-display text-xl text-blood">{unreadTotal}</div>
-                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Unread messages</div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t("Unread messages")}</div>
                 </div>
               </div>
               {hero && (
                 <div className="slot flex flex-wrap items-center gap-2 p-2">
                   <Users className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
                   <p className="min-w-0 flex-1 text-xs text-muted-foreground">
-                    Your hero name is <b className="text-gold">{hero.name}</b> — share it so friends can find you.
-                  </p>
+                     {t("Your hero name is")} <b className="text-gold">{hero.name}</b>  {t("— share it so friends can find you.")} </p>
                   <Button type="button" variant="outline" size="sm" onClick={() => void copyMyName()}>
-                    <Copy className="mr-1 h-3.5 w-3.5" />Copy name
-                  </Button>
+                    <Copy className="mr-1 h-3.5 w-3.5" />{t("Copy name")} </Button>
                   <Button type="button" size="sm" onClick={() => setTab("find")}>
-                    <UserPlus className="mr-1 h-3.5 w-3.5" />Add a friend
-                  </Button>
+                    <UserPlus className="mr-1 h-3.5 w-3.5" />{t("Add a friend")} </Button>
                 </div>
               )}
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs text-muted-foreground">
-                  {friends.length} friend{friends.length === 1 ? "" : "s"}
+                  {friends.length}  {t("friend")}{friends.length === 1 ? "" : "s"}
                   {friends.length > 0 && ` · ${onlineCount} online`}
                 </p>
                 {friends.length > 3 && (
                   <label className="relative flex-1 sm:max-w-48">
-                    <span className="sr-only">Filter friends</span>
+                    <span className="sr-only">{t("Filter friends")}</span>
                     <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                     <input
                       className="slot w-full py-1.5 pl-7 pr-2 text-sm outline-none"
-                      placeholder="Filter friends"
+                      placeholder={t("Filter friends")}
                       value={filter}
                       onChange={(e) => setFilter(e.target.value)}
                     />
@@ -437,8 +433,8 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                           {friend.name}
                         </span>
                         <span className="block text-sm text-muted-foreground">
-                          <span className="capitalize">{friend.hero_class}</span> · Level{" "}
-                          {friend.level} · BR {friend.power.toLocaleString()}
+                          <span className="capitalize">{friend.hero_class}</span>  {t("· Level")}{" "}
+                          {friend.level}  {t("· BR")} {friend.power.toLocaleString()}
                         </span>
                         <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
                           <span className="flex items-center gap-1">
@@ -446,7 +442,7 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                             {seen.label}
                           </span>
                           {friend.arena_rating > 0 && (
-                            <span className="flex items-center gap-1"><Swords className="h-3 w-3" aria-hidden="true" />Rating {friend.arena_rating.toLocaleString()}</span>
+                            <span className="flex items-center gap-1"><Swords className="h-3 w-3" aria-hidden="true" />{t("Rating")} {friend.arena_rating.toLocaleString()}</span>
                           )}
                           {myPower > 0 && (
                             <span className={gap >= 0 ? "text-hp" : "text-r1"}>
@@ -481,8 +477,7 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                         title={`Remove ${friend.name}`}
                         onClick={() => void mutate((id) => removeFriend(id, friend.id))}
                       >
-                        Remove
-                      </Button>
+                         {t("Remove")} </Button>
                     </li>
                   );
                 })}
@@ -490,27 +485,26 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
 
               {loaded && friends.length === 0 && (
                 <div className="py-6 text-center text-sm text-muted-foreground">
-                  <p>No friends yet.</p>
+                  <p>{t("No friends yet.")}</p>
                   <button
                     type="button"
                     className="mt-1 text-gold hover:underline"
                     onClick={() => setTab("find")}
                   >
-                    Find heroes to send your first request
-                  </button>
+                     {t("Find heroes to send your first request")} </button>
                 </div>
               )}
               {friends.length > 0 && visibleFriends.length === 0 && (
-                <p className="py-4 text-sm text-muted-foreground">No friend matches “{filter}”.</p>
+                <p className="py-4 text-sm text-muted-foreground">{t("No friend matches “")}{filter}”.</p>
               )}
             </div>
           )}
 
           {tab === "requests" && (
             <div className="space-y-4">
-              <section aria-label="Incoming requests">
+              <section aria-label={t("Incoming requests")}>
                 <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Incoming ({incoming.length})
+                   {t("Incoming (")}{incoming.length})
                 </h3>
                 <ul className="space-y-2">
                   {incoming.map((request) => (
@@ -518,9 +512,8 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                       <div className="min-w-0 flex-1 p-2">
                         <span className="block break-words text-gold">{request.name}</span>
                         <span className="block text-sm text-muted-foreground">
-                          <span className="capitalize">{request.hero_class}</span> · Level{" "}
-                          {request.level} · BR {request.power.toLocaleString()} · asks to be friends
-                        </span>
+                          <span className="capitalize">{request.hero_class}</span>  {t("· Level")}{" "}
+                          {request.level}  {t("· BR")} {request.power.toLocaleString()}  {t("· asks to be friends")} </span>
                       </div>
                       <Button
                         type="button"
@@ -534,8 +527,7 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                         }
                       >
                         <Check className="mr-1 h-4 w-4" />
-                        Accept
-                      </Button>
+                         {t("Accept")} </Button>
                       <Button
                         type="button"
                         variant="outline"
@@ -551,13 +543,13 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                   ))}
                 </ul>
                 {loaded && incoming.length === 0 && (
-                  <p className="py-2 text-sm text-muted-foreground">No incoming requests.</p>
+                  <p className="py-2 text-sm text-muted-foreground">{t("No incoming requests.")}</p>
                 )}
               </section>
 
-              <section aria-label="Sent requests">
+              <section aria-label={t("Sent requests")}>
                 <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Waiting for them ({sent.length})
+                   {t("Waiting for them (")}{sent.length})
                 </h3>
                 <ul className="space-y-2">
                   {sent.map((request) => (
@@ -565,9 +557,8 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                       <div className="min-w-0 flex-1 p-2">
                         <span className="block break-words text-gold">{request.name}</span>
                         <span className="block text-sm text-muted-foreground">
-                          <span className="capitalize">{request.hero_class}</span> · Level{" "}
-                          {request.level} — waiting for an answer
-                        </span>
+                          <span className="capitalize">{request.hero_class}</span>  {t("· Level")}{" "}
+                          {request.level}  {t("— waiting for an answer")} </span>
                       </div>
                       <Button
                         type="button"
@@ -581,15 +572,13 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                           )
                         }
                       >
-                        Withdraw
-                      </Button>
+                         {t("Withdraw")} </Button>
                     </li>
                   ))}
                 </ul>
                 {loaded && sent.length === 0 && (
                   <p className="py-2 text-sm text-muted-foreground">
-                    Nothing waiting — everyone answered.
-                  </p>
+                     {t("Nothing waiting — everyone answered.")} </p>
                 )}
               </section>
             </div>
@@ -598,11 +587,11 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
           {tab === "find" && (
             <div className="space-y-3">
               <label className="relative block">
-                <span className="sr-only">Search heroes by name</span>
+                <span className="sr-only">{t("Search heroes by name")}</span>
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   className="slot w-full py-2 pl-9 pr-3 outline-none"
-                  placeholder="Search heroes by name (2+ letters)"
+                  placeholder={t("Search heroes by name (2+ letters)")}
                   autoComplete="off"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -613,9 +602,7 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                 )}
               </label>
               <p className="text-xs text-muted-foreground">
-                Only heroes with a public profile appear here. Requests are answered in the Requests
-                tab — friends you both asked for connect instantly.
-              </p>
+                 {t("Only heroes with a public profile appear here. Requests are answered in the Requests tab — friends you both asked for connect instantly.")} </p>
 
               <ul className="space-y-2">
                 {results.map((hero) => {
@@ -636,15 +623,14 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                           {hero.name}
                         </span>
                         <span className="block text-sm text-muted-foreground">
-                          <span className="capitalize">{hero.hero_class}</span> · {hero.gender} ·
-                          Level {hero.level} · BR {hero.power.toLocaleString()}
+                          <span className="capitalize">{hero.hero_class}</span> · {hero.gender}  {t("· Level")} {hero.level}  {t("· BR")} {hero.power.toLocaleString()}
                         </span>
                         <span className="text-[11px] text-muted-foreground">{seen.label}</span>
                       </div>
                       {hero.relation === "friend" ? (
-                        <span className="px-2 text-xs text-r1">Friends</span>
+                        <span className="px-2 text-xs text-r1">{t("Friends")}</span>
                       ) : hero.relation === "sent" ? (
-                        <span className="px-2 text-xs text-muted-foreground">Requested</span>
+                        <span className="px-2 text-xs text-muted-foreground">{t("Requested")}</span>
                       ) : incomingRequest ? (
                         <Button
                           type="button"
@@ -653,8 +639,7 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                           onClick={() => void acceptFromSearch(hero)}
                         >
                           <Check className="mr-1 h-4 w-4" />
-                          Accept
-                        </Button>
+                           {t("Accept")} </Button>
                       ) : (
                         <Button
                           type="button"
@@ -663,8 +648,7 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
                           onClick={() => void addHero(hero)}
                         >
                           <UserPlus className="mr-1 h-4 w-4" />
-                          Add friend
-                        </Button>
+                           {t("Add friend")} </Button>
                       )}
                     </li>
                   );
@@ -673,13 +657,12 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
 
               {searched && !searching && results.length === 0 && query.trim().length >= 2 && (
                 <p className="py-4 text-center text-sm text-muted-foreground">
-                  No public hero matches “{query.trim()}”.
+                   {t("No public hero matches “")}{query.trim()}”.
                 </p>
               )}
               {query.trim().length > 0 && query.trim().length < 2 && (
                 <p className="py-4 text-center text-sm text-muted-foreground">
-                  Type at least two letters.
-                </p>
+                   {t("Type at least two letters.")} </p>
               )}
             </div>
           )}

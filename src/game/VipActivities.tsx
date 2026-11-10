@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { Crown, Gift, Lock, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -36,14 +37,13 @@ export function VipActivities() {
   };
 
   return (
-    <section aria-label="VIP-only activities" className="mt-4">
+    <section aria-label={t("VIP-only activities")} className="mt-4">
       <div className="mb-2 flex items-center gap-2">
         <Crown size={16} className="text-gold" />
-        <h3 className="font-display text-lg">VIP-only activities</h3>
+        <h3 className="font-display text-lg">{t("VIP-only activities")}</h3>
         {vip < 1 && (
           <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-            Members only
-          </span>
+             {t("Members only")} </span>
         )}
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -52,8 +52,7 @@ export function VipActivities() {
             <div className="flex items-start justify-between gap-2">
               <h4 className="font-display text-base">{def.name}</h4>
               <span className="shrink-0 rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-gold">
-                VIP
-              </span>
+                 {t("VIP")} </span>
             </div>
             <p className="text-xs text-muted-foreground">{def.desc}</p>
             <div
@@ -80,19 +79,19 @@ export function VipActivities() {
             >
               {locked ? <Lock /> : ready ? <Gift /> : <Sparkles />}
               {locked
-                ? "VIP members only"
+                ? t("VIP members only")
                 : claimed
-                  ? "Claimed today"
+                  ? t("Claimed today")
                   : ready
-                    ? "Claim reward"
-                    : "In progress"}
+                    ? t("Claim reward")
+                    : t("In progress")}
             </Button>
           </article>
         ))}
       </div>
       {receipt.length > 0 && (
         <p role="status" className="mt-2 break-words text-sm text-r1">
-          Received: {receipt.join(" · ")}
+           {t("Received:")} {receipt.join(" · ")}
         </p>
       )}
       {error && (

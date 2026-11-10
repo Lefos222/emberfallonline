@@ -11,7 +11,7 @@ import {
   createCharacter, deleteCharacter, lastCharacterId, loadCharacters, selectCharacter, useGame, type CharacterRow, type Gender,
 } from "./store";
 import { fmt } from "./ui";
-import { useT } from "./i18n";
+import { useT , t} from "./i18n";
 import { LanguagePicker } from "./LanguagePicker";
 
 export function Portrait({ cls, gender, className = "", synth, look }: { cls: HeroClass; gender: Gender; className?: string; synth?: number | null; look?: number | null }) {
@@ -54,7 +54,7 @@ export function CharacterSelect() {
             <button className="flex items-center gap-1 hover:text-gold" onClick={() => supabase.auth.signOut()}><LogOut className="h-4 w-4" />{t("Sign out")}</button>
           </div>
         </div>
-        <div className="mb-6 text-center"><p className="mb-2 font-display text-sm text-gold">EMBER FALL</p><h1 className="hero-selection-title font-display text-3xl font-black text-foreground md:text-5xl">{t("Select Your Hero")}</h1></div>
+        <div className="mb-6 text-center"><p className="mb-2 font-display text-sm text-gold">{t("EMBER FALL")}</p><h1 className="hero-selection-title font-display text-3xl font-black text-foreground md:text-5xl">{t("Select Your Hero")}</h1></div>
 
         {chars === null && <div className="flex items-center gap-2 py-20 font-display text-lg"><Loader2 className="h-5 w-5 animate-spin" />{t("Loading your characters…")}</div>}
         {charsError && (
@@ -77,7 +77,7 @@ export function CharacterSelect() {
                   <CharacterPose cls={c.hero_class} gender={c.gender} className="aspect-square w-full" />
                   <div className="mt-2 truncate text-center font-display text-lg">{c.name}</div>
                   <div className="text-center text-xs text-muted-foreground">{t(CLASSES[c.hero_class].name)} · {t(c.gender)}</div>
-                  <div className="text-center text-xs">{t("Lv {n}", { n: c.level })}{c.stats?.paragon ? ` · ${t("Asc")} ${c.stats.paragon}` : ""} · BR {fmt(c.power)}</div>
+                  <div className="text-center text-xs">{t("Lv {n}", { n: c.level })}{c.stats?.paragon ? ` · ${t("Asc")} ${c.stats.paragon}` : ""}  {t("· BR")} {fmt(c.power)}</div>
                   <div className="text-center text-[10px] text-muted-foreground">{t("Last played {date}", { date: new Date(c.last_played).toLocaleDateString() })}</div>
                   <div className="mt-2 flex gap-1">
                     <button className="btn-gold flex-1 py-1.5 text-sm" disabled={!!busy} onClick={() => enter(c.id)}>
