@@ -6,7 +6,7 @@
 -- members, every hero on a roster gets TWO attacks for the whole war, and a won attack scores one
 -- point. Most points when the 24 hours are up wins; both sides are paid, the winner more.
 --
--- Builds on 0026_guild_wars.sql (guild_wars, guild_war_attacks, guild_war_claims, _settle_guild_war).
+-- Builds on 0021_guild_wars.sql (guild_wars, guild_war_attacks, guild_war_claims, _settle_guild_war).
 
 -- ---------------------------------------------------------------- war shape
 
