@@ -95,6 +95,12 @@ export function Hud({
               {me?.title ? ` · ${me.title}` : ""}
             </div>
             <XpBar hero={hero} />
+            <div className="player-stats" aria-label={t("Combat stats")}>
+              <span title={t("Health")}>HP {fmt(s.hp)}</span>
+              <span title={t("Attack")}>ATK {fmt(s.atk)}</span>
+              <span title={t("Defense")}>DEF {fmt(s.def)}</span>
+              <span title={t("Crit")}>CRIT {Math.round(s.crit)}%</span>
+            </div>
           </div>
         </div>
         <div className="player-divider" />

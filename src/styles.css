@@ -234,8 +234,8 @@
   /* Top-left player card: a compact gilded plate with portrait, name, XP, currencies and stamina. */
   .player-card {
     position: relative;
-    width: clamp(16rem, 33vw, 23rem);
-    padding: 0.55rem 0.8rem 0.6rem 0.55rem;
+    width: clamp(13.5rem, 22vw, 18rem);
+    padding: 0.4rem 0.55rem 0.45rem 0.4rem;
     border: 1px solid oklch(0.72 0.12 78 / 0.85);
     border-radius: 0.6rem;
     background:
@@ -249,7 +249,7 @@
   .player-card::before { top: -2px; left: -2px; border-top: 2px solid; border-left: 2px solid; border-top-left-radius: 0.6rem; }
   .player-card::after { bottom: -2px; right: -2px; border-bottom: 2px solid; border-right: 2px solid; border-bottom-right-radius: 0.6rem; }
   .player-portrait {
-    position: relative; width: clamp(3.6rem, 6vw, 4.6rem); aspect-ratio: 1; flex-shrink: 0; overflow: hidden;
+    position: relative; width: clamp(2.9rem, 4.4vw, 3.6rem); aspect-ratio: 1; flex-shrink: 0; overflow: hidden;
     border-radius: 0.45rem; border: 2px solid oklch(0.78 0.13 80);
     background: radial-gradient(circle at 50% 30%, oklch(0.35 0.06 40), oklch(0.12 0.02 20));
     box-shadow: 0 0 0 2px oklch(0.12 0.02 20), 0 0 14px oklch(0.8 0.14 82 / 0.35);
@@ -285,7 +285,12 @@
     height: 1px; margin: 0.45rem 0 0.4rem;
     background: linear-gradient(90deg, transparent, oklch(0.8 0.13 80 / 0.55), transparent);
   }
-  .hud-stamina-bar { margin-top: 0.45rem; }
+  .hud-stamina-bar { margin-top: 0.3rem; }
+  .player-card .player-currencies { font-size: 10px; gap: 0.1rem 0.45rem; margin-top: 0.25rem; }
+  .player-card .player-divider { margin: 0.3rem 0 0.25rem; }
+  .player-stats { margin-top: 0.2rem; display: grid; grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 0.3rem;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted-foreground); }
+  .player-stats span { padding: 0 0.25rem; border-radius: 0.2rem; background: oklch(0.08 0.015 20 / 0.6); border: 1px solid oklch(0.55 0.09 70 / 0.3); }
 }
 
 @keyframes mythic-pulse { 50% { box-shadow: 0 0 28px var(--r5); } }
@@ -773,3 +778,16 @@ html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
 .proj-arrow::after, .proj-volley::after { content: ""; position: absolute; right: -8px; top: -5px; border: 7px solid transparent; border-left: 10px solid var(--foreground); border-right: 0; }
 .proj-volley { box-shadow: 0 -14px 0 color-mix(in oklab, var(--gold) 80%, transparent), 0 14px 0 color-mix(in oklab, var(--gold) 80%, transparent), 0 0 10px color-mix(in oklab, var(--gold) 70%, transparent); }
 .proj-wave { width: 54px; height: 120px; border-radius: 0 9999px 9999px 0; border-right: 6px solid var(--foreground); box-shadow: 10px 0 22px -4px color-mix(in oklab, var(--gold) 75%, transparent); animation-duration: .36s; }
+
+/* Class wind-up at the attacker: mage rune circle, archer bow flash, warrior ground shockwave. */
+.battle-charge { position: absolute; bottom: 30%; z-index: 29; pointer-events: none; border-radius: 9999px; }
+.charge-ltr { left: 12%; } .charge-rtl { right: 12%; }
+.charge-mage { width: 120px; height: 120px; border: 2px dashed var(--primary); box-shadow: 0 0 30px color-mix(in oklab, var(--primary) 60%, transparent), inset 0 0 20px color-mix(in oklab, var(--primary) 40%, transparent); animation: charge-spin .5s ease-out forwards; }
+.charge-archer { width: 90px; height: 90px; background: radial-gradient(circle, color-mix(in oklab, var(--gold) 70%, transparent), transparent 65%); animation: charge-flash .4s ease-out forwards; }
+.charge-warrior { bottom: 18%; width: 160px; height: 36px; border: 3px solid var(--gold); box-shadow: 0 0 24px color-mix(in oklab, var(--blood) 60%, transparent); animation: charge-quake .45s ease-out forwards; }
+@keyframes charge-spin { from { transform: rotate(0) scale(.4); opacity: 0; } 40% { opacity: 1; } to { transform: rotate(240deg) scale(1.15); opacity: 0; } }
+@keyframes charge-flash { 0% { transform: scale(.3); opacity: 0; } 30% { opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
+@keyframes charge-quake { 0% { transform: scaleX(.2); opacity: 1; } 100% { transform: scaleX(1.6); opacity: 0; } }
+.anim-hit-shake { animation: hit-shake .3s ease-in-out; }
+@keyframes hit-shake { 0%,100% { translate: 0 0; } 25% { translate: -6px 2px; } 50% { translate: 5px -2px; } 75% { translate: -3px 1px; } }
+.battle-shake { animation: hit-shake .28s ease-in-out; }

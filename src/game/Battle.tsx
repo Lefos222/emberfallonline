@@ -44,7 +44,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
   const [effects, setEffects] = useState<Record<string, string>>({});
   const [moves, setMoves] = useState<Record<string, Move>>({});
   // Presentation-only: the thrown spell, loosed arrow or sword wave that crosses the field.
-  const [proj, setProj] = useState<{ kind: string; dir: "ltr" | "rtl"; key: number } | null>(null);
+  const [proj, setProj] = useState<{ kind: string; dir: "ltr" | "rtl"; key: number; cls: string } | null>(null);
   const [fast, setFast] = useState(auto);
   const [autoOn, setAutoOn] = useState(auto);
   const [banner, setBanner] = useState<string | null>(null);
@@ -68,7 +68,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
     setAnim({ [actorId]: "anim-" + move + "#" + ++fid.current });
     setMoves((m) => ({ ...m, [actorId]: move }));
     const kind = projectileFor(move, effectFor(sk) ?? undefined);
-    if (kind && a) setProj({ kind, dir: a.side === "hero" ? "ltr" : "rtl", key: ++fid.current });
+    if (kind && a) setProj({ kind, dir: a.side === "hero" ? "ltr" : "rtl", key: ++fid.current, cls: classOf(a.cls, move) });
     await wait(kind ? 420 : 280);
     setProj(null);
     for (const e of events) {
@@ -209,6 +209,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
 
       {/* Battlefield */}
       <div className="relative z-10 flex flex-1 items-end justify-between gap-2 px-4 pb-4 md:px-16">
+        {proj && <span key={"c" + proj.key} aria-hidden className={`battle-charge charge-${proj.cls} charge-${proj.dir}`} />}
         {proj && <span key={proj.key} aria-hidden className={`battle-proj proj-${proj.kind} proj-${proj.dir}`} />}
         <UnitView u={hero} anim={anim[hero.id]} effect={effects[hero.id]} move={moves[hero.id]} victory={s.over === "won"} floats={floats} active={actor?.id === hero.id} />
         <div className="flex min-w-0 flex-1 items-end justify-end gap-2 md:gap-6 battle-foes">
@@ -330,4 +331,12 @@ function projectileFor(move: Move, effect?: string): string | null {
   if (["draw", "rapid", "aim"].includes(move)) return move === "rapid" ? "volley" : "arrow";
   if (["overhead", "spin", "leap", "slam", "rage"].includes(move)) return "wave";
   return null;
+}
+
+/** The wind-up style: the actor's class, or for monsters the class their move resembles. */
+function classOf(cls: string | null | undefined, move: Move): string {
+  if (cls === "mage" || cls === "archer" || cls === "warrior") return cls;
+  if (["draw", "rapid", "aim"].includes(move)) return "archer";
+  if (["cast", "thrust", "nova", "rise", "channel", "siphon"].includes(move)) return "mage";
+  return "warrior";
 }

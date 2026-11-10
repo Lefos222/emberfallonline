@@ -8,7 +8,6 @@ import { Heart, Clover, Sparkles, Trophy, Gem, Hammer, Trash2, Skull, Backpack, 
 import { Shield, Swords } from "./PaintedIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
-import { adviseStrategy } from "@/lib/quests.functions";
 import {
   SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, enchantStoneGrade, goldEnhanceAllowed, ENHANCE_MAX, ENHANCE_GOLD_LIMIT, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
   CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, scaledFoe, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
@@ -237,7 +236,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   const { hero } = useGame();
   const [stage, setStage] = useState(spire ? hero?.spire ?? 1 : hero?.stage ?? 1);
   const [auto, setAuto] = useState(false);
-  const [tab, setTab] = useState<"battle" | "extras" | "adviser">("battle");
+  const [tab, setTab] = useState<"battle" | "extras">("battle");
   if (!hero) return null;
   const max = spire ? hero.spire : hero.stage;
   const mult = spire ? 1.35 : 1;
@@ -336,7 +335,6 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
       <GameTabs label={spire ? "Endless Conquest" : "Campaign Gate"} value={tab} onChange={setTab} tabs={[
         { id: "battle", name: "Battle" },
         { id: "extras", name: spire ? "Conquest Gate" : "Blitz & progress" },
-        { id: "adviser", name: "Battle adviser" },
       ]} />
 
       {tab === "battle" && (
@@ -409,14 +407,6 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
         </>
       )}
 
-      {tab === "adviser" && (
-        <>
-          <p className="mb-1 text-xs text-muted-foreground">
-             {t("Ask the war tactician about this exact fight — it reads both sides' stats and tells you what to watch for before you spend the")} {spire ? t("floor") : t("battle")}.
-          </p>
-          <Advisor hero={hero} stats={s} foe={foe} key={stage + (spire ? "s" : "c")} />
-        </>
-      )}
     </Panel>
   );
 }
@@ -892,35 +882,3 @@ export function XpBar({ hero }: { hero: Hero }) {
   );
 }
 
-export function Advisor({ hero, stats, foe }: { hero: Hero; stats: Stats; foe: Foe }) {
-  const { userId } = useGame();
-  const ask = useServerFn(adviseStrategy);
-  const [advice, setAdvice] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const run = async () => {
-    setLoading(true); setErr(null); setAdvice(null);
-    try {
-      const r = await ask({ data: {
-        heroClass: hero.cls, level: hero.level + hero.paragon,
-        hero: { hp: stats.hp, atk: stats.atk, def: stats.def, crit: stats.crit, dodge: stats.dodge },
-        enemy: { name: foe.name, level: foe.level, boss: !!foe.boss, hp: foe.hp, atk: foe.atk, def: foe.def, crit: foe.crit, dodge: foe.dodge },
-        skills: ["Basic Attack: 100% dmg"],
-      } });
-      if (r.error) setErr(r.error); else setAdvice(r.advice);
-    } catch { setErr("The tactician is silent, try again"); }
-    setLoading(false);
-  };
-  return (
-    <div className="slot mt-5 p-4">
-      <div className="flex items-center justify-between gap-3">
-        <span className="font-display text-gold"><Sparkles className="mr-1 inline h-4 w-4" />{t("War Tactician")}</span>
-        {userId ? (
-          <button className="btn-blood px-4 py-1.5 text-sm" disabled={loading} onClick={run}>{loading ? t("Thinking…") : t("Get strategy")}</button>
-        ) : <Link to="/auth" className="btn-gold px-4 py-1.5 text-sm">{t("Sign in")}</Link>}
-      </div>
-      {err && <p className="mt-2 text-sm text-hp">{err}</p>}
-      {advice && <p className="anim-pop mt-2 whitespace-pre-line text-sm">{advice}</p>}
-    </div>
-  );
-}
