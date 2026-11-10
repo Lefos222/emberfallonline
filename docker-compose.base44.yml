@@ -1,0 +1,37 @@
+name: app
+
+# Base44 preview environment for Emberfall Online.
+# Runs the Vite/TanStack Start dev server straight from the cloned source so edits
+# hot-reload in the preview. The database and auth are the project's hosted Supabase,
+# reached from the browser with the publishable key already in `.env`.
+services:
+  web:
+    image: oven/bun:1
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app
+      - web_deps:/app/node_modules
+    environment:
+      # Passed through from the sandbox; `vite` uses it to allow the preview host.
+      - BASE44_PREVIEW_MODE
+      - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS
+      # The shop's preview test mode is fed from the sandbox flag (see AGENTS.md).
+      - VITE_PREMIUM_TEST_MODE=${BASE44_PREVIEW_MODE:-0}
+      # Bind mounts do not deliver inotify events on every host: poll for changes.
+      - CHOKIDAR_USEPOLLING=1
+    command:
+      - sh
+      - -ec
+      - bun install --frozen-lockfile && exec bun run dev --host 0.0.0.0 --port 3000 --strictPort
+    healthcheck:
+      test: ["CMD-SHELL", "bun -e \"fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+    restart: on-failure
+
+volumes:
+  web_deps:

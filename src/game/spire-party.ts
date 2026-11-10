@@ -1,13 +1,16 @@
 import { supabase } from "@/integrations/supabase/client";
 import { adoptServerSave, withServerHero } from "./store";
 import { object, returnedSave } from "./services-contract";
-import { stageFoe, type EnemyType } from "./data";
+import { heroStats, stageFoe, type EnemyType, type Hero } from "./data";
+import { heroAppearance } from "./appearance";
 
 /** The Party Spire: 1-4 heroes fight one live battle that never leaves the arena. */
 export const SPIRE_FLOORS = 240;
 export const SPIRE_PARTY_MAX = 4;
 export const SPIRE_RUNS_PER_DAY = 3;
 export const TICK_MS = 500;
+/** The breather between floors: the next floor's enemies arrive right after the last ones fall. */
+export const FLOOR_PAUSE_MS = 1500;
 
 export interface SpireMember {
   id: string; name: string; cls: "warrior" | "mage" | "archer"; gender: "male" | "female";
@@ -20,6 +23,8 @@ export interface Fx { src: string; tgt: string; kind: "hit" | "crit" | "heal" | 
 export interface SpireBattle {
   floor: number; heroes: LiveHero[]; foes: LiveFoe[]; fx: Fx[]; log: string[];
   pause: number; over: boolean; t: number;
+  /** Why the fight stopped: the whole party fell, or the summit was reached. */
+  outcome?: "fallen" | "summit";
 }
 
 export type SkillId = "strike" | "sweep" | "mend";
@@ -29,6 +34,27 @@ export const SPIRE_SKILLS: Record<SkillId, { cd: number; names: Record<SpireMemb
   sweep: { cd: 10000, names: { warrior: "Whirlwind", mage: "Frost Nova", archer: "Arrow Rain" } },
   mend: { cd: 15000, names: { warrior: "Battle Cry", mage: "Healing Light", archer: "Second Wind" } },
 };
+export const SPIRE_SKILL_IDS = Object.keys(SPIRE_SKILLS) as SkillId[];
+
+/** The hero's own party entry: live stats plus the appearance the others see. */
+export function memberOf(hero: Hero, gender: "male" | "female", id: string): SpireMember {
+  const s = heroStats(hero);
+  const look = heroAppearance(hero, gender);
+  return {
+    id,
+    name: hero.name,
+    cls: hero.cls,
+    gender,
+    synth: look.synth,
+    look: look.look,
+    level: hero.level + (hero.paragon ?? 0),
+    hp: Math.round(s.hp),
+    atk: Math.round(s.atk),
+    def: Math.round(s.def),
+    crit: s.crit,
+    dodge: s.dodge,
+  };
+}
 
 const TYPES: EnemyType[] = ["goblin", "skeleton", "demon"];
 
@@ -39,22 +65,30 @@ export function spawnFloor(floor: number, partyLevel: number, size: number, rand
   const stage = Math.max(5, partyLevel) + Math.floor(floor / 2);
   const mult = (1 + floor * 0.035) * (0.55 + 0.45 * size);
   return Array.from({ length: count }, (_, i) => {
-    const f = stageFoe(stage, boss ? mult * 2.6 : mult / count * 1.6, boss ? "dragon" : TYPES[(floor + i) % 3]);
+    const f = stageFoe(stage, boss ? mult * 2.6 : (mult / count) * 1.6, boss ? "dragon" : TYPES[(floor + i) % 3]);
     const hp = Math.round(f.hp);
     return { uid: `${floor}-${i}-${Math.floor(rand() * 1e6)}`, name: f.name, img: f.img, hp, max: hp, atk: Math.round(f.atk * (boss ? 1.1 : 0.8)), def: f.def, boss, swing: 900 + i * 300 };
   });
 }
 
-export function newBattle(members: SpireMember[]): SpireBattle {
-  const lvl = Math.round(members.reduce((a, m) => a + m.level, 0) / Math.max(1, members.length));
+const partyLevel = (members: SpireMember[]) =>
+  Math.round(members.reduce((a, m) => a + m.level, 0) / Math.max(1, members.length));
+
+export function newBattle(members: SpireMember[], floor = 1): SpireBattle {
+  const start = Math.min(SPIRE_FLOORS, Math.max(1, Math.floor(floor)));
   return {
-    floor: 1, t: 0, pause: 0, over: false, fx: [], log: [],
+    floor: start, t: 0, pause: 0, over: false, fx: [], log: [],
     heroes: members.map((m) => ({ id: m.id, hp: m.hp, max: m.hp, cd: {}, swing: 600 })),
-    foes: spawnFloor(1, lvl, members.length),
+    foes: spawnFloor(start, partyLevel(members), members.length),
   };
 }
 
 const hit = (atk: number, mult: number, def: number, rand: () => number) => Math.max(1, Math.round(atk * mult * (0.9 + rand() * 0.2) - def * 0.45));
+
+/** A skill can be cast when the hero is standing and its own cooldown has run out. */
+export function skillReady(hero: LiveHero | undefined, skill: SkillId): boolean {
+  return !!hero && hero.hp > 0 && (hero.cd[skill] ?? 0) <= 0;
+}
 
 export interface TickResult { battle: SpireBattle; cleared: number | null }
 
@@ -70,8 +104,7 @@ export function tick(prev: SpireBattle, members: SpireMember[], casts: { hero: s
   if (b.pause > 0) {
     b.pause -= TICK_MS;
     if (b.pause <= 0) {
-      const lvl = Math.round(members.reduce((a, m) => a + m.level, 0) / Math.max(1, members.length));
-      b.foes = spawnFloor(b.floor, lvl, members.length, rand);
+      b.foes = spawnFloor(b.floor, partyLevel(members), members.length, rand);
       log(`Floor ${b.floor}: ${b.foes.map((f) => f.name).join(", ")}`);
     }
     return { battle: b, cleared };
@@ -89,7 +122,7 @@ export function tick(prev: SpireBattle, members: SpireMember[], casts: { hero: s
   // Player skills, validated against cooldowns here so a client cannot cast faster than allowed.
   for (const c of casts) {
     const h = b.heroes.find((x) => x.id === c.hero); const m = stat(c.hero);
-    if (!h || !m || h.hp <= 0 || (h.cd[c.skill] ?? 0) > 0 || !SPIRE_SKILLS[c.skill]) continue;
+    if (!h || !m || !SPIRE_SKILLS[c.skill] || !skillReady(h, c.skill)) continue;
     const foes = liveFoes();
     if (c.skill === "strike" && foes.length) strikeFoe(h.id, foes.reduce((a, f) => (f.hp < a.hp ? f : a)), m.atk, 2.4, m.crit + 10, c.skill);
     else if (c.skill === "sweep" && foes.length) for (const f of foes) strikeFoe(h.id, f, m.atk, 1.1, m.crit, c.skill);
@@ -120,13 +153,13 @@ export function tick(prev: SpireBattle, members: SpireMember[], casts: { hero: s
     if (target.hp <= 0) log(`${m?.name ?? "A hero"} has fallen!`);
   }
 
-  if (!liveHeroes().length) { b.over = true; log(`The party fell on floor ${b.floor}.`); return { battle: b, cleared }; }
+  if (!liveHeroes().length) { b.over = true; b.outcome = "fallen"; log(`The party fell on floor ${b.floor}.`); return { battle: b, cleared }; }
   if (!liveFoes().length) {
     cleared = b.floor;
     log(`Floor ${b.floor} cleared! +1 Spire Chest each`);
-    if (b.floor >= SPIRE_FLOORS) { b.over = true; log("The Spire's summit is conquered!"); return { battle: b, cleared }; }
-    b.floor += 1; b.pause = 1500;
-    // A short breather between floors: the fallen rise at a quarter health, the living recover 12%.
+    if (b.floor >= SPIRE_FLOORS) { b.over = true; b.outcome = "summit"; log("The Spire's summit is conquered!"); return { battle: b, cleared }; }
+    b.floor += 1; b.pause = FLOOR_PAUSE_MS;
+    // The breather between floors: the fallen rise at a quarter health, the living recover 12%.
     for (const h of b.heroes) h.hp = h.hp <= 0 ? Math.round(h.max * 0.25) : Math.min(h.max, h.hp + Math.round(h.max * 0.12));
   }
   return { battle: b, cleared };
@@ -138,10 +171,46 @@ async function rpc(name: string, args: Record<string, unknown>) {
   if (error) throw new Error(error.message);
   return data;
 }
-export interface SpireState { floor: number; best: number; runs_left: number; chests: number }
-export const loadSpire = () => withServerHero(async (id) => (await rpc("spire_state", { _hero: id })) as SpireState);
-export const beginSpire = () => withServerHero((id) => rpc("spire_begin", { _hero: id }));
-export const endSpire = () => withServerHero((id) => rpc("spire_end", { _hero: id }));
+
+export interface SpireState { floor: number; best: number; runs_left: number; chests: number; active: boolean }
+
+const whole = (v: unknown, fallback = 0) => (Number.isFinite(Number(v)) ? Math.max(0, Math.round(Number(v))) : fallback);
+
+/**
+ * Server calls that must not overtake each other: the floor clears in the order they were won,
+ * then the end of the run behind them. The chain never stays rejected.
+ */
+let chain: Promise<unknown> = Promise.resolve();
+function queue<T>(job: () => Promise<T>): Promise<T> {
+  const next = chain.then(job);
+  chain = next.catch(() => undefined);
+  return next;
+}
+
+/** The server's Spire ledger. A missing field means an older server, never a free run. */
+export function parseSpireState(value: unknown): SpireState {
+  const o = object(value);
+  const floor = whole(o["floor"]);
+  return {
+    floor,
+    best: whole(o["best"]),
+    runs_left: Math.min(SPIRE_RUNS_PER_DAY, whole(o["runs_left"])),
+    chests: whole(o["chests"]),
+    active: o["active"] === true || floor > 0,
+  };
+}
+
+export const loadSpire = () => withServerHero(async (id) => parseSpireState(await rpc("spire_state", { _hero: id })));
+
+interface BeginResult { ok: boolean; resumed: boolean; floor: number }
+export const beginSpire = () => withServerHero(async (id) => {
+  const o = object(await rpc("spire_begin", { _hero: id }));
+  return { ok: o["ok"] === true, resumed: o["resumed"] === true, floor: whole(o["floor"]) } as BeginResult;
+});
+
+/** Ending the run waits for the clears still queued, so a chest is never lost to it. */
+export const endSpire = () => queue(async () => { await withServerHero(async (id) => { await rpc("spire_end", { _hero: id }); }); });
+
 async function withSave(name: string, args: Record<string, unknown>) {
   return withServerHero(async (heroId) => {
     const data = await rpc(name, { _hero: heroId, ...args });
@@ -149,14 +218,43 @@ async function withSave(name: string, args: Record<string, unknown>) {
     return object(data);
   });
 }
-export const openSpireChest = () => withSave("spire_open_chest", {});
 
-/** Floor clears are reported one at a time, in order, so a busy moment never skips a chest. */
-let chain: Promise<unknown> = Promise.resolve();
-export function reportClear(floor: number) {
-  const next = chain.then(() => withSave("spire_clear", { _floor: floor }));
-  chain = next.catch(() => {});
-  return next;
+export interface SpireReward { gold: number; mats: Record<string, number> }
+/** The chest the server just opened: what it paid, read from its own answer. */
+export function parseReward(value: unknown): SpireReward {
+  const rw = object(object(value)["reward"]);
+  const mats: Record<string, number> = {};
+  for (const [k, v] of Object.entries(object(rw["mats"]))) {
+    const n = whole(v);
+    if (n > 0) mats[k] = n;
+  }
+  return { gold: whole(rw["gold"]), mats };
+}
+export const openSpireChest = async () => parseReward(await withSave("spire_open_chest", {}));
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Floor clears are reported one at a time, in order, so a busy moment never skips a chest.
+ * A rejected clear is retried (the server throttles two clears that arrive too close together)
+ * and the queue never rejects: a failed report must not stop the rest of the run.
+ */
+export function reportClear(floor: number): Promise<boolean> {
+  return queue(async () => {
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      try {
+        await withSave("spire_clear", { _floor: floor });
+        return true;
+      } catch {
+        // "Too fast" and a dropped connection are both worth one more try; the floor is still
+        // reported in order, so the next clear waits behind this one.
+        if (attempt < 3) await sleep(FLOOR_PAUSE_MS + 500);
+      }
+    }
+    return false;
+  });
 }
 
 export const partyCode = (rand = Math.random) => Array.from({ length: 5 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(rand() * 32)]).join("");
+/** Codes are shouted across a room: accept any case, drop spaces, and never trust a longer string. */
+export const cleanPartyCode = (raw: string) => raw.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
