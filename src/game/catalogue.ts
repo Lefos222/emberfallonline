@@ -70,3 +70,8 @@ export function buyCatalogueItem(h: Hero, id: string, now = Date.now()): string 
   h.inventory.unshift(it);
   return null;
 }
+
+/** A Diamond-paid restock: a brand-new roll of the same modest stock for the current hour. */
+export function restockCatalogue(h: Hero, now = Date.now()) {
+  h.catalogue = { hour: catalogueHour(now), items: rollCatalogue(h) };
+}

@@ -169,6 +169,13 @@
       "when": 1794269969980,
       "tag": "0023_secure_guild_ownership",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794320847050,
+      "tag": "0024_premium_services",
+      "breakpoints": true
     }
   ]
 }

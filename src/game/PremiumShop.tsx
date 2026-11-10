@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArtIcon } from "./ArtIcon";
+import { DiamondService } from "./DiamondService";
+import { getState, selectCharacter, loadCharacters } from "./store";
+import genderCard from "@/assets/card-gender.webp";
+import nameCard from "@/assets/card-name.webp";
 import { GemChestIcon, GoldChestIcon } from "./CoinIcon";
 import { GemIcon, MatIcon } from "./MatIcon";
 import { Diamonds, GameTabs, Gold, Panel, fmt } from "./ui";
@@ -42,6 +46,7 @@ const TABS = [
   { id: "gems", name: "Stones" },
   { id: "materials", name: "Materials" },
   { id: "chests", name: "Chests" },
+  { id: "cards", name: "Cards" },
   { id: "history", name: "History" },
 ] as const;
 type Tab = (typeof TABS)[number]["id"];
@@ -439,6 +444,8 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
         </div>
       )}
 
+      {tab === "cards" && <IdentityCards />}
+
       {tab === "history" && (
         <div className="max-h-96 overflow-y-auto">
           {p.history.length === 0 && (
@@ -462,5 +469,28 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
       <p className="mt-4 text-[11px] text-muted-foreground">
          {tr("Every paid purchase goes through Stripe and is verified on the server; every Diamond spend is priced and debited by the server.")} <Diamonds n={p.balance} />  {tr("in your wallet.")} </p>
     </Panel>
+  );
+}
+
+/** Gender swap (500 Diamonds) and name change (700 Diamonds) cards, applied by the server on purchase. */
+function IdentityCards() {
+  const [name, setName] = useState("");
+  const reload = async () => { const id = getState().heroId; if (id) { await selectCharacter(id); void loadCharacters(); } };
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <article className="slot flex flex-col items-center gap-2 p-4 text-center">
+        <img src={genderCard} alt="" className="h-40 w-auto object-contain" />
+        <h3 className="font-display text-lg">{tr("Gender Swap Card")}</h3>
+        <p className="text-xs text-muted-foreground">{tr("Switches your hero between male and female. Level, gear and progress stay exactly as they are.")}</p>
+        <DiamondService kind="gender_card" label="Use card" onDone={reload} />
+      </article>
+      <article className="slot flex flex-col items-center gap-2 p-4 text-center">
+        <img src={nameCard} alt="" className="h-40 w-auto object-contain" />
+        <h3 className="font-display text-lg">{tr("Name Change Card")}</h3>
+        <p className="text-xs text-muted-foreground">{tr("Gives your hero a new name: 3-16 letters, numbers, spaces, _ or -.")}</p>
+        <input value={name} onChange={(e) => setName(e.target.value)} maxLength={16} placeholder={tr("New name")} aria-label={tr("New name")} className="w-full rounded-md border border-border bg-background px-2 py-1 text-sm" />
+        <DiamondService kind="name_card" label="Use card" value={name.trim()} disabled={name.trim().length < 3} onDone={reload} />
+      </article>
+    </div>
   );
 }

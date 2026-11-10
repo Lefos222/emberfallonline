@@ -55,3 +55,10 @@ export function spendArenaFight(h: Hero, now = Date.now()) {
   const start = liveWindow(h, now);
   h.arena = { windowStart: start || now, used: arenaFightsUsed(h, now) + 1 };
 }
+
+/** A Diamond-bought duel: hands back one spent duel of the current window. */
+export function grantExtraDuel(h: Hero, now = Date.now()) {
+  const start = liveWindow(h, now);
+  if (!start) return;
+  h.arena = { windowStart: start, used: Math.max(0, arenaFightsUsed(h, now) - 1) };
+}

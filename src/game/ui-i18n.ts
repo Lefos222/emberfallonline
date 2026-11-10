@@ -9,6 +9,16 @@ import type { ContentRow } from "./content-i18n";
  * here yet simply stays English instead of showing a placeholder.
  */
 export const UI_TEXT: Record<string, ContentRow> = {
+  "Done": ["Έγινε", "Gotowe"],
+  "Gender Swap Card": ["Κάρτα Αλλαγής Φύλου", "Karta Zmiany Płci"],
+  "Switches your hero between male and female. Level, gear and progress stay exactly as they are.": ["Αλλάζει τον ήρωά σου από άνδρα σε γυναίκα ή αντίστροφα. Επίπεδο, εξοπλισμός και πρόοδος μένουν ακριβώς ίδια.", "Zmienia płeć twojego bohatera. Poziom, ekwipunek i postępy pozostają bez zmian."],
+  "Name Change Card": ["Κάρτα Αλλαγής Ονόματος", "Karta Zmiany Imienia"],
+  "Gives your hero a new name: 3-16 letters, numbers, spaces, _ or -.": ["Δίνει νέο όνομα στον ήρωά σου: 3-16 γράμματα, αριθμοί, κενά, _ ή -.", "Nadaje bohaterowi nowe imię: 3-16 liter, cyfr, spacji, _ lub -."],
+  "New name": ["Νέο όνομα", "Nowe imię"],
+  "Extra duel": ["Επιπλέον μονομαχία", "Dodatkowy pojedynek"],
+  "Restock now": ["Ανανέωση τώρα", "Odnów teraz"],
+  "Use card": ["Χρήση κάρτας", "Użyj karty"],
+  "Cards": ["Κάρτες", "Karty"],
   "places of interest stand on one bounded realm — mines, ore dungeons, world bosses, rival castles, ruins, sealed vaults and painted wonders. Drag to travel, scroll or pinch the buttons to zoom, take the day's bounties, and plant your own castle anywhere on it. Banners are shared: every hero the realm holds can raise one.":
     [
       "σημεία ενδιαφέροντος απλώνονται σε ένα ενιαίο βασίλειο — ορυχεία, μπουντρούμια μεταλλεύματος, αφεντικά του κόσμου, αντίπαλα κάστρα, ερείπια, σφραγισμένα θησαυροφυλάκια και ζωγραφισμένα θαύματα. Σύρε για να ταξιδέψεις, κύλισε ή τσούλησε τα κουμπιά για μεγέθυνση, πάρε τις ημερήσιες επικήρυξεις και φύτεψε το δικό σου κάστρο οπουδήποτε πάνω του. Τα λάβαρα είναι κοινά: κάθε ήρωας του βασιλείου μπορεί να υψώσει ένα.",

@@ -8,7 +8,8 @@ import { CharacterModel } from "./CharacterModel";
 import { update, useGame } from "./store";
 import { GameTabs, Panel, fmt } from "./ui";
 import { goldGain } from "./gold";
-import { ARENA_PER_WINDOW, arenaFightsLeft, arenaResetAt, waitLabel } from "./arena-limits";
+import { DiamondService } from "./DiamondService";
+import { ARENA_PER_WINDOW, grantExtraDuel, arenaFightsLeft, arenaResetAt, waitLabel } from "./arena-limits";
 import type { StartBattle } from "./panels";
 
 interface Opp {
@@ -100,6 +101,7 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
             ? `${duelsLeft}/${ARENA_PER_WINDOW} duels left${duelsLeft < ARENA_PER_WINDOW ? ` · refills in ${refillIn}` : ""}`
             : `No duels left — ${ARENA_PER_WINDOW} every 12h, back in ${refillIn}`}
         </span>
+        {duelsLeft === 0 && <DiamondService kind="arena_duel" label="Extra duel" onDone={() => update((h) => grantExtraDuel(h))} />}
         <button className="btn-blood px-3 py-1 text-sm" onClick={load} aria-label={t("Refresh arena")}><RefreshCw className="inline h-4 w-4" /></button>
       </div>
 

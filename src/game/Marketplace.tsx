@@ -2,7 +2,8 @@ import { itemName , t} from "./i18n";
 import { useEffect, useState } from "react";
 import { Clock, Gavel, KeyRound, Store, Trash2 } from "lucide-react";
 import { AuctionBoard } from "./AuctionHouse";
-import { CATALOGUE_DISCOUNT, buyCatalogueItem, catalogueHour, cataloguePrice, catalogueRefreshAt, catalogueStock } from "./catalogue";
+import { CATALOGUE_DISCOUNT, buyCatalogueItem, catalogueHour, cataloguePrice, catalogueRefreshAt, catalogueStock, restockCatalogue } from "./catalogue";
+import { DiamondService } from "./DiamondService";
 import { CONQUEST_KEY_GOLD, activateConquestKey, conquestKeyActive } from "./conquest";
 import { invCap, RARITIES, type Hero } from "./data";
 import { scaledGold } from "./gold";
@@ -98,6 +99,7 @@ function CatalogueTab({ hero }: { hero: Hero }) {
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="max-w-lg text-xs text-muted-foreground">
            {t("Ordinary armour and weapons, open to every player — every piece")} {Math.round(CATALOGUE_DISCOUNT * 100)}{t("% off. The catalogue is deliberately modest gear — useful while you are starting out, never a match for the Forge or a boss drop.")} </p>
+        <DiamondService kind="shop_refresh" label="Restock now" onDone={() => update((h) => restockCatalogue(h))} />
         <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock className="h-3.5 w-3.5" />{t("Restocks in")} {minutes}  {t("min")}</span>
       </div>
       {notice && <p role="status" className={`mb-2 text-sm ${notice.ok ? "text-r1" : "text-hp"}`}>{notice.t}</p>}

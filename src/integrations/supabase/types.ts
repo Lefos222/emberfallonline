@@ -1314,6 +1314,10 @@ export type Database = {
       }
       my_guild_ids: { Args: never; Returns: string[] }
       my_hero_ids: { Args: never; Returns: string[] }
+      premium_service: {
+        Args: { _hero: string; _kind: string; _req: string; _value?: string }
+        Returns: Json
+      }
       premium_state: { Args: { _hero: string }; Returns: Json }
       profession_state: { Args: { _hero: string }; Returns: Json }
       read_mail: { Args: { _hero: string; _mail: string }; Returns: undefined }
