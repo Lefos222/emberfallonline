@@ -7,7 +7,18 @@ import goblinImg from "@/assets/enemy-goblin.png";
 import demonImg from "@/assets/enemy-demon.png";
 import dragonImg from "@/assets/enemy-dragon.png";
 import { talentFx, talentSkills } from "./talents";
-import { MAX_SOCKETS, astralFx, gemFx, migrateGems, normalizeAstrals, zeroFx, zeroGemFx, type Astral, type BonusFx, type Mat } from "./crafting";
+import {
+  MAX_SOCKETS,
+  astralFx,
+  gemFx,
+  migrateGems,
+  normalizeAstrals,
+  zeroFx,
+  zeroGemFx,
+  type Astral,
+  type BonusFx,
+  type Mat,
+} from "./crafting";
 import { setFx, type BattleEntry, type CombatRecord } from "./progress";
 import { goldGain, scaledGold } from "./gold";
 import { drillAttrs, drillFx, statTrainFx } from "./drills";
@@ -27,10 +38,25 @@ export type Attr = "str" | "int" | "agi" | "vit";
 export const SLOTS: Slot[] = ["helmet", "armour", "boots", "belt", "weapon", "ring", "talisman"];
 /** Where a piece is worn. Rings have two positions, every other slot has one. */
 export type WearSlot = Slot | "ring2";
-export const WEAR_SLOTS: WearSlot[] = ["helmet", "armour", "boots", "belt", "weapon", "ring", "ring2", "talisman"];
+export const WEAR_SLOTS: WearSlot[] = [
+  "helmet",
+  "armour",
+  "boots",
+  "belt",
+  "weapon",
+  "ring",
+  "ring2",
+  "talisman",
+];
 export const WEAR_LABEL: Record<WearSlot, string> = {
-  helmet: "Head", armour: "Chest", boots: "Feet", belt: "Waist", weapon: "Weapon",
-  ring: "Ring 1", ring2: "Ring 2", talisman: "Amulet",
+  helmet: "Head",
+  armour: "Chest",
+  boots: "Feet",
+  belt: "Waist",
+  weapon: "Weapon",
+  ring: "Ring 1",
+  ring2: "Ring 2",
+  talisman: "Amulet",
 };
 /** The wear positions a piece of this item slot may occupy. */
 export const wearOf = (s: Slot): WearSlot[] => (s === "ring" ? ["ring", "ring2"] : [s]);
@@ -50,25 +76,72 @@ export const MAX_BAG_ROWS = 10;
 /** Bag size for a hero including purchased rows. */
 export const invCap = (h: { bagRows?: number }) => INVENTORY_CAP + BAG_ROW * (h.bagRows ?? 0);
 /** Gold cost of the next bag row: 5,000 doubling each row, scaled by the hero's level. */
-export const bagRowCost = (h: { bagRows?: number; level?: number }) => scaledGold(5000 * 2 ** (h.bagRows ?? 0), h.level ?? 1);
+export const bagRowCost = (h: { bagRows?: number; level?: number }) =>
+  scaledGold(5000 * 2 ** (h.bagRows ?? 0), h.level ?? 1);
 
 export const CLASSES: Record<
   HeroClass,
-  { name: string; img: string; hp: number; atk: number; def: number; crit: number; dodge: number; color: string; weaponName: string }
-> = locAll({
-  warrior: { name: "Knight", img: warriorImg, hp: 1.35, atk: 1, def: 1.35, crit: 0, dodge: 2, color: "var(--blood)", weaponName: "Blade" },
-  mage: { name: "Mage", img: mageImg, hp: 0.85, atk: 1.4, def: 0.85, crit: 5, dodge: 4, color: "var(--r3)", weaponName: "Wand" },
-  archer: { name: "Archer", img: archerImg, hp: 1, atk: 1.15, def: 1, crit: 12, dodge: 10, color: "var(--r1)", weaponName: "Bow" },
-}, ["name"]);
+  {
+    name: string;
+    img: string;
+    hp: number;
+    atk: number;
+    def: number;
+    crit: number;
+    dodge: number;
+    color: string;
+    weaponName: string;
+  }
+> = locAll(
+  {
+    warrior: {
+      name: "Knight",
+      img: warriorImg,
+      hp: 1.35,
+      atk: 1,
+      def: 1.35,
+      crit: 0,
+      dodge: 2,
+      color: "var(--blood)",
+      weaponName: "Blade",
+    },
+    mage: {
+      name: "Mage",
+      img: mageImg,
+      hp: 0.85,
+      atk: 1.4,
+      def: 0.85,
+      crit: 5,
+      dodge: 4,
+      color: "var(--r3)",
+      weaponName: "Wand",
+    },
+    archer: {
+      name: "Archer",
+      img: archerImg,
+      hp: 1,
+      atk: 1.15,
+      def: 1,
+      crit: 12,
+      dodge: 10,
+      color: "var(--r1)",
+      weaponName: "Bow",
+    },
+  },
+  ["name"],
+);
 
-export const RARITIES = locAll([
-  { name: "Common", mult: 1 },
-  { name: "Uncommon", mult: 1.25 },
-  { name: "Rare", mult: 1.6 },
-  { name: "Epic", mult: 2.1 },
-  { name: "Legendary", mult: 2.8 },
-  { name: "Mythic", mult: 3.8 },
-], ["name"]);
+export const RARITIES = locAll(
+  [
+    { name: "Common", mult: 1 },
+    { name: "Uncommon", mult: 1.25 },
+    { name: "Rare", mult: 1.6 },
+    { name: "Epic", mult: 2.1 },
+    { name: "Legendary", mult: 2.8 },
+    { name: "Mythic", mult: 3.8 },
+  ],
+  ["name"],
+);
 
 export interface Item {
   id: string;
@@ -89,7 +162,12 @@ export interface Item {
   holes?: number;
 }
 
-export interface ItemStats { atk: number; def: number; hp: number; crit: number }
+export interface ItemStats {
+  atk: number;
+  def: number;
+  hp: number;
+  crit: number;
+}
 
 // ---------- Gear atlas (one 1920x2144 painting of stacked 1920x1072 bands) ----------
 const C6: Record<HeroClass, number[]> = {
@@ -103,7 +181,11 @@ const C8: Record<HeroClass, number[]> = {
   archer: [1327, 1395, 1463, 1531, 1599, 1667, 1735, 1803],
 };
 const ROW6: Partial<Record<Slot, [number, number]>> = {
-  helmet: [142, 80], armour: [266, 82], boots: [395, 80], belt: [517, 76], weapon: [633, 115],
+  helmet: [142, 80],
+  armour: [266, 82],
+  boots: [395, 80],
+  belt: [517, 76],
+  weapon: [633, 115],
 };
 export const ATLAS_W = 1920;
 /** Height of one painted band of the atlas: every gear update is a full class sheet this tall. */
@@ -112,13 +194,20 @@ export const ATLAS_BAND_H = 1072;
 export const ATLAS_BANDS = 2;
 export const ATLAS_H = ATLAS_BAND_H * ATLAS_BANDS;
 /** Both painted gear updates, kept side by side so old and new equipment always coexist. */
-export const GEAR_ERAS = locAll([
-  { band: 0, name: "Classic", note: "Original class gear sheet" },
-  { band: 1, name: "Relic", note: "Relic collection sheet" },
-], ["name"], ["note"]);
+export const GEAR_ERAS = locAll(
+  [
+    { band: 0, name: "Classic", note: "Original class gear sheet" },
+    { band: 1, name: "Relic", note: "Relic collection sheet" },
+  ],
+  ["name"],
+  ["note"],
+);
 
 /** Where one icon sits inside its band; `band` picks the painted sheet the icon is drawn from. */
-export function iconRect(item: Pick<Item, "slot" | "cls" | "icon">, band = 0): { x: number; y: number; w: number; h: number } {
+export function iconRect(
+  item: Pick<Item, "slot" | "cls" | "icon">,
+  band = 0,
+): { x: number; y: number; w: number; h: number } {
   const top = Math.max(0, Math.min(ATLAS_BANDS - 1, Math.floor(band))) * ATLAS_BAND_H;
   if (item.slot === "ring") {
     const i = item.icon % 16;
@@ -130,7 +219,9 @@ export function iconRect(item: Pick<Item, "slot" | "cls" | "icon">, band = 0): {
   const [y, h] = ROW6[item.slot]!;
   return { x: C6[item.cls][item.icon % 6], y: top + y, w: 84, h };
 }
-export function iconCount(slot: Slot) { return slot === "ring" ? 16 : slot === "talisman" ? 8 : 6; }
+export function iconCount(slot: Slot) {
+  return slot === "ring" ? 16 : slot === "talisman" ? 8 : 6;
+}
 
 /**
  * The icon a piece of this rarity rolls within its band. Every painted icon of a slot is reachable:
@@ -143,16 +234,61 @@ export function iconTier(slot: Slot, rarity: number, rand = Math.random) {
 }
 
 /** A random painted band: ordinary drops and crafts wear art from every gear update. */
-export const rollArt = (rand = Math.random) => Math.min(ATLAS_BANDS - 1, Math.floor(rand() * ATLAS_BANDS));
+export const rollArt = (rand = Math.random) =>
+  Math.min(ATLAS_BANDS - 1, Math.floor(rand() * ATLAS_BANDS));
 
 // ---------- Names ----------
-const PREFIX = ["Worn", "Iron", "Bloodforged", "Moonlit", "Dread", "Abyssal", "Crimson", "Soulbound", "Eclipse", "Ancient"];
+const PREFIX = [
+  "Worn",
+  "Iron",
+  "Bloodforged",
+  "Moonlit",
+  "Dread",
+  "Abyssal",
+  "Crimson",
+  "Soulbound",
+  "Eclipse",
+  "Ancient",
+];
 const SLOT_NAMES: Record<HeroClass, Record<Slot, string>> = {
-  warrior: { helmet: "Helm", armour: "Plate", boots: "Greaves", belt: "Girdle", weapon: "Blade", ring: "Signet", talisman: "Sigil" },
-  mage: { helmet: "Hood", armour: "Robe", boots: "Slippers", belt: "Sash", weapon: "Wand", ring: "Band", talisman: "Crystal" },
-  archer: { helmet: "Cowl", armour: "Jerkin", boots: "Treads", belt: "Quiver Belt", weapon: "Bow", ring: "Loop", talisman: "Fang" },
+  warrior: {
+    helmet: "Helm",
+    armour: "Plate",
+    boots: "Greaves",
+    belt: "Girdle",
+    weapon: "Blade",
+    ring: "Signet",
+    talisman: "Sigil",
+  },
+  mage: {
+    helmet: "Hood",
+    armour: "Robe",
+    boots: "Slippers",
+    belt: "Sash",
+    weapon: "Wand",
+    ring: "Band",
+    talisman: "Crystal",
+  },
+  archer: {
+    helmet: "Cowl",
+    armour: "Jerkin",
+    boots: "Treads",
+    belt: "Quiver Belt",
+    weapon: "Bow",
+    ring: "Loop",
+    talisman: "Fang",
+  },
 };
-const SUFFIX = ["", "", "of Ash", "of the Moon", "of Ruin", "of Kings", "of the Void", "of Eternity"];
+const SUFFIX = [
+  "",
+  "",
+  "of Ash",
+  "of the Moon",
+  "of Ruin",
+  "of Kings",
+  "of the Void",
+  "of Eternity",
+];
 
 const rnd = (n: number) => Math.floor(Math.random() * n);
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -184,8 +320,14 @@ export function makeItem(cls: HeroClass, ilvl: number, rarity: number, slot?: Sl
   const prefix = PREFIX[Math.min(PREFIX.length - 1, rarity * 2 + rnd(2))];
   const suffix = rarity >= 2 ? SUFFIX[rnd(SUFFIX.length)] : "";
   return {
-    id: uid(), slot: s, cls, rarity, ilvl: Math.max(1, Math.floor(ilvl)),
-    icon: iconTier(s, rarity), art: rollArt(), enh: 0,
+    id: uid(),
+    slot: s,
+    cls,
+    rarity,
+    ilvl: Math.max(1, Math.floor(ilvl)),
+    icon: iconTier(s, rarity),
+    art: rollArt(),
+    enh: 0,
     name: `${prefix} ${SLOT_NAMES[cls][s]} ${suffix}`.trim(),
   };
 }
@@ -194,15 +336,40 @@ export function itemStats(it: Item): ItemStats {
   const base = (8 + it.ilvl * 4) * RARITIES[it.rarity].mult * (1 + it.enh * 0.1);
   const z = { atk: 0, def: 0, hp: 0, crit: 0 };
   switch (it.slot) {
-    case "weapon": z.atk = base * 1.6; break;
-    case "armour": z.def = base * 0.9; z.hp = base * 3; break;
-    case "helmet": z.def = base * 0.6; z.hp = base * 2; break;
-    case "boots": z.def = base * 0.5; z.atk = base * 0.4; break;
-    case "belt": z.hp = base * 3.5; break;
-    case "ring": z.atk = base * 0.7; z.crit = 1 + it.rarity * 1.2; break;
-    case "talisman": z.atk = base * 0.5; z.hp = base * 1.5; z.crit = it.rarity * 0.6; break;
+    case "weapon":
+      z.atk = base * 1.6;
+      break;
+    case "armour":
+      z.def = base * 0.9;
+      z.hp = base * 3;
+      break;
+    case "helmet":
+      z.def = base * 0.6;
+      z.hp = base * 2;
+      break;
+    case "boots":
+      z.def = base * 0.5;
+      z.atk = base * 0.4;
+      break;
+    case "belt":
+      z.hp = base * 3.5;
+      break;
+    case "ring":
+      z.atk = base * 0.7;
+      z.crit = 1 + it.rarity * 1.2;
+      break;
+    case "talisman":
+      z.atk = base * 0.5;
+      z.hp = base * 1.5;
+      z.crit = it.rarity * 0.6;
+      break;
   }
-  return { atk: Math.round(z.atk), def: Math.round(z.def), hp: Math.round(z.hp), crit: +z.crit.toFixed(1) };
+  return {
+    atk: Math.round(z.atk),
+    def: Math.round(z.def),
+    hp: Math.round(z.hp),
+    crit: +z.crit.toFixed(1),
+  };
 }
 
 export function itemScore(it: Item) {
@@ -210,21 +377,29 @@ export function itemScore(it: Item) {
   return s.atk * 2 + s.def * 1.5 + s.hp * 0.2 + s.crit * 10;
 }
 
-export function sellValue(it: Item) { return Math.round(it.ilvl * 3 * RARITIES[it.rarity].mult * (1 + it.enh * 0.3)); }
+export function sellValue(it: Item) {
+  return Math.round(it.ilvl * 3 * RARITIES[it.rarity].mult * (1 + it.enh * 0.3));
+}
 /** What the Night Market charges for a piece: a steep markup over salvaging it, rising with the buyer's level. */
-export function buyPrice(it: Item, level = 1) { return scaledGold(sellValue(it) * 16, level); }
+export function buyPrice(it: Item, level = 1) {
+  return scaledGold(sellValue(it) * 16, level);
+}
 /**
  * Enhancing at the Forge: the item's own level and the hero's level both raise the price, and each
  * further step costs more than the last. Gold carries a piece to +13; the climb to +70 is a long,
  * deliberate sink of Enchantment Stones on top of the gold.
  */
-export function enhanceCost(it: Item, level = 1) { return scaledGold(it.ilvl * 2.4 * Math.pow(it.enh + 1, 1.4), level); }
+export function enhanceCost(it: Item, level = 1) {
+  return scaledGold(it.ilvl * 2.4 * Math.pow(it.enh + 1, 1.4), level);
+}
 /**
  * Success chance falls with the enhancement level. The opening steps are near-certain, but past
  * the gold limit the roll keeps dropping (nothing below the master smith's 12% floor), so the
  * deep enchantments need Enchantment Stones to stay worth attempting.
  */
-export function enhanceChance(it: Item) { return Math.max(0.12, 1 - it.enh * 0.021); }
+export function enhanceChance(it: Item) {
+  return Math.max(0.12, 1 - it.enh * 0.021);
+}
 /** True when gold alone may still buy the next step (+13 is the last one). */
 export const goldEnhanceAllowed = (it: Item) => it.enh < ENHANCE_GOLD_LIMIT;
 /** True when the piece is already at the forge's highest enchantment. */
@@ -262,9 +437,16 @@ export function wornCompare(h: { equipment: GearRecord }, it: Item): Item | unde
  * is taken it replaces the weakest one — a second ring never silently overwrites the first.
  * Returns the position used, or null when the piece could not be worn.
  */
-export function equipItem(h: { equipment: GearRecord; inventory: Item[] }, it: Item, at?: WearSlot): WearSlot | null {
+export function equipItem(
+  h: { equipment: GearRecord; inventory: Item[] },
+  it: Item,
+  at?: WearSlot,
+): WearSlot | null {
   const pos = wearOf(it.slot);
-  const target = (at && pos.includes(at) ? at : undefined) ?? pos.find((p) => !h.equipment[p]) ?? weakestWorn(h.equipment, pos);
+  const target =
+    (at && pos.includes(at) ? at : undefined) ??
+    pos.find((p) => !h.equipment[p]) ??
+    weakestWorn(h.equipment, pos);
   if (!target) return null;
   h.inventory = h.inventory.filter((i) => i.id !== it.id);
   const old = h.equipment[target];
@@ -274,7 +456,11 @@ export function equipItem(h: { equipment: GearRecord; inventory: Item[] }, it: I
 }
 
 /** Take a worn piece off into the bag. False when the bag is full or the piece isn't worn. */
-export function unequipItem(h: { equipment: GearRecord; inventory: Item[] }, it: Item, cap: number): boolean {
+export function unequipItem(
+  h: { equipment: GearRecord; inventory: Item[] },
+  it: Item,
+  cap: number,
+): boolean {
   const pos = posOf(h.equipment, it.id);
   if (!pos || h.inventory.length >= cap) return false;
   delete h.equipment[pos];
@@ -284,12 +470,28 @@ export function unequipItem(h: { equipment: GearRecord; inventory: Item[] }, it:
 
 function weakestWorn(eq: GearRecord, pos: WearSlot[]): WearSlot | undefined {
   const filled = pos.filter((p) => eq[p]);
-  return filled.length ? filled.reduce((a, b) => (itemScore(eq[a]!) <= itemScore(eq[b]!) ? a : b)) : undefined;
+  return filled.length
+    ? filled.reduce((a, b) => (itemScore(eq[a]!) <= itemScore(eq[b]!) ? a : b))
+    : undefined;
 }
-
 
 // ---------- Hero ----------
 export interface Hero {
+  /** Server-owned wallet and cosmetics. Written only by SECURITY DEFINER RPCs and the payment
+   *  server, never by the client save. */
+  srv?: {
+    premium?: {
+      balance?: number;
+      vip?: { level?: number; until?: string | null };
+      claimed?: string;
+      history?: { at: string; kind: string; amount: number; detail: string }[];
+    };
+    /** Owned cosmetic ids, scroll stock and the older lucky-shot bank, all granted by the server. */
+    luckyShots?: number;
+    buffs?: Record<string, number>;
+    cosmetics?: string[];
+    scrolls?: Record<string, number>;
+  };
   name: string;
   cls: HeroClass;
   level: number;
@@ -322,7 +524,14 @@ export interface Hero {
   worldCastle?: { x: number; y: number; at: string };
   /** World Tree: today's bounty ledger and the sealed vaults already broken (see worldtree.ts). */
   worldTree?: {
-    bounties?: { day?: string; gold?: number; ore?: number; boss?: number; castle?: number; claimed?: string[] };
+    bounties?: {
+      day?: string;
+      gold?: number;
+      ore?: number;
+      boss?: number;
+      castle?: number;
+      claimed?: string[];
+    };
     caches?: string[];
   };
   /** Daily commission board: day snapshot plus claimed quest ids (see quest-board.ts). */
@@ -366,6 +575,8 @@ export interface Hero {
     gate: "campaign" | "conquest";
     startedAt: number;
     endsAt: number;
+    /** The run's full length when it started, after any VIP speed bonus. */
+    durationMs?: number;
     target: number;
     xp: number;
     gold: number;
@@ -417,6 +628,8 @@ export interface Hero {
     cycles?: number;
     vip?: { day?: number; last?: string; cycles?: number };
   };
+  /** The two VIP-only daily activities: today's baseline counters and the claimed ids (see vip-activities.ts). */
+  vipActivities?: { day: string; base: { wins?: number; crafts?: number }; claimed: string[] };
   /** Chest items waiting in the vault, by chest id (see chests.ts). */
   chests?: Partial<Record<"gold" | "gem", number>>;
   /** Periodic free reward chest: when it was last collected and how many have been collected (see chests.ts). */
@@ -437,19 +650,32 @@ export interface Hero {
   astralSummons?: number;
   /** The Farm: its own level, Farm XP, sixteen plots, the Bloodoak and the seed pouch (see farm.ts). */
   farm?: FarmState;
-
 }
 
 const STARTER_NAMES: Partial<Record<Slot, string>> = {
-  helmet: "Recruit's Hood", armour: "Recruit's Garb", boots: "Recruit's Boots",
-  belt: "Recruit's Belt", talisman: "Recruit's Charm",
+  helmet: "Recruit's Hood",
+  armour: "Recruit's Garb",
+  boots: "Recruit's Boots",
+  belt: "Recruit's Belt",
+  talisman: "Recruit's Charm",
 };
 
 /** Basic starting gear: common, level 1, and named outside the gear families so a new hero never
  *  begins with a set bonus they did not earn. */
 function starterItem(cls: HeroClass, slot: Slot): Item {
-  return { id: uid(), slot, cls, rarity: 0, ilvl: 1, icon: 0, enh: 0,
-    name: slot === "weapon" ? `Recruit's ${CLASSES[cls].weaponName}` : STARTER_NAMES[slot] ?? "Recruit's Gear" };
+  return {
+    id: uid(),
+    slot,
+    cls,
+    rarity: 0,
+    ilvl: 1,
+    icon: 0,
+    enh: 0,
+    name:
+      slot === "weapon"
+        ? `Recruit's ${CLASSES[cls].weaponName}`
+        : (STARTER_NAMES[slot] ?? "Recruit's Gear"),
+  };
 }
 
 export function newHero(name: string, cls: HeroClass): Hero {
@@ -464,9 +690,20 @@ export function newHero(name: string, cls: HeroClass): Hero {
     talisman: starterItem(cls, "talisman"),
   };
   return {
-    name, cls, level: 1, xp: 0, paragon: 0, gold: 100, voidCrystals: 0,
+    name,
+    cls,
+    level: 1,
+    xp: 0,
+    paragon: 0,
+    gold: 100,
+    voidCrystals: 0,
     attrs: { str: 0, int: 0, agi: 0, vit: 0 },
-    equipment: gear, inventory: [], stage: 1, spire: 1, merchant: [], wins: 0,
+    equipment: gear,
+    inventory: [],
+    stage: 1,
+    spire: 1,
+    merchant: [],
+    wins: 0,
   };
 }
 
@@ -508,7 +745,7 @@ export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
   // One level is worth exactly `fightsToLevel` fights at the hero's own stage, so the campaign
   // pays the same XP per fight at every level and only the fight count moves.
   const base = fightsToLevel(lv) * xpPerFight(lv);
-  return h.level < MAX_LEVEL ? base : Math.round(base * Math.pow(1.10, h.paragon));
+  return h.level < MAX_LEVEL ? base : Math.round(base * Math.pow(1.1, h.paragon));
 }
 
 /** Share of its nominal value a level-relative payout (a quest, a commission) is worth at a level.
@@ -532,14 +769,37 @@ export function catchUpXpFactor(level: number, stage: number) {
 }
 
 export interface Stats {
-  hp: number; atk: number; def: number; crit: number; dodge: number; power: number;
-  patk: number; matk: number; pdef: number; mdef: number; critDmg: number; pen: number; acc: number; block: number; heal: number;
+  hp: number;
+  atk: number;
+  def: number;
+  crit: number;
+  dodge: number;
+  power: number;
+  patk: number;
+  matk: number;
+  pdef: number;
+  mdef: number;
+  critDmg: number;
+  pen: number;
+  acc: number;
+  block: number;
+  heal: number;
 }
-export interface PowerSource { label: string; power: number }
+export interface PowerSource {
+  label: string;
+  power: number;
+}
 
 /** Upgrade old saves (Might/Vitality/Bulwark/Fortune) to Str/Int/Agi/Vit. */
 export function normalizeHero(h: Hero): Hero {
-  const a = h.attrs as unknown as { str?: number; int?: number; agi?: number; vit?: number; armor?: number; luck?: number };
+  const a = h.attrs as unknown as {
+    str?: number;
+    int?: number;
+    agi?: number;
+    vit?: number;
+    armor?: number;
+    luck?: number;
+  };
   if (a.int === undefined || a.agi === undefined) {
     h.attrs = { str: a.str ?? 0, int: 0, agi: a.luck ?? 0, vit: (a.vit ?? 0) + (a.armor ?? 0) };
   }
@@ -577,8 +837,13 @@ export function normalizeHero(h: Hero): Hero {
 
 const MAGIC: Record<HeroClass, boolean> = { warrior: false, mage: true, archer: false };
 
-function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boolean; talents?: boolean }): Stats {
-  const tf = opts.talents ? talentFx(h) : { hpPct: 0, atkPct: 0, defPct: 0, crit: 0, dodge: 0, critDmg: 0, pen: 0 };
+function computeStats(
+  h: Hero,
+  opts: { gear: boolean; attrs: boolean; asc: boolean; talents?: boolean },
+): Stats {
+  const tf = opts.talents
+    ? talentFx(h)
+    : { hpPct: 0, atkPct: 0, defPct: 0, crit: 0, dodge: 0, critDmg: 0, pen: 0 };
   // Gems add the chart's flat stats; Astrals, drills and guild skills stay percentage based.
   const gm = opts.gear ? gemFx(h.equipment) : zeroGemFx();
   const xa = opts.talents ? astralFx(h) : null;
@@ -598,48 +863,188 @@ function computeStats(h: Hero, opts: { gear: boolean; attrs: boolean; asc: boole
   const tf2 = opts.talents ? titleFx(h) : zeroFx();
   // Individual stat trainings: permanent percentage bonuses from barracks training (see drills.ts).
   const st = opts.talents ? statTrainFx(h) : zeroFx();
-  const ex = (k: 'matkPct' | 'mdefPct' | 'acc' | 'block' | 'mpen' | 'heal') => (xa?.[k] ?? 0) + (dr?.[k] ?? 0) + (gf2?.[k] ?? 0) + sy[k] + so[k] + en[k] + pb[k] + tf2[k] + st[k];
+  const ex = (k: "matkPct" | "mdefPct" | "acc" | "block" | "mpen" | "heal") =>
+    (xa?.[k] ?? 0) +
+    (dr?.[k] ?? 0) +
+    (gf2?.[k] ?? 0) +
+    sy[k] +
+    so[k] +
+    en[k] +
+    pb[k] +
+    tf2[k] +
+    st[k];
   const sf0 = opts.gear ? setFx(h.equipment) : { atkPct: 0, defPct: 0, hpPct: 0, crit: 0 };
   const af = opts.talents ? astralFx(h) : null;
   const sf = {
-    atkPct: sf0.atkPct + (af?.atkPct ?? 0) + (dr?.atkPct ?? 0) + (gf2?.atkPct ?? 0) + sy.atkPct + en.atkPct + so.atkPct + rw.atkPct + pb.atkPct + tf2.atkPct + st.atkPct,
-    defPct: sf0.defPct + (af?.defPct ?? 0) + (dr?.defPct ?? 0) + (gf2?.defPct ?? 0) + sy.defPct + en.defPct + so.defPct + rw.defPct + pb.defPct + tf2.defPct + st.defPct,
-    hpPct: sf0.hpPct + (af?.hpPct ?? 0) + (dr?.hpPct ?? 0) + (gf2?.hpPct ?? 0) + sy.hpPct + en.hpPct + so.hpPct + rw.hpPct + pb.hpPct + tf2.hpPct + st.hpPct,
-    crit: sf0.crit + (af?.crit ?? 0) + (dr?.crit ?? 0) + (gf2?.crit ?? 0) + sy.crit + en.crit + so.crit + rw.crit + pb.crit + tf2.crit + st.crit,
+    atkPct:
+      sf0.atkPct +
+      (af?.atkPct ?? 0) +
+      (dr?.atkPct ?? 0) +
+      (gf2?.atkPct ?? 0) +
+      sy.atkPct +
+      en.atkPct +
+      so.atkPct +
+      rw.atkPct +
+      pb.atkPct +
+      tf2.atkPct +
+      st.atkPct,
+    defPct:
+      sf0.defPct +
+      (af?.defPct ?? 0) +
+      (dr?.defPct ?? 0) +
+      (gf2?.defPct ?? 0) +
+      sy.defPct +
+      en.defPct +
+      so.defPct +
+      rw.defPct +
+      pb.defPct +
+      tf2.defPct +
+      st.defPct,
+    hpPct:
+      sf0.hpPct +
+      (af?.hpPct ?? 0) +
+      (dr?.hpPct ?? 0) +
+      (gf2?.hpPct ?? 0) +
+      sy.hpPct +
+      en.hpPct +
+      so.hpPct +
+      rw.hpPct +
+      pb.hpPct +
+      tf2.hpPct +
+      st.hpPct,
+    crit:
+      sf0.crit +
+      (af?.crit ?? 0) +
+      (dr?.crit ?? 0) +
+      (gf2?.crit ?? 0) +
+      sy.crit +
+      en.crit +
+      so.crit +
+      rw.crit +
+      pb.crit +
+      tf2.crit +
+      st.crit,
   };
-  tf.dodge += (af?.dodge ?? 0) + (dr?.dodge ?? 0) + (gf2?.dodge ?? 0) + sy.dodge + so.dodge + rw.dodge + pb.dodge + tf2.dodge + st.dodge;
-  tf.critDmg += (af?.critDmg ?? 0) + (gf2?.critDmg ?? 0) + sy.critDmg + rw.critDmg + pb.critDmg + tf2.critDmg + st.critDmg;
+  tf.dodge +=
+    (af?.dodge ?? 0) +
+    (dr?.dodge ?? 0) +
+    (gf2?.dodge ?? 0) +
+    sy.dodge +
+    so.dodge +
+    rw.dodge +
+    pb.dodge +
+    tf2.dodge +
+    st.dodge;
+  tf.critDmg +=
+    (af?.critDmg ?? 0) +
+    (gf2?.critDmg ?? 0) +
+    sy.critDmg +
+    rw.critDmg +
+    pb.critDmg +
+    tf2.critDmg +
+    st.critDmg;
   tf.pen += sy.pen + so.pen + pb.pen + tf2.pen + st.pen;
-  const pa = 1 + (tf.atkPct + sf.atkPct) / 100, ph = 1 + (tf.hpPct + sf.hpPct) / 100, pd = 1 + (tf.defPct + sf.defPct) / 100;
+  const pa = 1 + (tf.atkPct + sf.atkPct) / 100,
+    ph = 1 + (tf.hpPct + sf.hpPct) / 100,
+    pd = 1 + (tf.defPct + sf.defPct) / 100;
   const c = CLASSES[h.cls];
   const items = opts.gear ? (Object.values(h.equipment).filter(Boolean) as Item[]) : [];
-  const g = items.reduce((a, it) => { const s = itemStats(it); a.atk += s.atk; a.def += s.def; a.hp += s.hp; a.crit += s.crit; return a; }, { atk: 0, def: 0, hp: 0, crit: 0 });
+  const g = items.reduce(
+    (a, it) => {
+      const s = itemStats(it);
+      a.atk += s.atk;
+      a.def += s.def;
+      a.hp += s.hp;
+      a.crit += s.crit;
+      return a;
+    },
+    { atk: 0, def: 0, hp: 0, crit: 0 },
+  );
   // Barracks attribute drills bank extra points of the four attributes (see drills.ts).
   const da = opts.talents ? drillAttrs(h) : null;
   const at = opts.attrs
-    ? { str: h.attrs.str + (da?.str ?? 0), int: h.attrs.int + (da?.int ?? 0), agi: h.attrs.agi + (da?.agi ?? 0), vit: h.attrs.vit + (da?.vit ?? 0) }
+    ? {
+        str: h.attrs.str + (da?.str ?? 0),
+        int: h.attrs.int + (da?.int ?? 0),
+        agi: h.attrs.agi + (da?.agi ?? 0),
+        vit: h.attrs.vit + (da?.vit ?? 0),
+      }
     : { str: 0, int: 0, agi: 0, vit: 0 };
   const p = opts.asc ? 1 + h.paragon * 0.02 : 1;
   const L = h.level;
   // Per level every stat keeps growing so the campaign never outruns the hero; Vitality is the
   // strongest health lever, and Strength adds a little health on the side.
   const hp = Math.round(ph * ((100 + L * 40 + at.vit * 22 + at.str * 4) * c.hp + g.hp) * p) + gm.hp;
-  const patk = Math.round(pa * ((10 + L * 5 + at.str * 3 + at.agi * 1.5) * c.atk + (MAGIC[h.cls] ? g.atk * 0.3 : g.atk)) * p) + gm.patk;
-  const matk = Math.round((pa + ex('matkPct') / 100) * ((10 + L * 5 + at.int * 3.2) * c.atk + (MAGIC[h.cls] ? g.atk : g.atk * 0.3)) * p) + gm.matk;
-  const pdef = Math.round(pd * ((5 + L * 2.5 + at.vit * 1.5 + at.str * 1) * c.def + g.def) * p) + gm.pdef;
-  const mdef = Math.round((pd + ex('mdefPct') / 100) * ((5 + L * 2.5 + at.vit * 1 + at.int * 1.5) * c.def + g.def * 0.8) * p) + gm.mdef;
-  const crit = Math.min(60, +(5 + c.crit + at.agi * 0.2 + g.crit + tf.crit + sf.crit + gm.crit).toFixed(1));
+  const patk =
+    Math.round(
+      pa *
+        ((10 + L * 5 + at.str * 3 + at.agi * 1.5) * c.atk + (MAGIC[h.cls] ? g.atk * 0.3 : g.atk)) *
+        p,
+    ) + gm.patk;
+  const matk =
+    Math.round(
+      (pa + ex("matkPct") / 100) *
+        ((10 + L * 5 + at.int * 3.2) * c.atk + (MAGIC[h.cls] ? g.atk : g.atk * 0.3)) *
+        p,
+    ) + gm.matk;
+  const pdef =
+    Math.round(pd * ((5 + L * 2.5 + at.vit * 1.5 + at.str * 1) * c.def + g.def) * p) + gm.pdef;
+  const mdef =
+    Math.round(
+      (pd + ex("mdefPct") / 100) *
+        ((5 + L * 2.5 + at.vit * 1 + at.int * 1.5) * c.def + g.def * 0.8) *
+        p,
+    ) + gm.mdef;
+  const crit = Math.min(
+    60,
+    +(5 + c.crit + at.agi * 0.2 + g.crit + tf.crit + sf.crit + gm.crit).toFixed(1),
+  );
   const critDmg = Math.min(300, Math.round(150 + at.agi * 0.3 + at.str * 0.15 + tf.critDmg));
-  const pen = Math.min(40, +(at.str * 0.08 + at.int * 0.08 + h.paragon * 0.1 + tf.pen + (MAGIC[h.cls] ? ex('mpen') : (af?.pen ?? 0) + (gf2?.pen ?? 0))).toFixed(1));
-  const acc = Math.min(30, +(at.agi * 0.08 + L * 0.05 + ex('acc')).toFixed(1));
-  const block = Math.min(25, +(ex('block') + gm.block).toFixed(1));
-  const heal = Math.min(50, +(ex('heal') + gm.charisma).toFixed(1));
+  const pen = Math.min(
+    40,
+    +(
+      at.str * 0.08 +
+      at.int * 0.08 +
+      h.paragon * 0.1 +
+      tf.pen +
+      (MAGIC[h.cls] ? ex("mpen") : (af?.pen ?? 0) + (gf2?.pen ?? 0))
+    ).toFixed(1),
+  );
+  const acc = Math.min(30, +(at.agi * 0.08 + L * 0.05 + ex("acc")).toFixed(1));
+  const block = Math.min(25, +(ex("block") + gm.block).toFixed(1));
+  const heal = Math.min(50, +(ex("heal") + gm.charisma).toFixed(1));
   const dodge = Math.min(30, +(c.dodge + at.agi * 0.06 + tf.dodge).toFixed(1));
   const atk = MAGIC[h.cls] ? matk : patk;
   const def = Math.round((pdef + mdef) / 2);
-  const raw = atk * 2 + def * 1.5 + hp * 0.2 + crit * 10 + (critDmg - 150) * 4 + pen * 25 + acc * 15 + dodge * 15 + block * 15 + heal * 5;
+  const raw =
+    atk * 2 +
+    def * 1.5 +
+    hp * 0.2 +
+    crit * 10 +
+    (critDmg - 150) * 4 +
+    pen * 25 +
+    acc * 15 +
+    dodge * 15 +
+    block * 15 +
+    heal * 5;
   const power = battleRating(raw, L, h.paragon);
-  return { hp, atk, def, crit, dodge, power, patk, matk, pdef, mdef, critDmg, pen, acc, block, heal };
+  return {
+    hp,
+    atk,
+    def,
+    crit,
+    dodge,
+    power,
+    patk,
+    matk,
+    pdef,
+    mdef,
+    critDmg,
+    pen,
+    acc,
+    block,
+    heal,
+  };
 }
 
 /**
@@ -685,7 +1090,9 @@ export function scaledFoe<T extends Foe>(foe: T, heroLevel: number): T {
   };
 }
 
-export function heroStats(h: Hero): Stats { return computeStats(h, { gear: true, attrs: true, asc: true, talents: true }); }
+export function heroStats(h: Hero): Stats {
+  return computeStats(h, { gear: true, attrs: true, asc: true, talents: true });
+}
 
 /** Battle Rating broken down by real sources (each = marginal gain when added). */
 export function powerBreakdown(h: Hero): PowerSource[] {
@@ -702,20 +1109,37 @@ export function powerBreakdown(h: Hero): PowerSource[] {
     { label: "Skills, drills, Astrals, Synthesis, Enlightenment & Renown", power: total - withAsc },
   ];
 }
-export const powerOf = (s: { hp: number; atk: number; def: number; crit: number }) => Math.round(s.atk * 2 + s.def * 1.5 + s.hp * 0.2 + s.crit * 10);
+export const powerOf = (s: { hp: number; atk: number; def: number; crit: number }) =>
+  Math.round(s.atk * 2 + s.def * 1.5 + s.hp * 0.2 + s.crit * 10);
 
-export function attrCost(points: number) { return Math.round(10 * Math.pow(1.09, points)); }
+export function attrCost(points: number) {
+  return Math.round(10 * Math.pow(1.09, points));
+}
 
 // ---------- Enemies ----------
-export const ENEMIES = locAll({
-  goblin: { name: "Goblin Brute", img: goblinImg },
-  skeleton: { name: "Bone Reaver", img: skeletonImg },
-  demon: { name: "Crimson Fiend", img: demonImg },
-  dragon: { name: "Blood-Moon Wyrm", img: dragonImg },
-}, ["name"] as const);
+export const ENEMIES = locAll(
+  {
+    goblin: { name: "Goblin Brute", img: goblinImg },
+    skeleton: { name: "Bone Reaver", img: skeletonImg },
+    demon: { name: "Crimson Fiend", img: demonImg },
+    dragon: { name: "Blood-Moon Wyrm", img: dragonImg },
+  },
+  ["name"] as const,
+);
 export type EnemyType = keyof typeof ENEMIES;
 
-export interface Foe { name: string; img: string; hp: number; atk: number; def: number; crit: number; dodge: number; level: number; boss?: boolean; flip?: boolean }
+export interface Foe {
+  name: string;
+  img: string;
+  hp: number;
+  atk: number;
+  def: number;
+  crit: number;
+  dodge: number;
+  level: number;
+  boss?: boolean;
+  flip?: boolean;
+}
 
 const ZONES: EnemyType[] = ["goblin", "skeleton", "demon"];
 const ZONE_NAMES = ["Goblin Warrens", "Bone Crypts", "Fiend Rift"];
@@ -748,7 +1172,9 @@ export function stageFoe(stage: number, mult = 1, type?: EnemyType, name?: strin
     level: stage,
     boss,
     hp: Math.round((150 + stage * 150) * (1 + b * 0.8) * mult * rift * tough * ease),
-    atk: Math.round((12 + stage * 8 + stage * stage * 0.2) * (1 + b * 0.25) * mult * rift * tough * ease),
+    atk: Math.round(
+      (12 + stage * 8 + stage * stage * 0.2) * (1 + b * 0.25) * mult * rift * tough * ease,
+    ),
     def: Math.round((5 + stage * 1.4) * mult * Math.sqrt(rift)),
     crit: Math.min(40, 5 + stage * 0.15),
     dodge: Math.min(20, 2 + stage * 0.05),
@@ -791,24 +1217,37 @@ export function stageRewards(stage: number, mult = 1) {
 }
 
 // ---------- Skills ----------
-export interface Skill { id: string; name: string; mult: number; hits?: number; cd: number; heal?: number; stun?: boolean; crit?: boolean; icon: string }
-export const SKILLS: Record<HeroClass, Skill[]> = locAll({
-  warrior: [
-    { id: "strike", name: "Strike", mult: 1, cd: 0, icon: "sword" },
-    { id: "cleave", name: "Cleave", mult: 1.9, cd: 3, icon: "axe" },
-    { id: "rage", name: "Bloodrage", mult: 2.8, cd: 5, heal: 0.15, icon: "flame" },
-  ],
-  mage: [
-    { id: "bolt", name: "Arcane Bolt", mult: 1, cd: 0, icon: "sparkles" },
-    { id: "nova", name: "Frost Nova", mult: 1.5, cd: 4, stun: true, icon: "snowflake" },
-    { id: "meteor", name: "Meteor", mult: 3.3, cd: 5, icon: "flame" },
-  ],
-  archer: [
-    { id: "shot", name: "Shot", mult: 1, cd: 0, icon: "target" },
-    { id: "volley", name: "Volley", mult: 0.75, hits: 3, cd: 3, icon: "wind" },
-    { id: "snipe", name: "Death Snipe", mult: 2.6, cd: 5, crit: true, icon: "crosshair" },
-  ],
-}, ["name"]);
+export interface Skill {
+  id: string;
+  name: string;
+  mult: number;
+  hits?: number;
+  cd: number;
+  heal?: number;
+  stun?: boolean;
+  crit?: boolean;
+  icon: string;
+}
+export const SKILLS: Record<HeroClass, Skill[]> = locAll(
+  {
+    warrior: [
+      { id: "strike", name: "Strike", mult: 1, cd: 0, icon: "sword" },
+      { id: "cleave", name: "Cleave", mult: 1.9, cd: 3, icon: "axe" },
+      { id: "rage", name: "Bloodrage", mult: 2.8, cd: 5, heal: 0.15, icon: "flame" },
+    ],
+    mage: [
+      { id: "bolt", name: "Arcane Bolt", mult: 1, cd: 0, icon: "sparkles" },
+      { id: "nova", name: "Frost Nova", mult: 1.5, cd: 4, stun: true, icon: "snowflake" },
+      { id: "meteor", name: "Meteor", mult: 3.3, cd: 5, icon: "flame" },
+    ],
+    archer: [
+      { id: "shot", name: "Shot", mult: 1, cd: 0, icon: "target" },
+      { id: "volley", name: "Volley", mult: 0.75, hits: 3, cd: 3, icon: "wind" },
+      { id: "snipe", name: "Death Snipe", mult: 2.6, cd: 5, crit: true, icon: "crosshair" },
+    ],
+  },
+  ["name"],
+);
 
 /** Battle abilities for a hero, including skill-tree upgrades. */
 export const heroSkills = (h: Hero): Skill[] => talentSkills(SKILLS[h.cls], h);
@@ -817,8 +1256,19 @@ export const heroSkills = (h: Hero): Skill[] => talentSkills(SKILLS[h.cls], h);
  *  useful without ever making a fight unloseable (or an enemy unkillable). */
 export const MITIGATION_FLOOR = 0.3;
 
-export function calcDamage(atk: number, def: number, mult: number, critChance: number, dodge: number, forceCrit = false, critDmg = 200, pen = 0, acc = 0) {
-  if (!forceCrit && Math.random() * 100 < Math.max(0, dodge - acc)) return { dmg: 0, crit: false, miss: true };
+export function calcDamage(
+  atk: number,
+  def: number,
+  mult: number,
+  critChance: number,
+  dodge: number,
+  forceCrit = false,
+  critDmg = 200,
+  pen = 0,
+  acc = 0,
+) {
+  if (!forceCrit && Math.random() * 100 < Math.max(0, dodge - acc))
+    return { dmg: 0, crit: false, miss: true };
   const crit = forceCrit || Math.random() * 100 < critChance;
   const raw = atk * mult * (0.9 + Math.random() * 0.2) * (crit ? critDmg / 100 : 1);
   const effDef = def * (1 - Math.min(40, pen) / 100);
@@ -827,28 +1277,151 @@ export function calcDamage(atk: number, def: number, mult: number, critChance: n
 }
 
 export const BUILDINGS = [
-  { id: "hall", name: "Throne Hall", x: 29, y: 24, r: 7, desc: "Skill tree, stats & progression", soon: false },
-  { id: "armory", name: "Armory", x: 41, y: 22, r: 4.5, desc: "Inventory & equipment", soon: false },
+  {
+    id: "hall",
+    name: "Throne Hall",
+    x: 29,
+    y: 24,
+    r: 7,
+    desc: "Skill tree, stats & progression",
+    soon: false,
+  },
+  {
+    id: "armory",
+    name: "Armory",
+    x: 41,
+    y: 22,
+    r: 4.5,
+    desc: "Inventory & equipment",
+    soon: false,
+  },
   { id: "temple", name: "Barracks", x: 58, y: 57, r: 4.5, desc: "Attribute training", soon: false },
-  { id: "forge", name: "Blacksmith", x: 63.5, y: 44, r: 4.5, desc: "Enhance & salvage gear", soon: false },
-  { id: "oracle", name: "Quest Board", x: 42, y: 52, r: 3.5, desc: "AI-generated quests", soon: false , shortcut: true },
-  { id: "portal", name: "Campaign Gate", x: 72, y: 54, r: 5.5, desc: "Campaign stages", soon: false },
+  {
+    id: "forge",
+    name: "Blacksmith",
+    x: 63.5,
+    y: 44,
+    r: 4.5,
+    desc: "Enhance & salvage gear",
+    soon: false,
+  },
+  {
+    id: "oracle",
+    name: "Quest Board",
+    x: 42,
+    y: 52,
+    r: 3.5,
+    desc: "AI-generated quests",
+    soon: false,
+    shortcut: true,
+  },
+  {
+    id: "portal",
+    name: "Campaign Gate",
+    x: 72,
+    y: 54,
+    r: 5.5,
+    desc: "Campaign stages",
+    soon: false,
+  },
   // The Farm lives on the big red-leafed tree on the far-right outcrop beyond the walls — its
   // canopy is painted into the castle art near 87-93% / 27-37%, so this hotspot makes that tree
   // the Farm's door. It sits clear of every other building so each tap opens its own screen.
-  { id: "farm", name: "Farm", x: 90, y: 32.5, r: 4.8, desc: "Seeds, crops & the Bloodoak", soon: false },
-  { id: "spire", name: "Conquest Gate", x: 17, y: 46, r: 5, desc: "Endless Conquest · Lv 10+", soon: false },
+  {
+    id: "farm",
+    name: "Farm",
+    x: 90,
+    y: 32.5,
+    r: 4.8,
+    desc: "Seeds, crops & the Bloodoak",
+    soon: false,
+  },
+  {
+    id: "spire",
+    name: "Conquest Gate",
+    x: 17,
+    y: 46,
+    r: 5,
+    desc: "Endless Conquest · Lv 10+",
+    soon: false,
+  },
   { id: "arena", name: "Arena", x: 50, y: 31, r: 6.5, desc: "Fight real players", soon: false },
-  { id: "market", name: "Auction House", x: 44, y: 82, r: 5, desc: "Catalogue, shop & player auctions", soon: false },
-  { id: "dungeon", name: "Dungeon Gate", x: 24, y: 80, r: 4, desc: "Boss challenges & elites · Lv 20+", soon: false },
-  { id: "tower", name: "Magic Tower", x: 66, y: 74, r: 4, desc: "Astral vault · infinite upgrades", soon: false },
-  { id: "gems", name: "Gem Workshop", x: 54.5, y: 71, r: 4, desc: "Cut, socket & fuse gems", soon: false },
+  {
+    id: "market",
+    name: "Auction House",
+    x: 44,
+    y: 82,
+    r: 5,
+    desc: "Catalogue, shop & player auctions",
+    soon: false,
+  },
+  {
+    id: "dungeon",
+    name: "Dungeon Gate",
+    x: 24,
+    y: 80,
+    r: 4,
+    desc: "Boss challenges & elites · Lv 20+",
+    soon: false,
+  },
+  {
+    id: "tower",
+    name: "Magic Tower",
+    x: 66,
+    y: 74,
+    r: 4,
+    desc: "Astral vault · infinite upgrades",
+    soon: false,
+  },
+  {
+    id: "gems",
+    name: "Gem Workshop",
+    x: 54.5,
+    y: 71,
+    r: 4,
+    desc: "Cut, socket & fuse gems",
+    soon: false,
+  },
   { id: "guild", name: "Guild Hall", x: 35, y: 55, r: 4, desc: "Guilds & guild chat", soon: false },
   // The Gold Mine is the building immediately left of the Guild Hall: the castle's offline earner.
-  { id: "mine", name: "Gold Mine", x: 26, y: 56, r: 4, desc: "Offline gold · collect anytime", soon: false },
-  { id: "friends", name: "Friends", x: 0, y: 0, r: 0, desc: "Friends & messages", soon: false, shortcut: true },
-  { id: "daily", name: "Daily Rewards", x: 46, y: 66, r: 3.5, desc: "Login rewards & activities", soon: false , shortcut: true },
-  { id: "worldmap", name: "World Tree", x: 50, y: 49, r: 4.5, desc: "Explore the world map · raids & bosses", soon: false },
+  {
+    id: "mine",
+    name: "Gold Mine",
+    x: 26,
+    y: 56,
+    r: 4,
+    desc: "Offline gold · collect anytime",
+    soon: false,
+  },
+  {
+    id: "friends",
+    name: "Friends",
+    x: 0,
+    y: 0,
+    r: 0,
+    desc: "Friends & messages",
+    soon: false,
+    shortcut: true,
+  },
+  {
+    id: "daily",
+    name: "Daily Rewards",
+    x: 46,
+    y: 66,
+    r: 3.5,
+    desc: "Login rewards & activities",
+    soon: false,
+    shortcut: true,
+  },
+  {
+    id: "worldmap",
+    name: "World Tree",
+    x: 50,
+    y: 49,
+    r: 4.5,
+    desc: "Explore the world map · raids & bosses",
+    soon: false,
+  },
 ] as const;
 /** Buildings physically placed in the castle (shortcut-only screens excluded). */
 export const CASTLE_BUILDINGS = BUILDINGS.filter((b) => !("shortcut" in b && b.shortcut));

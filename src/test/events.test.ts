@@ -34,11 +34,21 @@ describe("world event schedules", () => {
       expect(Number.isFinite(e.anchor)).toBe(true);
     }
   });
-  it("runs a different kind of fight for every event", () => {
-    const kinds = WORLD_EVENTS.map((e) => e.kind);
-    expect(new Set(kinds).size).toBe(WORLD_EVENTS.length);
+  it("runs a different kind of fight for every public event", () => {
+    const publicKinds = WORLD_EVENTS.filter((e) => !e.vipOnly).map((e) => e.kind);
+    expect(new Set(publicKinds).size).toBe(publicKinds.length);
     // The old boss/dungeon/caravan/season loop is gone entirely.
-    for (const old of ["boss", "dungeon", "caravan", "season"]) expect(kinds).not.toContain(old);
+    for (const old of ["boss", "dungeon", "caravan", "season"])
+      expect(publicKinds).not.toContain(old);
+  });
+
+  it("adds two members-only windows alongside the public calendar", () => {
+    const vip = WORLD_EVENTS.filter((e) => e.vipOnly);
+    expect(vip).toHaveLength(2);
+    for (const e of vip) {
+      expect(e.bonus.mult).toBeGreaterThan(1.5);
+      expect(e.durationMs).toBeGreaterThan(0);
+    }
   });
 
   it("reports a running event as live with the time left until it closes", () => {

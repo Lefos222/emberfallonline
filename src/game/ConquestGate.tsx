@@ -12,6 +12,7 @@ import {
   gemTokenPrice, TOKEN_OFFERS,
 } from "./conquest";
 import { blitzDurationMs } from "./blitz-run";
+import { vipLevelOf } from "./vip-perks";
 import type { Hero } from "./data";
 import { update } from "./store";
 import { GameTabs, Gold, fmt } from "./ui";
@@ -77,7 +78,7 @@ function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
   const keyMult = conquestRewardMultiplier(hero);
   const keyPrice = conquestKeyShopPrice(hero.level);
   const preview = blocked ? null : blitzRewards(usable, keyMult);
-  const runMinutes = Math.round(blitzDurationMs(usable) / 60_000);
+  const runMinutes = Math.round(blitzDurationMs(usable, vipLevelOf(hero)) / 60_000);
   const jump = (n: number) => { setTarget(n); setMsg(null); };
   const perFloor = usable > 0 ? Math.max(1, Math.round((preview?.tokens ?? 0) / usable)) : 0;
   // The blitz can add today's key itself — the same purchase as the Auction House stall, which

@@ -1,5 +1,6 @@
 import type { Hero } from "./data";
 import { grant } from "./logic";
+import { vipBlitzFactor, vipLevelOf } from "./vip-perks";
 
 /**
  * A blitz is a run, not an instant payout: starting one sends the hero up the climb. The
@@ -22,9 +23,14 @@ export const BLITZ_FULL_DEPTH = 100;
  * one minute per few floors to the 50-minute cap at BLITZ_FULL_DEPTH. Whole minutes, so the
  * countdown always reads cleanly.
  */
-export function blitzDurationMs(target: number): number {
-  const depth = Math.min(1, Math.max(0, (Math.max(1, Math.floor(target || 1)) - 1) / (BLITZ_FULL_DEPTH - 1)));
-  return (20 + Math.round(depth * 30)) * 60_000;
+export function blitzDurationMs(target: number, vipLevel = 0): number {
+  const depth = Math.min(
+    1,
+    Math.max(0, (Math.max(1, Math.floor(target || 1)) - 1) / (BLITZ_FULL_DEPTH - 1)),
+  );
+  const minutes = 20 + Math.round(depth * 30);
+  // VIP membership is the "faster blitz": up to 30% shorter, never under ten minutes.
+  return Math.max(10, Math.round(minutes * vipBlitzFactor(vipLevel))) * 60_000;
 }
 
 /** Version 1.00: a campaign blitz pays 70% less XP than fighting those stages, so it is a gold and
@@ -48,7 +54,8 @@ export const blitzLeft = (h: Pick<Hero, "blitzRun">, now = Date.now()) =>
   h.blitzRun ? Math.max(0, h.blitzRun.endsAt - now) : 0;
 
 /** The whole length of a run, so a progress bar can tell how far along it is. */
-export const blitzRunTotal = (run: Pick<BlitzRun, "target">) => blitzDurationMs(run.target);
+export const blitzRunTotal = (run: Pick<BlitzRun, "target" | "durationMs">) =>
+  run.durationMs ?? blitzDurationMs(run.target);
 
 /** True while the hero is out on a blitz — no battles can start until it lands. */
 export const blitzRunning = (h: Pick<Hero, "blitzRun">, now = Date.now()) => blitzLeft(h, now) > 0;
@@ -73,7 +80,8 @@ export function startBlitzRun(
   now = Date.now(),
 ): string | null {
   if (blitzRunning(h, now)) return BLITZ_RUNNING;
-  h.blitzRun = { ...run, startedAt: now, endsAt: now + blitzDurationMs(run.target) };
+  const durationMs = blitzDurationMs(run.target, vipLevelOf(h));
+  h.blitzRun = { ...run, startedAt: now, endsAt: now + durationMs, durationMs };
   return null;
 }
 
