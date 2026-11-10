@@ -7,13 +7,13 @@ const GENDERS: ("male" | "female")[] = ["male", "female"];
 
 describe("armour appearance", () => {
   it("keeps both the current and the restored legacy outfits in every pool", () => {
-    // Current art plus the pre-merge outfits recovered into armour/legacy.
-    expect(lookCount("warrior", "male")).toBe(34);
-    expect(lookCount("warrior", "female")).toBe(28);
-    expect(lookCount("mage", "male")).toBe(14);
-    expect(lookCount("mage", "female")).toBe(20);
-    expect(lookCount("archer", "male")).toBe(20);
-    expect(lookCount("archer", "female")).toBe(20);
+    // Current art (including two darker outfits per hero) plus the pre-merge outfits in armour/legacy.
+    expect(lookCount("warrior", "male")).toBe(36);
+    expect(lookCount("warrior", "female")).toBe(30);
+    expect(lookCount("mage", "male")).toBe(16);
+    expect(lookCount("mage", "female")).toBe(22);
+    expect(lookCount("archer", "male")).toBe(22);
+    expect(lookCount("archer", "female")).toBe(22);
   });
 
   it("resolves art for every look in the pool and nothing outside it", () => {
