@@ -239,6 +239,13 @@
       "when": 1794329000000,
       "tag": "0033_spire_party_fixes",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794400000000,
+      "tag": "0034_wheel_rng",
+      "breakpoints": true
     }
   ]
 }

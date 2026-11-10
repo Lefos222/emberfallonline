@@ -13,7 +13,7 @@ import { addLoot } from "./logic";
 import { ItemCard, Panel, fmt } from "./ui";
 import { itemName, tName, tr } from "./i18n";
 import { ArtIcon } from "./ArtIcon";
-import wheelImg from "@/assets/wheel-of-fortune.webp";
+import { WHEEL_PRICE, WHEEL_SEGMENTS, WHEEL_SEG_DEG, wheelGoodChance } from "./wheel";
 import marketImg from "@/assets/scene-black-market.jpg";
 
 type Note = { ok: boolean; t: string } | null;
@@ -91,7 +91,34 @@ export function RunesPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-const SEG_LABEL = ["Gold", "Frost Crystal", "XP", "Armor Fragment", "Gold", "Ore & Essence", "Void Crystal", "Jackpot gold"];
+/** The wheel face: one slice per prize, good prizes in gold, drawn clockwise from the pointer. */
+function WheelFace() {
+  const n = WHEEL_SEGMENTS.length;
+  const pt = (deg: number, r: number) => {
+    const a = ((deg - 90) * Math.PI) / 180;
+    return `${50 + r * Math.cos(a)} ${50 + r * Math.sin(a)}`;
+  };
+  return (
+    <svg viewBox="0 0 100 100" className="h-full w-full">
+      <circle cx="50" cy="50" r="49.5" className="fill-background stroke-gold" strokeWidth="1" />
+      {WHEEL_SEGMENTS.map((s, i) => {
+        const a0 = i * WHEEL_SEG_DEG - WHEEL_SEG_DEG / 2;
+        const a1 = a0 + WHEEL_SEG_DEG;
+        const fill = s.good ? "fill-gold" : i % 2 ? "fill-secondary" : "fill-card";
+        return (
+          <g key={i}>
+            <path d={`M50 50 L${pt(a0, 48)} A48 48 0 0 1 ${pt(a1, 48)} Z`} className={`${fill} stroke-border`} strokeWidth="0.3" />
+            <text
+              x="50" y="9" textAnchor="middle" transform={`rotate(${i * WHEEL_SEG_DEG} 50 50)`}
+              className={s.good ? "fill-background font-bold" : "fill-foreground"} style={{ fontSize: n > 12 ? 3 : 4 }}
+            >{tr(s.label)}</text>
+          </g>
+        );
+      })}
+      <circle cx="50" cy="50" r="7" className="fill-gold stroke-background" strokeWidth="1" />
+    </svg>
+  );
+}
 
 export function WheelPanel({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
@@ -106,12 +133,14 @@ export function WheelPanel({ onClose }: { onClose: () => void }) {
       await spinWheel();
       const { grant } = await import("./logic");
       update((h) => { grant(h, 0, 0); }); // settle any level-up from wheel XP
-      const w = (getState().hero?.srv as { wheel?: { seg: number; gold: number; xp: number; mats: Record<string, number> } } | undefined)?.wheel;
+      const w = (getState().hero?.srv as { wheel?: { seg: number; gold: number; xp: number; diamonds?: number; mats: Record<string, number> } } | undefined)?.wheel;
       const seg = w?.seg ?? 0;
-      setAngle((a) => a - (a % 360) + 360 * 6 - seg * 45);
+      const jitter = (Math.random() - 0.5) * WHEEL_SEG_DEG * 0.7; // land anywhere inside the slice
+      setAngle((a) => a - (a % 360) + 360 * 6 - seg * WHEEL_SEG_DEG + jitter);
       setTimeout(() => {
-        const parts = [w?.gold ? `+${fmt(w.gold)} ${tr("gold")}` : "", w?.xp ? `+${fmt(w.xp)} XP` : "", ...Object.entries(w?.mats ?? {}).map(([k, n]) => `+${n} ${MATS[k as Mat]?.name ?? k}`)].filter(Boolean);
-        setNote({ ok: true, t: `${tr(SEG_LABEL[seg])}! ${parts.join(" · ")}` });
+        const parts = [w?.diamonds ? `+${fmt(w.diamonds)} ${tr("Diamonds")}` : "", w?.gold ? `+${fmt(w.gold)} ${tr("gold")}` : "", w?.xp ? `+${fmt(w.xp)} XP` : "", ...Object.entries(w?.mats ?? {}).map(([k, n]) => `+${n} ${MATS[k as Mat]?.name ?? k}`)].filter(Boolean);
+        const s = WHEEL_SEGMENTS[seg];
+        setNote({ ok: true, t: `${s?.good ? "★ " : ""}${tr(s?.label ?? "Gold")}! ${parts.join(" · ")}` });
         setBusy(false);
       }, 4200);
     } catch (e) { setNote({ ok: false, t: e instanceof Error ? e.message : String(e) }); setBusy(false); }
@@ -120,13 +149,23 @@ export function WheelPanel({ onClose }: { onClose: () => void }) {
     <Panel title={tr("Wheel of Fortune")} subtitle={tr("100 Diamonds per spin")} art="diamond" onClose={onClose}>
       <NoteLine n={note} />
       <div className="relative mx-auto aspect-square w-full max-w-[22rem]">
-        <img src={wheelImg} alt={tr("Wheel of Fortune")} className="h-full w-full object-contain drop-shadow-[0_0_24px_hsl(var(--gold)/0.35)]" style={{ transform: `rotate(${angle}deg)`, transition: busy ? "transform 4s cubic-bezier(.17,.67,.21,1)" : "none" }} />
+        <div className="h-full w-full drop-shadow-[0_0_24px_hsl(var(--gold)/0.35)]" style={{ transform: `rotate(${angle}deg)`, transition: busy ? "transform 4s cubic-bezier(.17,.67,.21,1)" : "none" }}><WheelFace /></div>
         <span aria-hidden className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1 border-x-[12px] border-t-[22px] border-x-transparent border-t-gold drop-shadow" />
       </div>
       <div className="mt-3 flex flex-col items-center gap-2">
         <p className="flex items-center gap-1 text-sm"><ArtIcon name="diamond" size={16} />{fmt(balance)} {tr("Diamonds")}</p>
-        <Button disabled={busy || balance < 100} onClick={() => void spin()}>{busy ? tr("Spinning…") : tr("Spin · 100 Diamonds")}</Button>
-        <p className="text-center text-xs text-muted-foreground">{tr("Prizes: gold, XP, ore and essence, Frost and Void Crystals, Armor Fragments if you are lucky, and a rare gold jackpot.")}</p>
+        <Button disabled={busy || balance < WHEEL_PRICE} onClick={() => void spin()}>{busy ? tr("Spinning…") : tr("Spin · 100 Diamonds")}</Button>
+        <p className="text-center text-xs text-muted-foreground">{tr("Only the gold slices are worth chasing — together they hit about")} {wheelGoodChance()}% {tr("of the time. Every other prize is rolled between half and one and a half of its usual size.")}</p>
+        <details className="w-full text-xs">
+          <summary className="cursor-pointer text-center text-gold">{tr("Show the odds")}</summary>
+          <ul className="mt-2 grid gap-1">
+            {[...WHEEL_SEGMENTS].sort((a, b) => b.weight - a.weight).map((s, i) => (
+              <li key={i} className={`flex justify-between gap-2 ${s.good ? "text-gold" : "text-muted-foreground"}`}>
+                <span>{s.good ? "★ " : ""}{tr(s.prize)}</span><span>{s.weight}%</span>
+              </li>
+            ))}
+          </ul>
+        </details>
       </div>
     </Panel>
   );
@@ -163,6 +202,7 @@ export function BlackMarketTab() {
         <p className="absolute bottom-2 left-3 font-display text-2xl text-gold drop-shadow-[0_2px_3px_black]">{tr("Black Market")} · VIP</p>
       </div>
       <NoteLine n={note} />
+      {bm.lucky && <p className="mb-3 rounded-md border border-gold/60 bg-gold/10 px-3 py-2 text-xs text-gold">★ {tr("Lucky stock! An Epic piece and a Sun Crystal are on the shelf this time.")}</p>}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="max-w-lg text-xs text-muted-foreground">{tr("Slightly better wares for VIP members — restocks every six hours.")}</p>
         {vip > 0 ? <DiamondService kind="black_market_refresh" label="Restock now" onDone={() => update((h) => rollBlackMarket(h))} />
