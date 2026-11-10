@@ -27,6 +27,20 @@ export function addConquestTokens(h: Hero, n: number) {
   h.conquest = { ...(h.conquest ?? {}), tokens: Math.max(0, conquestTokens(h) + n) };
 }
 
+/**
+ * Rarity floor of a Conquest floor's drop, as a threshold on a 0-100 roll. The gate used to
+ * guarantee Rare (blue) gear on every floor, which made it a blue-item faucet; most floors now
+ * hand out Uncommon (green), a good slice gives plain Common (grey), and only the top slice keeps
+ * the old Rare-or-better floor. Deeper rolls still climb through rollRarity as usual.
+ * Returns 0 = Common, 1 = Uncommon, 2 = Rare.
+ */
+export function conquestDropFloor(roll = Math.random() * 100): number {
+  return roll < 22 ? 0 : roll < 82 ? 1 : 2;
+}
+
+/** Share of a floor's Campaign XP the Conquest Gate pays (the old 30%, raised by 7%). */
+export const CONQUEST_XP_RATE = 0.321;
+
 /** Blitzes a hero may run each Greek day. The floors themselves are never rationed. */
 export const BLITZ_PER_DAY = 3;
 
