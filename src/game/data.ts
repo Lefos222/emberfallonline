@@ -14,6 +14,7 @@ import {
   migrateGems,
   normalizeAstrals,
   zeroFx,
+  addFx,
   zeroGemFx,
   type Astral,
   type BonusFx,
@@ -26,6 +27,7 @@ import { guildFx } from "./guild-tower";
 import { normalizeSynth, synthFx } from "./synthesis";
 import { enlightenmentFx, soulFx } from "./enlightenment";
 import { renownFx } from "./renown";
+import { runeFx } from "./runes";
 import { potionFx } from "./potions";
 import { titleFx } from "./titles";
 import { normalizeFarm, type FarmState } from "./farm";
@@ -608,6 +610,12 @@ export interface Hero {
   renown?: number;
   /** Renown upgrade ranks by track id (see renown.ts). */
   renownRanks?: Record<string, number>;
+  /** Gold-bought mounts and the ridden one (Diamond mounts live in srv.mounts; see mounts.ts). */
+  mounts?: { owned?: string[]; active?: string };
+  /** Carved rune ranks by rune id (see runes.ts). */
+  runes?: Record<string, number>;
+  /** The VIP Black Market's current stock (see black-market.ts). */
+  blackMarket?: { window: number; items: Item[]; mats: { mat: import("./crafting").Mat; qty: number; gold: number }[]; sold: string[] };
   /** Bestiary entries the character has defeated, by bestiary id. */
   kills?: Record<string, number>;
   weekly?: { week: number; kills: number; claimed: boolean };
@@ -856,7 +864,8 @@ function computeStats(
   const en = opts.talents ? enlightenmentFx(h) : zeroFx();
   const so = opts.talents ? soulFx(h) : zeroFx();
   // Renown upgrades are earned by winning fights and belong to the hero alone (see renown.ts).
-  const rw = opts.talents ? renownFx(h) : zeroFx();
+  // Runes are carved with crystals and join Renown in the same percentage slot (see runes.ts).
+  const rw = opts.talents ? addFx(renownFx(h), runeFx(h)) : zeroFx();
   // Potion elixirs are timed battle buffs and join the same pipeline (see potions.ts).
   const pb = opts.talents ? potionFx(h) : zeroFx();
   // Equipped title buffs are permanent and join the same pipeline (see titles.ts).

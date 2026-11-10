@@ -3,7 +3,7 @@ import { scaledGold } from "./gold";
 import { locAll, locList, locValues } from "./i18n";
 
 // ---------- Materials ----------
-export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone" | "fateStone";
+export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone" | "fateStone" | "frostCrystal" | "voidCrystal" | "sunCrystal";
 export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity: number }> = locAll({
   ore: { name: "Ember Ore", desc: "Common ore used in crafting and gem cutting.", src: "Every won battle (more in higher regions)", rarity: 0 },
   essence: { name: "Soul Essence", desc: "Distilled souls used in crafting and gem fusion.", src: "Tougher fights, elites, bosses", rarity: 2 },
@@ -16,6 +16,9 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   crystal: { name: "Arcane Crystal", desc: "Crystallised mana. Refines into Starshards.", src: "Elites and Dungeon Gate bosses", rarity: 2 },
   enchantStone: { name: "Enchantment Stone", desc: "A resonant stone used to enchant gear at the Forge instead of gold. Grade 1 of 9 — two of a grade forge the next (see enchant.ts).", src: "Won battles, Auction House shop, guild and Conquest shops", rarity: 3 },
   fateStone: { name: "Fate Stone", desc: "A rare rune-cut stone that refines gear at the Forge instead of gold. One adds a flat +25% to the roll and is spent win or lose (see fate.ts).", src: "Rare battle drops, Auction House shop", rarity: 4 },
+  frostCrystal: { name: "Frost Crystal", desc: "Ice-bound crystal. Needed for Epic armour.", src: "Bosses, Wheel of Fortune, Black Market", rarity: 3 },
+  voidCrystal: { name: "Void Crystal", desc: "Crystal from beyond the veil. Needed for Legendary armour.", src: "Bosses, Wheel of Fortune, Black Market", rarity: 4 },
+  sunCrystal: { name: "Sun Crystal", desc: "A shard of captured sunlight. Needed for Mythic armour.", src: "Dungeon bosses, Wheel of Fortune", rarity: 5 },
 }, ["name"], ["desc", "src"]);
 type Mats = Partial<Record<Mat, number>>;
 
@@ -549,7 +552,7 @@ export const RECIPES: Recipe[] = [
 export const ARMOR_SLOTS: Slot[] = ["helmet", "armour", "boots", "belt"];
 export const isArmor = (s: Slot) => ARMOR_SLOTS.includes(s);
 /** Extra ingredients armor recipes need on top of the base recipe. */
-export const ARMOR_EXTRA: Record<string, Mats> = { rare: { fragment: 8 }, epic: { fragment: 35, sigil: 6 }, legend: { fragment: 72, sigil: 16 }, mythic: { fragment: 176, sigil: 38 }, sentinel: { fragment: 35, sigil: 6 }, starweave: { fragment: 72, sigil: 16 }, voidforged: { fragment: 176, sigil: 38 } };
+export const ARMOR_EXTRA: Record<string, Mats> = { rare: { fragment: 8 }, epic: { fragment: 35, sigil: 6, frostCrystal: 4 }, legend: { fragment: 72, sigil: 16, frostCrystal: 8, voidCrystal: 6 }, mythic: { fragment: 176, sigil: 38, voidCrystal: 14, sunCrystal: 8 }, sentinel: { fragment: 35, sigil: 6, frostCrystal: 4 }, starweave: { fragment: 72, sigil: 16, frostCrystal: 8, voidCrystal: 6 }, voidforged: { fragment: 176, sigil: 38, voidCrystal: 14, sunCrystal: 8 } };
 export const recipeMats = (r: Recipe, slot: Slot): Mats => {
   if (!isArmor(slot)) return r.mats;
   const out: Mats = { ...r.mats };

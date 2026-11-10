@@ -4,6 +4,7 @@ import { Clock, Gavel, KeyRound, Store, Trash2 } from "lucide-react";
 import { AuctionBoard } from "./AuctionHouse";
 import { CATALOGUE_DISCOUNT, buyCatalogueItem, catalogueHour, cataloguePrice, catalogueRefreshAt, catalogueStock, restockCatalogue } from "./catalogue";
 import { DiamondService } from "./DiamondService";
+import { BlackMarketTab } from "./Emporium";
 import { CONQUEST_KEY_GOLD, activateConquestKey, conquestKeyActive } from "./conquest";
 import { invCap, RARITIES, type Hero } from "./data";
 import { scaledGold } from "./gold";
@@ -18,7 +19,7 @@ import { STONE_LEVELS, addStones, clampStone, stoneBonus, stoneCount, stonePrice
 import { FATE_STONE_PRICE, FATE_SUCCESS_BONUS, addFateStones, fateStoneCost, fateStoneCount } from "./fate";
 import { FarmShopTab } from "./Farm";
 
-type Tab = "catalogue" | "shop" | "farm" | "auction";
+type Tab = "catalogue" | "shop" | "farm" | "auction" | "black";
 
 /**
  * The Auction House undercuts every other stall: its shop goods sell 73% cheaper than the old
@@ -271,11 +272,13 @@ export function AuctionHousePanel({ onClose }: { onClose: () => void }) {
       </div>
       <GameTabs label={t("Auction House sections")} value={tab} onChange={setTab} tabs={[
         { id: "catalogue", name: "Catalogue" },
+        { id: "black", name: "Black Market" },
         { id: "shop", name: "Shop" },
         { id: "farm", name: "Farm" },
         { id: "auction", name: "Auction" },
       ]} />
       {tab === "catalogue" && <CatalogueTab hero={hero} />}
+      {tab === "black" && <BlackMarketTab />}
       {tab === "shop" && <ShopTab hero={hero} />}
       {tab === "farm" && <FarmShopTab hero={hero} />}
       {tab === "auction" && <AuctionBoard />}

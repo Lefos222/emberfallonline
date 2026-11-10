@@ -1,3 +1,4 @@
+import { mountBlitzPct } from "./mounts";
 import { t } from "./i18n";
 import { useState } from "react";
 import { Zap } from "lucide-react";
@@ -67,7 +68,7 @@ export function CampaignBlitz({ hero }: { hero: Hero }) {
                   ? { ok: false, t: err }
                   : {
                       ok: true,
-                      t: `Blitz started — stages 1-${usable} will pay +${fmt(preview?.xp ?? 0)} XP and +${fmt(preview?.gold ?? 0)} gold in ${Math.round(blitzDurationMs(usable, vipLevelOf(hero)) / 60_000)} minutes`,
+                      t: `Blitz started — stages 1-${usable} will pay +${fmt(preview?.xp ?? 0)} XP and +${fmt(preview?.gold ?? 0)} gold in ${Math.round(blitzDurationMs(usable, vipLevelOf(hero), mountBlitzPct(hero)) / 60_000)} minutes`,
                     },
               );
             })

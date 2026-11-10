@@ -1,3 +1,4 @@
+import { mountBlitzPct } from "./mounts";
 import { tr } from "./i18n";
 import { useState } from "react";
 import { Gem, KeyRound, Sparkles, Swords, Zap } from "lucide-react";
@@ -78,7 +79,7 @@ function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
   const keyMult = conquestRewardMultiplier(hero);
   const keyPrice = conquestKeyShopPrice(hero.level);
   const preview = blocked ? null : blitzRewards(usable, keyMult);
-  const runMinutes = Math.round(blitzDurationMs(usable, vipLevelOf(hero)) / 60_000);
+  const runMinutes = Math.round(blitzDurationMs(usable, vipLevelOf(hero), mountBlitzPct(hero)) / 60_000);
   const jump = (n: number) => { setTarget(n); setMsg(null); };
   const perFloor = usable > 0 ? Math.max(1, Math.round((preview?.tokens ?? 0) / usable)) : 0;
   // The blitz can add today's key itself — the same purchase as the Auction House stall, which

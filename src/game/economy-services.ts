@@ -32,8 +32,8 @@ export const claimVipDaily = () => premiumCall("vip-daily", "claim_vip_daily", {
 export const payBlitzSkip = () => premiumCall("blitz-skip", "skip_blitz", {});
 
 /** Diamond services priced and debited by the server's `premium_service` RPC. */
-export const SERVICE_PRICES = { gender_card: 500, name_card: 700, shop_refresh: 50, arena_duel: 50 } as const;
-export type ServiceKind = keyof typeof SERVICE_PRICES;
+export const SERVICE_PRICES = { gender_card: 500, name_card: 700, shop_refresh: 50, arena_duel: 50, black_market_refresh: 50 } as const;
+export type ServiceKind = keyof typeof SERVICE_PRICES | "black_market_refresh" | `mount_${string}`;
 
 export async function buyService(kind: ServiceKind, value?: string) {
   const id = getState().heroId;
@@ -44,6 +44,20 @@ export async function buyService(kind: ServiceKind, value?: string) {
     const { data, error } = await supabase.rpc("premium_service", { _hero: heroId, _kind: kind, _req: req, _value: value ?? undefined });
     // A database refusal (taken name, too few Diamonds) charged nothing, so a fresh key is safe;
     // a lost connection keeps the key so a retry cannot pay twice.
+    if (error) { if (error.code) localStorage.removeItem(`ef-pending:${id}:${op}`); throw new Error(error.message); }
+    adoptServerSave(heroId, returnedSave(data));
+  });
+  localStorage.removeItem(`ef-pending:${id}:${op}`);
+}
+
+/** One 100-Diamond spin of the Wheel of Fortune; the server rolls the prize and pays it into the save. */
+export async function spinWheel() {
+  const id = getState().heroId;
+  if (!id) throw new Error("Select a character first.");
+  const op = "wheel";
+  const req = requestKey(localStorage, id, op, () => crypto.randomUUID());
+  await withServerHero(async (heroId) => {
+    const { data, error } = await supabase.rpc("wheel_spin", { _hero: heroId, _req: req });
     if (error) { if (error.code) localStorage.removeItem(`ef-pending:${id}:${op}`); throw new Error(error.message); }
     adoptServerSave(heroId, returnedSave(data));
   });

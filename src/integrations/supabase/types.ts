@@ -1367,6 +1367,7 @@ export type Database = {
         Returns: undefined
       }
       unlock_cosmetic: { Args: { _hero: string; _id: string }; Returns: Json }
+      wheel_spin: { Args: { _hero: string; _req: string }; Returns: Json }
       withdraw_application: {
         Args: { _application: string; _hero: string }
         Returns: undefined

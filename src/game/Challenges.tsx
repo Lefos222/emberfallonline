@@ -10,7 +10,7 @@ import { DangerPill, Meter, StaminaMeter } from "./GateUI";
 import { Sprite } from "./Sprite";
 import type { StartBattle } from "./panels";
 import { TIER_BOSSES } from "./world";
-import { addMats } from "./crafting";
+import { addMats, MATS, type Mat } from "./crafting";
 import { DUNGEON_RUNS_PER_DAY, DUNGEON_STAMINA, staminaLeft } from "./stamina";
 import {
   BOSS_ORDER, ENDGAME_LEVEL, MAX_DIFFICULTY, WEEKLY_GOAL, WEEKLY_REWARD, addWeeklyKill, bossUnlocked, canClaimWeekly, challengeFoe, challengeRewards,
@@ -85,11 +85,14 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
           const { levels } = grant(h, scrollXp(rw.xp, xpMultiplier), rw.gold);
           h.challenges = { ...(h.challenges ?? {}), [id]: Math.max(cleared(h, id), d) };
           if (rw.bossCore) addMats(h, { bossCore: rw.bossCore });
+          // Higher-armour crystals: Frost from every boss, Void from deeper ranks, Sun rarely from the deepest.
+          const cry = { frostCrystal: 1 + Math.floor(d / 2), ...(d >= 3 ? { voidCrystal: Math.floor(d / 3) } : {}), ...(d >= 5 && Math.random() < 0.35 ? { sunCrystal: 1 } : {}) };
+          addMats(h, cry);
           addWeeklyKill(h);
           loot = makeDrop(h.cls, h.level + Math.floor(h.paragon / 2) + d * 2, cappedRarity(rw.minRarity, h.level));
           loot.name = `${TIER_BOSSES[id].name.split(",")[0]}'s ${loot.name.split(" ").slice(1).join(" ")}`;
           const full = h.inventory.length >= invCap(h); addLoot(h, loot); if (full) lines.push("Bag full — gear placed in your Overflow Chest (Armory)");
-          lines = [...lines, `+${fmt(scrollXp(rw.xp, xpMultiplier))} XP`, `+${fmt(rw.gold)} gold`, ...(rw.bossCore ? [`+${rw.bossCore} Boss Core`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+          lines = [...lines, `+${fmt(scrollXp(rw.xp, xpMultiplier))} XP`, `+${fmt(rw.gold)} gold`, ...(rw.bossCore ? [`+${rw.bossCore} Boss Core`] : []), ...Object.entries(cry).map(([k, n]) => `+${n} ${MATS[k as Mat].name}`), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         return { lines, loot };
       },

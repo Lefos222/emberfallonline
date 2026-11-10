@@ -4,6 +4,9 @@ import starshard from "@/assets/mat-starshard.png";
 import bossCore from "@/assets/mat-bossCore.png";
 import fragment from '@/assets/mat-fragment.png';
 import sigil from '@/assets/mat-sigil.png';
+import frostCrystal from '@/assets/mat-frostCrystal.png';
+import voidCrystal from '@/assets/mat-voidCrystal.png';
+import sunCrystal from '@/assets/mat-sunCrystal.png';
 import ruby from "@/assets/gem-ruby.png";
 import sapphire from "@/assets/gem-sapphire.png";
 import emerald from "@/assets/gem-emerald.png";
@@ -13,7 +16,7 @@ import astralSheet from "@/assets/astral-sprites.png.asset.json";
 import type { ReactNode } from "react";
 import type { GemType, Mat } from "./crafting";
 
-const MAT_IMG: Partial<Record<Mat, string>> = { ore, essence, starshard, bossCore, fragment, sigil };
+const MAT_IMG: Partial<Record<Mat, string>> = { ore, essence, starshard, bossCore, fragment, sigil, frostCrystal, voidCrystal, sunCrystal };
 const GEM_IMG: Partial<Record<GemType, string>> = { ruby, sapphire, emerald, topaz };
 import { ASTRAL_BASES, ASTRAL_COLORS, GEMS, MATS } from "./crafting";
 import { STONE_COLORS } from "./enchant";

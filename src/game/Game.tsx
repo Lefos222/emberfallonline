@@ -1,4 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { MountsPanel, RunesPanel, WheelPanel } from "./Emporium";
+import mountIcon from "@/assets/mounts/griffin.webp";
+import runeIcon from "@/assets/runes/flame.webp";
+import wheelIcon from "@/assets/wheel-of-fortune.webp";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -485,6 +489,9 @@ export function Game() {
           {open === "scrolls" && <ScrollShop onClose={() => setOpen(null)} />}
           {open === "hall" && <ThroneHall onClose={() => setOpen(null)} />}
           {open === "armory" && <HeroHall onClose={() => setOpen(null)} />}
+          {open === "mounts" && <MountsPanel onClose={() => setOpen(null)} />}
+          {open === "runes" && <RunesPanel onClose={() => setOpen(null)} />}
+          {open === "wheel" && <WheelPanel onClose={() => setOpen(null)} />}
           {open === "bestiary" && <Bestiary h={hero} onClose={() => setOpen(null)} />}
           {open === "calendar" && (
             <EventCalendar h={hero} onClose={() => setOpen(null)} start={start} />
@@ -867,6 +874,9 @@ function ComingSoon({
 
 type ShortcutTarget =
   | BuildingId
+  | "mounts"
+  | "runes"
+  | "wheel"
   | "profile"
   | "mailbox"
   | "lucky"
@@ -878,8 +888,11 @@ type ShortcutTarget =
   | "quests"
   | "notes"
   | "settings";
-const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIconName }[] = [
+const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIconName; img?: string }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", icon: "bag" },
+  { id: "mounts", label: "Mounts", tip: "Stables — faster blitzes", icon: "crown", img: mountIcon },
+  { id: "runes", label: "Runes", tip: "Rune Altar", icon: "gem", img: runeIcon },
+  { id: "wheel", label: "Wheel of Fortune", tip: "100 Diamonds per spin", icon: "diamond", img: wheelIcon },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", icon: "hammer" },
   { id: "gems", label: "Gem Workshop", tip: "Cut, socket & fuse gems", icon: "gem" },
   { id: "daily", label: "Daily Rewards", tip: "30-day reward board", icon: "gift" },
@@ -906,7 +919,7 @@ function ShortcutBar({
       aria-label={t("Shortcuts")}
       className="game-panel bottom-nav shortcut-nav pointer-events-auto absolute bottom-3 right-3 z-20 flex gap-1.5 p-1.5"
     >
-      {SHORTCUTS.map(({ id, label, tip, icon }) => (
+      {SHORTCUTS.map(({ id, label, tip, icon, img }) => (
         <button
           key={id}
           onClick={() => onOpen(id)}
@@ -914,7 +927,7 @@ function ShortcutBar({
           aria-pressed={open === id}
           className={`slot group relative flex h-11 w-11 items-center justify-center transition hover:scale-110 ${open === id ? "ring-2 ring-gold" : ""}`}
         >
-          <ArtIcon name={icon} size={32} className={open === id ? "ring-1 ring-gold" : ""} />
+          {img ? <img src={img} alt="" className="h-8 w-8 object-contain" /> : <ArtIcon name={icon} size={32} className={open === id ? "ring-1 ring-gold" : ""} />}
           {id === "daily" && chestReady && (
             <span
               aria-label={t("Reward chest ready")}
