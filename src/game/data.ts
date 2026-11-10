@@ -553,6 +553,10 @@ export interface Hero {
   daily?: { day: string; base: Record<string, number>; claimed: string[] };
   stage: number;
   spire: number;
+  /** Best floor reached in each dungeon of the Spire Gate, by dungeon id (see spire-party.ts). */
+  spireFloors?: Record<string, number>;
+  /** The player has opened the game guide at least once (see guide.ts). */
+  guideSeen?: boolean;
   merchant: Item[];
   wins: number;
   quests?: string[];

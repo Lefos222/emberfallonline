@@ -1925,5 +1925,28 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Chests won this run": ["Μπαούλα που κέρδισες σε αυτή τη διαδρομή", "Skrzynie zdobyte w tym biegu"],
   "Summit conquered": ["Η κορυφή κατακτήθηκε", "Szczyt zdobyty"],
   "The party fell": ["Η παρέα έπεσε", "Drużyna poległa"],
+  // ---- The Spire Gate's dungeons (SpireGate.tsx) ----
+  "Spire Gate": ["Πύλη του Πύργου", "Brama Iglicy"],
+  "Five dungeons — party climbs, three runs a day": ["Πέντε μπουντρούμια — αναρριχήσεις παρέας, τρεις διαδρομές τη μέρα", "Pięć lochów — wspinaczki drużyny, trzy biegi dziennie"],
+  "Dungeons of the Spire Gate": ["Τα μπουντρούμια της Πύλης του Πύργου", "Lochy Bramy Iglicy"],
+  "floors": ["όροφοι", "pięter"],
+  "Unlocks at level {n}": ["Ανοίγει στο επίπεδο {n}", "Odblokowuje się na poziomie {n}"],
+  "Best": ["Καλύτερο", "Najlepsze"],
+  "Conquered": ["Κατακτημένο", "Zdobyte"],
+  "Copied": ["Αντιγράφηκε", "Skopiowano"],
+  // ---- Battles and the guide (Battle.tsx, Game.tsx, GameGuide.tsx) ----
+  "Auto-battle stopped — the hero has nothing to cast.": ["Η αυτόματη μάχη σταμάτησε — ο ήρωας δεν έχει τίποτα να ρίξει.", "Automatyczna walka zatrzymana — bohater nie ma czym zaatakować."],
+  "Guide": ["Οδηγός", "Poradnik"],
+  "How to play, step by step": ["Πώς να παίξεις, βήμα βήμα", "Jak grać, krok po kroku"],
+  "New here? Open the guide — it walks you through your first hour, step by step.": ["Νέος εδώ; Άνοιξε τον οδηγό — σε περνά βήμα βήμα από την πρώτη σου ώρα.", "Pierwszy raz? Otwórz poradnik — poprowadzi cię krok po kroku przez pierwszą godzinę."],
+  "Dismiss": ["Απόκρυψη", "Ukryj"],
+  "Game Guide": ["Οδηγός Παιχνιδιού", "Poradnik Gry"],
+  "Everything a new hero needs, step by step": ["Όλα όσα χρειάζεται ένας νέος ήρωας, βήμα βήμα", "Wszystko, czego potrzebuje nowy bohater, krok po kroku"],
+  "First steps": ["Πρώτα βήματα", "Pierwsze kroki"],
+  "All done — you know the game. The chapters beside this card cover everything else.": ["Όλα έγιναν — ξέρεις το παιχνίδι. Τα κεφάλαια δίπλα σε αυτή την κάρτα καλύπτουν τα υπόλοιπα.", "Wszystko zrobione — znasz grę. Rozdziały obok tej karty opisują resztę."],
+  "Finish these and the rest of the game opens up naturally.": ["Ολοκλήρωσέ τα και το υπόλοιπο παιχνίδι ανοίγει μόνο του.", "Zrób je, a reszta gry otworzy się sama."],
+  "Guide chapters": ["Κεφάλαια του οδηγού", "Rozdziały poradnika"],
+  "Worth knowing:": ["Αξίζει να ξέρεις:", "Warto wiedzieć:"],
+  "Every number in this guide comes from the game itself, so it stays true as the game grows.": ["Κάθε νούμερο σε αυτόν τον οδηγό βγαίνει από το ίδιο το παιχνίδι, οπότε μένει σωστό όσο μεγαλώνει.", "Każda liczba w tym poradniku pochodzi z samej gry, więc pozostaje aktualna, gdy gra rośnie."],
   // @@ROWS@@
 };

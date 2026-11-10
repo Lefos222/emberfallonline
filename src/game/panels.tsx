@@ -260,9 +260,13 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
 
   const fight = () => {
     if (staminaLock) return;
+    // Auto-battle is chosen for this fight only: the switch clears itself once the hero is sent
+    // off, so a later fight never starts fighting on its own from a switch left on earlier.
+    const autoThisFight = auto;
+    setAuto(false);
     start({
       title: spire ? `Endless Conquest · Floor ${stage}` : `${zone.name} · Stage ${stage}`,
-      auto,
+      auto: autoThisFight,
       stamina: staminaCost || undefined,
       right: { ...foe, name: tName(foe.name) },
       onResult: async (won, xpMultiplier = 1) => {

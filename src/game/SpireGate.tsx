@@ -8,15 +8,17 @@ import { CharacterModel } from "./CharacterModel";
 import { SkillIcon } from "./SkillIcon";
 import { arenaFor } from "./Battle";
 import { MATS, type Mat } from "./crafting";
-import { useGame } from "./store";
+import { update, useGame } from "./store";
 import { openParty, type PartyLink, type PartyMsg } from "./spire-sync";
 import {
-  SPIRE_FLOORS,
+  SPIRE_DUNGEONS,
   SPIRE_PARTY_MAX,
   SPIRE_RUNS_PER_DAY,
   TICK_MS,
   beginSpire,
   cleanPartyCode,
+  dungeonOf,
+  dungeonUnlocked,
   endSpire,
   kitOf,
   loadSpire,
@@ -32,6 +34,39 @@ import {
   type SpireReward,
   type SpireState,
 } from "./spire-party";
+import arenaCrypt from "@/assets/arena-crypt.jpg";
+import arenaLair from "@/assets/arena-lair.jpg";
+import arenaRift from "@/assets/arena-rift.jpg";
+import arenaField from "@/assets/arena-field.jpg";
+import spireChest from "@/assets/spire-chest.webp";
+import gateDungeon from "@/assets/gate-dungeon.webp";
+
+/** The painted doorway of each dungeon of the gate. */
+const DUNGEON_ART: Record<string, string> = {
+  cinder: arenaCrypt,
+  ember: arenaLair,
+  frost: arenaField,
+  obsidian: arenaRift,
+  spire: spireChest,
+};
+
+/** The dungeon the player picked last time; a fresh player starts at the shallowest one. */
+const PICK_KEY = "emberfall.spire.dungeon";
+const readPick = (): string => {
+  if (typeof localStorage === "undefined") return SPIRE_DUNGEONS[0].id;
+  try {
+    return dungeonOf(localStorage.getItem(PICK_KEY)).id;
+  } catch {
+    return SPIRE_DUNGEONS[0].id;
+  }
+};
+const savePick = (id: string) => {
+  try {
+    localStorage.setItem(PICK_KEY, id);
+  } catch {
+    /* Private mode: the pick simply lasts for this visit. */
+  }
+};
 
 const message = (e: unknown, fallback: string) => (e instanceof Error && e.message ? e.message : fallback);
 
@@ -50,6 +85,8 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
   const [code, setCode] = useState(() => partyCode());
   const [joinCode, setJoinCode] = useState("");
   const [leader, setLeader] = useState(true);
+  const [dungeon, setDungeon] = useState<string>(readPick);
+  const [copied, setCopied] = useState(false);
   const [mates, setMates] = useState<SpireMember[]>([]);
   const [members, setMembers] = useState<SpireMember[]>([]);
   const [battle, setBattle] = useState<SpireBattle | null>(null);
@@ -102,9 +139,14 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
   }, [refresh]);
 
   /** Every cleared floor is one Spire Chest: the server mints it, the panel counts it at once. */
-  const creditChest = useCallback((floor: number) => {
+  const creditChest = useCallback((floor: number, which: string) => {
     setEarned((n) => n + 1);
     setNote(tr("Spire Chest won — floor {floor}.", { floor }));
+    // The dungeon's own best floor is the hero's record, so a party sees who has climbed how far.
+    update((h) => {
+      const best = h.spireFloors ?? {};
+      h.spireFloors = { ...best, [which]: Math.max(best[which] ?? 0, floor) };
+    });
     void reportClear(floor).then((paid) => {
       if (!paid) return;
       setSt((s) => (s ? { ...s, chests: s.chests + 1, best: Math.max(s.best, floor) } : s));
@@ -154,6 +196,8 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
           membersRef.current = m.members;
           setMembers(m.members);
           setEarned(0);
+          // The whole party climbs the dungeon the leader picked.
+          setDungeon(dungeonOf(m.dungeon).id);
           if (leaderRef.current) return;
           // Every hero spends their own run, so every hero opens one on the server.
           battleRef.current = null;
@@ -165,7 +209,7 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
           battleRef.current = m.battle;
           setBattle(m.battle);
           // Each hero is paid their own chest by their own server run.
-          if (m.cleared) creditChest(m.cleared);
+          if (m.cleared) creditChest(m.cleared, dungeonOf(m.battle.dungeon).id);
           if (m.battle.over) finishRun();
           break;
         }
@@ -247,6 +291,7 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
   const startRun = async () => {
     // A double tap must never open two runs (or two fight loops).
     if (!self || starting.current) return;
+    const picked = dungeonOf(dungeon);
     starting.current = true;
     setBusy(true);
     setError("");
@@ -254,7 +299,7 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
       const began = await beginSpire();
       // An abandoned run is resumed rather than recharged: the climb picks up on the next floor.
       const from = began.resumed ? began.floor + 1 : 1;
-      if (from > SPIRE_FLOORS) {
+      if (from > picked.floors) {
         setError(tr("The Spire is already conquered."));
         return;
       }
@@ -262,10 +307,10 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
       membersRef.current = party;
       setMembers(party);
       setEarned(0);
-      const first = newBattle(party, from);
+      const first = newBattle(party, from, picked.id);
       battleRef.current = first;
       setBattle(first);
-      link.current.send({ kind: "begin", members: party, floor: from });
+      link.current.send({ kind: "begin", members: party, floor: from, dungeon: picked.id });
       setSt((s) => (s ? { ...s, active: true, runs_left: began.resumed ? s.runs_left : Math.max(0, s.runs_left - 1) } : s));
       timer.current = setInterval(() => {
         const prev = battleRef.current;
@@ -276,7 +321,7 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
         battleRef.current = result.battle;
         setBattle(result.battle);
         link.current.send({ kind: "tick", battle: result.battle, cleared: result.cleared });
-        if (result.cleared) creditChest(result.cleared);
+        if (result.cleared) creditChest(result.cleared, picked.id);
         if (result.battle.over) finishRun();
       }, TICK_MS);
     } catch (e) {
@@ -337,7 +382,13 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
 
   const copyCode = () => {
     if (typeof navigator === "undefined" || !navigator.clipboard) return;
-    void navigator.clipboard.writeText(code).catch(() => {});
+    void navigator.clipboard
+      .writeText(code)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      })
+      .catch(() => {});
   };
 
   const close = () => {
@@ -352,14 +403,18 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
 
   // Only a real run starts a climb: an abandoned run cannot be resumed by the server, so a stale
   // `active` flag must never arm a button that the server would refuse.
-  const ready = !!st && st.runs_left > 0;
+  const picked = dungeonOf(dungeon);
+  const heroLevel = (hero?.level ?? 1) + (hero?.paragon ?? 0);
+  const gateOpen = dungeonUnlocked(picked, heroLevel);
+  const ready = !!st && st.runs_left > 0 && gateOpen;
+  const bests = hero?.spireFloors ?? {};
   const me = battle?.heroes.find((h) => h.id === heroId);
   /** The hero's own abilities — the same kit the rest of the game fights with. */
   const myKit = self ? kitOf(self) : [];
 
   return (
     <>
-      <Panel title="Spire" subtitle="A party climb — three runs a day" art="swords" onClose={close} wide>
+      <Panel title="Spire Gate" subtitle="Five dungeons — party climbs, three runs a day" art="swords" onClose={close} wide>
         <div className="grid gap-2 sm:grid-cols-3">
           <div className="slot p-3">
             <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">{tr("Runs left today")}</span>
@@ -368,8 +423,9 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
           </div>
           <div className="slot p-3">
             <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">{tr("Best floor")}</span>
-            <b className="font-display text-xl">{st ? st.best : "…"}</b>
-            <span className="text-muted-foreground"> / {SPIRE_FLOORS}</span>
+            <b className="font-display text-xl">{bests[picked.id] ?? 0}</b>
+            <span className="text-muted-foreground"> / {picked.floors}</span>
+            <span className="mt-1 block truncate text-[11px] text-muted-foreground">{tr(picked.name)}</span>
           </div>
           <div className="slot flex flex-col gap-1.5 p-3">
             <span className="text-[11px] uppercase tracking-wide text-muted-foreground">{tr("Spire Chests")}</span>
@@ -396,12 +452,56 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
           </p>
         )}
 
+        {/* The gate's dungeons: pick the climb, see how far the hero has been. */}
+        <div role="radiogroup" aria-label={tr("Dungeons of the Spire Gate")} className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {SPIRE_DUNGEONS.map((d) => {
+            const open = dungeonUnlocked(d, heroLevel);
+            const best = bests[d.id] ?? 0;
+            const on = d.id === picked.id;
+            return (
+              <button
+                key={d.id}
+                role="radio"
+                aria-checked={on}
+                disabled={!open || !!battle}
+                onClick={() => {
+                  setDungeon(d.id);
+                  savePick(d.id);
+                  setNote("");
+                }}
+                className={`slot overflow-hidden p-0 text-left disabled:opacity-60 ${on ? "ring-2 ring-gold" : ""}`}
+              >
+                <span className="relative block h-16">
+                  <img src={DUNGEON_ART[d.id] ?? gateDungeon} alt="" className="absolute inset-0 h-full w-full object-cover opacity-60" />
+                  <span className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+                  <span className="absolute left-2 top-1.5 font-display text-sm text-gold">{tr(d.name)}</span>
+                  <span className="absolute right-2 top-1.5 text-[10px] font-bold">
+                    {d.floors} {tr("floors")}
+                  </span>
+                </span>
+                <span className="block px-2 py-1.5">
+                  <span className="block text-[11px] text-muted-foreground">
+                    {open ? tr(d.blurb) : tr("Unlocks at level {n}", { n: d.level })}
+                  </span>
+                  <span className="mt-1 block h-1.5 w-full overflow-hidden rounded bg-background/70">
+                    <span className="block h-full bg-gold" style={{ width: `${Math.min(100, Math.round((best / d.floors) * 100))}%` }} />
+                  </span>
+                  <span className="mt-1 block text-[10px] text-muted-foreground">
+                    {tr("Best")} {best}/{d.floors}
+                    {best >= d.floors ? ` · ${tr("Conquered")}` : ""}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="slot mt-3 p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-display text-gold">{tr("Party code")}</span>
             <b className="font-display text-2xl tracking-[0.3em]">{code}</b>
             <Button variant="ghost" className="btn-ghost px-2 py-1 text-xs" onClick={copyCode}>
-              {tr("Copy code")}
+              {copied ? tr("Copied") : tr("Copy code")}
             </Button>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -451,7 +551,11 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
             onClick={() => void startRun()}
             disabled={busy || !ready}
           >
-            {ready ? tr("Start the climb") : tr("No runs left today")}
+            {!gateOpen
+              ? tr("Unlocks at level {n}", { n: picked.level })
+              : ready
+                ? tr("Start the climb")
+                : tr("No runs left today")}
           </Button>
         ) : (
           <p className="mt-3 text-center text-xs text-muted-foreground">{tr("Waiting for the party leader…")}</p>
@@ -469,7 +573,11 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
 
           <div className="safe-top relative z-10 flex items-center justify-between gap-2 p-3">
             <div className="font-display panel-title text-lg md:text-2xl">
-              {tr("Floor")} {battle.floor} <span className="text-sm text-muted-foreground">/ {SPIRE_FLOORS}</span>
+              <span className="block text-xs font-normal uppercase tracking-wide text-muted-foreground">
+                {tr(dungeonOf(battle.dungeon).name)}
+              </span>
+              {tr("Floor")} {battle.floor}{" "}
+              <span className="text-sm text-muted-foreground">/ {battle.floors ?? dungeonOf(battle.dungeon).floors}</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
               <span className="slot px-2 py-1">

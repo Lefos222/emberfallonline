@@ -61,6 +61,7 @@ import { Arena } from "./Arena";
 import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
 import { SpireGate } from "./SpireGate";
+import { GameGuide } from "./GameGuide";
 import { RelicTrials } from "./RelicTrials";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
@@ -492,6 +493,34 @@ export function Game() {
           <p className="castle-hint pointer-events-none absolute inset-x-0 top-32 z-20 text-center font-display text-xs text-gold drop-shadow-[0_1px_2px_black]">
             {t("Tap a building to open it · drag the castle to reach the rest")}
           </p>
+          {/* A brand-new hero gets one pointer to the guide; opening (or dismissing) it hides this. */}
+          {!hero.guideSeen && !open && !battle && (
+            <div className="game-panel absolute inset-x-4 top-3 z-30 mx-auto flex max-w-xl items-center gap-2 rounded border border-gold/50 bg-background/95 px-3 py-2 text-sm">
+              <button
+                className="flex-1 text-left"
+                onClick={() => {
+                  update((h) => {
+                    h.guideSeen = true;
+                  });
+                  setOpen("guide");
+                }}
+              >
+                {tr("New here? Open the guide — it walks you through your first hour, step by step.")}
+              </button>
+              <button
+                aria-label={tr("Dismiss")}
+                className="btn-ghost px-2 py-1 text-xs"
+                onClick={() =>
+                  update((h) => {
+                    h.guideSeen = true;
+                  })
+                }
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          {open === "guide" && <GameGuide onClose={() => setOpen(null)} />}
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
           {open === "notes" && <UpdateNotes onClose={() => setOpen(null)} />}
           {open === "settings" && (
@@ -908,8 +937,10 @@ type ShortcutTarget =
   | "auction"
   | "quests"
   | "notes"
+  | "guide"
   | "settings";
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIconName; img?: string }[] = [
+  { id: "guide", label: "Guide", tip: "How to play, step by step", icon: "spellbook" },
   { id: "armory", label: "Inventory", tip: "Bag & equipment", icon: "bag" },
   { id: "mounts", label: "Mounts", tip: "Stables — faster blitzes", icon: "crown", img: mountIcon },
   { id: "runes", label: "Runes", tip: "Rune Altar", icon: "gem", img: runeIcon },
