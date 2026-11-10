@@ -14,15 +14,24 @@ import {
   tick,
   type SpireBattle,
   type SpireMember,
+  type SpireSkill,
 } from "@/game/spire-party";
+
+/** A stand-in for a real class kit: one blow, one area hit, one heal and one guard. */
+const KIT: SpireSkill[] = [
+  { id: "strike", name: "Heavy Strike", icon: "sword", cd: 1500, mult: 2.4, hits: 1, aoe: false, crit: false, heal: 0, guard: 0, kind: "hit" },
+  { id: "sweep", name: "Whirlwind", icon: "swords", cd: 8000, mult: 1.1, hits: 1, aoe: true, crit: false, heal: 0, guard: 0, kind: "hit" },
+  { id: "mend", name: "Battle Cry", icon: "megaphone", cd: 10000, mult: 0, hits: 1, aoe: false, crit: false, heal: 0.28, guard: 0, kind: "heal" },
+  { id: "guard", name: "Shield Guard", icon: "shield", cd: 8000, mult: 0, hits: 1, aoe: false, crit: false, heal: 0, guard: 45, kind: "guard" },
+];
 
 const member = (over: Partial<SpireMember> = {}): SpireMember => ({
   id: "h1", name: "Ann", cls: "warrior", gender: "female", level: 1,
-  hp: 400, atk: 1e9, def: 0, crit: 0, dodge: 0, ...over,
+  hp: 400, atk: 1e9, def: 0, crit: 0, dodge: 0, kit: KIT, ...over,
 });
 
 /** Runs ticks until the fight reports something worth asserting, or the guard runs out. */
-function run(battle: SpireBattle, party: SpireMember[], casts: { hero: string; skill: "strike" | "sweep" | "mend" }[] = [], ticks = 40) {
+function run(battle: SpireBattle, party: SpireMember[], casts: { hero: string; skill: string }[] = [], ticks = 40) {
   let b = battle;
   let cleared: number | null = null;
   for (let i = 0; i < ticks && cleared === null && !b.over; i += 1) {
@@ -154,6 +163,22 @@ describe("the shared party fight", () => {
     };
     const r = tick(battle, party, [{ hero: "m", skill: "mend" }]);
     expect(r.battle.fx.filter((f) => f.kind === "heal").map((f) => f.tgt)).toEqual(["m", "w"]);
+  });
+
+  it("turns aside damage while the hero holds a guard", () => {
+    const party = [member({ id: "h1", atk: 1 })];
+    const battle: SpireBattle = {
+      floor: 8, t: 0, pause: 0, over: false, fx: [], log: [],
+      heroes: [{ id: "h1", hp: 400, max: 400, cd: {}, swing: 99999 }],
+      foes: [{ uid: "f", name: "Bone Reaver", img: "", hp: 999999, max: 999999, atk: 100, def: 0, boss: false, swing: 0 }],
+    };
+    const plain = tick(battle, party, [], () => 0.5).battle.heroes[0].hp;
+    const guardedBattle: SpireBattle = {
+      ...battle,
+      heroes: [{ id: "h1", hp: 400, max: 400, cd: {}, swing: 99999, guard: 3000, guardPct: 45 }],
+    };
+    const guarded = tick(guardedBattle, party, [], () => 0.5).battle.heroes[0].hp;
+    expect(400 - guarded).toBeLessThan(400 - plain);
   });
 });
 

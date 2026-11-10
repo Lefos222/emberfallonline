@@ -87,9 +87,14 @@ describe("the Spire tab", () => {
 
     await waitFor(() => expect(bank.began).toBe(1));
     await screen.findByText(/Floor 1/);
-    for (const skill of ["Cleaving Blow", "Whirlwind", "Battle Cry"]) {
+    // The hero's whole kit is in reach, not a stub of three buttons.
+    for (const skill of ["Heavy Strike", "Cleave", "Bloodrage", "Shield Guard", "Taunting Blow", "Counterattack"]) {
       expect(screen.getAllByText(skill).length).toBeGreaterThan(0);
     }
+    // The hero is drawn, inside the box that gives the model its size.
+    const model = document.querySelector(".battle-screen [data-character-model]");
+    expect(model).toBeTruthy();
+    expect(model?.closest("div.h-24")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Leave" })).toBeTruthy();
   });
 
