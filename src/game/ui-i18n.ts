@@ -1854,5 +1854,6 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Moonsilver": ["Σεληνάργυρος", "Księżycowe Srebro"],
   "Shadow Silk": ["Μετάξι Σκιάς", "Jedwab Cienia"],
   "Phoenix Ash": ["Στάχτη Φοίνικα", "Popiół Feniksa"],
+  "Wakes every 4 hours (UTC) for 60 minutes. Every member gets 3 attacks; when the guild's damage beats its health, everyone who fought claims the spoils.": ["Ξυπνά κάθε 4 ώρες (UTC) για 60 λεπτά. Κάθε μέλος έχει 3 επιθέσεις· όταν η ζημιά της συντεχνίας ξεπεράσει την υγεία του, όσοι πολέμησαν παίρνουν τα λάφυρα.", "Budzi się co 4 godziny (UTC) na 60 minut. Każdy członek ma 3 ataki; gdy obrażenia gildii przewyższą jego zdrowie, każdy, kto walczył, odbiera łupy."],
   // @@ROWS@@
 };
