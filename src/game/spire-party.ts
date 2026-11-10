@@ -290,14 +290,22 @@ export const openSpireChest = async () => parseReward(await withSave("spire_open
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** The server refuses two clears less than four seconds apart, so the queue paces itself to it. */
+export const CLEAR_GAP_MS = 4200;
+/** When the last clear was sent, so a fast climb never spends its reports on "Too fast" answers. */
+let lastClear = 0;
+
 /**
  * Floor clears are reported one at a time, in order, so a busy moment never skips a chest.
- * A rejected clear is retried (the server throttles two clears that arrive too close together)
- * and the queue never rejects: a failed report must not stop the rest of the run.
+ * Reports are spaced for the server's own throttle and a rejected clear is retried; the queue
+ * never rejects, because a failed report must not stop the rest of the run.
  */
 export function reportClear(floor: number): Promise<boolean> {
   return queue(async () => {
-    for (let attempt = 0; attempt < 4; attempt += 1) {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const wait = lastClear + CLEAR_GAP_MS - Date.now();
+      if (wait > 0) await sleep(wait);
+      lastClear = Date.now();
       try {
         await withSave("spire_clear", { _floor: floor });
         return true;
@@ -305,9 +313,6 @@ export function reportClear(floor: number): Promise<boolean> {
         // A clear whose answer was lost may still have been paid. The ledger is the truth, so
         // read it before reporting the floor again.
         try { if ((await loadSpire()).floor >= floor) return true; } catch { /* retry below */ }
-        // "Too fast" and a dropped connection are both worth one more try; the floor is still
-        // reported in order, so the next clear waits behind this one.
-        if (attempt < 3) await sleep(FLOOR_PAUSE_MS + 500);
       }
     }
     return false;
