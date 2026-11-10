@@ -43,6 +43,8 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
   const [anim, setAnim] = useState<Record<string, string>>({});
   const [effects, setEffects] = useState<Record<string, string>>({});
   const [moves, setMoves] = useState<Record<string, Move>>({});
+  // Presentation-only: the thrown spell, loosed arrow or sword wave that crosses the field.
+  const [proj, setProj] = useState<{ kind: string; dir: "ltr" | "rtl"; key: number } | null>(null);
   const [fast, setFast] = useState(auto);
   const [autoOn, setAutoOn] = useState(auto);
   const [banner, setBanner] = useState<string | null>(null);
@@ -65,7 +67,10 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
     const move = moveFor(a ?? {}, sk);
     setAnim({ [actorId]: "anim-" + move + "#" + ++fid.current });
     setMoves((m) => ({ ...m, [actorId]: move }));
-    await wait(280);
+    const kind = projectileFor(move, effectFor(sk) ?? undefined);
+    if (kind && a) setProj({ kind, dir: a.side === "hero" ? "ltr" : "rtl", key: ++fid.current });
+    await wait(kind ? 420 : 280);
+    setProj(null);
     for (const e of events) {
       if (e.kind === "telegraph") { setBanner(e.text); }
       if (e.tgt && e.kind !== "telegraph") {
@@ -204,6 +209,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
 
       {/* Battlefield */}
       <div className="relative z-10 flex flex-1 items-end justify-between gap-2 px-4 pb-4 md:px-16">
+        {proj && <span key={proj.key} aria-hidden className={`battle-proj proj-${proj.kind} proj-${proj.dir}`} />}
         <UnitView u={hero} anim={anim[hero.id]} effect={effects[hero.id]} move={moves[hero.id]} victory={s.over === "won"} floats={floats} active={actor?.id === hero.id} />
         <div className="flex min-w-0 flex-1 items-end justify-end gap-2 md:gap-6 battle-foes">
           {foes.map((f) => {
@@ -315,4 +321,13 @@ function UnitView({ u, anim, effect, move, victory, floats, active, targetable, 
       </div>
     </Button>
   );
+}
+
+/** Which projectile a move launches: mages throw spells, archers loose arrows, knights send a sword wave. */
+function projectileFor(move: Move, effect?: string): string | null {
+  if (["cast", "thrust", "nova", "rise", "channel", "siphon"].includes(move))
+    return effect === "ice" ? "frost" : effect === "fire" || effect === "meteor" ? "fire" : effect === "tether" ? "void" : "arcane";
+  if (["draw", "rapid", "aim"].includes(move)) return move === "rapid" ? "volley" : "arrow";
+  if (["overhead", "spin", "leap", "slam", "rage"].includes(move)) return "wave";
+  return null;
 }

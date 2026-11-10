@@ -17,7 +17,7 @@ export function Panel({ title, subtitle, art, onClose, children, wide }: {
   // player's language even while its body copy is still English (see i18n.ts).
   const t = useT();
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-background/70 p-3 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-background/85 p-3" onClick={onClose}>
       <div
         className={`game-panel anim-pop relative flex max-h-[92vh] w-full flex-col ${wide ? "max-w-6xl" : "max-w-3xl"}`}
         onClick={(e) => e.stopPropagation()}

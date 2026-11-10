@@ -20,6 +20,7 @@ import { premiumVipLevel, materialCost, MATERIAL_PRICES } from "./economy";
 import { buyMaterial } from "./premium-shop";
 import { GemCraftWindow, GemPicker } from "./GemWindows";
 import { SynthesisTab } from "./Synthesis";
+import { CraftingGuide } from "./CraftingGuide";
 import { heroAppearance } from "./appearance";
 import { GameTabs, Gold, ItemCard, Panel, fmt } from "./ui";
 import {
@@ -809,7 +810,7 @@ function RecipeRow({
         <div className="font-bold">
           {r.name}{" "}
           <span className="text-xs text-muted-foreground">
-             {tr("· item level")} {ilvl}  {tr("· Lv")} {r.minLevel}+
+             {tr("· item level")} {ilvl + (r.bonusLevel ?? 0)}  {tr("· Lv")} {r.minLevel}+
           </span>
         </div>
         <div className="text-xs text-muted-foreground">{r.desc}</div>
@@ -851,7 +852,7 @@ function RecipeRow({
 /** The Forge's crafting window: standard recipes for any slot, plus the Synthesis tab. */
 export function Crafting({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
-  const [tab, setTab] = useState<"standard" | "synthesis">("standard");
+  const [tab, setTab] = useState<"standard" | "synthesis" | "guide">("standard");
   const [slot, setSlot] = useState<Slot>("weapon");
   const [last, setLast] = useState<Item | null>(null);
   const [busy, setBusy] = useState(false);
@@ -864,7 +865,7 @@ export function Crafting({ onClose }: { onClose: () => void }) {
     update((h) => {
       const recipe = RECIPES.find((x) => x.id === r.id);
       if (!recipe) return;
-      const out = craft(h, recipe, invCap(h), () => makeItem(h.cls, ilvl, recipe.rarity, at), at);
+      const out = craft(h, recipe, invCap(h), () => makeItem(h.cls, ilvl + (recipe.bonusLevel ?? 0), recipe.rarity, at), at);
       if (typeof out !== "string" && !["rare", "epic", "legend", "mythic"].includes(recipe.id))
         out.name = `${recipe.name} ${at}`;
       if (typeof out === "string") say(false, out);
@@ -892,9 +893,11 @@ export function Crafting({ onClose }: { onClose: () => void }) {
         tabs={[
           { id: "standard", name: "Standard recipes" },
           { id: "synthesis", name: "Synthesis" },
+          { id: "guide", name: "Crafting guide" },
         ]}
       />
       {tab === "synthesis" && <SynthesisTab />}
+      {tab === "guide" && <CraftingGuide />}
       {tab === "standard" && (
         <div className="mb-3 flex flex-wrap gap-1 text-sm">
           {SLOTS.map((s) => (
@@ -909,7 +912,7 @@ export function Crafting({ onClose }: { onClose: () => void }) {
           ))}
         </div>
       )}
-      {tab !== "synthesis" && (
+      {tab === "standard" && (
         <div className="grid gap-4 md:grid-cols-[1.4fr_1fr]">
           <div className="space-y-2">
             {RECIPES.map((r) => (

@@ -531,6 +531,8 @@ export const ASTRAL_MILESTONES = [{ n: 6, gold: 2500 }, { n: 12, gold: 15000 }, 
 // ---------- Recipes ----------
 export interface Recipe {
   id: string; name: string; rarity: number; mats: Mats; gold: number; minLevel: number; desc: string;
+  /** Extra item levels the forged piece carries above the hero's own (top-tier armour). */
+  bonusLevel?: number;
 }
 
 /** What a recipe's gold cost comes to for a hero of this level. */
@@ -549,13 +551,16 @@ export const RECIPES: Recipe[] = [
   { id: "sentinel", name: "Iron Sentinel", rarity: 3, mats: { ore: 190, essence: 20, fragment: 29, sigil: 8 }, gold: 5600, minLevel: 20, desc: "An Epic sentinel piece forged from elite trophies. Two gem sockets." },
   { id: "starweave", name: "Starweave Relic", rarity: 4, mats: { ore: 305, essence: 80, starshard: 64, bossCore: 10 }, gold: 26000, minLevel: 40, desc: "A Legendary Starweave piece for your chosen slot. Two gem sockets." },
   { id: "voidforged", name: "Voidforged Sovereign", rarity: 5, mats: { ore: 990, essence: 240, starshard: 128, bossCore: 38, sigil: 48 }, gold: 140000, minLevel: 80, desc: "A Mythic sovereign piece for Ascension builds. Three gem sockets." },
+  { id: "dragonforged", name: "Dragonforged Warplate", rarity: 5, mats: { ore: 1500, essence: 320, bossCore: 50, dragonScale: 40 }, gold: 220000, minLevel: 110, bonusLevel: 10, desc: "A Mythic piece tempered in dragon fire, ten item levels above your own. Three gem sockets." },
+  { id: "abyssforged", name: "Abyssforged Regalia", rarity: 5, mats: { ore: 2100, essence: 450, bossCore: 70, dragonScale: 30, abyssalShard: 35 }, gold: 340000, minLevel: 125, bonusLevel: 20, desc: "A Mythic piece cut from the abyss, twenty item levels above your own. Three gem sockets." },
+  { id: "titanforged", name: "Titanforged Aegis", rarity: 5, mats: { ore: 2900, essence: 620, bossCore: 95, abyssalShard: 40, titanHeart: 18 }, gold: 500000, minLevel: 140, bonusLevel: 30, desc: "A Mythic piece around a titan's heart, thirty item levels above your own. Three gem sockets." },
 ];
 
 /** Armor slots: Rare and better armor exists only through crafting. */
 export const ARMOR_SLOTS: Slot[] = ["helmet", "armour", "boots", "belt"];
 export const isArmor = (s: Slot) => ARMOR_SLOTS.includes(s);
 /** Extra ingredients armor recipes need on top of the base recipe. */
-export const ARMOR_EXTRA: Record<string, Mats> = { rare: { fragment: 8 }, epic: { fragment: 35, sigil: 6, frostCrystal: 4 }, legend: { fragment: 72, sigil: 16, frostCrystal: 8, voidCrystal: 6 }, mythic: { fragment: 176, sigil: 38, voidCrystal: 14, sunCrystal: 8 }, sentinel: { fragment: 35, sigil: 6, frostCrystal: 4 }, starweave: { fragment: 72, sigil: 16, frostCrystal: 8, voidCrystal: 6 }, voidforged: { fragment: 176, sigil: 38, voidCrystal: 14, sunCrystal: 8 } };
+export const ARMOR_EXTRA: Record<string, Mats> = { rare: { fragment: 8 }, epic: { fragment: 35, sigil: 6, frostCrystal: 4 }, legend: { fragment: 72, sigil: 16, frostCrystal: 8, voidCrystal: 6 }, mythic: { fragment: 176, sigil: 38, voidCrystal: 14, sunCrystal: 8 }, sentinel: { fragment: 35, sigil: 6, frostCrystal: 4 }, starweave: { fragment: 72, sigil: 16, frostCrystal: 8, voidCrystal: 6 }, voidforged: { fragment: 176, sigil: 38, voidCrystal: 14, sunCrystal: 8 }, dragonforged: { fragment: 260, sigil: 55, sunCrystal: 12, dragonScale: 30 }, abyssforged: { fragment: 360, sigil: 75, sunCrystal: 16, abyssalShard: 25 }, titanforged: { fragment: 480, sigil: 100, sunCrystal: 22, titanHeart: 12 } };
 export const recipeMats = (r: Recipe, slot: Slot): Mats => {
   if (!isArmor(slot)) return r.mats;
   const out: Mats = { ...r.mats };
