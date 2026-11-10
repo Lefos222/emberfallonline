@@ -475,6 +475,117 @@ export type Database = {
           },
         ]
       }
+      guild_bank: {
+        Row: {
+          funds: number
+          guild_id: string
+        }
+        Insert: {
+          funds?: number
+          guild_id: string
+        }
+        Update: {
+          funds?: number
+          guild_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_bank_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: true
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_buffs: {
+        Row: {
+          expires_at: string
+          guild_id: string
+          kind: string
+        }
+        Insert: {
+          expires_at: string
+          guild_id: string
+          kind: string
+        }
+        Update: {
+          expires_at?: string
+          guild_id?: string
+          kind?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_buffs_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_contrib: {
+        Row: {
+          guild_id: string
+          hero_id: string
+          points: number
+          total: number
+        }
+        Insert: {
+          guild_id: string
+          hero_id: string
+          points?: number
+          total?: number
+        }
+        Update: {
+          guild_id?: string
+          hero_id?: string
+          points?: number
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_contrib_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_contrib_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_dice: {
+        Row: {
+          day: string
+          face: number
+          hero_id: string
+        }
+        Insert: {
+          day: string
+          face: number
+          hero_id: string
+        }
+        Update: {
+          day?: string
+          face?: number
+          hero_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_dice_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_invites: {
         Row: {
           created_at: string
@@ -700,6 +811,35 @@ export type Database = {
           },
           {
             foreignKeyName: "guild_raid_hits_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_shop_buys: {
+        Row: {
+          created_at: string
+          hero_id: string
+          item: string
+          request_id: string
+        }
+        Insert: {
+          created_at?: string
+          hero_id: string
+          item: string
+          request_id: string
+        }
+        Update: {
+          created_at?: string
+          hero_id?: string
+          item?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_shop_buys_hero_id_fkey"
             columns: ["hero_id"]
             isOneToOne: false
             referencedRelation: "heroes"
@@ -1311,8 +1451,15 @@ export type Database = {
     Functions: {
       _apply_reward: { Args: { rw: Json; s: Json }; Returns: Json }
       _bag_room: { Args: { _save: Json }; Returns: number }
+      _buff_cost: { Args: { _kind: string }; Returns: number }
+      _contrib_add: {
+        Args: { _guild: string; _hero: string; _pts: number }
+        Returns: undefined
+      }
       _daily_kinds: { Args: never; Returns: string[] }
       _daily_target: { Args: { _k: string }; Returns: number }
+      _guild_rank: { Args: { _total: number }; Returns: string }
+      _guild_rank_no: { Args: { _total: number }; Returns: number }
       _guild_role: {
         Args: { _hero: string }
         Returns: {
@@ -1328,6 +1475,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      _guild_shop: { Args: { _item: string }; Returns: Json }
       _kinds: { Args: never; Returns: string[] }
       _monday: { Args: never; Returns: string }
       _my_hero: {
@@ -1492,8 +1640,18 @@ export type Database = {
       daily_profession_quests: { Args: { _hero: string }; Returns: Json }
       finish_gathering: { Args: { _hero: string; _req: string }; Returns: Json }
       get_activities: { Args: { _hero: string }; Returns: Json }
+      guild_bank_donate: {
+        Args: { _gold: number; _hero: string }
+        Returns: Json
+      }
+      guild_buff_activate: {
+        Args: { _hero: string; _kind: string }
+        Returns: Json
+      }
+      guild_dice_roll: { Args: { _hero: string }; Returns: Json }
       guild_disband: { Args: { _hero: string }; Returns: undefined }
       guild_events_state: { Args: { _hero: string }; Returns: Json }
+      guild_extras_state: { Args: { _hero: string }; Returns: Json }
       guild_invite: {
         Args: { _hero: string; _target_name: string }
         Returns: undefined
@@ -1522,6 +1680,10 @@ export type Database = {
       guild_set_role: {
         Args: { _hero: string; _role: string; _target: string }
         Returns: undefined
+      }
+      guild_shop_buy: {
+        Args: { _hero: string; _item: string; _req: string }
+        Returns: Json
       }
       guild_supply_claim: {
         Args: { _event: string; _hero: string }

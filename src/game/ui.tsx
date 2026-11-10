@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Gem, Diamond } from "lucide-react";
 import { X } from "./PaintedIcons";
 import { ArtIcon, type ArtIconName } from "./ArtIcon";
@@ -93,8 +94,8 @@ export function fmt(n: number) {
   return Math.round(n).toLocaleString();
 }
 
-export function ItemSlot({ item, size = 56, onClick, selected, empty }: { item?: Item; size?: number; onClick?: () => void; selected?: boolean; empty?: ReactNode }) {
-  return (
+export function ItemSlot({ item, size = 56, onClick, selected, empty, noHover }: { item?: Item; size?: number; onClick?: () => void; selected?: boolean; empty?: ReactNode; noHover?: boolean }) {
+  const btn = (
     <button
       onClick={onClick}
       aria-label={item ? `${itemName(item.name)}${item.enh > 0 ? ` +${item.enh}` : ""} — ${RARITIES[item.rarity].name} item level ${item.ilvl}` : typeof empty === "string" ? `Empty ${empty.toLowerCase()} slot` : "Empty slot"}
@@ -105,6 +106,16 @@ export function ItemSlot({ item, size = 56, onClick, selected, empty }: { item?:
       {item && item.enh > 0 && <span className="absolute right-0.5 top-0 font-display text-xs font-black text-gold drop-shadow-[0_1px_1px_black]">+{item.enh}</span>}
       {item && <span className="absolute bottom-0 left-1 text-[10px] font-bold drop-shadow-[0_1px_1px_black]">{item.ilvl}</span>}
     </button>
+  );
+  if (!item || noHover) return btn;
+  // Hovering a piece shows its whole card (stats, gems, set) without clicking it.
+  return (
+    <HoverCard openDelay={120} closeDelay={60}>
+      <HoverCardTrigger asChild>{btn}</HoverCardTrigger>
+      <HoverCardContent side="right" align="start" className="item-hover w-72 border-0 bg-transparent p-0 shadow-none">
+        <ItemCard item={item} />
+      </HoverCardContent>
+    </HoverCard>
   );
 }
 
@@ -127,7 +138,7 @@ export function ItemCard({ item, compare, actions }: { item: Item; compare?: Ite
   return (
     <div className="slot w-full p-3 anim-pop" style={{ borderColor: `var(--r${item.rarity})` }}>
       <div className="flex gap-3">
-        <ItemSlot item={item} size={64} />
+        <ItemSlot item={item} size={64} noHover />
         <div className="min-w-0">
           <div className="font-display font-bold leading-tight" style={{ color: `var(--r${item.rarity})` }}>
             {itemName(item.name)} {item.enh > 0 && `+${item.enh}`}

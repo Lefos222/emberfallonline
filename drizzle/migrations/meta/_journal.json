@@ -218,6 +218,13 @@
       "when": 1794326397392,
       "tag": "0030_guild_raids_quests_tournament",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794328137569,
+      "tag": "0031_guild_bank_buffs_shop_dice_ranks",
+      "breakpoints": true
     }
   ]
 }

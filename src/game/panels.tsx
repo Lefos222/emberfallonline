@@ -1,3 +1,5 @@
+import xpScrollArt from "@/assets/xp-scroll.webp";
+import { xpScrollValue } from "./xp-scrolls";
 import { itemName, tName , t} from "./i18n";
 import { useState, type ReactNode } from "react";
 import { Button } from '@/components/ui/button';
@@ -143,6 +145,13 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               h.inventory = h.inventory.filter((i) => !(i.rarity <= 1 && i.enh === 0));
             })}>
               <Trash2 className="mr-1 inline h-3 w-3" />{t("Sell common")} </button>
+            {(hero.xpScrolls ?? 0) > 0 && (
+              <button className="btn-gold ml-2 inline-flex items-center gap-1 px-2 py-1 text-xs" title={t("Read one XP Scroll")}
+                onClick={() => void import("./logic").then(({ grant }) => update((h) => { if ((h.xpScrolls ?? 0) <= 0) return; h.xpScrolls = (h.xpScrolls ?? 0) - 1; grant(h, xpScrollValue(h.level), 0); }))}>
+                <img src={xpScrollArt} alt="" width={256} height={256} className="h-5 w-5 object-contain" />
+                {t("Read XP Scroll")} ×{hero.xpScrolls} (+{fmt(xpScrollValue(hero.level))} XP)
+              </button>
+            )}
             {(hero.bagRows ?? 0) < MAX_BAG_ROWS && (
               <button className="btn-gold ml-2 px-3 py-1 text-xs" disabled={hero.gold < bagRowCost(hero)}
                 title={t("Adds one more row of bag slots")}

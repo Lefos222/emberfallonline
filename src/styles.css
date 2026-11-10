@@ -880,3 +880,8 @@ html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
 .guild-events-tabs { display: flex; flex-wrap: wrap; gap: .4rem; padding: .3rem; border-radius: .9rem; background: var(--card); border: 1px solid color-mix(in oklab, var(--gold) 30%, transparent); }
 .guild-raid-boss { position: absolute; right: -2rem; bottom: -1rem; width: 60%; max-width: 22rem; height: auto; opacity: .55; pointer-events: none; filter: drop-shadow(0 0 18px var(--blood)); }
 .guild-hall-rooms { position: sticky; top: 0; z-index: 5; }
+
+/* Farm beds: every open plot is a green, planted garden bed on the field. */
+.farm-board .farm-spot-bed { position: absolute; left: 50%; top: 55%; translate: -50% -50%; width: 150% !important; height: auto !important; max-height: none; object-fit: contain; pointer-events: none; filter: drop-shadow(0 6px 6px oklch(0 0 0 / 0.6)); z-index: -1; }
+.farm-spot { isolation: isolate; }
+.item-hover { z-index: 80; }

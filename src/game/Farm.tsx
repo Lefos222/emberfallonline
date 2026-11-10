@@ -1,3 +1,4 @@
+import farmBed from "@/assets/farm-bed.webp";
 import { tr } from "./i18n";
 import goldSprout from "@/assets/farm-gold-0.webp";
 import goldGrowing from "@/assets/farm-gold-1.webp";
@@ -420,6 +421,7 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
               onClick={() => (crop ? harvest(index) : plant(index))}
               className={`farm-spot ${locked ? "farm-spot-locked" : crop ? (ready ? "farm-spot-ready" : "farm-spot-growing") : "farm-spot-empty"}`}
             >
+              {!locked && <img src={farmBed} alt="" aria-hidden="true" width={384} height={256} className="farm-spot-bed" />}
               {locked ? (
                 <span className="farm-spot-tag">
                   <Lock className="h-3 w-3" aria-hidden="true" />

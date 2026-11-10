@@ -51,6 +51,7 @@ import {
 import { arenaBlocker, spendArenaFight } from "./arena-limits";
 import { addRenown, renownGain } from "./renown";
 import { reportGuildBattle } from "./guild-events";
+import { addXpScrolls, rollXpScroll } from "./xp-scrolls";
 import { CharacterSelect } from "./CharacterSelect";
 import { ProfilePanel } from "./ProfilePanel";
 import { Battle, type Fighter } from "./Battle";
@@ -364,6 +365,14 @@ export function Game() {
       if (fate > 0) {
         update((h) => addFateStones(h, fate));
         r.lines.push(t("+{n} Fate Stones", { n: fate }));
+      }
+    }
+    // Any won fight can drop an XP Scroll, read later from the bag (see xp-scrolls.ts).
+    if (won) {
+      const scrolls = rollXpScroll(!!battle.right.boss);
+      if (scrolls > 0) {
+        update((h) => addXpScrolls(h, scrolls));
+        r.lines.push(t("+1 XP Scroll"));
       }
     }
     // A won dungeon run can leave a Stamina Potion behind — rare, but the only source (see stamina.ts).

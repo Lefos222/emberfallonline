@@ -29,6 +29,7 @@ import { enlightenmentFx, soulFx } from "./enlightenment";
 import { renownFx } from "./renown";
 import { runeFx } from "./runes";
 import { potionFx } from "./potions";
+import { guildBuffFx } from "./guild-extras";
 import { titleFx } from "./titles";
 import { feastFx, normalizeFarm, type FarmState } from "./farm";
 import { epicMult } from "./epic-armour";
@@ -602,6 +603,10 @@ export interface Hero {
   arena?: { windowStart?: number; used?: number };
   /** Stamina Potions in the pouch (its own field since the first stamina system). */
   staminaPotions?: number;
+  /** Unread XP Scrolls (see xp-scrolls.ts). */
+  xpScrolls?: number;
+  /** Cached expiry (ms) of the guild's active buffs, refreshed from the server (see guild-extras.ts). */
+  guildBuffs?: Record<string, number>;
   /** Other consumable potions by id (see potions.ts). */
   potions?: Record<string, number>;
   /** Running elixir buffs: potion id → when the buff ends (see potions.ts). */
@@ -879,7 +884,7 @@ function computeStats(
   // Runes are carved with crystals and join Renown in the same percentage slot (see runes.ts).
   const rw = opts.talents ? addFx(renownFx(h), runeFx(h)) : zeroFx();
   // Potion elixirs are timed battle buffs and join the same pipeline (see potions.ts).
-  const pb = opts.talents ? addFx(potionFx(h), feastFx(h)) : zeroFx();
+  const pb = opts.talents ? addFx(addFx(potionFx(h), feastFx(h)), guildBuffFx(h)) : zeroFx();
   // Equipped title buffs are permanent and join the same pipeline (see titles.ts).
   const tf2 = opts.talents ? titleFx(h) : zeroFx();
   // Individual stat trainings: permanent percentage bonuses from barracks training (see drills.ts).
