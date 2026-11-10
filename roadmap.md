@@ -48,3 +48,11 @@
 - [ ] Personal estate: build homes, decorate, display gathered items.
 - [ ] Ranked arena: server-authoritative matchmaking, rating gains, divisions, division cosmetics.
 - [ ] Collection Codex: illustrated entries for every gathered material, monster, discovered location.
+
+## Diamond features (Nov 10)
+- [x] Gender swap card 500, name change card 700, catalogue restock 50, extra arena duel 50
+- [ ] Mounts: 8 with art, 3 gold / 5 Diamonds, cut blitz time, button next to inventory
+- [ ] VIP Black Market in Auction House (modest items, 50-Diamond refresh)
+- [ ] Wheel of Fortune, 100 Diamonds per spin
+- [ ] Rune system; new crystals for higher armour
+- [ ] Window renovation; art for things missing it
