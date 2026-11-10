@@ -112,13 +112,15 @@ describe("the Spire tab", () => {
     store.hero = newHero("Climber", "warrior");
     setLang("el");
     const first = open();
-    expect(await screen.findByText("Πύργος")).toBeTruthy();
+    expect(await screen.findByText("Πύλη του Πύργου")).toBeTruthy();
+    expect((await screen.findAllByText("Κρύπτη της Στάχτης")).length).toBeGreaterThan(0);
     expect(await screen.findByRole("button", { name: "Άνοιξε ένα μπαούλο" })).toBeTruthy();
     first.unmount();
 
     setLang("pl");
     open();
-    expect(await screen.findByText("Iglica")).toBeTruthy();
+    expect(await screen.findByText("Brama Iglicy")).toBeTruthy();
+    expect((await screen.findAllByText("Krypta Żaru")).length).toBeGreaterThan(0);
     expect(await screen.findByRole("button", { name: "Otwórz skrzynię" })).toBeTruthy();
   });
 });

@@ -13,6 +13,52 @@ export const TICK_MS = 500;
 /** The breather between floors: the next floor's enemies arrive right after the last ones fall. */
 export const FLOOR_PAUSE_MS = 1500;
 
+/**
+ * The Spire Gate is one building with several dungeons inside it. Each is a self-contained climb
+ * of its own length, and its `depth` says how hard its top floor is: a short dungeon packs the
+ * same difficulty into fewer floors, so a 40-floor crypt can end where the 240-floor Spire does.
+ * The server only knows a running floor cursor (1-240 in order), so every dungeon's climb is
+ * reported as floors 1..its own length — nothing here can mint more than the server allows.
+ */
+export interface SpireDungeon {
+  id: string;
+  /** Its painted name and the line the gate shows under it. */
+  name: string;
+  blurb: string;
+  /** Length of the climb. */
+  floors: number;
+  /** The Spire depth its top floor is worth: how hard the last fight feels. */
+  depth: number;
+  /** Character level needed to open the gate. */
+  level: number;
+  /** A boss every this many floors (the last floor is always one). */
+  bossEvery: number;
+}
+
+export const SPIRE_DUNGEONS: SpireDungeon[] = [
+  { id: "cinder", name: "Cinder Crypt", blurb: "Twenty short floors — the first gate, and the kindest.", floors: 20, depth: 24, level: 1, bossEvery: 5 },
+  { id: "ember", name: "Ember Reach", blurb: "Forty floors of burning halls. Bring a friend.", floors: 40, depth: 70, level: 8, bossEvery: 10 },
+  { id: "frost", name: "Frostwind Vault", blurb: "Sixty floors sealed inside a frozen vault.", floors: 60, depth: 120, level: 18, bossEvery: 10 },
+  { id: "obsidian", name: "Obsidian Deep", blurb: "One hundred and twenty floors under black stone.", floors: 120, depth: 180, level: 30, bossEvery: 10 },
+  { id: "spire", name: "The Endless Spire", blurb: "The great climb: two hundred and forty floors.", floors: 240, depth: 240, level: 45, bossEvery: 10 },
+];
+
+/** The dungeon a saved or shared id means; an unknown id is the first, shallowest climb. */
+export const dungeonOf = (id: string | undefined | null): SpireDungeon =>
+  SPIRE_DUNGEONS.find((d) => d.id === id) ?? SPIRE_DUNGEONS[0];
+
+/** A hero level that opens the gate (the class level plus Ascension levels). */
+export const dungeonUnlocked = (d: SpireDungeon, level: number) => level >= d.level;
+
+/**
+ * How hard a floor of a dungeon really is, on the Spire's own 1-240 scale. A 60-floor dungeon at
+ * floor 30 fights like the great Spire at floor 60, so every gate stays worth climbing.
+ */
+export const floorDepth = (dungeon: string | undefined | null, floor: number): number => {
+  const d = dungeonOf(dungeon);
+  return Math.max(1, Math.round((Math.max(1, floor) / d.floors) * d.depth));
+};
+
 export interface SpireMember {
   id: string; name: string; cls: "warrior" | "mage" | "archer"; gender: "male" | "female";
   synth?: number | null; look?: number | null; level: number;
@@ -30,6 +76,9 @@ export interface Fx { src: string; tgt: string; kind: "hit" | "crit" | "heal" | 
 export interface SpireBattle {
   floor: number; heroes: LiveHero[]; foes: LiveFoe[]; fx: Fx[]; log: string[];
   pause: number; over: boolean; t: number;
+  /** Which dungeon of the gate this climb belongs to, and how long it is (absent = the great Spire). */
+  dungeon?: string;
+  floors?: number;
   /** Why the fight stopped: the whole party fell, or the summit was reached. */
   outcome?: "fallen" | "summit";
 }
@@ -105,11 +154,20 @@ export const kitOf = (m: SpireMember): SpireSkill[] => (m.kit && m.kit.length ? 
 const TYPES: EnemyType[] = ["goblin", "skeleton", "demon"];
 
 /** Foe count and strength for a floor: every floor is harder, every tenth is a boss, more heroes mean tougher foes. */
-export function spawnFloor(floor: number, partyLevel: number, size: number, rand = Math.random): LiveFoe[] {
-  const boss = floor % 10 === 0;
+export function spawnFloor(
+  floor: number,
+  partyLevel: number,
+  size: number,
+  rand = Math.random,
+  opts: { depth?: number; bossEvery?: number; last?: boolean } = {},
+): LiveFoe[] {
+  // `depth` is the floor's difficulty on the Spire's own 1-240 scale, so a short dungeon climbs
+  // faster than the long one without a second difficulty table (see floorDepth).
+  const depth = Math.max(1, Math.round(opts.depth ?? floor));
+  const boss = floor % Math.max(1, opts.bossEvery ?? 10) === 0 || !!opts.last;
   const count = boss ? 1 : 2 + (floor % 3 === 0 ? 1 : 0);
-  const stage = Math.max(5, partyLevel) + Math.floor(floor / 2);
-  const mult = (1 + floor * 0.035) * (0.55 + 0.45 * size);
+  const stage = Math.max(5, partyLevel) + Math.floor(depth / 2);
+  const mult = (1 + depth * 0.035) * (0.55 + 0.45 * size);
   return Array.from({ length: count }, (_, i) => {
     const f = stageFoe(stage, boss ? mult * 2.6 : (mult / count) * 1.6, boss ? "dragon" : TYPES[(floor + i) % 3]);
     const hp = Math.round(f.hp);
@@ -120,12 +178,20 @@ export function spawnFloor(floor: number, partyLevel: number, size: number, rand
 const partyLevel = (members: SpireMember[]) =>
   Math.round(members.reduce((a, m) => a + m.level, 0) / Math.max(1, members.length));
 
-export function newBattle(members: SpireMember[], floor = 1): SpireBattle {
-  const start = Math.min(SPIRE_FLOORS, Math.max(1, Math.floor(floor)));
+/** The floor's foe options, read from the dungeon it belongs to. */
+const floorOpts = (dungeon: string | undefined | null, floor: number) => {
+  const d = dungeonOf(dungeon);
+  return { depth: floorDepth(d.id, floor), bossEvery: d.bossEvery, last: floor >= d.floors };
+};
+
+export function newBattle(members: SpireMember[], floor = 1, dungeon?: string): SpireBattle {
+  const d = dungeonOf(dungeon);
+  const start = Math.min(d.floors, Math.max(1, Math.floor(floor)));
   return {
+    dungeon: d.id, floors: d.floors,
     floor: start, t: 0, pause: 0, over: false, fx: [], log: [],
     heroes: members.map((m) => ({ id: m.id, hp: m.hp, max: m.hp, cd: {}, swing: 600 })),
-    foes: spawnFloor(start, partyLevel(members), members.length),
+    foes: spawnFloor(start, partyLevel(members), members.length, Math.random, floorOpts(d.id, start)),
   };
 }
 
@@ -150,7 +216,7 @@ export function tick(prev: SpireBattle, members: SpireMember[], casts: { hero: s
   if (b.pause > 0) {
     b.pause -= TICK_MS;
     if (b.pause <= 0) {
-      b.foes = spawnFloor(b.floor, partyLevel(members), members.length, rand);
+      b.foes = spawnFloor(b.floor, partyLevel(members), members.length, rand, floorOpts(b.dungeon, b.floor));
       log(`Floor ${b.floor}: ${b.foes.map((f) => f.name).join(", ")}`);
     }
     return { battle: b, cleared };
@@ -213,7 +279,7 @@ export function tick(prev: SpireBattle, members: SpireMember[], casts: { hero: s
   if (!liveFoes().length) {
     cleared = b.floor;
     log(`Floor ${b.floor} cleared! +1 Spire Chest each`);
-    if (b.floor >= SPIRE_FLOORS) { b.over = true; b.outcome = "summit"; log("The Spire's summit is conquered!"); return { battle: b, cleared }; }
+    if (b.floor >= (b.floors ?? SPIRE_FLOORS)) { b.over = true; b.outcome = "summit"; log("The Spire's summit is conquered!"); return { battle: b, cleared }; }
     b.floor += 1; b.pause = FLOOR_PAUSE_MS;
     // The breather between floors: the fallen rise at a quarter health, the living recover 12%.
     for (const h of b.heroes) h.hp = h.hp <= 0 ? Math.round(h.max * 0.25) : Math.min(h.max, h.hp + Math.round(h.max * 0.12));

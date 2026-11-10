@@ -24,6 +24,23 @@ export const BATTLE_PACE = 1.45;
 
 interface Float { id: number; tgt: string; text: string; kind: CEvent["kind"] }
 
+/**
+ * The skill AUTO casts on the hero's turn: the strongest ready attack on the weakest foe, else any
+ * other ready skill (a heal or a guard) so the turn is always taken, else nothing at all — which
+ * is what stops auto-battle from sitting on a skill it cannot use.
+ */
+export function autoPick(kit: TSkill[], blocked: (k: TSkill) => boolean, foes: Unit[]): TSkill | null {
+  const usable = kit.filter((k) => !blocked(k));
+  const worth = (k: TSkill) => k.mult * (k.hits ?? 1) * (k.target === "all" ? foes.length : 1);
+  const attack = [...usable].filter((k) => k.mult > 0).sort((a, b) => worth(b) - worth(a))[0];
+  return (
+    attack ??
+    usable.find((k) => k.target === "self" || k.target === "all") ??
+    usable[0] ??
+    null
+  );
+}
+
 export function arenaFor(title: string | undefined, boss?: boolean) {
   const t = (title ?? "").toLowerCase();
   if (boss || /boss|dungeon|wyrm|challenge/.test(t)) return arenaLair;
@@ -170,16 +187,44 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
   // Start: let faster enemies act first.
   useEffect(() => { void (async () => { busy.current = true; await runEnemies(); busy.current = false; rerender(); })(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-battle: pick the strongest ready attack against the weakest foe.
+  // Auto-battle: the strongest ready attack on the weakest foe. It always has to take the turn —
+  // falling back to any other ready skill (a heal or a guard) and switching itself off when
+  // nothing can be cast — so the fight can never sit open retrying a skill that cannot be used.
   useEffect(() => {
     if (!autoOn || !myTurn || busy.current || ended.current) return;
     const t = setTimeout(() => {
+      // The fight may have moved on while this timer waited.
+      if (busy.current || ended.current) return;
       const foes = s.units.filter((u) => u.side === "foe" && u.hp > 0).sort((a, b) => a.hp - b.hp);
-      const ready = [...hero.kit].filter((k) => !skillReady(hero, k) && k.mult > 0).sort((a, b) => b.mult * (b.hits ?? 1) * (b.target === "all" ? foes.length : 1) - a.mult * (a.hits ?? 1) * (a.target === "all" ? foes.length : 1))[0] ?? hero.kit[0];
-      void execute(ready.id, foes.slice(0, ready.maxTargets ?? 1).map((f) => f.id));
+      if (!foes.length) return;
+      const pick = autoPick(hero.kit, (k) => !!skillReady(hero, k), foes);
+      if (!pick) {
+        setAutoOn(false);
+        setErr(tr("Auto-battle stopped — the hero has nothing to cast."));
+        return;
+      }
+      void execute(pick.id, foes.slice(0, pick.maxTargets ?? 1).map((f) => f.id));
     }, 300);
     return () => clearTimeout(t);
   });
+
+  // The key badges under the orbs are real: 1-4 cast a skill, P drinks a potion, A toggles
+  // auto-battle and F the speed. Typing in a field on top of the battle is left alone.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const key = e.key.toLowerCase();
+      if (key === "a") { setAutoOn((a) => !a); return; }
+      if (key === "f") { setFast((f) => !f); return; }
+      if (key === "p") { if (myTurn && !autoOn) void potion(); return; }
+      const n = Number(key);
+      if (n >= 1 && n <= hero.kit.length && myTurn && !autoOn) pickSkill(hero.kit[n - 1]);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { if (!banner) return; const t = setTimeout(() => setBanner(null), 2200); return () => clearTimeout(t); }, [banner]);
 

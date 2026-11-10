@@ -12,7 +12,7 @@ import type { SpireBattle, SpireMember } from "./spire-party";
 export type PartyMsg =
   | { kind: "hello"; member: SpireMember }
   | { kind: "roster"; members: SpireMember[] }
-  | { kind: "begin"; members: SpireMember[]; floor: number }
+  | { kind: "begin"; members: SpireMember[]; floor: number; dungeon: string }
   | { kind: "tick"; battle: SpireBattle; cleared: number | null }
   | { kind: "cast"; hero: string; skill: string }
   | { kind: "bye"; hero: string; leader: boolean }

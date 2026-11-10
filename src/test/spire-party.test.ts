@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   FLOOR_PAUSE_MS,
+  SPIRE_DUNGEONS,
   SPIRE_FLOORS,
   SPIRE_PARTY_MAX,
   SPIRE_RUNS_PER_DAY,
   cleanPartyCode,
+  dungeonOf,
+  floorDepth,
   newBattle,
   parseReward,
   parseSpireState,
@@ -62,8 +65,37 @@ describe("the Spire's floors", () => {
     const solo = spawnFloor(12, 30, 1);
     const party = spawnFloor(12, 30, SPIRE_PARTY_MAX);
     expect(party[0].hp).toBeGreaterThan(solo[0].hp);
-    expect(newBattle([member()], 37).floor).toBe(37);
+    expect(newBattle([member()], 37, "spire").floor).toBe(37);
+    expect(newBattle([member()], 37, "cinder").floor).toBe(20);
     expect(newBattle([member()]).floor).toBe(1);
+  });
+
+  it("keeps every dungeon inside its own length and difficulty", () => {
+    for (const d of SPIRE_DUNGEONS) {
+      const battle = newBattle([member()], d.floors, d.id);
+      expect(battle.floors).toBe(d.floors);
+      expect(battle.dungeon).toBe(d.id);
+      // The last floor of every dungeon is worth its authored depth.
+      expect(floorDepth(d.id, d.floors)).toBe(d.depth);
+    }
+    expect(floorDepth("spire", 24)).toBe(24);
+    // A short dungeon ramps faster than the long one at the same floor number.
+    expect(floorDepth("ember", 20)).toBeGreaterThan(floorDepth("spire", 20));
+  });
+
+  it("closes a short dungeon at its own summit instead of at floor 240", () => {
+    const party = [member()];
+    const dungeon = dungeonOf("cinder");
+    const battle: SpireBattle = {
+      dungeon: dungeon.id, floors: dungeon.floors,
+      floor: dungeon.floors, t: 0, pause: 0, over: false, fx: [], log: [],
+      heroes: [{ id: "h1", hp: 400, max: 400, cd: {}, swing: 0 }],
+      foes: [{ uid: "f", name: "Cinder Warden", img: "", hp: 1, max: 1, atk: 1, def: 0, boss: true, swing: 9999 }],
+    };
+    const r = tick(battle, party, []);
+    expect(r.cleared).toBe(dungeon.floors);
+    expect(r.battle.over).toBe(true);
+    expect(r.battle.outcome).toBe("summit");
   });
 });
 
