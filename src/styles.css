@@ -46,24 +46,24 @@
 
 :root {
   --radius: 0.5rem;
-  --background: oklch(0.2 0.05 275);
+  --background: oklch(0.13 0.025 20);
   --foreground: oklch(0.93 0.03 80);
-  --card: oklch(0.26 0.06 270);
+  --card: oklch(0.18 0.03 20);
   --card-foreground: oklch(0.93 0.03 80);
-  --popover: oklch(0.26 0.06 270);
+  --popover: oklch(0.18 0.03 20);
   --popover-foreground: oklch(0.93 0.03 80);
   --primary: oklch(0.78 0.13 80);
   --primary-foreground: oklch(0.16 0.03 30);
-  --secondary: oklch(0.34 0.08 265);
+  --secondary: oklch(0.25 0.05 20);
   --secondary-foreground: oklch(0.93 0.03 80);
-  --muted: oklch(0.3 0.06 268);
-  --muted-foreground: oklch(0.78 0.05 250);
-  --accent: oklch(0.6 0.2 340);
+  --muted: oklch(0.22 0.03 20);
+  --muted-foreground: oklch(0.68 0.04 60);
+  --accent: oklch(0.45 0.17 25);
   --accent-foreground: oklch(0.96 0.02 80);
   --destructive: oklch(0.58 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.55 0.09 70 / 45%);
-  --input: oklch(0.36 0.07 265);
+  --input: oklch(0.3 0.04 30);
   --ring: oklch(0.78 0.13 80);
   --gold: oklch(0.8 0.14 82);
   --blood: oklch(0.5 0.2 25);
@@ -78,7 +78,7 @@
   --r6: oklch(0.82 0.17 85);
   /* Void Crystals — the rare advanced-training currency. */
   --void: oklch(0.74 0.2 295);
-  --panel-gradient: linear-gradient(160deg, oklch(0.32 0.1 285 / 0.97), oklch(0.24 0.08 250 / 0.97) 55%, oklch(0.22 0.07 200 / 0.98));
+  --panel-gradient: linear-gradient(180deg, oklch(0.2 0.04 22 / 0.97), oklch(0.12 0.03 20 / 0.98));
   --gold-gradient: linear-gradient(180deg, oklch(0.88 0.13 85), oklch(0.62 0.13 65));
   --blood-gradient: linear-gradient(180deg, oklch(0.55 0.21 27), oklch(0.32 0.15 25));
   --shadow-glow: 0 0 24px oklch(0.6 0.22 27 / 0.55);
@@ -745,42 +745,4 @@ html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
   .farm-bar { background: linear-gradient(180deg, oklch(0.82 0.16 135), oklch(0.55 0.14 145)); transition: width 0.4s ease; }
   .farm-bar-max { background: linear-gradient(90deg, oklch(0.85 0.15 85), oklch(0.72 0.18 95)); }
   .farm-levelup { animation: farm-levelup-in 0.4s ease-out; box-shadow: 0 0 40px -6px oklch(0.85 0.15 90 / 0.6); }
-}
-
-/* Colourful tabs: each tab gets its own hue (set by --tab-hue), the chosen one glows. */
-@layer components {
-  .game-tab {
-    --tab-hue: 40;
-    font-family: var(--font-display);
-    font-weight: 700;
-    border-radius: 999px;
-    color: oklch(0.95 0.04 var(--tab-hue));
-    background: linear-gradient(180deg, oklch(0.42 0.12 var(--tab-hue) / 0.55), oklch(0.3 0.1 var(--tab-hue) / 0.55));
-    border: 1px solid oklch(0.7 0.15 var(--tab-hue) / 0.6);
-    transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
-  }
-  .game-tab:hover { transform: translateY(-2px); box-shadow: 0 4px 14px oklch(0.7 0.18 var(--tab-hue) / 0.45); }
-  .game-tab[aria-selected="true"] {
-    color: oklch(0.18 0.05 var(--tab-hue));
-    background: linear-gradient(180deg, oklch(0.9 0.14 var(--tab-hue)), oklch(0.72 0.18 var(--tab-hue)));
-    border-color: oklch(0.95 0.1 var(--tab-hue));
-    box-shadow: 0 0 0 2px oklch(0.8 0.17 var(--tab-hue) / 0.35), 0 4px 18px oklch(0.75 0.2 var(--tab-hue) / 0.55);
-    animation: tab-pop .35s ease;
-  }
-  /* Livelier windows: they bounce in and their gold rim slowly shimmers. */
-  .game-panel { animation: pop-in .3s ease-out; position: relative; }
-  .game-panel::before {
-    content: ""; position: absolute; inset: -2px; border-radius: inherit; pointer-events: none;
-    background: linear-gradient(110deg, transparent 35%, oklch(0.95 0.12 85 / 0.35) 50%, transparent 65%) 0 0 / 300% 100%;
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
-    padding: 2px; animation: rim-shimmer 6s linear infinite;
-  }
-  .btn-gold { transition: transform .15s ease, filter .15s ease; }
-  .btn-gold:hover { transform: translateY(-1px) scale(1.03); filter: brightness(1.12) saturate(1.15); }
-  .btn-gold:active { transform: scale(.97); }
-}
-@keyframes tab-pop { 0% { transform: scale(.9); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
-@keyframes rim-shimmer { from { background-position: 150% 0; } to { background-position: -150% 0; } }
-@media (prefers-reduced-motion: reduce) {
-  .game-panel, .game-panel::before, .game-tab[aria-selected="true"] { animation: none; }
 }
