@@ -28,6 +28,7 @@ import castle from "@/assets/castle.jpg.asset.json";
 import gateCampaign from "@/assets/gate-campaign.webp";
 import gateDungeon from "@/assets/gate-dungeon.webp";
 import gateConquest from "@/assets/gate-conquest.webp";
+import spireChest from "@/assets/spire-chest.webp";
 import { readAudioSettings, saveAudioSettings, soundtrackUrl, type AudioSettings } from "./audio";
 import { SettingsPanel } from "./Settings";
 import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } from "./data";
@@ -59,6 +60,7 @@ import { Campaign, Forge, HeroHall, Oracle, Temple, heroFighter, type StartBattl
 import { Arena } from "./Arena";
 import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
+import { SpireGate } from "./SpireGate";
 import { RelicTrials } from "./RelicTrials";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
@@ -528,7 +530,7 @@ export function Game() {
               </div>
             </div>
           )}
-          {(open === "portal" || open === "dungeon" || open === "spire") && (
+          {(open === "portal" || open === "dungeon" || open === "spire" || open === "party") && (
             <GateSwitcher current={open} onPick={(g) => setOpen(g)} level={hero.level} />
           )}
           {open === "portal" && <Campaign onClose={() => setOpen(null)} start={start} />}
@@ -540,6 +542,7 @@ export function Game() {
             ) : (
               <ComingSoon id="spire" locked onClose={() => setOpen(null)} />
             ))}
+          {open === "party" && <SpireGate onClose={() => setOpen(null)} />}
           {open === "forge" && (
             <Forge onClose={() => setOpen(null)} onCraft={() => setCrafting(true)} />
           )}
@@ -891,6 +894,7 @@ function ComingSoon({
 
 type ShortcutTarget =
   | BuildingId
+  | "party"
   | "mounts"
   | "runes"
   | "wheel"
@@ -972,12 +976,13 @@ function ShortcutBar({
   );
 }
 
-/** The War Gates: one building, three gates. A painted tab strip floats above whichever gate is open. */
-function GateSwitcher({ current, onPick, level }: { current: string; onPick: (g: "portal" | "dungeon" | "spire") => void; level: number }) {
+/** The War Gates: one building, four gates. A painted tab strip floats above whichever gate is open. */
+function GateSwitcher({ current, onPick, level }: { current: string; onPick: (g: "portal" | "dungeon" | "spire" | "party") => void; level: number }) {
   const gates = [
     { id: "portal" as const, name: "Campaign Gate", note: "Story stages", art: gateCampaign },
     { id: "dungeon" as const, name: "Dungeon Gate", note: "Bosses & elites", art: gateDungeon },
     { id: "spire" as const, name: "Conquest Gate", note: canEnterConquest(level) ? "Endless floors" : "Lv 10+", art: gateConquest },
+    { id: "party" as const, name: "Spire", note: "Party climb", art: spireChest },
   ];
   return (
     <div className="gate-switcher" role="tablist" aria-label={tr("War Gates")}>

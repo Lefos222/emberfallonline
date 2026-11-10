@@ -875,6 +875,8 @@ html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
 .gate-tab-on { color: var(--gold); border-color: color-mix(in oklab, var(--gold) 60%, transparent); background: color-mix(in oklab, var(--gold) 14%, var(--card)); box-shadow: inset 0 0 12px color-mix(in oklab, var(--gold) 20%, transparent); }
 .gate-tab-on img { filter: drop-shadow(0 0 6px var(--gold)); }
 @media (max-width: 640px) { .gate-tab small { display: none; } .gate-tab img { width: 2rem; height: 2rem; } .gate-tab b { font-size: .72rem; } }
+/* Four gates share the strip: let it wrap onto a second row instead of running off a narrow screen. */
+.gate-switcher { flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 1rem); }
 
 /* ---- Guild events ---- */
 .guild-events-tabs { display: flex; flex-wrap: wrap; gap: .4rem; padding: .3rem; border-radius: .9rem; background: var(--card); border: 1px solid color-mix(in oklab, var(--gold) 30%, transparent); }

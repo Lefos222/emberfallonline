@@ -232,6 +232,13 @@
       "when": 1794328741287,
       "tag": "0032_spire_party",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794329000000,
+      "tag": "0033_spire_party_fixes",
+      "breakpoints": true
     }
   ]
 }
