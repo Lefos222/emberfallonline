@@ -225,6 +225,13 @@
       "when": 1794328137569,
       "tag": "0031_guild_bank_buffs_shop_dice_ranks",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794328741287,
+      "tag": "0032_spire_party",
+      "breakpoints": true
     }
   ]
 }

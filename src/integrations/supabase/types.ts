@@ -1412,6 +1412,47 @@ export type Database = {
         }
         Relationships: []
       }
+      spire_runs: {
+        Row: {
+          best: number
+          chests_opened: number
+          floor: number
+          hero_id: string
+          last_clear: string | null
+          runs: number
+          runs_day: string | null
+          started_at: string | null
+        }
+        Insert: {
+          best?: number
+          chests_opened?: number
+          floor?: number
+          hero_id: string
+          last_clear?: string | null
+          runs?: number
+          runs_day?: string | null
+          started_at?: string | null
+        }
+        Update: {
+          best?: number
+          chests_opened?: number
+          floor?: number
+          hero_id?: string
+          last_clear?: string | null
+          runs?: number
+          runs_day?: string | null
+          started_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spire_runs_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: true
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       world_raid_claims: {
         Row: {
           claimed_at: string
@@ -1870,6 +1911,11 @@ export type Database = {
         Args: { _body: string; _channel: string; _hero: string; _to: string }
         Returns: string
       }
+      spire_begin: { Args: { _hero: string }; Returns: Json }
+      spire_clear: { Args: { _floor: number; _hero: string }; Returns: Json }
+      spire_end: { Args: { _hero: string }; Returns: undefined }
+      spire_open_chest: { Args: { _hero: string }; Returns: Json }
+      spire_state: { Args: { _hero: string }; Returns: Json }
       track_activity: {
         Args: { _hero: string; _kind: string }
         Returns: undefined
