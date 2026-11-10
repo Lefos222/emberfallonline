@@ -15,11 +15,24 @@ export const GAME_TZ = "Europe/Athens";
 /** Milliseconds Europe/Athens is ahead of UTC at an instant (summer time included). */
 export function greekOffsetMs(ts: number, tz = GAME_TZ): number {
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: tz, hour12: false, year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    timeZone: tz,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   }).formatToParts(new Date(ts));
   const at = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
-  const asUTC = Date.UTC(at("year"), at("month") - 1, at("day"), at("hour") % 24, at("minute"), at("second"));
+  const asUTC = Date.UTC(
+    at("year"),
+    at("month") - 1,
+    at("day"),
+    at("hour") % 24,
+    at("minute"),
+    at("second"),
+  );
   return asUTC - Math.floor(ts / 1000) * 1000;
 }
 
@@ -59,6 +72,8 @@ export interface WorldEvent {
   bonus: EventBonus;
   /** Encounter tier fed to the real foe/reward factories. */
   stage: number;
+  /** Members-only window: only an active VIP can enter (checked on the client and on the server). */
+  vipOnly?: boolean;
 }
 
 /**
@@ -67,72 +82,141 @@ export interface WorldEvent {
  * and crystals, and the three-day Blood Moon pays the biggest purse of all. None of them are the
  * old boss/dungeon/caravan loop.
  */
-export const WORLD_EVENTS: WorldEvent[] = locAll([
-  {
-    id: "rift-siege",
-    name: "Rift Siege",
-    kind: "siege",
-    everyMs: 4 * H,
-    anchor: Date.UTC(2026, 0, 1, 0, 0, 0),
-    greekHour: 0,
-    durationMs: 35 * 60_000,
-    blurb: "A rift tears open and a siege champion steps through. Repel three pushes during the breach.",
-    reward: "1.6× gold and XP, Ember Ore, Armor Fragments, an Elite Sigil and a Flawed Sapphire",
-    bonus: { mult: 1.6, mats: { ore: 20, fragment: 12, sigil: 1 }, gem: { type: "sapphire", tier: 2 }, gated: true },
-    stage: 30,
-  },
-  {
-    id: "bounty-hunt",
-    name: "Bounty Hunt",
-    kind: "hunt",
-    everyMs: 3 * H,
-    anchor: Date.UTC(2026, 0, 1, 1, 0, 0),
-    greekHour: 1,
-    durationMs: 25 * 60_000,
-    blurb: "A marked beast is loose in the wilds. Every win pays a full hunter's bounty.",
-    reward: "1.25× gold and XP, Beast Hide, Soul Essence, Emberbloom, a Flawed Emerald and a Gold Chest",
-    bonus: { mult: 1.25, mats: { hide: 24, essence: 14, bloom: 10 }, gem: { type: "emerald", tier: 2 }, chest: true },
-    stage: 24,
-  },
-  {
-    id: "champion-duel",
-    name: "Champion's Duel",
-    kind: "duel",
-    everyMs: 5 * H,
-    anchor: Date.UTC(2026, 0, 1, 2, 0, 0),
-    greekHour: 2,
-    durationMs: 20 * 60_000,
-    blurb: "A rival champion answers your banner. Win the duel for the crowd's purse.",
-    reward: "1.5× gold and XP, Armor Fragments, Soul Essence and a Flawed Ruby",
-    bonus: { mult: 1.5, mats: { fragment: 18, essence: 10 }, gem: { type: "ruby", tier: 2 } },
-    stage: 35,
-  },
-  {
-    id: "astral-rift",
-    name: "Astral Rift",
-    kind: "rift",
-    everyMs: 8 * H,
-    anchor: Date.UTC(2026, 0, 1, 3, 0, 0),
-    greekHour: 3,
-    durationMs: 40 * 60_000,
-    blurb: "The sky splits over a sleeping constellation. Hold the line while it pours starlight.",
-    reward: "1.4× gold and XP, Starshards, Arcane Crystals, Soul Essence and a Flawed Amethyst",
-    bonus: { mult: 1.4, mats: { starshard: 6, crystal: 10, essence: 18 }, gem: { type: "amethyst", tier: 2 } },
-    stage: 45,
-  },
-  {
-    id: "blood-moon",
-    name: "Blood Moon Rising",
-    kind: "bloodmoon",
-    everyMs: 72 * H,
-    anchor: Date.UTC(2026, 0, 2, 0, 0, 0),
-    durationMs: 6 * H,
-    blurb: "Once every three days the moon turns red. Hunt its herald for the season's greatest purse.",
-    reward: "2.2× gold and XP, Boss Cores, Elite Sigils, Starshards, a Clear Topaz and a Gold Chest",
-    bonus: { mult: 2.2, mats: { bossCore: 2, sigil: 3, starshard: 10 }, gem: { type: "topaz", tier: 3 }, chest: true, gated: true },
-    stage: 55,
-  },
-], ["name"], ["blurb", "reward"]);
+export const WORLD_EVENTS: WorldEvent[] = locAll(
+  [
+    {
+      id: "rift-siege",
+      name: "Rift Siege",
+      kind: "siege",
+      everyMs: 4 * H,
+      anchor: Date.UTC(2026, 0, 1, 0, 0, 0),
+      greekHour: 0,
+      durationMs: 35 * 60_000,
+      blurb:
+        "A rift tears open and a siege champion steps through. Repel three pushes during the breach.",
+      reward: "1.6× gold and XP, Ember Ore, Armor Fragments, an Elite Sigil and a Flawed Sapphire",
+      bonus: {
+        mult: 1.6,
+        mats: { ore: 20, fragment: 12, sigil: 1 },
+        gem: { type: "sapphire", tier: 2 },
+        gated: true,
+      },
+      stage: 30,
+    },
+    {
+      id: "bounty-hunt",
+      name: "Bounty Hunt",
+      kind: "hunt",
+      everyMs: 3 * H,
+      anchor: Date.UTC(2026, 0, 1, 1, 0, 0),
+      greekHour: 1,
+      durationMs: 25 * 60_000,
+      blurb: "A marked beast is loose in the wilds. Every win pays a full hunter's bounty.",
+      reward:
+        "1.25× gold and XP, Beast Hide, Soul Essence, Emberbloom, a Flawed Emerald and a Gold Chest",
+      bonus: {
+        mult: 1.25,
+        mats: { hide: 24, essence: 14, bloom: 10 },
+        gem: { type: "emerald", tier: 2 },
+        chest: true,
+      },
+      stage: 24,
+    },
+    {
+      id: "champion-duel",
+      name: "Champion's Duel",
+      kind: "duel",
+      everyMs: 5 * H,
+      anchor: Date.UTC(2026, 0, 1, 2, 0, 0),
+      greekHour: 2,
+      durationMs: 20 * 60_000,
+      blurb: "A rival champion answers your banner. Win the duel for the crowd's purse.",
+      reward: "1.5× gold and XP, Armor Fragments, Soul Essence and a Flawed Ruby",
+      bonus: { mult: 1.5, mats: { fragment: 18, essence: 10 }, gem: { type: "ruby", tier: 2 } },
+      stage: 35,
+    },
+    {
+      id: "astral-rift",
+      name: "Astral Rift",
+      kind: "rift",
+      everyMs: 8 * H,
+      anchor: Date.UTC(2026, 0, 1, 3, 0, 0),
+      greekHour: 3,
+      durationMs: 40 * 60_000,
+      blurb:
+        "The sky splits over a sleeping constellation. Hold the line while it pours starlight.",
+      reward: "1.4× gold and XP, Starshards, Arcane Crystals, Soul Essence and a Flawed Amethyst",
+      bonus: {
+        mult: 1.4,
+        mats: { starshard: 6, crystal: 10, essence: 18 },
+        gem: { type: "amethyst", tier: 2 },
+      },
+      stage: 45,
+    },
+    {
+      id: "blood-moon",
+      name: "Blood Moon Rising",
+      kind: "bloodmoon",
+      everyMs: 72 * H,
+      anchor: Date.UTC(2026, 0, 2, 0, 0, 0),
+      durationMs: 6 * H,
+      blurb:
+        "Once every three days the moon turns red. Hunt its herald for the season's greatest purse.",
+      reward:
+        "2.2× gold and XP, Boss Cores, Elite Sigils, Starshards, a Clear Topaz and a Gold Chest",
+      bonus: {
+        mult: 2.2,
+        mats: { bossCore: 2, sigil: 3, starshard: 10 },
+        gem: { type: "topaz", tier: 3 },
+        chest: true,
+        gated: true,
+      },
+      stage: 55,
+    },
+    {
+      id: "vip-crowns-gambit",
+      name: "Crown's Gambit",
+      kind: "duel",
+      everyMs: 6 * H,
+      anchor: Date.UTC(2026, 0, 1, 4, 0, 0),
+      greekHour: 4,
+      durationMs: 30 * 60_000,
+      blurb:
+        "A VIP-only champion answers your banner. The court pays its members a richer purse for the duel.",
+      reward: "1.8× gold and XP, Armor Fragments, Soul Essence, a Flawed Ruby and a Gold Chest",
+      bonus: {
+        mult: 1.8,
+        mats: { fragment: 20, essence: 15 },
+        gem: { type: "ruby", tier: 2 },
+        chest: true,
+      },
+      stage: 40,
+      vipOnly: true,
+    },
+    {
+      id: "vip-sovereign-rift",
+      name: "Sovereign Rift",
+      kind: "rift",
+      everyMs: 12 * H,
+      anchor: Date.UTC(2026, 0, 1, 5, 0, 0),
+      greekHour: 5,
+      durationMs: 45 * 60_000,
+      blurb:
+        "Members-only breach: hold the sovereign line three times for the season's richest VIP reward table.",
+      reward: "2× gold and XP, Starshards, Elite Sigils, Arcane Crystals and a Flawed Amethyst",
+      bonus: {
+        mult: 2,
+        mats: { starshard: 8, sigil: 2, crystal: 10 },
+        gem: { type: "amethyst", tier: 3 },
+        gated: true,
+      },
+      stage: 50,
+      vipOnly: true,
+    },
+  ],
+  ["name"],
+  ["blurb", "reward"],
+);
 
 /** Gated events (sieges and the Blood Moon) pay on the third win, never on a single hit (see event-rewards.ts). */
 export const EVENT_BOSS_KILLS_REQUIRED = 3;
@@ -149,22 +233,55 @@ export function eventBonusLines(ev: WorldEvent): string[] {
   const lines: string[] = [];
   for (const [m, n] of Object.entries(bonus.mats ?? {}) as [import("./crafting").Mat, number][])
     lines.push(`${n} ${MAT_NAME[m]}`);
-  if (bonus.gem) lines.push(`1 ${GEM_TIER_NAME[bonus.gem.tier - 1] ?? ""} ${GEM_NAME[bonus.gem.type]} gem`.replace("  ", " "));
+  if (bonus.gem)
+    lines.push(
+      `1 ${GEM_TIER_NAME[bonus.gem.tier - 1] ?? ""} ${GEM_NAME[bonus.gem.type]} gem`.replace(
+        "  ",
+        " ",
+      ),
+    );
   if (bonus.chest) lines.push("Gold Chest (Vault)");
   return lines;
 }
 
 /** Minimal names for event lines, so events.ts stays free of the crafting UI's runtime imports. */
 const MAT_NAME: Record<import("./crafting").Mat, string> = {
-  ore: "Ember Ore", essence: "Soul Essence", starshard: "Starshard", bossCore: "Boss Core",
-  fragment: "Armor Fragment", sigil: "Elite Sigil", hide: "Beast Hide", bloom: "Emberbloom",
-  crystal: "Arcane Crystal", enchantStone: "Enchantment Stone", fateStone: "Fate Stone",
+  ore: "Ember Ore",
+  essence: "Soul Essence",
+  starshard: "Starshard",
+  bossCore: "Boss Core",
+  fragment: "Armor Fragment",
+  sigil: "Elite Sigil",
+  hide: "Beast Hide",
+  bloom: "Emberbloom",
+  crystal: "Arcane Crystal",
+  enchantStone: "Enchantment Stone",
+  fateStone: "Fate Stone",
 };
 const GEM_NAME: Record<import("./crafting").GemType, string> = {
-  ruby: "Ruby", emerald: "Emerald", sapphire: "Sapphire", topaz: "Topaz",
-  amethyst: "Amethyst", tourmaline: "Tourmaline", aquamarine: "Aquamarine", lapis: "Lapis",
+  ruby: "Ruby",
+  emerald: "Emerald",
+  sapphire: "Sapphire",
+  topaz: "Topaz",
+  amethyst: "Amethyst",
+  tourmaline: "Tourmaline",
+  aquamarine: "Aquamarine",
+  lapis: "Lapis",
 };
-const GEM_TIER_NAME = ["Chipped", "Flawed", "Clear", "Polished", "Flawless", "Radiant", "Royal", "Sovereign", "Celestial", "Ascendant", "Eternal", "Primordial"];
+const GEM_TIER_NAME = [
+  "Chipped",
+  "Flawed",
+  "Clear",
+  "Polished",
+  "Flawless",
+  "Radiant",
+  "Royal",
+  "Sovereign",
+  "Celestial",
+  "Ascendant",
+  "Eternal",
+  "Primordial",
+];
 
 export type EventStatus =
   | { state: "live"; startedAt: number; endsAt: number; msLeft: number }
@@ -233,7 +350,16 @@ export function timeIn(ts: number, tz?: string): string {
   }).format(new Date(ts));
 }
 
-export const TZ_CHOICES = [GAME_TZ, "local", "UTC", "Europe/London", "Europe/Paris", "America/New_York", "Asia/Tokyo", "Australia/Sydney"];
+export const TZ_CHOICES = [
+  GAME_TZ,
+  "local",
+  "UTC",
+  "Europe/London",
+  "Europe/Paris",
+  "America/New_York",
+  "Asia/Tokyo",
+  "Australia/Sydney",
+];
 
 /** How far ahead of an opening a reminder fires. */
 export const REMIND_LEAD_MS = 5 * 60_000;

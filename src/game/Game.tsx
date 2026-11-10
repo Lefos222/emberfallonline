@@ -13,10 +13,10 @@ import { FriendsPanel, useFriendRequestCount } from "./FriendsPanel";
 import { ScrollShop } from "./ScrollShop";
 import { Bestiary } from "./Bestiary";
 import { EventCalendar } from "./EventCalendar";
-import { Expeditions } from './Expeditions';
-import { PremiumShop } from './PremiumShop';
-import { AuctionHousePanel } from './Marketplace';
-import { WorldMap } from './WorldMap';
+import { Expeditions } from "./Expeditions";
+import { PremiumShop } from "./PremiumShop";
+import { AuctionHousePanel } from "./Marketplace";
+import { WorldMap } from "./WorldMap";
 import { beginScrollBattle } from "./services";
 import { battleLockedByBlitz, settleBlitzRun } from "./blitz-run";
 import { scrollFighter } from "./scrolls";
@@ -26,12 +26,21 @@ import { SettingsPanel } from "./Settings";
 import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } from "./data";
 import { CHESTS, addChests, rewardChestReady, rollBattleChest } from "./chests";
 import { vipXpMultiplier } from "./economy";
+import { confirmCardPurchase, reconcilePendingPurchases } from "./premium-shop";
+import { openVipActivities } from "./vip-activities";
 import { authHandoffPending, getState, update, useGame } from "./store";
 import { itemName, useLang, useT } from "./i18n";
 import { recordBattle } from "./progress";
 import { BOSS_CRYSTALS } from "./logic";
 import { battleEssenceGain, enlightenmentUnlocked, rollSoulShards } from "./enlightenment";
-import { DUNGEON_STAMINA, POTION_STAMINA, addPotions, rollStaminaPotion, spendStamina, staminaBlocker } from "./stamina";
+import {
+  DUNGEON_STAMINA,
+  POTION_STAMINA,
+  addPotions,
+  rollStaminaPotion,
+  spendStamina,
+  staminaBlocker,
+} from "./stamina";
 import { arenaBlocker, spendArenaFight } from "./arena-limits";
 import { addRenown, renownGain } from "./renown";
 import { CharacterSelect } from "./CharacterSelect";
@@ -64,22 +73,91 @@ export function Game() {
   const friendRequests = useFriendRequestCount(heroId);
   const nav = useNavigate();
   const [open, setOpen] = useState<ShortcutTarget | null>(null);
-  const [battle, setBattle] = useState<null | { right: Fighter; left: Fighter; auto?: boolean; title: string; dungeon?: boolean; onResult: Parameters<StartBattle>[0]["onResult"] }>(null);
-  const [result, setResult] = useState<null | { won: boolean; lines: string[]; loot?: Item | null }>(null);
+  const [battle, setBattle] = useState<null | {
+    right: Fighter;
+    left: Fighter;
+    auto?: boolean;
+    title: string;
+    dungeon?: boolean;
+    onResult: Parameters<StartBattle>[0]["onResult"];
+  }>(null);
+  const [result, setResult] = useState<null | {
+    won: boolean;
+    lines: string[];
+    loot?: Item | null;
+  }>(null);
   const [crafting, setCrafting] = useState(false);
   const [expeditions, setExpeditions] = useState(false);
   const [relics, setRelics] = useState(false);
   // Music settings (volume, soundtrack, mute) live on the device, behind the HUD's settings button.
   const [sound, setSound] = useState<AudioSettings>(() => readAudioSettings());
-  const changeSound = (patch: Partial<AudioSettings>) => setSound((s) => saveAudioSettings({ ...s, ...patch }));
+  const changeSound = (patch: Partial<AudioSettings>) =>
+    setSound((s) => saveAudioSettings({ ...s, ...patch }));
   const audio = useRef<HTMLAudioElement>(null);
   const starting = useRef(false);
   const [entryError, setEntryError] = useState("");
+  const [checkoutNotice, setCheckoutNotice] = useState("");
+
+  // Stripe sends the player back to `/?checkout=success&session_id=…`. The server verifies that
+  // session and credits the wallet before the shop shows anything, so a forged URL credits nothing.
+  useEffect(() => {
+    if (typeof window === "undefined" || !heroId) return;
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+    const state = params.get("checkout");
+    if (!sessionId && !state) return;
+    const clean = () => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("checkout");
+      url.searchParams.delete("session_id");
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    };
+    void (async () => {
+      try {
+        if (sessionId) {
+          const result = await confirmCardPurchase(sessionId);
+          setCheckoutNotice(
+            result.already
+              ? "That payment was already credited to your account."
+              : "Payment confirmed — your purchase is in your account.",
+          );
+        } else {
+          setCheckoutNotice("Checkout cancelled — nothing was charged.");
+          await reconcilePendingPurchases();
+        }
+      } catch (e) {
+        setCheckoutNotice(e instanceof Error ? e.message : "The payment could not be confirmed.");
+      } finally {
+        clean();
+      }
+    })();
+  }, [heroId]);
+
+  // The VIP activities count from the first load of the day, not from when the shop is opened.
+  useEffect(() => {
+    if (!heroId) return;
+    update((h) => {
+      openVipActivities(h);
+    });
+  }, [heroId]);
+
+  // A tab closed before Stripe redirected back is reconciled the next time the shop opens.
+  useEffect(() => {
+    if (open === "premium" && heroId) void reconcilePendingPurchases();
+  }, [open, heroId]);
+
+  useEffect(() => {
+    if (!checkoutNotice) return;
+    const timer = setTimeout(() => setCheckoutNotice(""), 10_000);
+    return () => clearTimeout(timer);
+  }, [checkoutNotice]);
 
   // Every level opens its own quest board: snapshot its counters the moment the level starts.
   useEffect(() => {
     if (!hero) return;
-    update((h) => { if (!h.levelQuests || h.levelQuests.level !== h.level) rollLevelQuests(h); });
+    update((h) => {
+      if (!h.levelQuests || h.levelQuests.level !== h.level) rollLevelQuests(h);
+    });
   }, [hero?.level]);
 
   // World chat announces each world event as it opens, so everyone sees the window go live.
@@ -108,8 +186,13 @@ export function Game() {
     const main = audio.current;
     if (!main) return;
     main.volume = sound.volume;
-    if (sound.muted) { main.pause(); return; }
-    const play = () => { if (!sound.muted) void main.play().catch(() => {}); };
+    if (sound.muted) {
+      main.pause();
+      return;
+    }
+    const play = () => {
+      if (!sound.muted) void main.play().catch(() => {});
+    };
     play();
     window.addEventListener("pointerdown", play, { once: true });
     return () => window.removeEventListener("pointerdown", play);
@@ -121,24 +204,37 @@ export function Game() {
     if (!hero || starting.current || battle) return;
     // A blitz keeps the hero out in the field: nothing fights until the run lands (see blitz-run.ts).
     const blitzLock = battleLockedByBlitz(hero);
-    if (blitzLock) { setEntryError(blitzLock); return; }
+    if (blitzLock) {
+      setEntryError(blitzLock);
+      return;
+    }
     // Every priced battle charges its stamina up front, so a loss costs exactly as much as a win:
     // 20 for a Campaign Gate battle, 10 for a Dungeon Gate run (see stamina.ts).
     const staminaCost = o.stamina ?? (o.dungeon ? DUNGEON_STAMINA : 0);
     if (staminaCost > 0) {
       const staminaLock = staminaBlocker(hero, staminaCost);
-      if (staminaLock) { setEntryError(staminaLock); return; }
+      if (staminaLock) {
+        setEntryError(staminaLock);
+        return;
+      }
     }
     // The Blood Arena allows five duels every twelve hours; a duel is spent on entry, win or lose
     // (see arena-limits.ts).
     if (o.arena) {
       const arenaLock = arenaBlocker(hero);
-      if (arenaLock) { setEntryError(arenaLock); return; }
+      if (arenaLock) {
+        setEntryError(arenaLock);
+        return;
+      }
     }
-    if (hero.blitzRun) update((h) => { settleBlitzRun(h); });
+    if (hero.blitzRun)
+      update((h) => {
+        settleBlitzRun(h);
+      });
     if (staminaCost > 0) update((h) => spendStamina(h, staminaCost));
     if (o.arena) update((h) => spendArenaFight(h));
-    starting.current = true; setEntryError("");
+    starting.current = true;
+    setEntryError("");
     void (async () => {
       try {
         const active = await beginScrollBattle();
@@ -147,9 +243,21 @@ export function Game() {
         // The Campaign Gate, Conquest Gate, Dungeon Gate and World Tree stay mounted under the
         // battle, so the player comes back to the exact screen they fought from instead of the castle.
         if (!keepsPanel) setOpen(null);
-        setBattle({ ...o, left: scrollFighter({ ...heroFighter(current.hero, heroStats(current.hero), current.gender), gender: current.gender }, active) });
-      } catch (e) { setEntryError(e instanceof Error ? e.message : "Battle entry failed."); }
-      finally { starting.current = false; }
+        setBattle({
+          ...o,
+          left: scrollFighter(
+            {
+              ...heroFighter(current.hero, heroStats(current.hero), current.gender),
+              gender: current.gender,
+            },
+            active,
+          ),
+        });
+      } catch (e) {
+        setEntryError(e instanceof Error ? e.message : "Battle entry failed.");
+      } finally {
+        starting.current = false;
+      }
     })();
   };
 
@@ -166,13 +274,25 @@ export function Game() {
     const r = { ...r0, lines: [...r0.lines] };
     // World chat hears about the milestones worth bragging about, never about ordinary fights.
     const after = getState().hero;
-    if (after && after.level > levelBefore) void announceWorldEvent(heroId, `reached level ${after.level}!`);
-    if (r.loot && r.loot.rarity >= 2) void announceWorldEvent(heroId, `looted ${itemName(r.loot.name)}!`);
-    if (useGameOverflow() > before && !r.lines.some((l) => /Overflow/.test(l))) r.lines.push("Bag full — loot placed in your Overflow Chest (Armory)");
-    if (won) update((h) => { const m = battleMats(h.level + h.paragon, !!battle.right.boss); addMats(h, m); r.lines.push(...matsLine(m)); });
+    if (after && after.level > levelBefore)
+      void announceWorldEvent(heroId, `reached level ${after.level}!`);
+    if (r.loot && r.loot.rarity >= 2)
+      void announceWorldEvent(heroId, `looted ${itemName(r.loot.name)}!`);
+    if (useGameOverflow() > before && !r.lines.some((l) => /Overflow/.test(l)))
+      r.lines.push("Bag full — loot placed in your Overflow Chest (Armory)");
+    if (won)
+      update((h) => {
+        const m = battleMats(h.level + h.paragon, !!battle.right.boss);
+        addMats(h, m);
+        r.lines.push(...matsLine(m));
+      });
     // Won fights pay Renown, the hero's own upgrade currency (see renown.ts).
     if (won) {
-      const gained = renownGain({ boss: !!battle.right.boss, dungeon: !!battle.dungeon, arena: /arena/i.test(battle.title) });
+      const gained = renownGain({
+        boss: !!battle.right.boss,
+        dungeon: !!battle.dungeon,
+        arena: /arena/i.test(battle.title),
+      });
       update((h) => addRenown(h, gained));
       r.lines.push(`+${gained} Renown`);
     }
@@ -184,22 +304,39 @@ export function Game() {
         r.lines.push(`${CHESTS[drop].name} found — open it in the Armory vault`);
       }
     }
-    update((h) => recordBattle(h, { title: battle.title, won, boss: !!battle.right.boss, arena: /arena/i.test(battle.title), rewards: [...r.lines, ...(r.loot ? [r.loot.name] : [])] }));
+    update((h) =>
+      recordBattle(h, {
+        title: battle.title,
+        won,
+        boss: !!battle.right.boss,
+        arena: /arena/i.test(battle.title),
+        rewards: [...r.lines, ...(r.loot ? [r.loot.name] : [])],
+      }),
+    );
     // Boss victories are the second source of Void Crystals beside level-ups (see logic.grant).
     if (won && battle.right.boss) {
-      update((h) => { h.voidCrystals = (h.voidCrystals ?? 0) + BOSS_CRYSTALS; });
+      update((h) => {
+        h.voidCrystals = (h.voidCrystals ?? 0) + BOSS_CRYSTALS;
+      });
       r.lines.push(`+${BOSS_CRYSTALS} Void Crystal`);
     }
     // Battle Essence feeds the Enlightenment track (unlocked at level 20); Soul Shards are a chance drop.
     if (won && enlightenmentUnlocked(getState().hero ?? { level: 0 })) {
-      const essence = battleEssenceGain((getState().hero?.level ?? 1) + (getState().hero?.paragon ?? 0), !!battle.right.boss);
-      update((h) => { h.battleEssence = (h.battleEssence ?? 0) + essence; });
+      const essence = battleEssenceGain(
+        (getState().hero?.level ?? 1) + (getState().hero?.paragon ?? 0),
+        !!battle.right.boss,
+      );
+      update((h) => {
+        h.battleEssence = (h.battleEssence ?? 0) + essence;
+      });
       r.lines.push(`+${essence} Battle Essence`);
     }
     if (won) {
       const shards = rollSoulShards(!!battle.right.boss);
       if (shards > 0) {
-        update((h) => { h.soulShards = (h.soulShards ?? 0) + shards; });
+        update((h) => {
+          h.soulShards = (h.soulShards ?? 0) + shards;
+        });
         r.lines.push(`+${shards} Soul Shard${shards > 1 ? "s" : ""} ✦`);
       }
     }
@@ -235,32 +372,112 @@ export function Game() {
     <div className="fixed inset-0 overflow-hidden bg-background">
       <audio key={sound.track} ref={audio} src={soundtrackUrl(sound.track)} loop preload="auto" />
       {!authReady || !userId ? (
-        <div className="flex h-full items-center justify-center gap-2 font-display text-lg"><Loader2 className="h-5 w-5 animate-spin" />Loading…</div>
+        <div className="flex h-full items-center justify-center gap-2 font-display text-lg">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          Loading…
+        </div>
       ) : !hero ? (
         <CharacterSelect />
       ) : (
         <>
           <CastleMap onOpen={setOpen} />
-          <ShortcutBar open={open} onOpen={setOpen} friendRequests={friendRequests} chestReady={rewardChestReady(hero)} />
-          <nav aria-label={t("Rewards")} className="game-panel bottom-nav rewards-nav absolute bottom-3 left-3 z-20 flex gap-1 p-1.5">
-            <Button variant="ghost" size="icon" aria-label={t("Mailbox")} title={t("Mailbox")} onClick={() => setOpen("mailbox")}><ArtIcon name="mail" size={24} /></Button>
-            <Button variant="ghost" size="icon" aria-label={t("Lucky Shots")} title={t("Lucky Shots")} onClick={() => setOpen("lucky")}><ArtIcon name="lucky" size={24} /></Button>
-            <Button variant="ghost" size="icon" aria-label={t("Battle Scrolls")} title={t("Battle Scrolls")} onClick={() => setOpen("scrolls")}><ArtIcon name="scroll" size={24} /></Button>
-            <Button variant="ghost" size="icon" aria-label={t("Bestiary")} title={t("Bestiary")} onClick={() => setOpen("bestiary")}><ArtIcon name="spellbook" size={24} /></Button>
-            <Button variant="ghost" size="icon" aria-label={t("Premium Shop")} title={t("Premium Shop")} onClick={()=>setOpen('premium')}><ArtIcon name="diamond" size={24} /></Button>
-            <Button variant="ghost" size="icon" aria-label={t("Auction House")} title={t("Auction House")} onClick={()=>setOpen('auction')}><ArtIcon name="auction" size={24} /></Button>
+          <ShortcutBar
+            open={open}
+            onOpen={setOpen}
+            friendRequests={friendRequests}
+            chestReady={rewardChestReady(hero)}
+          />
+          <nav
+            aria-label={t("Rewards")}
+            className="game-panel bottom-nav rewards-nav absolute bottom-3 left-3 z-20 flex gap-1 p-1.5"
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("Mailbox")}
+              title={t("Mailbox")}
+              onClick={() => setOpen("mailbox")}
+            >
+              <ArtIcon name="mail" size={24} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("Lucky Shots")}
+              title={t("Lucky Shots")}
+              onClick={() => setOpen("lucky")}
+            >
+              <ArtIcon name="lucky" size={24} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("Battle Scrolls")}
+              title={t("Battle Scrolls")}
+              onClick={() => setOpen("scrolls")}
+            >
+              <ArtIcon name="scroll" size={24} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("Bestiary")}
+              title={t("Bestiary")}
+              onClick={() => setOpen("bestiary")}
+            >
+              <ArtIcon name="spellbook" size={24} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("Premium Shop")}
+              title={t("Premium Shop")}
+              onClick={() => setOpen("premium")}
+            >
+              <ArtIcon name="diamond" size={24} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("Auction House")}
+              title={t("Auction House")}
+              onClick={() => setOpen("auction")}
+            >
+              <ArtIcon name="auction" size={24} />
+            </Button>
           </nav>
           <WorldChat heroId={heroId} />
           <QuestsButton count={claimableLevelQuests(hero)} onClick={() => setOpen("quests")} />
-          <Hud muted={sound.muted} setMuted={(m) => changeSound({ muted: m })} cloud={cloud} onProfile={() => setOpen("profile")} onSettings={() => setOpen("settings")} />
-          <button onClick={() => setOpen("notes")} title="Version 1.00 patch notes"
-            className="game-panel absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded px-2.5 py-1 font-display text-[11px] font-bold text-gold">
+          <Hud
+            muted={sound.muted}
+            setMuted={(m) => changeSound({ muted: m })}
+            cloud={cloud}
+            onProfile={() => setOpen("profile")}
+            onSettings={() => setOpen("settings")}
+          />
+          {checkoutNotice && (
+            <p
+              role="status"
+              className="game-panel absolute inset-x-4 top-3 z-40 mx-auto max-w-xl rounded border border-gold/50 bg-background/95 px-3 py-2 text-center text-sm"
+            >
+              {checkoutNotice}
+            </p>
+          )}
+          <button
+            onClick={() => setOpen("notes")}
+            title="Version 1.00 patch notes"
+            className="game-panel absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded px-2.5 py-1 font-display text-[11px] font-bold text-gold"
+          >
             v{VERSION}
           </button>
-          <p className="castle-hint pointer-events-none absolute inset-x-0 top-32 z-20 text-center font-display text-xs text-gold drop-shadow-[0_1px_2px_black]">{t("Tap a building to open it · drag the castle to reach the rest")}</p>
+          <p className="castle-hint pointer-events-none absolute inset-x-0 top-32 z-20 text-center font-display text-xs text-gold drop-shadow-[0_1px_2px_black]">
+            {t("Tap a building to open it · drag the castle to reach the rest")}
+          </p>
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
           {open === "notes" && <UpdateNotes onClose={() => setOpen(null)} />}
-          {open === "settings" && <SettingsPanel settings={sound} onChange={changeSound} onClose={() => setOpen(null)} />}
+          {open === "settings" && (
+            <SettingsPanel settings={sound} onChange={changeSound} onClose={() => setOpen(null)} />
+          )}
           {open === "quests" && <QuestsPanel onClose={() => setOpen(null)} />}
           {open === "mailbox" && <Mailbox onClose={() => setOpen(null)} />}
           {open === "lucky" && <LuckyShots onClose={() => setOpen(null)} />}
@@ -270,27 +487,72 @@ export function Game() {
           {open === "hall" && <ThroneHall onClose={() => setOpen(null)} />}
           {open === "armory" && <HeroHall onClose={() => setOpen(null)} />}
           {open === "bestiary" && <Bestiary h={hero} onClose={() => setOpen(null)} />}
-          {open === "calendar" && <EventCalendar h={hero} onClose={() => setOpen(null)} start={start} />}
-          {open === 'premium' && <PremiumShop onClose={()=>setOpen(null)} />}
-          {open === 'auction' && <AuctionHousePanel onClose={()=>setOpen(null)} />}
-          {open && BUILDINGS.find((b) => b.id === open)?.soon && <ComingSoon id={open} onClose={() => setOpen(null)} />}
+          {open === "calendar" && (
+            <EventCalendar h={hero} onClose={() => setOpen(null)} start={start} />
+          )}
+          {open === "premium" && <PremiumShop onClose={() => setOpen(null)} />}
+          {open === "auction" && <AuctionHousePanel onClose={() => setOpen(null)} />}
+          {open && BUILDINGS.find((b) => b.id === open)?.soon && (
+            <ComingSoon id={open} onClose={() => setOpen(null)} />
+          )}
           {open === "friends" && (
-            <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-background/70 p-4 pt-16" onClick={() => setOpen(null)}>
+            <div
+              className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-background/70 p-4 pt-16"
+              onClick={() => setOpen(null)}
+            >
               <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
                 <FriendsPanel heroId={heroId} />
-                <button className="btn-ghost mt-2 w-full py-2" onClick={() => setOpen(null)}>{t("Close")}</button>
+                <button className="btn-ghost mt-2 w-full py-2" onClick={() => setOpen(null)}>
+                  {t("Close")}
+                </button>
               </div>
             </div>
           )}
           {open === "portal" && <Campaign onClose={() => setOpen(null)} start={start} />}
           {open === "farm" && <FarmPanel onClose={() => setOpen(null)} />}
           {open === "mine" && <GoldMinePanel onClose={() => setOpen(null)} />}
-          {open === "spire" && (canEnterConquest(hero.level) ? <Campaign spire onClose={() => setOpen(null)} start={start} /> : <ComingSoon id="spire" locked onClose={() => setOpen(null)} />)}
-          {open === "forge" && <Forge onClose={() => setOpen(null)} onCraft={() => setCrafting(true)} />}
+          {open === "spire" &&
+            (canEnterConquest(hero.level) ? (
+              <Campaign spire onClose={() => setOpen(null)} start={start} />
+            ) : (
+              <ComingSoon id="spire" locked onClose={() => setOpen(null)} />
+            ))}
+          {open === "forge" && (
+            <Forge onClose={() => setOpen(null)} onCraft={() => setCrafting(true)} />
+          )}
           {crafting && <Crafting onClose={() => setCrafting(false)} />}
-          {open === "dungeon" && <Challenges onClose={() => setOpen(null)} start={start} onExpeditions={()=>{setOpen(null);setExpeditions(true);}} onRelics={()=>{setOpen(null);setRelics(true);}} />}
-          {expeditions && <Expeditions onClose={()=>setExpeditions(false)} start={o=>{setExpeditions(false);start(o);}} />}
-          {relics && <RelicTrials onClose={()=>setRelics(false)} start={o=>{setRelics(false);start(o);}} />}
+          {open === "dungeon" && (
+            <Challenges
+              onClose={() => setOpen(null)}
+              start={start}
+              onExpeditions={() => {
+                setOpen(null);
+                setExpeditions(true);
+              }}
+              onRelics={() => {
+                setOpen(null);
+                setRelics(true);
+              }}
+            />
+          )}
+          {expeditions && (
+            <Expeditions
+              onClose={() => setExpeditions(false)}
+              start={(o) => {
+                setExpeditions(false);
+                start(o);
+              }}
+            />
+          )}
+          {relics && (
+            <RelicTrials
+              onClose={() => setRelics(false)}
+              start={(o) => {
+                setRelics(false);
+                start(o);
+              }}
+            />
+          )}
           {open === "gems" && <GemWorkshop onClose={() => setOpen(null)} />}
           {open === "tower" && <MagicTower onClose={() => setOpen(null)} />}
           {open === "temple" && <Temple onClose={() => setOpen(null)} />}
@@ -300,15 +562,56 @@ export function Game() {
           {open === "oracle" && <Oracle onClose={() => setOpen(null)} start={start} />}
         </>
       )}
-      {battle && <Battle key={battle.title + battle.right.name} left={battle.left} right={battle.right} auto={battle.auto} title={battle.title} onEnd={onEnd} />}
-      {entryError && <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4"><div className="game-panel max-w-md p-5"><p role="alert">{entryError}</p><Button className="mt-4" onClick={() => { const id = getState().heroId; if (id) localStorage.removeItem(`ef-scroll-battle:${id}`); setEntryError(""); }}>Acknowledge and close</Button></div></div>}
+      {battle && (
+        <Battle
+          key={battle.title + battle.right.name}
+          left={battle.left}
+          right={battle.right}
+          auto={battle.auto}
+          title={battle.title}
+          onEnd={onEnd}
+        />
+      )}
+      {entryError && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4">
+          <div className="game-panel max-w-md p-5">
+            <p role="alert">{entryError}</p>
+            <Button
+              className="mt-4"
+              onClick={() => {
+                const id = getState().heroId;
+                if (id) localStorage.removeItem(`ef-scroll-battle:${id}`);
+                setEntryError("");
+              }}
+            >
+              Acknowledge and close
+            </Button>
+          </div>
+        </div>
+      )}
       {result && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4">
           <div className="game-panel anim-pop w-full max-w-sm p-6 text-center">
-            <h2 className={`font-display text-5xl font-black ${result.won ? "panel-title" : "text-blood"}`}>{result.won ? "VICTORY" : "DEFEAT"}</h2>
-            <div className="my-4 space-y-1 font-display text-lg">{result.lines.map((l) => <div key={l}>{l}</div>)}</div>
+            <h2
+              className={`font-display text-5xl font-black ${result.won ? "panel-title" : "text-blood"}`}
+            >
+              {result.won ? "VICTORY" : "DEFEAT"}
+            </h2>
+            <div className="my-4 space-y-1 font-display text-lg">
+              {result.lines.map((l) => (
+                <div key={l}>{l}</div>
+              ))}
+            </div>
             {result.loot && <ItemCard item={result.loot} />}
-            <button className="btn-gold mt-5 w-full py-2.5 text-lg" onClick={() => { setResult(null); setBattle(null); }}>Continue</button>
+            <button
+              className="btn-gold mt-5 w-full py-2.5 text-lg"
+              onClick={() => {
+                setResult(null);
+                setBattle(null);
+              }}
+            >
+              Continue
+            </button>
           </div>
         </div>
       )}
@@ -319,13 +622,20 @@ export function Game() {
 /** The patch notes behind the version chip: what version 1.00 changed. */
 function UpdateNotes({ onClose }: { onClose: () => void }) {
   return (
-    <Panel title={`Emberfall ${VERSION}`} subtitle="Version 1.00 patch notes" art="quest" onClose={onClose}>
+    <Panel
+      title={`Emberfall ${VERSION}`}
+      subtitle="Version 1.00 patch notes"
+      art="quest"
+      onClose={onClose}
+    >
       <div className="space-y-3">
         {RELEASE_NOTES.map((sec) => (
           <section key={sec.title}>
             <h3 className="font-display text-sm text-gold">{sec.title}</h3>
             <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-muted-foreground">
-              {sec.lines.map((l) => <li key={l}>{l}</li>)}
+              {sec.lines.map((l) => (
+                <li key={l}>{l}</li>
+              ))}
             </ul>
           </section>
         ))}
@@ -349,7 +659,9 @@ export function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
   const [hover, setHover] = useState<string | null>(null);
   const map = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const drag = useRef<null | { x: number; y: number; ox: number; oy: number; moved: boolean }>(null);
+  const drag = useRef<null | { x: number; y: number; ox: number; oy: number; moved: boolean }>(
+    null,
+  );
   // A tap must still open a building: only a real drag counts as panning.
   const moved = useRef(false);
 
@@ -386,7 +698,8 @@ export function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
         const left = Math.max(2, Math.min(W - w - 2, cx - w / 2));
         const box = { left, top, right: left + w, bottom: top + h };
         const clashes = taken.some(
-          (p) => p.left < box.right && box.left < p.right && p.top < box.bottom && box.top < p.bottom,
+          (p) =>
+            p.left < box.right && box.left < p.right && p.top < box.bottom && box.top < p.bottom,
         );
         if (!clashes) {
           taken.push(box);
@@ -442,29 +755,70 @@ export function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
         moved.current = true;
         setOffset(castleClamp(map.current, d.ox + dx, d.oy + dy));
       }}
-      onPointerUp={() => { drag.current = null; }}
-      onPointerCancel={() => { drag.current = null; }}
+      onPointerUp={() => {
+        drag.current = null;
+      }}
+      onPointerCancel={() => {
+        drag.current = null;
+      }}
     >
-      <div ref={map} className="castle-map relative" style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}>
-        <img src={castle.url} alt="Blood moon castle" className="absolute inset-0 h-full w-full select-none" draggable={false} />
+      <div
+        ref={map}
+        className="castle-map relative"
+        style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}
+      >
+        <img
+          src={castle.url}
+          alt="Blood moon castle"
+          className="absolute inset-0 h-full w-full select-none"
+          draggable={false}
+        />
         {Array.from({ length: 14 }).map((_, i) => (
-          <span key={i} className="anim-ember pointer-events-none absolute bottom-0 h-1 w-1 rounded-full bg-gold"
-            style={{ left: `${(i * 37) % 100}%`, animationDuration: `${6 + (i % 5)}s`, animationDelay: `${i * 0.7}s` }} />
+          <span
+            key={i}
+            className="anim-ember pointer-events-none absolute bottom-0 h-1 w-1 rounded-full bg-gold"
+            style={{
+              left: `${(i * 37) % 100}%`,
+              animationDuration: `${6 + (i % 5)}s`,
+              animationDelay: `${i * 0.7}s`,
+            }}
+          />
         ))}
         {CASTLE_BUILDINGS.map((b) => (
-          <button key={b.id} className={`hotspot${b.id === "farm" ? " hotspot-farm" : ""}`} aria-label={t(b.name)}
+          <button
+            key={b.id}
+            className={`hotspot${b.id === "farm" ? " hotspot-farm" : ""}`}
+            aria-label={t(b.name)}
             style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.r * 2}%`, aspectRatio: "1" }}
-            onMouseEnter={() => setHover(b.id)} onMouseLeave={() => setHover(null)} onFocus={() => setHover(b.id)} onBlur={() => setHover(null)}
-            onClick={(e) => { if (e.detail === 0 || !moved.current) onOpen(b.id); }} />
+            onMouseEnter={() => setHover(b.id)}
+            onMouseLeave={() => setHover(null)}
+            onFocus={() => setHover(b.id)}
+            onBlur={() => setHover(null)}
+            onClick={(e) => {
+              if (e.detail === 0 || !moved.current) onOpen(b.id);
+            }}
+          />
         ))}
         {/* Each name sits on its own building; `labelShift` keeps neighbours from colliding. */}
         {CASTLE_BUILDINGS.map((b) => (
-          <span key={`label-${b.id}`}
-            ref={(node) => { if (node) labelNodes.current.set(b.id, node); else labelNodes.current.delete(b.id); }}
+          <span
+            key={`label-${b.id}`}
+            ref={(node) => {
+              if (node) labelNodes.current.set(b.id, node);
+              else labelNodes.current.delete(b.id);
+            }}
             className={`hotspot-label pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded px-2 py-0.5 text-center text-xs md:text-sm ${b.soon ? "opacity-60" : ""} ${hover === b.id ? "scale-110" : "opacity-90"}`}
-            style={{ left: `${b.x}%`, top: `${b.y}%`, marginTop: `${labelShift[b.id] ?? 0}px` }}>
-            <span className="block whitespace-nowrap">{t(b.name)}{b.soon ? t(" · soon") : ""}</span>
-            {hover === b.id && <span className="mt-0.5 block max-w-44 whitespace-normal text-[10px] leading-tight text-foreground/80">{t(b.desc)}</span>}
+            style={{ left: `${b.x}%`, top: `${b.y}%`, marginTop: `${labelShift[b.id] ?? 0}px` }}
+          >
+            <span className="block whitespace-nowrap">
+              {t(b.name)}
+              {b.soon ? t(" · soon") : ""}
+            </span>
+            {hover === b.id && (
+              <span className="mt-0.5 block max-w-44 whitespace-normal text-[10px] leading-tight text-foreground/80">
+                {t(b.desc)}
+              </span>
+            )}
           </span>
         ))}
       </div>
@@ -472,7 +826,6 @@ export function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
     </div>
   );
 }
-
 
 const SOON_TEXT: Record<string, string> = {
   dungeon: "Replayable dungeons with boss encounters, entry requirements and reward tables.",
@@ -483,7 +836,15 @@ const SOON_TEXT: Record<string, string> = {
   daily: "A 30-day reward board with gold, gems, materials and gold chests.",
 };
 
-function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onClose: () => void }) {
+function ComingSoon({
+  id,
+  locked,
+  onClose,
+}: {
+  id: string;
+  locked?: boolean;
+  onClose: () => void;
+}) {
   const b = BUILDINGS.find((x) => x.id === id);
   return (
     <Panel title={b?.name ?? "Building"} onClose={onClose}>
@@ -491,7 +852,10 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
         {locked ? (
           <>
             <p className="mb-2 font-display text-2xl text-gold">Locked</p>
-            <p className="text-muted-foreground">Endless Conquest opens at character level {CONQUEST_LEVEL}. Keep clearing the Campaign Gate to level up.</p>
+            <p className="text-muted-foreground">
+              Endless Conquest opens at character level {CONQUEST_LEVEL}. Keep clearing the Campaign
+              Gate to level up.
+            </p>
           </>
         ) : (
           <>
@@ -507,7 +871,19 @@ function ComingSoon({ id, locked, onClose }: { id: string; locked?: boolean; onC
   );
 }
 
-type ShortcutTarget = BuildingId | "profile" | "mailbox" | "lucky" | "scrolls" | "bestiary" | "calendar" | 'premium' | 'auction' | 'quests' | 'notes' | 'settings';
+type ShortcutTarget =
+  | BuildingId
+  | "profile"
+  | "mailbox"
+  | "lucky"
+  | "scrolls"
+  | "bestiary"
+  | "calendar"
+  | "premium"
+  | "auction"
+  | "quests"
+  | "notes"
+  | "settings";
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIconName }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", icon: "bag" },
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", icon: "hammer" },
@@ -519,24 +895,52 @@ const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIcon
   { id: "oracle", label: "Quest Board", tip: "AI-generated quests", icon: "quest" },
 ];
 
-function ShortcutBar({ open, onOpen, friendRequests = 0, chestReady = false }: { open: ShortcutTarget | null; onOpen: (t: ShortcutTarget) => void; friendRequests?: number; chestReady?: boolean }) {
+function ShortcutBar({
+  open,
+  onOpen,
+  friendRequests = 0,
+  chestReady = false,
+}: {
+  open: ShortcutTarget | null;
+  onOpen: (t: ShortcutTarget) => void;
+  friendRequests?: number;
+  chestReady?: boolean;
+}) {
   const t = useT();
   return (
-    <nav aria-label={t("Shortcuts")} className="game-panel bottom-nav shortcut-nav pointer-events-auto absolute bottom-3 right-3 z-20 flex gap-1.5 p-1.5">
+    <nav
+      aria-label={t("Shortcuts")}
+      className="game-panel bottom-nav shortcut-nav pointer-events-auto absolute bottom-3 right-3 z-20 flex gap-1.5 p-1.5"
+    >
       {SHORTCUTS.map(({ id, label, tip, icon }) => (
-        <button key={id} onClick={() => onOpen(id)} aria-label={t(label)} aria-pressed={open === id}
-          className={`slot group relative flex h-11 w-11 items-center justify-center transition hover:scale-110 ${open === id ? "ring-2 ring-gold" : ""}`}>
+        <button
+          key={id}
+          onClick={() => onOpen(id)}
+          aria-label={t(label)}
+          aria-pressed={open === id}
+          className={`slot group relative flex h-11 w-11 items-center justify-center transition hover:scale-110 ${open === id ? "ring-2 ring-gold" : ""}`}
+        >
           <ArtIcon name={icon} size={32} className={open === id ? "ring-1 ring-gold" : ""} />
           {id === "daily" && chestReady && (
-            <span aria-label={t("Reward chest ready")} className="absolute -left-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-r1 ring-2 ring-background" />
+            <span
+              aria-label={t("Reward chest ready")}
+              className="absolute -left-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-r1 ring-2 ring-background"
+            />
           )}
           {id === "friends" && friendRequests > 0 && (
-            <span aria-label={t("{count} pending friend requests", { count: friendRequests })} className="absolute -right-1 -top-1 min-w-5 rounded-full bg-blood px-1.5 py-0.5 text-center text-[10px] font-bold text-foreground">
+            <span
+              aria-label={t("{count} pending friend requests", { count: friendRequests })}
+              className="absolute -right-1 -top-1 min-w-5 rounded-full bg-blood px-1.5 py-0.5 text-center text-[10px] font-bold text-foreground"
+            >
               {friendRequests > 9 ? "9+" : friendRequests}
             </span>
           )}
-          <span role="tooltip" className="hotspot-label pointer-events-none absolute bottom-full right-0 mb-2 hidden whitespace-nowrap rounded px-2 py-1 text-left text-xs group-hover:block group-focus-visible:block">
-            {t(label)}<span className="block text-[10px] text-foreground/80">{t(tip)}</span>
+          <span
+            role="tooltip"
+            className="hotspot-label pointer-events-none absolute bottom-full right-0 mb-2 hidden whitespace-nowrap rounded px-2 py-1 text-left text-xs group-hover:block group-focus-visible:block"
+          >
+            {t(label)}
+            <span className="block text-[10px] text-foreground/80">{t(tip)}</span>
           </span>
         </button>
       ))}

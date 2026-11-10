@@ -8,13 +8,15 @@ import {
   MATERIAL_ORDER,
   VIP_PLANS,
   diamondPackTotal,
+  materialBaseCost,
   premiumState,
   vipXpMultiplier,
 } from "../game/economy";
+import { VIP_DAYS, vipBlitzFactor, vipPrice } from "../game/vip-perks";
 
 describe("premium economy configuration", () => {
-  it("offers the five money tiers $10, $20, $30, $50 and $99.99", () => {
-    expect(DIAMOND_PACKS.map((p) => p.priceCents)).toEqual([999, 1999, 2999, 4999, 9999]);
+  it("prices the five Diamond packs 10% above the old tiers", () => {
+    expect(DIAMOND_PACKS.map((p) => p.priceCents)).toEqual([1099, 2199, 3299, 5499, 10999]);
     for (const p of DIAMOND_PACKS) {
       expect(Number.isInteger(p.priceCents)).toBe(true);
       expect(p.diamonds).toBeGreaterThan(0);
@@ -23,16 +25,17 @@ describe("premium economy configuration", () => {
     }
   });
 
-  it("sells gold packs for diamonds", () => {
+  it("sells gold packs for diamonds at the raised prices", () => {
     for (const p of GOLD_PACKS) {
       expect(p.diamonds).toBeGreaterThan(0);
       expect(p.gold).toBeGreaterThan(0);
     }
     expect(GOLD_PACKS.map((p) => p.id)).toEqual(["pouch", "coffer", "royal", "imperial"]);
+    expect(GOLD_PACKS.map((p) => p.diamonds)).toEqual([55, 242, 825, 2200]);
   });
 
-  it("keeps small stones at five diamonds", () => {
-    expect(GEM_TIER_PRICES[0]).toBe(5);
+  it("keeps small stones at six diamonds", () => {
+    expect(GEM_TIER_PRICES[0]).toBe(6);
     expect(GEM_TIER_PRICES[1]).toBeGreaterThan(GEM_TIER_PRICES[0]);
     expect(GEM_TIER_PRICES[2]).toBeGreaterThan(GEM_TIER_PRICES[1]);
   });
@@ -44,16 +47,39 @@ describe("premium economy configuration", () => {
       expect(prices.one).toBeGreaterThanOrEqual(5);
       expect(prices.five).toBeGreaterThan(prices.one);
     }
+    // Five singles are never cheaper than the bundle.
+    for (const mat of MATERIAL_ORDER) {
+      expect(MATERIAL_PRICES[mat].five).toBeLessThanOrEqual(MATERIAL_PRICES[mat].one * 5);
+      expect(materialBaseCost(mat, 5)).toBe(MATERIAL_PRICES[mat].five);
+      expect(materialBaseCost(mat, 6)).toBe(MATERIAL_PRICES[mat].five + MATERIAL_PRICES[mat].one);
+    }
   });
 
-  it("has three VIP tiers with rising costs, days and rewards", () => {
+  it("sells every VIP tier as exactly one month", () => {
     expect(VIP_PLANS).toHaveLength(3);
-    expect(VIP_PLANS.map((v) => v.days)).toEqual([7, 15, 30]);
+    expect(VIP_PLANS.map((v) => v.days)).toEqual([VIP_DAYS, VIP_DAYS, VIP_DAYS]);
+    expect(VIP_DAYS).toBe(30);
     for (let i = 1; i < VIP_PLANS.length; i++) {
-      expect(VIP_PLANS[i].diamonds).toBeGreaterThan(VIP_PLANS[i - 1].diamonds);
-      expect(VIP_PLANS[i].dailyGold).toBeGreaterThan(VIP_PLANS[i - 1].dailyGold);
-      expect(VIP_PLANS[i].xpBonusPct).toBeGreaterThan(VIP_PLANS[i - 1].xpBonusPct);
+      const plan = VIP_PLANS[i];
+      const prev = VIP_PLANS[i - 1];
+      expect(plan.diamonds).toBeGreaterThan(prev.diamonds);
+      expect(plan.dailyGold).toBeGreaterThan(prev.dailyGold);
+      expect(plan.xpBonusPct).toBeGreaterThan(prev.xpBonusPct);
+      expect(plan.goldBonusPct).toBeGreaterThan(prev.goldBonusPct);
+      expect(plan.blitzSpeedPct).toBeGreaterThan(prev.blitzSpeedPct);
+      expect(plan.shopDiscountPct).toBeGreaterThan(prev.shopDiscountPct);
     }
+    // The membership carries the extra VIP premium over the shop-wide rise.
+    expect(VIP_PLANS[0].diamonds).toBe(129);
+  });
+
+  it("discounts Diamond prices and shortens blitzes for members", () => {
+    expect(vipPrice(100, 0)).toBe(100);
+    expect(vipPrice(100, 1)).toBe(95);
+    expect(vipPrice(100, 3)).toBe(85);
+    expect(vipBlitzFactor(0)).toBe(1);
+    expect(vipBlitzFactor(1)).toBeCloseTo(0.9);
+    expect(vipBlitzFactor(3)).toBeCloseTo(0.7);
   });
 
   it("shop item ids are unique", () => {

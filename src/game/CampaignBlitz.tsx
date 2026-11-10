@@ -3,6 +3,7 @@ import { Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BLITZ_PER_DAY, blitzesLeft } from "./conquest";
 import { blitzDurationMs } from "./blitz-run";
+import { vipLevelOf } from "./vip-perks";
 import {
   campaignBlitz,
   campaignBlitzBlocker,
@@ -70,7 +71,7 @@ export function CampaignBlitz({ hero }: { hero: Hero }) {
                   ? { ok: false, t: err }
                   : {
                       ok: true,
-                      t: `Blitz started — stages 1-${usable} will pay +${fmt(preview?.xp ?? 0)} XP and +${fmt(preview?.gold ?? 0)} gold in ${Math.round(blitzDurationMs(usable) / 60_000)} minutes`,
+                      t: `Blitz started — stages 1-${usable} will pay +${fmt(preview?.xp ?? 0)} XP and +${fmt(preview?.gold ?? 0)} gold in ${Math.round(blitzDurationMs(usable, vipLevelOf(hero)) / 60_000)} minutes`,
                     },
               );
             })
