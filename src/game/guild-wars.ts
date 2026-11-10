@@ -23,7 +23,7 @@ const client = supabase as unknown as {
 
 /** Shown when the live database has not had the guild-war SQL applied yet. */
 export const GUILD_WARS_SQL_MISSING =
-  "Guild wars are not live on the game database yet — apply drizzle/migrations/0026_guild_wars.sql and 0027_guild_wars_v2.sql.";
+  "Guild Wars are temporarily unavailable. Please refresh and try again.";
 
 /** Every bracket a war can be fought in. */
 export const WAR_SIZES = [

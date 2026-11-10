@@ -18,11 +18,11 @@ describe("the guild courtyard", () => {
     const onSelect = vi.fn();
     render(<GuildHallScene name="Ember Wardens" level={3} members={12} power={48210} role="leader"
       relics={{ woken: 2, total: 7 }} location="headquarters" onSelect={onSelect} court />);
-    for (const building of ["Guild Headquarters", "Guild Merchant", "Master Skill Tower", "Skill Tower Lvl. 10"]) {
+    for (const building of ["Guild Headquarters", "Guild Merchant", "Master Skill Tower", "Guild Wars"]) {
       expect(screen.getAllByRole("tab", { name: building }).length).toBeGreaterThan(0);
     }
-    fireEvent.click(screen.getAllByRole("tab", { name: "Skill Tower Lvl. 10" })[0]);
-    expect(onSelect).toHaveBeenCalledWith("reliquary");
+    fireEvent.click(screen.getAllByRole("tab", { name: "Guild Wars" })[0]);
+    expect(onSelect).toHaveBeenCalledWith("wars");
   });
 });
 

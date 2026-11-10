@@ -569,6 +569,199 @@ export type Database = {
           },
         ]
       }
+      guild_war_attacks: {
+        Row: {
+          created_at: string
+          guild_id: string
+          hero_id: string
+          hero_name: string
+          id: string
+          target_id: string
+          target_name: string
+          war_id: string
+          won: boolean
+        }
+        Insert: {
+          created_at?: string
+          guild_id: string
+          hero_id: string
+          hero_name: string
+          id?: string
+          target_id: string
+          target_name: string
+          war_id: string
+          won: boolean
+        }
+        Update: {
+          created_at?: string
+          guild_id?: string
+          hero_id?: string
+          hero_name?: string
+          id?: string
+          target_id?: string
+          target_name?: string
+          war_id?: string
+          won?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_war_attacks_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_war_attacks_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_war_attacks_war_id_fkey"
+            columns: ["war_id"]
+            isOneToOne: false
+            referencedRelation: "guild_wars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_war_claims: {
+        Row: {
+          claimed_at: string
+          gold: number
+          hero_id: string
+          mats: Json
+          war_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          gold: number
+          hero_id: string
+          mats?: Json
+          war_id: string
+        }
+        Update: {
+          claimed_at?: string
+          gold?: number
+          hero_id?: string
+          mats?: Json
+          war_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_war_claims_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_war_claims_war_id_fkey"
+            columns: ["war_id"]
+            isOneToOne: false
+            referencedRelation: "guild_wars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_war_rosters: {
+        Row: {
+          guild_id: string
+          hero_id: string
+          power: number
+          war_id: string
+        }
+        Insert: {
+          guild_id: string
+          hero_id: string
+          power?: number
+          war_id: string
+        }
+        Update: {
+          guild_id?: string
+          hero_id?: string
+          power?: number
+          war_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_war_rosters_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_war_rosters_war_id_fkey"
+            columns: ["war_id"]
+            isOneToOne: false
+            referencedRelation: "guild_wars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_wars: {
+        Row: {
+          decided_at: string | null
+          ends_at: string
+          guild_a: string
+          guild_b: string
+          id: string
+          score_a: number
+          score_b: number
+          settled_at: string | null
+          size: number
+          started_at: string
+          started_by: string | null
+          status: string
+        }
+        Insert: {
+          decided_at?: string | null
+          ends_at: string
+          guild_a: string
+          guild_b: string
+          id?: string
+          score_a?: number
+          score_b?: number
+          settled_at?: string | null
+          size?: number
+          started_at?: string
+          started_by?: string | null
+          status?: string
+        }
+        Update: {
+          decided_at?: string | null
+          ends_at?: string
+          guild_a?: string
+          guild_b?: string
+          id?: string
+          score_a?: number
+          score_b?: number
+          settled_at?: string | null
+          size?: number
+          started_at?: string
+          started_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_wars_guild_a_fkey"
+            columns: ["guild_a"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_wars_guild_b_fkey"
+            columns: ["guild_b"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guilds: {
         Row: {
           announcement: string
@@ -878,6 +1071,7 @@ export type Database = {
         Returns: number
       }
       _scroll_price: { Args: { _kind: string }; Returns: number }
+      _settle_guild_war: { Args: { _war: string }; Returns: undefined }
       _today: { Args: never; Returns: string }
       _weekly_kinds: { Args: never; Returns: string[] }
       _weekly_target: { Args: { _k: string; _stage: number }; Returns: number }
@@ -1035,6 +1229,24 @@ export type Database = {
         }
         Returns: undefined
       }
+      guild_war_attack: {
+        Args: { _hero: string; _target: string; _war: string; _won: boolean }
+        Returns: Json
+      }
+      guild_war_cancel: {
+        Args: { _hero: string; _war: string }
+        Returns: undefined
+      }
+      guild_war_claim: { Args: { _hero: string; _war: string }; Returns: Json }
+      guild_war_respond: {
+        Args: { _accept: boolean; _hero: string; _war: string }
+        Returns: Json
+      }
+      guild_war_start: {
+        Args: { _guild: string; _hero: string; _size?: number }
+        Returns: string
+      }
+      guild_war_state: { Args: { _hero: string }; Returns: Json }
       inspect_hero: {
         Args: { _hero: string; _target: string }
         Returns: {

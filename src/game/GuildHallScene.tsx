@@ -1,8 +1,9 @@
-import { Map as MapIcon, Shield } from "lucide-react";
-import buildingsArt from "@/assets/guild-hall-buildings.webp";
+import { Map as MapIcon, Shield, Swords, ArrowUp, Coins, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import buildingsArt from "@/assets/guild-courtyard.jpg";
 
 /** The four buildings of the guild hall (see GuildHall). */
-export type GuildLocation = "headquarters" | "merchant" | "tower" | "reliquary" | "wars";
+export type GuildLocation = "headquarters" | "merchant" | "tower" | "wars";
 
 interface GuildBuilding {
   id: GuildLocation;
@@ -17,25 +18,25 @@ const BUILDINGS: GuildBuilding[] = [
     id: "merchant",
     name: "Guild Merchant",
     hint: "Treasury, shop & vault",
-    box: { left: 0, top: 40, width: 20, height: 40 },
+    box: { left: 0, top: 36, width: 23, height: 30 },
   },
   {
     id: "tower",
     name: "Master Skill Tower",
     hint: "Endless stat ranks",
-    box: { left: 18, top: 15, width: 20, height: 62 },
+    box: { left: 23, top: 5, width: 16, height: 53 },
   },
   {
-    id: "reliquary",
-    name: "Skill Tower Lvl. 10",
-    hint: "Reliquary heirlooms",
-    box: { left: 36, top: 30, width: 26, height: 58 },
+    id: "wars",
+    name: "Guild Wars",
+    hint: "War room · challenges & spoils",
+    box: { left: 42, top: 28, width: 29, height: 34 },
   },
   {
     id: "headquarters",
     name: "Guild Headquarters",
     hint: "Roster, charter, records & chat",
-    box: { left: 64, top: 18, width: 33, height: 64 },
+    box: { left: 73, top: 5, width: 27, height: 60 },
   },
 ];
 
@@ -82,23 +83,23 @@ export function GuildHallScene({
             {role ? ` · ${role}` : ""}
           </p>
         </div>
-        <button
-          className="btn-ghost shrink-0 px-2 py-1 text-[11px]"
+        <Button variant="ghost" size="sm"
+          className="shrink-0"
           aria-expanded={court}
           title="Show or hide the painted courtyard"
           onClick={onToggleCourt}
         >
           <MapIcon className="mr-1 inline h-3.5 w-3.5" />{court ? "Hide map" : "Map"}
-        </button>
+        </Button>
       </header>
       {court && (
         <>
-          <p className="guild-hall-help">Tap a painted building to walk into it.</p>
           <div className="guild-hall-view" role="tablist" aria-label="Guild Hall buildings">
             <img
               src={buildingsArt}
-              alt="The guild hall under the blood moon: the guild merchant, the master skill tower, the tiered skill tower and the guild headquarters"
+              alt="Guild courtyard with a merchant pavilion, crystal training tower, war room and grand headquarters"
               className="guild-hall-art"
+              width={1536} height={1024}
               draggable={false}
             />
             {Array.from({ length: 8 }).map((_, i) => (
@@ -114,7 +115,7 @@ export function GuildHallScene({
               />
             ))}
             {BUILDINGS.map((b) => (
-              <button
+              <Button variant="ghost"
                 key={b.id}
                 role="tab"
                 aria-selected={location === b.id}
@@ -129,41 +130,28 @@ export function GuildHallScene({
                 }}
                 onClick={() => onSelect(b.id)}
               >
-                {b.id === "reliquary" && relics && (
-                  <span className="guild-building-badge">
-                    {relics.woken}/{relics.total}
-                  </span>
-                )}
                 <span className="guild-building-plate">
                   <b>{b.name}</b>
                   <em>{b.hint}</em>
                 </span>
-              </button>
+              </Button>
             ))}
           </div>
         </>
       )}
       <div className="guild-hall-rooms">
         {BUILDINGS.map((b) => (
-          <button
+          <Button variant="ghost"
             key={b.id}
             aria-pressed={location === b.id}
             className={`guild-room ${location === b.id ? "guild-room-active" : ""}`}
             onClick={() => onSelect(b.id)}
           >
+            {b.id === "wars" ? <Swords className="guild-room-icon" /> : b.id === "tower" ? <ArrowUp className="guild-room-icon" /> : b.id === "merchant" ? <Coins className="guild-room-icon" /> : <Users className="guild-room-icon" />}
             <span className="guild-room-name">{b.name}</span>
             <span className="guild-room-hint">{b.hint}</span>
-          </button>
+          </Button>
         ))}
-        {/* Guild wars have no painted building of their own: the war banner hangs in the courtyard. */}
-        <button
-          aria-pressed={location === "wars"}
-          className={`guild-room ${location === "wars" ? "guild-room-active" : ""}`}
-          onClick={() => onSelect("wars")}
-        >
-          <span className="guild-room-name">Guild Wars</span>
-          <span className="guild-room-hint">5v5 – 100v100 · 2 attacks each</span>
-        </button>
       </div>
     </section>
   );

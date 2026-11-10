@@ -1,6 +1,8 @@
 # Roadmap
 
 ## Current request
+- [ ] Renovate Guild Hall navigation, courtyard, recruitment, roster and chat without resetting progression; remove the separate level-10 Skill Tower and retain owned relic bonuses.
+- [ ] Activate existing guild wars in Lovable Cloud, check guild ownership permissions, and verify signed-in guild screens and regression tests.
 - [x] Add six original transparent farm crop images (gold wheat and XP crystal blooms, three growth stages) shared by plots, seed picker and shop; farm tests pass and signed-in desktop/phone rendering verified.
 - [x] Repair farm input validation, false success feedback and accessible planting dialog; 20 tests pass, signed-in XP planting persists after refresh, Escape closes the picker, phone has no horizontal overflow. Harvest timing/replay verified in tests, not accelerated on the live character.
 - [x] Deleted all 14 characters in Lovable Cloud; preserved all 18 sign-in accounts. New creation uses the tested level-0 initialization path (4 tests passed); signed-in browser opens the empty-roster creation screen. Publish the creation change for the live site.

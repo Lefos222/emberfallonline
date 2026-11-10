@@ -533,10 +533,8 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border-radius: var(--radius-lg);
-  border: 1px solid oklch(0.45 0.12 25 / 0.85);
-  background: #12080a;
-  box-shadow: inset 0 0 40px -16px #000;
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
 }
 .guild-hall-banner { position: relative; z-index: 2; display: flex; align-items: center; gap: 0.75rem; padding: 0.9rem 1rem 0.6rem; }
 .guild-hall-emblem {
@@ -553,12 +551,13 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   margin: 0; padding: 0 1rem 0.6rem;
   font-size: 0.72rem; line-height: 1.45; color: var(--muted-foreground);
 }
-.guild-hall-view { position: relative; display: block; width: 100%; aspect-ratio: 1376 / 768; overflow: hidden; }
+.guild-hall-view { position: relative; display: block; width: 100%; aspect-ratio: 3 / 2; max-height: 28rem; overflow: hidden; }
 .guild-hall-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; -webkit-user-select: none; user-select: none; }
 .guild-hall-ember { position: absolute; bottom: 0; z-index: 1; width: 0.25rem; height: 0.25rem; border-radius: 999px; background: var(--gold); pointer-events: none; }
 .guild-building {
   position: absolute; z-index: 2;
-  border-radius: 0.6rem;
+  border-radius: var(--radius);
+  height: auto; padding: 0;
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
@@ -577,9 +576,9 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
 .guild-building-plate {
   position: absolute; left: 50%; bottom: 0.4rem; transform: translateX(-50%);
   display: grid; gap: 0.05rem; padding: 0.2rem 0.5rem; border-radius: 0.4rem;
-  background: oklch(0.1 0.03 20 / 0.88);
-  border: 1px solid oklch(0.7 0.13 75 / 0.85);
-  text-align: center; white-space: nowrap;
+  background: var(--background);
+  border: 1px solid var(--gold);
+  text-align: center; white-space: normal; width: 100%; max-width: 12rem;
   opacity: 0; transition: opacity 0.15s;
 }
 .guild-building:hover .guild-building-plate,
@@ -603,9 +602,10 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   padding: 0.6rem 0.75rem 0.85rem;
 }
 .guild-room {
-  display: flex; flex-direction: column; gap: 0.1rem; padding: 0.45rem 0.55rem;
-  border-radius: var(--radius-md); border: 1px solid oklch(0.42 0.08 30 / 0.9);
-  background: linear-gradient(180deg, oklch(0.17 0.04 22 / 0.92), oklch(0.1 0.03 20 / 0.96));
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem; padding: 0.75rem;
+  height: auto; min-height: 6rem; min-width: 0; white-space: normal;
+  border-radius: var(--radius-md); border: 1px solid var(--border);
+  background: var(--card);
   text-align: left; cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
@@ -614,10 +614,11 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   box-shadow: 0 0 14px -6px oklch(0.78 0.16 70 / 0.8);
 }
 .guild-room-active { border-color: var(--gold); box-shadow: 0 0 16px -6px var(--gold); }
-.guild-room-name { font-family: var(--font-display); font-size: 0.82rem; color: var(--gold); }
-.guild-room-hint { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
+.guild-room-icon { color: var(--gold); width: 1.1rem; height: 1.1rem; }
+.guild-room-name { font-family: var(--font-display); font-size: 0.82rem; color: var(--gold); overflow-wrap: anywhere; letter-spacing: 0; }
+.guild-room-hint { font-size: 0.7rem; color: var(--muted-foreground); letter-spacing: 0; }
 @media (min-width: 640px) {
-  .guild-hall-rooms { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .guild-hall-rooms { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .guild-room-name { font-size: 0.86rem; }
   .guild-room-hint { font-size: 0.62rem; }
 }
