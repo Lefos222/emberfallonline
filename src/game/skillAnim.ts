@@ -71,3 +71,24 @@ export function moveFor(actor: { cls?: string | null; name?: string | null }, sk
 export function effectFor(skillId?: string | null): string | null {
   return skillId ? SKILL_EFFECT[skillId] ?? null : null;
 }
+
+/** Shapes, motions and colours combined so every player skill's impact animation is unique. */
+export const FX_SHAPES = ["blade", "cross", "star", "ring", "flame", "shard", "bolt", "fang", "rune", "comet", "vortex", "crown"] as const;
+export const FX_MOTIONS = ["burst", "spiral", "drop", "sweep", "pulse", "shatter"] as const;
+export const FX_HUES = ["var(--gold)", "var(--blood)", "var(--r3)", "var(--r1)", "var(--r4)", "var(--r2)", "var(--void)", "var(--r5)"] as const;
+
+/** Every player skill id, in a stable order. */
+export const PLAYER_SKILLS = Object.keys(SKILL_MOVE).filter((k) => k !== "potion");
+
+export interface SkillFx { shape: (typeof FX_SHAPES)[number]; motion: (typeof FX_MOTIONS)[number]; hue: string }
+
+/** The unique impact a player skill lands; null for monsters and unknown skills. */
+export function skillFx(skillId?: string | null): SkillFx | null {
+  const i = skillId ? PLAYER_SKILLS.indexOf(skillId) : -1;
+  if (i < 0) return null;
+  return {
+    shape: FX_SHAPES[i % FX_SHAPES.length]!,
+    motion: FX_MOTIONS[Math.floor(i / FX_SHAPES.length) % FX_MOTIONS.length]!,
+    hue: FX_HUES[(i * 3) % FX_HUES.length]!,
+  };
+}

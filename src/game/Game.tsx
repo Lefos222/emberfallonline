@@ -25,6 +25,9 @@ import { beginScrollBattle } from "./services";
 import { battleLockedByBlitz, settleBlitzRun } from "./blitz-run";
 import { scrollFighter } from "./scrolls";
 import castle from "@/assets/castle.jpg.asset.json";
+import gateCampaign from "@/assets/gate-campaign.webp";
+import gateDungeon from "@/assets/gate-dungeon.webp";
+import gateConquest from "@/assets/gate-conquest.webp";
 import { readAudioSettings, saveAudioSettings, soundtrackUrl, type AudioSettings } from "./audio";
 import { SettingsPanel } from "./Settings";
 import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } from "./data";
@@ -47,6 +50,7 @@ import {
 } from "./stamina";
 import { arenaBlocker, spendArenaFight } from "./arena-limits";
 import { addRenown, renownGain } from "./renown";
+import { reportGuildBattle } from "./guild-events";
 import { CharacterSelect } from "./CharacterSelect";
 import { ProfilePanel } from "./ProfilePanel";
 import { Battle, type Fighter } from "./Battle";
@@ -298,6 +302,7 @@ export function Game() {
         arena: /arena/i.test(battle.title),
       });
       update((h) => addRenown(h, gained));
+      reportGuildBattle();
       r.lines.push(t("+{n} Renown", { n: gained }));
     }
     // A won fight sometimes leaves a chest on the field: gold is the common find, gems the rare one.
@@ -513,6 +518,9 @@ export function Game() {
                 </button>
               </div>
             </div>
+          )}
+          {(open === "portal" || open === "dungeon" || open === "spire") && (
+            <GateSwitcher current={open} onPick={(g) => setOpen(g)} level={hero.level} />
           )}
           {open === "portal" && <Campaign onClose={() => setOpen(null)} start={start} />}
           {open === "farm" && <FarmPanel onClose={() => setOpen(null)} />}
@@ -952,5 +960,33 @@ function ShortcutBar({
         </button>
       ))}
     </nav>
+  );
+}
+
+/** The War Gates: one building, three gates. A painted tab strip floats above whichever gate is open. */
+function GateSwitcher({ current, onPick, level }: { current: string; onPick: (g: "portal" | "dungeon" | "spire") => void; level: number }) {
+  const gates = [
+    { id: "portal" as const, name: "Campaign Gate", note: "Story stages", art: gateCampaign },
+    { id: "dungeon" as const, name: "Dungeon Gate", note: "Bosses & elites", art: gateDungeon },
+    { id: "spire" as const, name: "Conquest Gate", note: canEnterConquest(level) ? "Endless floors" : "Lv 10+", art: gateConquest },
+  ];
+  return (
+    <div className="gate-switcher" role="tablist" aria-label={tr("War Gates")}>
+      {gates.map((g) => (
+        <button
+          key={g.id}
+          role="tab"
+          aria-selected={current === g.id}
+          className={`gate-tab ${current === g.id ? "gate-tab-on" : ""}`}
+          onClick={() => onPick(g.id)}
+        >
+          <img src={g.art} alt="" width={256} height={256} />
+          <span>
+            <b>{tr(g.name)}</b>
+            <small>{tr(g.note)}</small>
+          </span>
+        </button>
+      ))}
+    </div>
   );
 }

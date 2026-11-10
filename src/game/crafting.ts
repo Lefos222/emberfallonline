@@ -3,7 +3,7 @@ import { scaledGold } from "./gold";
 import { locAll, locList, locValues } from "./i18n";
 
 // ---------- Materials ----------
-export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone" | "fateStone" | "frostCrystal" | "voidCrystal" | "sunCrystal" | "dragonScale" | "abyssalShard" | "titanHeart";
+export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone" | "fateStone" | "frostCrystal" | "voidCrystal" | "sunCrystal" | "dragonScale" | "abyssalShard" | "titanHeart" | "wyrmBone" | "moonsilver" | "shadowSilk" | "phoenixAsh";
 export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity: number }> = locAll({
   ore: { name: "Ember Ore", desc: "Common ore used in crafting and gem cutting.", src: "Every won battle (more in higher regions)", rarity: 0 },
   essence: { name: "Soul Essence", desc: "Distilled souls used in crafting and gem fusion.", src: "Tougher fights, elites, bosses", rarity: 2 },
@@ -21,6 +21,10 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   sunCrystal: { name: "Sun Crystal", desc: "A shard of captured sunlight. Needed for Mythic armour.", src: "Dungeon bosses, Wheel of Fortune", rarity: 5 },
   dragonScale: { name: "Dragon Scale", desc: "A smouldering scale torn from a dungeon tyrant. Needed for Synthesis Set X.", src: "Dungeon Gate boss challenges only", rarity: 4 },
   abyssalShard: { name: "Abyssal Shard", desc: "Obsidian cracked with void light. Needed for Synthesis Set XI.", src: "Dungeon Gate boss challenges, rank 3 and deeper only", rarity: 5 },
+  wyrmBone: { name: "Wyrm Bone", desc: "A dense, ember-veined bone. Needed for Epic Armours.", src: "Dungeon Gate elite hunts only", rarity: 3 },
+  moonsilver: { name: "Moonsilver", desc: "Silver that only grows under the blood moon. Needed for Epic Armours.", src: "Farm: Moonroot and Starbloom rare harvests only", rarity: 3 },
+  shadowSilk: { name: "Shadow Silk", desc: "Silk spun by relic wardens. Needed for Epic Armours.", src: "Relic Trials wins only", rarity: 4 },
+  phoenixAsh: { name: "Phoenix Ash", desc: "Ash that never cools. Needed for the highest Epic Armours.", src: "World Tree sealed vaults only", rarity: 5 },
   titanHeart: { name: "Titan Heart", desc: "The radiant heart of a fallen titan. Needed for Synthesis Set XII.", src: "Dungeon Gate boss challenges, rank 5 and deeper only (rare)", rarity: 5 },
 }, ["name"], ["desc", "src"]);
 type Mats = Partial<Record<Mat, number>>;
@@ -38,7 +42,7 @@ export function addMats(h: CraftState, add: Mats) {
   for (const [k, v] of Object.entries(add) as [Mat, number][]) h.mats[k] = (h.mats[k] ?? 0) + v;
 }
 export function hasMats(h: CraftState, need: Mats) { return (Object.entries(need) as [Mat, number][]).every(([k, v]) => matCount(h, k) >= v); }
-function spendMats(h: CraftState, need: Mats) { for (const [k, v] of Object.entries(need) as [Mat, number][]) h.mats![k] = matCount(h, k) - v; }
+export function spendMats(h: CraftState, need: Mats) { for (const [k, v] of Object.entries(need) as [Mat, number][]) h.mats![k] = matCount(h, k) - v; }
 
 /** Materials a piece of gear breaks down into at the Forge. Rarer and higher level gear yields more. */
 export function scrapYield(it: Item): Mats {

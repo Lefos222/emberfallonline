@@ -125,7 +125,7 @@ export interface MaterialPrices {
 
 /** The materials the diamond shop sells. Fate Stones are earned in battle and bought for gold at the
  *  Auction House, so they are deliberately not a diamond good. Prices include this release's rise. */
-export type DiamondMat = Exclude<Mat, "fateStone" | "frostCrystal" | "voidCrystal" | "sunCrystal" | "dragonScale" | "abyssalShard" | "titanHeart">;
+export type DiamondMat = Exclude<Mat, "fateStone" | "frostCrystal" | "voidCrystal" | "sunCrystal" | "dragonScale" | "abyssalShard" | "titanHeart" | "wyrmBone" | "moonsilver" | "shadowSilk" | "phoenixAsh">;
 
 export const MATERIAL_PRICES: Record<DiamondMat, MaterialPrices> = {
   ore: { one: 6, five: 22 },

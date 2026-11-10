@@ -342,6 +342,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
             ? [
                 `+${reward.gold.toLocaleString("en-GB")} gold`,
                 `${reward.mats.ore} Ember Ore`,
+                `${reward.mats.phoenixAsh} Phoenix Ash`,
                 `${reward.mats.essence} Soul Essence`,
               ]
             : ["The seal was already broken."],

@@ -828,3 +828,55 @@ html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
 .pc2-rating-label { font-size: 11px; line-height: 1; color: var(--foreground); font-weight: 700; }
 .pc2-rating-num { display: inline-flex; align-items: center; gap: 0.25rem; font-family: var(--font-display, serif); font-size: 1.15rem; font-weight: 800; color: var(--gold); }
 .pc2-rating-num svg { width: 14px; height: 14px; }
+
+/* ---- Unique player-skill impacts ---- */
+.skill-fx { stroke-width: 7; }
+.fx-burst { animation: fx-burst .8s ease-out both; }
+.fx-spiral { animation: fx-spiral .9s ease-out both; }
+.fx-drop { animation: fx-drop .8s cubic-bezier(.3,1.4,.5,1) both; }
+.fx-sweep { animation: fx-sweep .75s ease-out both; }
+.fx-pulse { animation: fx-pulse .9s ease-in-out both; }
+.fx-shatter { animation: fx-shatter .85s ease-out both; }
+@keyframes fx-burst { 0% { opacity: 0; transform: scale(.2); } 40% { opacity: 1; transform: scale(1.15); } 100% { opacity: 0; transform: scale(1.6); } }
+@keyframes fx-spiral { 0% { opacity: 0; transform: rotate(-200deg) scale(.3); } 50% { opacity: 1; } 100% { opacity: 0; transform: rotate(160deg) scale(1.3); } }
+@keyframes fx-drop { 0% { opacity: 0; transform: translateY(-70%) scale(.7); } 45% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(6%) scale(1.25, .7); } }
+@keyframes fx-sweep { 0% { opacity: 0; transform: translateX(-60%) skewX(25deg); } 45% { opacity: 1; transform: translateX(0) skewX(0); } 100% { opacity: 0; transform: translateX(55%) skewX(-20deg); } }
+@keyframes fx-pulse { 0%, 100% { opacity: 0; transform: scale(.6); } 25%, 65% { opacity: 1; transform: scale(1.05); } 45% { transform: scale(.85); } }
+@keyframes fx-shatter { 0% { opacity: 0; transform: scale(1.4); filter: blur(4px); } 40% { opacity: 1; transform: scale(1); filter: blur(0) drop-shadow(0 0 12px currentColor); } 100% { opacity: 0; transform: scale(.9) rotate(12deg); filter: blur(3px); } }
+
+/* ---- Battle action bar: health orb, skill slots, rage orb ---- */
+.orb-bar { display: flex; align-items: flex-end; justify-content: center; gap: .5rem; padding: .35rem .75rem; border-radius: 1rem 1rem .5rem .5rem;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--card) 85%, transparent), var(--background));
+  border: 1px solid color-mix(in oklab, var(--gold) 35%, transparent); box-shadow: 0 -6px 24px color-mix(in oklab, var(--background) 80%, transparent), inset 0 1px 0 color-mix(in oklab, var(--gold) 25%, transparent); }
+.orb { position: relative; flex: none; width: clamp(4.5rem, 9vw, 7rem); aspect-ratio: 1; border-radius: 50%; overflow: hidden;
+  border: 4px solid color-mix(in oklab, var(--muted-foreground) 55%, var(--background));
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px color-mix(in oklab, var(--gold) 40%, transparent), inset 0 0 22px var(--background);
+  background: radial-gradient(circle at 50% 60%, color-mix(in oklab, var(--background) 70%, var(--card)), var(--background)); }
+.orb-fill { position: absolute; inset: auto 0 0 0; transition: height .45s ease; }
+.orb-fill::before { content: ""; position: absolute; left: -25%; right: -25%; top: -6px; height: 12px; border-radius: 50%; background: inherit; filter: brightness(1.35); animation: orb-wave 3s linear infinite; }
+.orb-hp .orb-fill { background: radial-gradient(circle at 40% 30%, color-mix(in oklab, var(--blood) 60%, var(--foreground)), var(--blood) 45%, color-mix(in oklab, var(--blood) 55%, var(--background))); }
+.orb-rage .orb-fill { background: radial-gradient(circle at 40% 30%, color-mix(in oklab, var(--gold) 55%, var(--foreground)), var(--gold) 45%, color-mix(in oklab, var(--gold) 50%, var(--background))); }
+.orb-gloss { position: absolute; inset: 8% 22% 55% 18%; border-radius: 50%; background: radial-gradient(ellipse at 50% 30%, color-mix(in oklab, var(--foreground) 45%, transparent), transparent 70%); pointer-events: none; }
+.orb-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: var(--font-display, serif); font-weight: 800; font-size: clamp(.7rem, 1.2vw, .95rem); color: var(--foreground); text-shadow: 0 1px 3px var(--background), 0 0 6px var(--background); }
+.orb-label small { font-size: .6rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+@keyframes orb-wave { from { transform: translateX(-12%); } 50% { transform: translateX(12%); } to { transform: translateX(-12%); } }
+.orb-slots { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .35rem; padding-bottom: .35rem; }
+.orb-slots .slot { border-color: color-mix(in oklab, var(--gold) 30%, var(--border)); background: linear-gradient(180deg, var(--card), var(--background)); }
+.orb-key { position: absolute; bottom: 1px; right: 3px; font-size: 9px; color: var(--muted-foreground); }
+
+/* ---- War Gates: one building, three gates ---- */
+.gate-switcher { position: fixed; top: max(.5rem, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 60; display: flex; gap: .4rem; padding: .3rem; border-radius: .9rem;
+  background: var(--card); border: 1px solid color-mix(in oklab, var(--gold) 40%, transparent); box-shadow: 0 8px 24px color-mix(in oklab, var(--background) 80%, transparent); }
+.gate-tab { display: flex; align-items: center; gap: .45rem; padding: .3rem .7rem .3rem .3rem; border-radius: .65rem; border: 1px solid transparent; color: var(--muted-foreground); transition: all .2s; text-align: left; }
+.gate-tab img { width: 2.6rem; height: 2.6rem; object-fit: contain; filter: saturate(.6) brightness(.8); transition: inherit; }
+.gate-tab b { display: block; font-family: var(--font-display, serif); font-size: .85rem; line-height: 1.1; }
+.gate-tab small { display: block; font-size: .65rem; opacity: .8; }
+.gate-tab:hover { color: var(--foreground); background: color-mix(in oklab, var(--gold) 8%, transparent); }
+.gate-tab-on { color: var(--gold); border-color: color-mix(in oklab, var(--gold) 60%, transparent); background: color-mix(in oklab, var(--gold) 14%, var(--card)); box-shadow: inset 0 0 12px color-mix(in oklab, var(--gold) 20%, transparent); }
+.gate-tab-on img { filter: drop-shadow(0 0 6px var(--gold)); }
+@media (max-width: 640px) { .gate-tab small { display: none; } .gate-tab img { width: 2rem; height: 2rem; } .gate-tab b { font-size: .72rem; } }
+
+/* ---- Guild events ---- */
+.guild-events-tabs { display: flex; flex-wrap: wrap; gap: .4rem; padding: .3rem; border-radius: .9rem; background: var(--card); border: 1px solid color-mix(in oklab, var(--gold) 30%, transparent); }
+.guild-raid-boss { position: absolute; right: -2rem; bottom: -1rem; width: 60%; max-width: 22rem; height: auto; opacity: .55; pointer-events: none; filter: drop-shadow(0 0 18px var(--blood)); }
+.guild-hall-rooms { position: sticky; top: 0; z-index: 5; }

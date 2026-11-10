@@ -3,9 +3,10 @@ import { Map as MapIcon, ArrowUp } from "lucide-react";
 import { Shield, Swords, Coins, Users } from "./PaintedIcons";
 import { Button } from "@/components/ui/button";
 import buildingsArt from "@/assets/guild-courtyard.jpg";
+import eventsArt from "@/assets/guild-raid-boss.webp";
 
 /** The four buildings of the guild hall (see GuildHall). */
-export type GuildLocation = "headquarters" | "merchant" | "tower" | "wars";
+export type GuildLocation = "headquarters" | "merchant" | "tower" | "wars" | "events";
 
 interface GuildBuilding {
   id: GuildLocation;
@@ -39,6 +40,13 @@ const BUILDINGS: GuildBuilding[] = [
     name: "Guild Headquarters",
     hint: "Roster, charter, records & chat",
     box: { left: 73, top: 5, width: 27, height: 60 },
+  },
+  // Not painted on the courtyard: reached from the room bar below it.
+  {
+    id: "events",
+    name: "Guild Events",
+    hint: "Boss raids, weekly quests & tournament",
+    box: { left: 0, top: 0, width: 0, height: 0 },
   },
 ];
 
@@ -116,7 +124,7 @@ export function GuildHallScene({
                 }}
               />
             ))}
-            {BUILDINGS.map((b) => (
+            {BUILDINGS.filter((b) => b.box.width > 0).map((b) => (
               <Button variant="ghost"
                 key={b.id}
                 role="tab"
@@ -149,7 +157,7 @@ export function GuildHallScene({
             className={`guild-room ${location === b.id ? "guild-room-active" : ""}`}
             onClick={() => onSelect(b.id)}
           >
-            {b.id === "wars" ? <Swords className="guild-room-icon" /> : b.id === "tower" ? <ArrowUp className="guild-room-icon" /> : b.id === "merchant" ? <Coins className="guild-room-icon" /> : <Users className="guild-room-icon" />}
+            {b.id === "events" ? <img src={eventsArt} alt="" width={256} height={256} className="guild-room-icon object-contain" /> : b.id === "wars" ? <Swords className="guild-room-icon" /> : b.id === "tower" ? <ArrowUp className="guild-room-icon" /> : b.id === "merchant" ? <Coins className="guild-room-icon" /> : <Users className="guild-room-icon" />}
             <span className="guild-room-name">{b.name}</span>
             <span className="guild-room-hint">{b.hint}</span>
           </Button>

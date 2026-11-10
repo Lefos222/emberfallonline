@@ -31,6 +31,7 @@ import { runeFx } from "./runes";
 import { potionFx } from "./potions";
 import { titleFx } from "./titles";
 import { feastFx, normalizeFarm, type FarmState } from "./farm";
+import { epicMult } from "./epic-armour";
 import { normalizeMine, type MineState } from "./mine";
 
 export type HeroClass = "warrior" | "mage" | "archer";
@@ -171,6 +172,8 @@ export interface Item {
   gems?: (string | null)[];
   /** Extra gem sockets cut into the piece at the Forge, on top of the rarity's own (see crafting.ts). */
   holes?: number;
+  /** Epic Armour set id (see epic-armour.ts): its pieces carry a large stat multiplier. */
+  epic?: string;
 }
 
 export interface ItemStats {
@@ -344,7 +347,7 @@ export function makeItem(cls: HeroClass, ilvl: number, rarity: number, slot?: Sl
 }
 
 export function itemStats(it: Item): ItemStats {
-  const base = (8 + it.ilvl * 4) * RARITIES[it.rarity].mult * (1 + it.enh * 0.1);
+  const base = (8 + it.ilvl * 4) * RARITIES[it.rarity].mult * (1 + it.enh * 0.1) * epicMult(it.epic);
   const z = { atk: 0, def: 0, hp: 0, crit: 0 };
   switch (it.slot) {
     case "weapon":
@@ -1335,11 +1338,11 @@ export const BUILDINGS = [
   },
   {
     id: "portal",
-    name: "Campaign Gate",
+    name: "War Gates",
     x: 72,
     y: 54,
     r: 5.5,
-    desc: "Campaign stages",
+    desc: "Campaign, Dungeon & Conquest gates",
     soon: false,
   },
   // The Farm lives on the big red-leafed tree on the far-right outcrop beyond the walls — its
@@ -1362,6 +1365,8 @@ export const BUILDINGS = [
     r: 5,
     desc: "Endless Conquest · Lv 10+",
     soon: false,
+    // Reached through the War Gates, which hold all three gates in one building.
+    shortcut: true,
   },
   { id: "arena", name: "Arena", x: 50, y: 31, r: 6.5, desc: "Fight real players", soon: false },
   {
@@ -1381,6 +1386,7 @@ export const BUILDINGS = [
     r: 4,
     desc: "Boss challenges & elites · Lv 20+",
     soon: false,
+    shortcut: true,
   },
   {
     id: "tower",
@@ -1405,8 +1411,8 @@ export const BUILDINGS = [
   {
     id: "mine",
     name: "Gold Mine",
-    x: 26,
-    y: 56,
+    x: 27,
+    y: 68,
     r: 4,
     desc: "Offline gold · collect anytime",
     soon: false,

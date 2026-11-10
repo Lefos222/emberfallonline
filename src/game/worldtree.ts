@@ -169,7 +169,7 @@ export function claimVault(h: Hero, siteId: string): boolean {
 export function openVault(
   h: Hero,
   siteId: string,
-  reward: { gold: number; mats: { ore: number; essence: number } },
+  reward: { gold: number; mats: { ore: number; essence: number; phoenixAsh?: number } },
 ) {
   if (!claimVault(h, siteId)) return false;
   h.gold += reward.gold;

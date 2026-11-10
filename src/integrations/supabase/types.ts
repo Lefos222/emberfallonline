@@ -536,6 +536,177 @@ export type Database = {
           },
         ]
       }
+      guild_quest_claims: {
+        Row: {
+          claimed_at: string
+          hero_id: string
+          kind: string
+          week: string
+        }
+        Insert: {
+          claimed_at?: string
+          hero_id: string
+          kind: string
+          week: string
+        }
+        Update: {
+          claimed_at?: string
+          hero_id?: string
+          kind?: string
+          week?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_quest_claims_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_quest_daily: {
+        Row: {
+          amount: number
+          day: string
+          hero_id: string
+          kind: string
+        }
+        Insert: {
+          amount?: number
+          day: string
+          hero_id: string
+          kind: string
+        }
+        Update: {
+          amount?: number
+          day?: string
+          hero_id?: string
+          kind?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_quest_daily_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_quest_progress: {
+        Row: {
+          amount: number
+          guild_id: string
+          kind: string
+          week: string
+        }
+        Insert: {
+          amount?: number
+          guild_id: string
+          kind: string
+          week: string
+        }
+        Update: {
+          amount?: number
+          guild_id?: string
+          kind?: string
+          week?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_quest_progress_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_raid_claims: {
+        Row: {
+          claimed_at: string
+          guild_id: string
+          hero_id: string
+          window_start: string
+        }
+        Insert: {
+          claimed_at?: string
+          guild_id: string
+          hero_id: string
+          window_start: string
+        }
+        Update: {
+          claimed_at?: string
+          guild_id?: string
+          hero_id?: string
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_raid_claims_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_raid_claims_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_raid_hits: {
+        Row: {
+          created_at: string
+          damage: number
+          guild_id: string
+          hero_id: string
+          hero_name: string
+          id: string
+          request_id: string
+          window_start: string
+        }
+        Insert: {
+          created_at?: string
+          damage: number
+          guild_id: string
+          hero_id: string
+          hero_name: string
+          id?: string
+          request_id: string
+          window_start: string
+        }
+        Update: {
+          created_at?: string
+          damage?: number
+          guild_id?: string
+          hero_id?: string
+          hero_name?: string
+          id?: string
+          request_id?: string
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_raid_hits_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_raid_hits_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_supply_claims: {
         Row: {
           day: string
@@ -613,6 +784,35 @@ export type Database = {
           },
           {
             foreignKeyName: "guild_supply_contributions_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_tournament_claims: {
+        Row: {
+          claimed_at: string
+          hero_id: string
+          rank: number
+          week: string
+        }
+        Insert: {
+          claimed_at?: string
+          hero_id: string
+          rank: number
+          week: string
+        }
+        Update: {
+          claimed_at?: string
+          hero_id?: string
+          rank?: number
+          week?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_tournament_claims_hero_id_fkey"
             columns: ["hero_id"]
             isOneToOne: false
             referencedRelation: "heroes"
@@ -1163,9 +1363,21 @@ export type Database = {
         Args: { _hero: string; _kind: string; _period: string }
         Returns: number
       }
+      _quest_bump: {
+        Args: { _guild: string; _kind: string; _n: number }
+        Returns: undefined
+      }
+      _quest_target: { Args: { _kind: string }; Returns: number }
+      _raid_boss_hp: { Args: { _guild: string }; Returns: number }
+      _raid_window: { Args: { _at?: string }; Returns: string }
       _scroll_price: { Args: { _kind: string }; Returns: number }
       _settle_guild_war: { Args: { _war: string }; Returns: undefined }
       _today: { Args: never; Returns: string }
+      _tournament_points: {
+        Args: { _guild: string; _week: string }
+        Returns: number
+      }
+      _week: { Args: { _at?: string }; Returns: string }
       _weekly_kinds: { Args: never; Returns: string[] }
       _weekly_target: { Args: { _k: string; _stage: number }; Returns: number }
       _write_save: { Args: { _hero: string; _save: Json }; Returns: undefined }
@@ -1281,6 +1493,7 @@ export type Database = {
       finish_gathering: { Args: { _hero: string; _req: string }; Returns: Json }
       get_activities: { Args: { _hero: string }; Returns: Json }
       guild_disband: { Args: { _hero: string }; Returns: undefined }
+      guild_events_state: { Args: { _hero: string }; Returns: Json }
       guild_invite: {
         Args: { _hero: string; _target_name: string }
         Returns: undefined
@@ -1288,6 +1501,23 @@ export type Database = {
       guild_kick: {
         Args: { _hero: string; _target: string }
         Returns: undefined
+      }
+      guild_quest_battle: { Args: { _hero: string }; Returns: undefined }
+      guild_quest_claim: {
+        Args: { _hero: string; _kind: string }
+        Returns: Json
+      }
+      guild_quest_donate: {
+        Args: { _gold: number; _hero: string }
+        Returns: Json
+      }
+      guild_raid_claim: {
+        Args: { _hero: string; _window: string }
+        Returns: Json
+      }
+      guild_raid_hit: {
+        Args: { _hero: string; _req: string; _won: boolean }
+        Returns: Json
       }
       guild_set_role: {
         Args: { _hero: string; _role: string; _target: string }
@@ -1309,6 +1539,7 @@ export type Database = {
       }
       guild_supply_rules: { Args: never; Returns: Json }
       guild_supply_state: { Args: { _hero: string }; Returns: Json }
+      guild_tournament_claim: { Args: { _hero: string }; Returns: Json }
       guild_transfer: {
         Args: { _hero: string; _target: string }
         Returns: undefined

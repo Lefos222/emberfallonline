@@ -59,3 +59,32 @@ export function WeaponArc({ move }: { move: Move }) {
   };
   return <svg className={`battle-arc arc-${move}`} viewBox="0 0 200 240" aria-hidden="true">{art[move]}</svg>;
 }
+
+const FX_ART: Record<string, React.ReactNode> = {
+  blade: <path d="M20 210L150 40L180 30L170 60L40 220ZM60 170L90 200" />,
+  cross: <path d="M30 40L170 200M170 40L30 200M100 20V220" />,
+  star: <path d="M100 20L122 95L195 95L135 140L158 215L100 170L42 215L65 140L5 95L78 95Z" />,
+  ring: <g><circle cx="100" cy="120" r="80" /><circle cx="100" cy="120" r="45" /><circle cx="100" cy="120" r="12" /></g>,
+  flame: <path d="M100 15Q150 90 125 125Q170 100 160 160Q150 220 100 225Q40 215 40 155Q45 115 70 95Q80 140 95 140Q70 80 100 15Z" />,
+  shard: <path d="M100 10L140 110L100 230L60 110ZM30 60L70 120L40 170M170 60L130 120L160 170" />,
+  bolt: <path d="M120 10L50 130H100L70 230L160 90H105Z" />,
+  fang: <path d="M30 40Q60 160 90 210Q80 120 70 40M170 40Q140 160 110 210Q120 120 130 40" />,
+  rune: <g><path d="M100 20L180 120L100 220L20 120Z" /><path d="M100 60V180M60 120H140M75 85L125 155M125 85L75 155" /></g>,
+  comet: <g><circle cx="70" cy="170" r="30" /><path d="M95 150L190 30M80 140L160 20M105 165L195 70" /></g>,
+  vortex: <path d="M100 120m-10 0a10 10 0 1 1 20 0a30 30 0 1 1-60 0a50 50 0 1 1 100 0a70 70 0 1 1-140 0a90 90 0 1 1 180 0" />,
+  crown: <path d="M25 180L40 70L80 120L100 50L120 120L160 70L175 180ZM25 205H175" />,
+};
+
+/** A player skill's own impact: a unique shape, motion and colour (see skillFx). */
+export function SkillImpact({ fx }: { fx: { shape: string; motion: string; hue: string } }) {
+  return (
+    <svg
+      className={`combat-effect skill-fx fx-${fx.motion}`}
+      style={{ stroke: fx.hue, color: fx.hue }}
+      viewBox="0 0 200 240"
+      aria-hidden="true"
+    >
+      {FX_ART[fx.shape]}
+    </svg>
+  );
+}

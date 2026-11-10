@@ -614,6 +614,6 @@ export function cacheReward(site: WorldSite, heroLevel: number) {
   const danger = Math.max(site.level, Math.round(heroLevel));
   return {
     gold: goldGain(70 + danger * 16, heroLevel),
-    mats: { ore: 4 + Math.floor(danger / 8), essence: danger >= 25 ? 2 : 1 },
+    mats: { ore: 4 + Math.floor(danger / 8), essence: danger >= 25 ? 2 : 1, phoenixAsh: 1 + Math.floor(danger / 60) },
   };
 }

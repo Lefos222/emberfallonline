@@ -1,4 +1,5 @@
 import { tName , t} from "./i18n";
+import { addMats } from "./crafting";
 import { itemName } from "./i18n";
 import { useState } from "react";
 import { Lock } from "lucide-react";
@@ -53,6 +54,9 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
           const full = h.inventory.length >= invCap(h);
           addLoot(h, roll.item);
           lines.push(`+${fmt(xp)} XP`, `+${fmt(rw.gold)} gold`, `Recovered ${itemName(roll.item.name)}`);
+          const silk = 1 + Math.floor(rank / 2);
+          addMats(h, { shadowSilk: silk });
+          lines.push(`+${silk} Shadow Silk`);
           if (first) lines.push("+1 Insight — new relic discovered");
           if (full) lines.push("Bag full — the relic waits in your Overflow Chest (Armory)");
           if (levels) lines.push(`LEVEL UP ×${levels}!`);

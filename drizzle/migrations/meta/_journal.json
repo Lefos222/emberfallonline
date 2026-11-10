@@ -211,6 +211,13 @@
       "when": 1794325251222,
       "tag": "0029_player_castle_raids",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1794326397392,
+      "tag": "0030_guild_raids_quests_tournament",
+      "breakpoints": true
     }
   ]
 }

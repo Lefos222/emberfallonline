@@ -20,6 +20,7 @@ import { premiumVipLevel, materialCost, MATERIAL_PRICES } from "./economy";
 import { buyMaterial } from "./premium-shop";
 import { GemCraftWindow, GemPicker } from "./GemWindows";
 import { SynthesisTab } from "./Synthesis";
+import { EpicArmoursTab } from "./EpicArmours";
 import { CraftingGuide } from "./CraftingGuide";
 import { heroAppearance } from "./appearance";
 import { GameTabs, Gold, ItemCard, Panel, fmt } from "./ui";
@@ -852,7 +853,7 @@ function RecipeRow({
 /** The Forge's crafting window: standard recipes for any slot, plus the Synthesis tab. */
 export function Crafting({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
-  const [tab, setTab] = useState<"standard" | "synthesis" | "guide">("standard");
+  const [tab, setTab] = useState<"standard" | "synthesis" | "epic" | "guide">("standard");
   const [slot, setSlot] = useState<Slot>("weapon");
   const [last, setLast] = useState<Item | null>(null);
   const [busy, setBusy] = useState(false);
@@ -893,10 +894,12 @@ export function Crafting({ onClose }: { onClose: () => void }) {
         tabs={[
           { id: "standard", name: "Standard recipes" },
           { id: "synthesis", name: "Synthesis" },
+          { id: "epic", name: "Epic Armours" },
           { id: "guide", name: "Crafting guide" },
         ]}
       />
       {tab === "synthesis" && <SynthesisTab />}
+      {tab === "epic" && <EpicArmoursTab />}
       {tab === "guide" && <CraftingGuide />}
       {tab === "standard" && (
         <div className="mb-3 flex flex-wrap gap-1 text-sm">

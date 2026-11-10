@@ -114,8 +114,9 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
           const { levels } = grant(h, scrollXp(lvl * 60, xpMultiplier), lvl * 12);
           loot = rollLoot(h, lvl + 5, 0.8, 2);
           if (loot) addLoot(h, loot);
-          addMats(h, { essence: 2 });
-          lines = [`+${fmt(scrollXp(lvl * 60, xpMultiplier))} XP`, `+${fmt(lvl * 12)} gold`, "+2 Soul Essence", ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+          const bones = 1 + Math.floor(lvl / 40);
+          addMats(h, { essence: 2, wyrmBone: bones });
+          lines = [`+${fmt(scrollXp(lvl * 60, xpMultiplier))} XP`, `+${fmt(lvl * 12)} gold`, "+2 Soul Essence", `+${bones} Wyrm Bone`, ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         return { lines, loot };
       },

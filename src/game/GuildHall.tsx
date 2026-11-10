@@ -14,6 +14,7 @@ import { GuildSkillTower, GuildReliquary } from './GuildTower';
 import { GuildRecords, type MemberHero } from './GuildRecords';
 import { GuildHallScene, type GuildLocation } from './GuildHallScene';
 import { GuildWars } from './GuildWars';
+import { GuildEvents } from './GuildEvents';
 import { GuildStorage } from './GuildStorage';
 import type { StartBattle } from './panels';
 import { GUILD_RELICS, guildTotalRanks, relicUnlocked } from './guild-tower';
@@ -230,6 +231,8 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
         <GuildSkillTower />
         <GuildReliquary />
       </div>}
+
+      {location === "events" && <GuildEvents start={start} />}
 
       {location === "wars" && <GuildWars heroId={heroId} guildId={guild.id} role={role} start={start} />}
 

@@ -531,8 +531,8 @@ export const feastTier = (level: number) => perkSum(level, "feast");
 
 /** What each special seed can turn up in the soil. */
 const RARE_FINDS: Record<SeedKind, readonly string[]> = {
-  gold: ["ore"], xp: ["essence"], ember: ["bloom"], moon: ["crystal"],
-  frost: ["frostCrystal"], sun: ["sunCrystal"], blood: ["essence", "voidCrystal"], star: ["starshard"],
+  gold: ["ore"], xp: ["essence"], ember: ["bloom"], moon: ["crystal", "moonsilver"],
+  frost: ["frostCrystal"], sun: ["sunCrystal"], blood: ["essence", "voidCrystal"], star: ["starshard", "moonsilver"],
 };
 
 /** Roll a rare harvest. Special seeds roll twice the base chance. */
