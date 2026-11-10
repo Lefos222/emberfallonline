@@ -74,7 +74,7 @@ describe("synthesis tab", () => {
   it("keeps locked sets visible with their required level", () => {
     render(<Harness hero={heroAt(45)} />);
     const rail = screen.getByRole("group", { name: /synthesis sets/i });
-    expect(within(rail).getAllByRole("button")).toHaveLength(9);
+    expect(within(rail).getAllByRole("button")).toHaveLength(12);
     expect(within(rail).getByRole("button", { name: /Synthesis Set IX, locked until level 120/ })).toBeTruthy();
     fireEvent.click(within(rail).getByRole("button", { name: /Synthesis Set IX/ }));
     expect(screen.getByText(/Unlocks at level 120/)).toBeTruthy();

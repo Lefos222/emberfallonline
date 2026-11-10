@@ -247,6 +247,7 @@ export function eventBonusLines(ev: WorldEvent): string[] {
 /** Minimal names for event lines, so events.ts stays free of the crafting UI's runtime imports. */
 const MAT_NAME: Record<import("./crafting").Mat, string> = {
   frostCrystal: "Frost Crystal", voidCrystal: "Void Crystal", sunCrystal: "Sun Crystal",
+  dragonScale: "Dragon Scale", abyssalShard: "Abyssal Shard", titanHeart: "Titan Heart",
   ore: "Ember Ore",
   essence: "Soul Essence",
   starshard: "Starshard",

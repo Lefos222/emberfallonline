@@ -29,10 +29,10 @@ export const SYNTH_WEAPON: Record<HeroClass, string> = locValues({ warrior: "Swo
 /** Character level the forge's Synthesis tab opens at, before the first set exists. */
 export const SYNTH_UNLOCK_LEVEL = 30;
 /** Character level each armour set unlocks at. Set I opens at 40, Set IX at 120. */
-export const SYNTH_LEVELS = [40, 50, 60, 70, 80, 90, 100, 110, 120];
+export const SYNTH_LEVELS = [40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150];
 export const SYNTH_TIER_COUNT = SYNTH_LEVELS.length;
 
-const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"];
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
 export const tierName = (tier: number) => `Synthesis Set ${ROMAN[tier - 1] ?? tier}`;
 export const pieceName = (tier: number, slot: SynthSlot, cls: HeroClass) =>
   slot === "weapon" ? `${tierName(tier)} · ${SYNTH_WEAPON[cls]}` : `${tierName(tier)} · ${SYNTH_SLOT_LABEL[slot]}`;
@@ -102,15 +102,18 @@ export function appearanceTier(h: { synth?: SynthSave }): number | null {
 type Mats = Partial<Record<Mat, number>>;
 
 const SET_TOTALS: Partial<Record<Mat, number[]>> = {
-  ore: [5160, 6100, 7035, 7975, 8910, 9850, 10785, 11725, 12660],
-  hide: [3750, 4375, 4995, 5615, 6240, 6865, 7485, 8110, 8730],
-  bloom: [278, 281, 284, 287, 290, 293, 296, 299, 302],
-  essence: [323, 327, 332, 336, 341, 345, 350, 354, 359],
-  fragment: [108, 111, 114, 117, 120, 123, 126, 129, 132],
-  crystal: [45, 47, 48, 50, 51, 53, 54, 56, 57],
-  sigil: [135, 140, 144, 149, 153, 158, 162, 167, 171],
-  bossCore: [90, 93, 96, 99, 102, 105, 108, 111, 114],
-  starshard: [135, 140, 144, 149, 153, 158, 162, 167, 171],
+  ore: [5160, 6100, 7035, 7975, 8910, 9850, 10785, 11725, 12660, 13600, 14550, 15500],
+  hide: [3750, 4375, 4995, 5615, 6240, 6865, 7485, 8110, 8730, 9350, 9980, 10600],
+  bloom: [278, 281, 284, 287, 290, 293, 296, 299, 302, 305, 308, 311],
+  essence: [323, 327, 332, 336, 341, 345, 350, 354, 359, 364, 368, 373],
+  fragment: [108, 111, 114, 117, 120, 123, 126, 129, 132, 135, 138, 141],
+  crystal: [45, 47, 48, 50, 51, 53, 54, 56, 57, 59, 60, 62],
+  sigil: [135, 140, 144, 149, 153, 158, 162, 167, 171, 176, 180, 185],
+  bossCore: [90, 93, 96, 99, 102, 105, 108, 111, 114, 117, 120, 123],
+  dragonScale: [0, 0, 0, 0, 0, 0, 0, 0, 0, 120, 160, 200],
+  abyssalShard: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 90, 130],
+  titanHeart: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 60],
+  starshard: [135, 140, 144, 149, 153, 158, 162, 167, 171, 176, 180, 185],
 };
 const MATS_USED = Object.keys(SET_TOTALS) as Mat[];
 
@@ -139,6 +142,7 @@ export function synthCost(tier: number, slot: SynthSlot): Mats {
   const out: Mats = {};
   for (const m of MATS_USED) {
     const total = SET_TOTALS[m]?.[tier - 1] ?? 0;
+    if (total <= 0) continue;
     let weight = 0;
     for (const s of SYNTH_SLOTS) weight += PIECE_SHARE[s] * (PIECE_BIAS[s][m] ?? 1);
     const share = (PIECE_SHARE[slot] * (PIECE_BIAS[slot][m] ?? 1)) / weight;
@@ -228,6 +232,7 @@ export function synthBlocker(h: Hero, tier: number, slot: SynthSlot): string | n
 
 const MATS_NAME: Record<Mat, string> = {
   frostCrystal: "Frost Crystal", voidCrystal: "Void Crystal", sunCrystal: "Sun Crystal",
+  dragonScale: "Dragon Scale", abyssalShard: "Abyssal Shard", titanHeart: "Titan Heart",
   ore: "Ember Ore", essence: "Soul Essence", starshard: "Starshard", bossCore: "Boss Core",
   fragment: "Armor Fragment", sigil: "Elite Sigil", hide: "Beast Hide", bloom: "Emberbloom",
   crystal: "Arcane Crystal", enchantStone: "Enchantment Stone", fateStone: "Fate Stone",

@@ -15,14 +15,29 @@ function heroAt(level: number, cls: "warrior" | "mage" | "archer" = "warrior"): 
 
 /** Enough of every material to forge anything. */
 function rich(h: Hero): Hero {
-  h.mats = { ore: 999_999, hide: 999_999, bloom: 999_999, essence: 999_999, fragment: 999_999, crystal: 999_999, sigil: 999_999, bossCore: 999_999, starshard: 999_999 };
+  h.mats = { ore: 999_999, hide: 999_999, bloom: 999_999, essence: 999_999, fragment: 999_999, crystal: 999_999, sigil: 999_999, bossCore: 999_999, starshard: 999_999, dragonScale: 999_999, abyssalShard: 999_999, titanHeart: 999_999 };
   return h;
 }
 
+describe("dungeon-only higher-armour materials", () => {
+  it("are needed only by sets X-XII", () => {
+    for (let t = 1; t <= 9; t++) {
+      const c = setCost(t);
+      expect(c.dragonScale ?? 0).toBe(0);
+      expect(c.abyssalShard ?? 0).toBe(0);
+      expect(c.titanHeart ?? 0).toBe(0);
+    }
+    expect(setCost(10).dragonScale).toBeGreaterThan(0);
+    expect(setCost(10).abyssalShard ?? 0).toBe(0);
+    expect(setCost(11).abyssalShard).toBeGreaterThan(0);
+    expect(setCost(12).titanHeart).toBeGreaterThan(0);
+  });
+});
+
 describe("synthesis sets", () => {
-  it("has nine sets from level 40 to 120 and eight pieces each", () => {
-    expect(SYNTH_TIER_COUNT).toBe(9);
-    expect(SYNTH_LEVELS).toEqual([40, 50, 60, 70, 80, 90, 100, 110, 120]);
+  it("has twelve sets from level 40 to 150 and eight pieces each", () => {
+    expect(SYNTH_TIER_COUNT).toBe(12);
+    expect(SYNTH_LEVELS).toEqual([40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]);
     expect(SYNTH_SLOTS).toHaveLength(8);
     expect(new Set(SYNTH_SLOTS).size).toBe(8);
   });
@@ -174,7 +189,7 @@ describe("worn synthesis equipment", () => {
     for (const slot of SYNTH_SLOTS) craftSynth(h, 1, slot);
     const prog = overallProgress(h);
     expect(prog.crafted).toBe(8);
-    expect(prog.total).toBe(72);
+    expect(prog.total).toBe(96);
     expect(prog.complete).toBe(1);
     expect(prog.unlocked).toBe(1);
   });

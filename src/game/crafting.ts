@@ -3,7 +3,7 @@ import { scaledGold } from "./gold";
 import { locAll, locList, locValues } from "./i18n";
 
 // ---------- Materials ----------
-export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone" | "fateStone" | "frostCrystal" | "voidCrystal" | "sunCrystal";
+export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "enchantStone" | "fateStone" | "frostCrystal" | "voidCrystal" | "sunCrystal" | "dragonScale" | "abyssalShard" | "titanHeart";
 export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity: number }> = locAll({
   ore: { name: "Ember Ore", desc: "Common ore used in crafting and gem cutting.", src: "Every won battle (more in higher regions)", rarity: 0 },
   essence: { name: "Soul Essence", desc: "Distilled souls used in crafting and gem fusion.", src: "Tougher fights, elites, bosses", rarity: 2 },
@@ -19,6 +19,9 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   frostCrystal: { name: "Frost Crystal", desc: "Ice-bound crystal. Needed for Epic armour.", src: "Bosses, Wheel of Fortune, Black Market", rarity: 3 },
   voidCrystal: { name: "Void Crystal", desc: "Crystal from beyond the veil. Needed for Legendary armour.", src: "Bosses, Wheel of Fortune, Black Market", rarity: 4 },
   sunCrystal: { name: "Sun Crystal", desc: "A shard of captured sunlight. Needed for Mythic armour.", src: "Dungeon bosses, Wheel of Fortune", rarity: 5 },
+  dragonScale: { name: "Dragon Scale", desc: "A smouldering scale torn from a dungeon tyrant. Needed for Synthesis Set X.", src: "Dungeon Gate boss challenges only", rarity: 4 },
+  abyssalShard: { name: "Abyssal Shard", desc: "Obsidian cracked with void light. Needed for Synthesis Set XI.", src: "Dungeon Gate boss challenges, rank 3 and deeper only", rarity: 5 },
+  titanHeart: { name: "Titan Heart", desc: "The radiant heart of a fallen titan. Needed for Synthesis Set XII.", src: "Dungeon Gate boss challenges, rank 5 and deeper only (rare)", rarity: 5 },
 }, ["name"], ["desc", "src"]);
 type Mats = Partial<Record<Mat, number>>;
 

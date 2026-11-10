@@ -7,6 +7,9 @@ import sigil from '@/assets/mat-sigil.png';
 import frostCrystal from '@/assets/mat-frostCrystal.png';
 import voidCrystal from '@/assets/mat-voidCrystal.png';
 import sunCrystal from '@/assets/mat-sunCrystal.png';
+import dragonScale from '@/assets/mat-dragonScale.png';
+import abyssalShard from '@/assets/mat-abyssalShard.png';
+import titanHeart from '@/assets/mat-titanHeart.png';
 import hide from '@/assets/icons/mat-hide.webp';
 import bloom from '@/assets/icons/mat-bloom.webp';
 import crystal from '@/assets/icons/mat-crystal.webp';
@@ -20,7 +23,7 @@ import astralSheet from "@/assets/astral-sprites.png.asset.json";
 import type { ReactNode } from "react";
 import type { GemType, Mat } from "./crafting";
 
-const MAT_IMG: Partial<Record<Mat, string>> = { ore, essence, starshard, bossCore, fragment, sigil, frostCrystal, voidCrystal, sunCrystal, hide, bloom, crystal, fateStone };
+const MAT_IMG: Partial<Record<Mat, string>> = { ore, essence, starshard, bossCore, fragment, sigil, frostCrystal, voidCrystal, sunCrystal, dragonScale, abyssalShard, titanHeart, hide, bloom, crystal, fateStone };
 const GEM_IMG: Partial<Record<GemType, string>> = { ruby, sapphire, emerald, topaz };
 import { ASTRAL_BASES, ASTRAL_COLORS, GEMS, MATS } from "./crafting";
 import { STONE_COLORS } from "./enchant";

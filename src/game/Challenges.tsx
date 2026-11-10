@@ -87,7 +87,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
           h.challenges = { ...(h.challenges ?? {}), [id]: Math.max(cleared(h, id), d) };
           if (rw.bossCore) addMats(h, { bossCore: rw.bossCore });
           // Higher-armour crystals: Frost from every boss, Void from deeper ranks, Sun rarely from the deepest.
-          const cry = { frostCrystal: 1 + Math.floor(d / 2), ...(d >= 3 ? { voidCrystal: Math.floor(d / 3) } : {}), ...(d >= 5 && Math.random() < 0.35 ? { sunCrystal: 1 } : {}) };
+          const cry = { frostCrystal: 1 + Math.floor(d / 2), ...(d >= 3 ? { voidCrystal: Math.floor(d / 3) } : {}), ...(d >= 5 && Math.random() < 0.35 ? { sunCrystal: 1 } : {}), dragonScale: 1 + Math.floor(d / 2), ...(d >= 3 ? { abyssalShard: Math.floor(d / 3) } : {}), ...(d >= 5 && Math.random() < 0.3 ? { titanHeart: 1 } : {}) };
           addMats(h, cry);
           addWeeklyKill(h);
           loot = makeDrop(h.cls, h.level + Math.floor(h.paragon / 2) + d * 2, cappedRarity(rw.minRarity, h.level));
