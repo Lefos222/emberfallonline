@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useState } from 'react';
 import { Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,10 +20,10 @@ export function SkillPreview({ talent, cls, gender, locked }: { talent: Talent; 
   const move = moveFor({ cls }, ability.id);
   const effect = effectFor(ability.id) ?? 'arcane';
   const range = skill.target === 'all' ? 'All enemies' : skill.target === 'self' ? 'Self' : skill.target === 'multi' ? `Up to ${skill.maxTargets} enemies` : 'One enemy';
-  return <section className="mt-4 border-t border-border pt-4" aria-label="Ability preview">
+  return <section className="mt-4 border-t border-border pt-4" aria-label={t("Ability preview")}>
     <div className="flex flex-wrap items-center justify-between gap-2">
       <h3 className="flex items-center gap-2 font-display text-lg text-gold"><SkillIcon icon={ability.icon} className="h-8 w-8 shrink-0" />{ability.name}</h3>
-      <Button variant="outline" size="sm" onClick={() => setReplay(n => n + 1)}><Play className="h-4 w-4" />Replay animation</Button>
+      <Button variant="outline" size="sm" onClick={() => setReplay(n => n + 1)}><Play className="h-4 w-4" />{t("Replay animation")}</Button>
     </div>
     <div className="mt-3 grid items-center gap-4 sm:grid-cols-[240px_1fr]">
       <div className="battle-unit relative flex h-56 items-end justify-center overflow-hidden bg-muted/30" key={replay}>
@@ -31,8 +32,8 @@ export function SkillPreview({ talent, cls, gender, locked }: { talent: Talent; 
       </div>
       <div className="space-y-2 text-sm">
         <p>{skill.desc}</p>
-        <p className="text-gold">{range} · {skill.hits ?? 1} hit{(skill.hits ?? 1) > 1 ? 's' : ''} · {skill.cost} resource · {skill.cd} turn cooldown</p>
-        <p>{Math.round(skill.mult * 100)}% damage per hit{skill.stun ? ' · Stun' : ''}{skill.heal ? ` · Heals ${Math.round(skill.heal * 100)}%` : ''}</p>
+        <p className="text-gold">{range} · {skill.hits ?? 1}  {t("hit")}{(skill.hits ?? 1) > 1 ? 's' : ''} · {skill.cost}  {t("resource ·")} {skill.cd}  {t("turn cooldown")}</p>
+        <p>{Math.round(skill.mult * 100)}{t("% damage per hit")}{skill.stun ? t("· Stun") : ''}{skill.heal ? ` · Heals ${Math.round(skill.heal * 100)}%` : ''}</p>
         <p className={locked ? 'text-muted-foreground' : 'text-gold'}>{locked ?? 'Ready to learn'}</p>
       </div>
     </div>

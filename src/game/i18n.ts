@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { CONTENT } from "./content-i18n";
+import { UI_TEXT } from "./ui-i18n";
 
 /**
  * The game's language: English, Greek or Polish, picked by hand by the player.
@@ -72,7 +73,7 @@ export function useLang(): Lang {
 /** The exact translation of a phrase, or undefined when the dictionary has no row for it. */
 function exact(phrase: string, forLang: Lang): string | undefined {
   if (forLang === "en") return phrase;
-  const row = TRANSLATIONS[phrase] ?? CONTENT[phrase];
+  const row = TRANSLATIONS[phrase] ?? UI_TEXT[phrase] ?? CONTENT[phrase];
   if (!row) return undefined;
   return forLang === "el" ? row[0] : row[1];
 }
@@ -92,6 +93,12 @@ function fill(text: string, vars?: Record<string, string | number>) {
 export function t(phrase: string, vars?: Record<string, string | number>): string {
   return fill(lookup(phrase, lang), vars);
 }
+
+/**
+ * The same translator as `t()`, under a second name. A few screens loop with `(t) => …` or hold a
+ * local `t`, which would shadow the function; those files import `tr` instead.
+ */
+export const tr = t;
 
 /** The hook components use: `const t = useT();` then `t("Sign in")`. */
 export function useT() {

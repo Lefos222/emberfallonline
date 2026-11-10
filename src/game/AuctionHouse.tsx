@@ -1,4 +1,4 @@
-import { itemName } from "./i18n";
+import { itemName , t} from "./i18n";
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Gavel, RefreshCw } from 'lucide-react';
@@ -52,10 +52,10 @@ export function AuctionBoard() {
       <RequestStatus {...request} />
       {notice && <p role="status" className="mb-3 text-sm text-r1">{notice}</p>}
 
-      <h3 className="font-display text-lg">Sell anything</h3>
-      <p className="mt-1 text-xs text-muted-foreground">Gems from your pouch, or a piece of equipment straight from your bag.</p>
+      <h3 className="font-display text-lg">{t("Sell anything")}</h3>
+      <p className="mt-1 text-xs text-muted-foreground">{t("Gems from your pouch, or a piece of equipment straight from your bag.")}</p>
       <div className="mt-3">
-        <GameTabs label="What to sell" value={cat} onChange={pick} tabs={[
+        <GameTabs label={t("What to sell")} value={cat} onChange={pick} tabs={[
           { id: 'equipment', name: 'Equipment' },
           { id: 'gems', name: 'Gems' },
         ]} />
@@ -63,51 +63,45 @@ export function AuctionBoard() {
 
       <div className="mb-4 flex flex-wrap items-end gap-2">
         {cat === 'equipment' && (bag.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Your bag is empty. Worn gear stays equipped — move a piece to the bag to sell it.</p>
+          <p className="text-sm text-muted-foreground">{t("Your bag is empty. Worn gear stays equipped — move a piece to the bag to sell it.")}</p>
         ) : (
-          <label className="text-xs">Bag item
-            <select aria-label="Equipment to sell" value={itemId} onChange={e => setItemId(e.target.value)} className="mt-1 block w-64 rounded border border-border bg-background p-2">
-              <option value="">Choose…</option>
-              {bag.map(i => <option key={i.id} value={i.id}>{itemName(i.name)}{i.enh > 0 ? ` +${i.enh}` : ''} · iLvl {i.ilvl}</option>)}
+          <label className="text-xs">{t("Bag item")} <select aria-label={t("Equipment to sell")} value={itemId} onChange={e => setItemId(e.target.value)} className="mt-1 block w-64 rounded border border-border bg-background p-2">
+              <option value="">{t("Choose…")}</option>
+              {bag.map(i => <option key={i.id} value={i.id}>{itemName(i.name)}{i.enh > 0 ? ` +${i.enh}` : ''}  {t("· iLvl")} {i.ilvl}</option>)}
             </select>
           </label>
         ))}
 
         {cat === 'gems' && (gems.length === 0 ? (
-          <p className="text-sm text-muted-foreground">You own no gems yet — cut some at the Gem Workshop.</p>
+          <p className="text-sm text-muted-foreground">{t("You own no gems yet — cut some at the Gem Workshop.")}</p>
         ) : (
-          <label className="text-xs">Gem
-            <select aria-label="Gem to sell" value={gem} onChange={e => setGem(e.target.value)} className="mt-1 block w-52 rounded border border-border bg-background p-2">
-              <option value="">Choose…</option>
+          <label className="text-xs">{t("Gem")} <select aria-label={t("Gem to sell")} value={gem} onChange={e => setGem(e.target.value)} className="mt-1 block w-52 rounded border border-border bg-background p-2">
+              <option value="">{t("Choose…")}</option>
               {gems.map(([k, n]) => <option key={k} value={k}>{gemName(k)} (×{n})</option>)}
             </select>
           </label>
         ))}
 
         {cat === 'gems' && (
-          <label className="text-xs">Quantity
-            <input aria-label="Quantity" type="number" min={1} max={gemHeld || 1} value={qty} onChange={e => setQty(Math.max(1, Number(e.target.value) || 1))} className="mt-1 block w-20 rounded border border-border bg-background p-2" />
+          <label className="text-xs">{t("Quantity")} <input aria-label={t("Quantity")} type="number" min={1} max={gemHeld || 1} value={qty} onChange={e => setQty(Math.max(1, Number(e.target.value) || 1))} className="mt-1 block w-20 rounded border border-border bg-background p-2" />
           </label>
         )}
-        <label className="text-xs">Total price (Gold)
-          <input aria-label="Price" type="number" min={1} value={price} onChange={e => setPrice(Math.max(1, Number(e.target.value) || 1))} className="mt-1 block w-28 rounded border border-border bg-background p-2" />
+        <label className="text-xs">{t("Total price (Gold)")} <input aria-label={t("Price")} type="number" min={1} value={price} onChange={e => setPrice(Math.max(1, Number(e.target.value) || 1))} className="mt-1 block w-28 rounded border border-border bg-background p-2" />
         </label>
         <Button disabled={request.busy || !canList} onClick={list}>
-          <Gavel className="mr-1 h-4 w-4" />List for sale
-        </Button>
+          <Gavel className="mr-1 h-4 w-4" />{t("List for sale")} </Button>
         {cat === 'equipment' && item && (
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
-            <GearIcon item={item} size={36} />{itemName(item.name)} · iLvl {item.ilvl} · sells whole, sockets included
-          </span>
+            <GearIcon item={item} size={36} />{itemName(item.name)}  {t("· iLvl")} {item.ilvl}  {t("· sells whole, sockets included")} </span>
         )}
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <h3 className="font-display text-lg">Open listings · {shown.length}</h3>
-        <Button size="sm" variant="outline" onClick={() => void refresh()}><RefreshCw className="mr-1 h-3 w-3" />Refresh</Button>
+        <h3 className="font-display text-lg">{t("Open listings ·")} {shown.length}</h3>
+        <Button size="sm" variant="outline" onClick={() => void refresh()}><RefreshCw className="mr-1 h-3 w-3" />{t("Refresh")}</Button>
       </div>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
-        {shown.length === 0 && <p className="py-4 text-sm text-muted-foreground">No listings yet. Be the first to sell something.</p>}
+        {shown.length === 0 && <p className="py-4 text-sm text-muted-foreground">{t("No listings yet. Be the first to sell something.")}</p>}
         {shown.map(l => {
           const gemInfo = l.kind === 'gem' ? parseGem(l.resource) : null;
           const mine = l.seller_hero === heroId;
@@ -127,17 +121,17 @@ export function AuctionBoard() {
                 <p className="text-sm font-bold"><Gold n={l.price} /></p>
                 {mine ? (
                   <Button size="sm" variant="outline" disabled={request.busy}
-                    onClick={() => run('Listing cancelled — returned to you', () => cancelListing(l.id))}>Cancel</Button>
+                    onClick={() => run('Listing cancelled — returned to you', () => cancelListing(l.id))}>{t("Cancel")}</Button>
                 ) : (
                   <Button size="sm" disabled={request.busy || hero.gold < l.price}
-                    onClick={() => run(`Bought ${name}`, () => buyListing(l.id))}>Buy</Button>
+                    onClick={() => run(`Bought ${name}`, () => buyListing(l.id))}>{t("Buy")}</Button>
                 )}
               </div>
             </article>
           );
         })}
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">Trades settle instantly and are recorded on the server — gold and goods move atomically, and a sold listing can never be sold twice. Cancelling returns the goods to your bag or pouch.</p>
+      <p className="mt-3 text-xs text-muted-foreground">{t("Trades settle instantly and are recorded on the server — gold and goods move atomically, and a sold listing can never be sold twice. Cancelling returns the goods to your bag or pouch.")}</p>
     </>
   );
 }
@@ -145,7 +139,7 @@ export function AuctionBoard() {
 /** Stand-alone window around the player auctions (also reachable from the HUD). */
 export function AuctionHouse({ onClose }: { onClose: () => void }) {
   return (
-    <Panel title="Auction House" subtitle="Player auctions — trade gear for gold" art="auction" onClose={onClose} wide>
+    <Panel title={t("Auction House")} subtitle={t("Player auctions — trade gear for gold")} art="auction" onClose={onClose} wide>
       <AuctionBoard />
     </Panel>
   );

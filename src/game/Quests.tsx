@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useState } from "react";
 import { Check, Gift, Lock, ScrollText } from "lucide-react";
 import { Gold, Panel, fmt } from "./ui";
@@ -14,13 +15,12 @@ export function QuestsButton({ count, onClick }: { count: number; onClick: () =>
   return (
     <button
       onClick={onClick}
-      aria-label="Quests"
-      title="Quests"
+      aria-label={t("Quests")}
+      title={t("Quests")}
       className="game-panel pointer-events-auto absolute right-0 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-1 rounded-l-xl px-2.5 py-3 font-display text-xs text-gold transition hover:pr-4"
     >
       <ScrollText className="h-5 w-5" />
-      Quests
-      {count > 0 && (
+       {t("Quests")} {count > 0 && (
         <span className="absolute -left-2 -top-2 min-w-5 rounded-full bg-blood px-1.5 py-0.5 text-center text-[10px] font-bold text-foreground">
           {count}
         </span>
@@ -37,11 +37,9 @@ export function QuestsPanel({ onClose }: { onClose: () => void }) {
   const done = rows.filter((r) => r.done).length;
 
   return (
-    <Panel title={`Level ${hero.level} Quests`} subtitle="One board per level, paid in gold and XP" art="quest" onClose={onClose} wide>
+    <Panel title={`Level ${hero.level} Quests`} subtitle={t("One board per level, paid in gold and XP")} art="quest" onClose={onClose} wide>
       <p className="mb-4 text-sm text-muted-foreground">
-        Every level brings its own three quests. {done}/{rows.length} finished on this board —
-        rewards scale with your level, and a new set opens the moment you level up.
-      </p>
+         {t("Every level brings its own three quests.")} {done}/{rows.length}  {t("finished on this board — rewards scale with your level, and a new set opens the moment you level up.")} </p>
       <div className="grid gap-3 md:grid-cols-3">
         {rows.map(({ quest, progress, claimed, done }) => (
           <article key={quest.id} className="slot flex flex-col gap-3 p-4">
@@ -52,7 +50,7 @@ export function QuestsPanel({ onClose }: { onClose: () => void }) {
             <p className="text-sm">{quest.desc}</p>
             <div>
               <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-                <span>Progress</span>
+                <span>{t("Progress")}</span>
                 <span>
                   {progress}/{quest.target}
                 </span>
@@ -65,7 +63,7 @@ export function QuestsPanel({ onClose }: { onClose: () => void }) {
               </div>
             </div>
             <p className="text-xs">
-              <span className="font-bold text-xp">+{fmt(quest.xp)} XP</span> ·{" "}
+              <span className="font-bold text-xp">+{fmt(quest.xp)}  {t("XP")}</span> ·{" "}
               <Gold n={quest.gold} />
             </p>
             <button
@@ -92,8 +90,7 @@ export function QuestsPanel({ onClose }: { onClose: () => void }) {
               ) : done ? (
                 <>
                   <Gift className="mr-1 inline h-4 w-4" />
-                  Claim reward
-                </>
+                   {t("Claim reward")} </>
               ) : (
                 "In progress"
               )}
@@ -109,14 +106,13 @@ export function QuestsPanel({ onClose }: { onClose: () => void }) {
 
       <div className="mt-6">
         <h3 className="mb-2 font-display text-sm uppercase tracking-widest text-muted-foreground">
-          Coming with your next levels
-        </h3>
+           {t("Coming with your next levels")} </h3>
         <div className="grid gap-2 sm:grid-cols-2">
           {[hero.level + 1, hero.level + 2].map((lv) => (
             <div key={lv} className="slot p-3 text-sm">
               <div className="mb-1 flex items-center gap-1 font-display text-gold">
                 <Lock className="h-3.5 w-3.5" />
-                Level {lv}
+                 {t("Level")} {lv}
               </div>
               <ul className="space-y-0.5 text-xs text-muted-foreground">
                 {questsForLevel(lv).map((q) => (

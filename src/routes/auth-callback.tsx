@@ -1,3 +1,4 @@
+import { t } from "@/game/i18n";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -54,11 +55,11 @@ function AuthCallbackPage() {
       <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${castle.url})` }} />
       <div className="absolute inset-0 bg-background/60 vignette" />
       <div className="game-panel anim-pop relative w-full max-w-sm p-6 text-center">
-        <h1 className="panel-title mb-3 text-2xl font-bold">EmberFall Online</h1>
+        <h1 className="panel-title mb-3 text-2xl font-bold">{t("EmberFall Online")}</h1>
         {msg === "Signing you in…" ? (
           <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-gold" />
         ) : (
-          <button className="btn-gold w-full py-2.5" onClick={() => void nav({ to: "/auth" })}>Back to sign in</button>
+          <button className="btn-gold w-full py-2.5" onClick={() => void nav({ to: "/auth" })}>{t("Back to sign in")}</button>
         )}
         <p className="text-sm text-muted-foreground">{msg}</p>
       </div>

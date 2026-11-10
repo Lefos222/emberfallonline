@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useState } from "react";
 import { ArrowUp, Crown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,21 +33,19 @@ export function GuildSkillTower() {
   return (
     <div className="slot mb-4 p-4">
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2 font-display text-gold">
-        <span className="flex items-center gap-2"><ArrowUp className="h-4 w-4" />Guild Skill Tower</span>
+        <span className="flex items-center gap-2"><ArrowUp className="h-4 w-4" />{tr("Guild Skill Tower")}</span>
         <span className="flex flex-wrap items-center gap-3 text-sm">
-          <span>{fmt(coins)} coins</span>
+          <span>{fmt(coins)}  {tr("coins")}</span>
           <Gold n={hero.gold} />
         </span>
       </div>
       <p className="text-xs text-muted-foreground">
-        The tower has no top. Every rank costs guild coins <em>and</em> gold, and both prices climb with each rank — so there is always another step, and it always costs more.
-      </p>
+         {tr("The tower has no top. Every rank costs guild coins")} <em>{tr("and")}</em>  {tr("gold, and both prices climb with each rank — so there is always another step, and it always costs more.")} </p>
       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
-        <span className="slot px-2 py-1">Total ranks: <b className="text-gold">{fmt(total)}</b></span>
-        <span className="slot px-2 py-1">Battle Rating: <b className="text-gold">{fmt(s.power)}</b></span>
-        {next && <span className="slot px-2 py-1">Next relic: <b className="text-gold">{next.name}</b> at {next.ranks} ranks</span>}
-        <span className="ml-auto flex items-center gap-1">Buy
-          {BATCHES.map((n) => <Button key={n} size="sm" variant={batch === n ? "default" : "outline"} className="h-7 px-2 text-[11px]" onClick={() => setBatch(n)}>×{n}</Button>)}
+        <span className="slot px-2 py-1">{tr("Total ranks:")} <b className="text-gold">{fmt(total)}</b></span>
+        <span className="slot px-2 py-1">{tr("Battle Rating:")} <b className="text-gold">{fmt(s.power)}</b></span>
+        {next && <span className="slot px-2 py-1">{tr("Next relic:")} <b className="text-gold">{next.name}</b>  {tr("at")} {next.ranks}  {tr("ranks")}</span>}
+        <span className="ml-auto flex items-center gap-1">{tr("Buy")} {BATCHES.map((n) => <Button key={n} size="sm" variant={batch === n ? "default" : "outline"} className="h-7 px-2 text-[11px]" onClick={() => setBatch(n)}>×{n}</Button>)}
         </span>
       </div>
       <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -59,17 +58,17 @@ export function GuildSkillTower() {
             <div key={skill.id} className="slot p-2 text-sm">
               <div className="flex items-center justify-between gap-1">
                 <span className="font-bold">{skill.name}</span>
-                <span className="rounded-full bg-blood px-1.5 text-[10px] font-bold text-primary-foreground">Rank {rank}</span>
+                <span className="rounded-full bg-blood px-1.5 text-[10px] font-bold text-primary-foreground">{tr("Rank")} {rank}</span>
               </div>
               <p className="text-xs text-muted-foreground">{skill.desc}</p>
-              <p className="mt-1 text-xs">Banked: +{+(skill.per * rank).toFixed(1)}{STAT_LABEL[skill.stat]}</p>
-              <p className="text-xs text-muted-foreground">Next: +{+(skill.per * (rank + 1)).toFixed(1)}{STAT_LABEL[skill.stat]}</p>
+              <p className="mt-1 text-xs">{tr("Banked: +")}{+(skill.per * rank).toFixed(1)}{STAT_LABEL[skill.stat]}</p>
+              <p className="text-xs text-muted-foreground">{tr("Next: +")}{+(skill.per * (rank + 1)).toFixed(1)}{STAT_LABEL[skill.stat]}</p>
               <button className="btn-gold mt-2 w-full py-1.5 text-xs" disabled={!affordable}
                 onClick={() => update((h) => {
                   const res = learnGuildSkill(h, skill.id, batch);
                   say(!res.error, res.error ?? `Learned ${res.bought} rank${res.bought === 1 ? "" : "s"} of ${skill.name} — now rank ${rank + res.bought}.`);
                 })}>
-                {blocker ? blocker : <>Upgrade ×{batch} · {fmt(price.coins)} c + <Gold n={price.gold} /></>}
+                {blocker ? blocker : <>{tr("Upgrade ×")}{batch} · {fmt(price.coins)} c + <Gold n={price.gold} /></>}
               </button>
             </div>
           );
@@ -89,12 +88,11 @@ export function GuildReliquary() {
   return (
     <div className="slot mb-4 p-4">
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2 font-display text-gold">
-        <span className="flex items-center gap-2"><Crown className="h-4 w-4" />Reliquary</span>
-        <span className="text-sm">{woken}/{GUILD_RELICS.length} relics woken · {fmt(total)} tower ranks</span>
+        <span className="flex items-center gap-2"><Crown className="h-4 w-4" />{tr("Reliquary")}</span>
+        <span className="text-sm">{woken}/{GUILD_RELICS.length}  {tr("relics woken ·")} {fmt(total)}  {tr("tower ranks")}</span>
       </div>
       <p className="text-xs text-muted-foreground">
-        Every relic on these shelves was paid for by the skill tower. Climb the ranks and the next heirloom wakes on its own, adding its bonus to every fight.
-      </p>
+         {tr("Every relic on these shelves was paid for by the skill tower. Climb the ranks and the next heirloom wakes on its own, adding its bonus to every fight.")} </p>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         {GUILD_RELICS.map((relic) => {
           const open = relicUnlocked(hero, relic);
@@ -103,7 +101,7 @@ export function GuildReliquary() {
           return <div key={relic.id} className={`slot p-2 text-sm ${open ? "border-gold" : "opacity-70"}`}>
             <div className="flex items-center justify-between gap-1">
               <span className="flex items-center gap-1.5 font-bold"><Sparkles className={`h-3.5 w-3.5 ${open ? "text-gold" : "text-muted-foreground"}`} />{relic.name}</span>
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{open ? "Woken" : `${relic.ranks} ranks`}</span>
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{open ? tr("Woken") : `${relic.ranks} ranks`}</span>
             </div>
             <p className="text-xs text-muted-foreground">{relic.desc}</p>
             <p className={`mt-1 text-xs ${open ? "text-gold" : ""}`}>{text}</p>

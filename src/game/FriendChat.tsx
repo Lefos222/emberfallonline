@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -99,12 +100,11 @@ export function FriendChat({
           className="text-xs text-muted-foreground hover:text-gold"
           onClick={onClose}
         >
-          Close
-        </button>
+           {t("Close")} </button>
       </header>
       <div ref={listRef} className="h-40 overflow-y-auto py-1" aria-live="polite">
         {messages.length === 0 ? (
-          <p className="py-2 text-sm text-muted-foreground">No messages yet - say hello.</p>
+          <p className="py-2 text-sm text-muted-foreground">{t("No messages yet - say hello.")}</p>
         ) : (
           messages.map((m) => (
             <p
@@ -138,8 +138,7 @@ export function FriendChat({
           onChange={(e) => setBody(e.target.value)}
         />
         <button className="btn-gold px-3 text-sm" disabled={sending || !body.trim()}>
-          Send
-        </button>
+           {t("Send")} </button>
       </form>
       {error && (
         <p role="alert" className="mt-1 break-words text-xs text-hp">

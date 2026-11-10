@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useState } from "react";
 import { Check, Gift, Skull } from "lucide-react";
 import { ACHIEVEMENTS, ACH_CATEGORIES, SET_BONUSES, achGold, achProgress, activeSets, emptyRecord, isClaimable, type AchCategory } from "./progress";
@@ -31,8 +32,8 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
   });
 
   return (
-    <Panel title="Throne Hall" subtitle="Skill tree, passives, hero training and achievements" art="crown" onClose={onClose} wide>
-      <GameTabs label="Throne Hall" value={tab} onChange={setTab} tabs={[
+    <Panel title={tr("Throne Hall")} subtitle={tr("Skill tree, passives, hero training and achievements")} art="crown" onClose={onClose} wide>
+      <GameTabs label={tr("Throne Hall")} value={tab} onChange={setTab} tabs={[
         { id: "skills", name: "Skill Tree" },
         { id: "passives", name: "Passives" },
         { id: "overview", name: "Progression" },
@@ -42,7 +43,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
 
       {tab === "ach" ? (
         <div>
-          <div className="mb-2 flex flex-wrap gap-1" role="group" aria-label="Achievement categories">
+          <div className="mb-2 flex flex-wrap gap-1" role="group" aria-label={tr("Achievement categories")}>
             {(["All", ...ACH_CATEGORIES] as const).map((c) => {
               const n = c === "All" ? ACHIEVEMENTS.length : ACHIEVEMENTS.filter((a) => a.cat === c).length;
               return (
@@ -63,11 +64,11 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
                   <div>
                     <div className="font-bold">{a.name} <span className="text-xs text-muted-foreground">· {a.cat}</span></div>
                     <div className="text-xs text-muted-foreground">{a.desc}: {fmt(p)} / {fmt(a.goal)}</div>
-                    <div className="text-xs"><Gold n={achGold(a)} />{a.title && <span className="ml-2 text-gold">Title: {a.title}</span>}</div>
+                    <div className="text-xs"><Gold n={achGold(a)} />{a.title && <span className="ml-2 text-gold">{tr("Title:")} {a.title}</span>}</div>
                   </div>
-                  {done ? <Check className="h-5 w-5 text-gold" aria-label="Claimed" /> : (
+                  {done ? <Check className="h-5 w-5 text-gold" aria-label={tr("Claimed")} /> : (
                     <button className="btn-gold flex items-center gap-1 px-3 py-1 text-sm" disabled={!isClaimable(hero, a)} onClick={() => claim(a.id)}
-                      title={isClaimable(hero, a) ? "Claim reward" : "Not completed yet"}><Gift className="h-4 w-4" />Claim</button>
+                      title={isClaimable(hero, a) ? "Claim reward" : "Not completed yet"}><Gift className="h-4 w-4" />{tr("Claim")}</button>
                   )}
                 </div>
                 <div className="mt-2 h-1.5 overflow-hidden rounded bg-muted"><div className="h-full bg-gold" style={{ width: `${(p / a.goal) * 100}%` }} /></div>
@@ -83,11 +84,11 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
               <div key={l} className="slot p-2"><div className="font-display text-lg text-gold">{v}</div><div className="text-xs text-muted-foreground">{l}</div></div>
             ))}
           </div>
-          {(hero.history ?? []).length === 0 && <p className="py-8 text-center text-muted-foreground">No battles yet — head to the Campaign Gate.</p>}
+          {(hero.history ?? []).length === 0 && <p className="py-8 text-center text-muted-foreground">{tr("No battles yet — head to the Campaign Gate.")}</p>}
           <div className="space-y-1">
             {(hero.history ?? []).map((e) => (
               <div key={e.t} className="slot flex items-center justify-between gap-2 px-3 py-1.5 text-sm">
-                <span className={e.won ? "font-bold text-gold" : "font-bold text-blood"}>{e.won ? "Victory" : "Defeat"}</span>
+                <span className={e.won ? "font-bold text-gold" : "font-bold text-blood"}>{e.won ? tr("Victory") : tr("Defeat")}</span>
                 <span className="flex-1 truncate">{e.boss && <Skull className="mr-1 inline h-4 w-4" />}{e.title}</span>
                 <span className="hidden truncate text-xs text-muted-foreground md:block">{e.rewards.join(" · ")}</span>
                 <span className="text-xs text-muted-foreground">{new Date(e.t).toLocaleString()}</span>
@@ -98,33 +99,33 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
       ) : tab === "overview" ? (
         <div className="space-y-4">
         <div>
-          <div className="mb-1 font-display text-lg text-gold">Level curve</div>
+          <div className="mb-1 font-display text-lg text-gold">{tr("Level curve")}</div>
           <LevelProgress hero={hero} rows={5} />
         </div>
         <RenownTraining hero={hero} />
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-1">
             <div className="font-display text-2xl">{hero.name}</div>
-            <div className="text-muted-foreground">{CLASSES[hero.cls].name} · Level {hero.level}{hero.paragon > 0 && ` · Ascension ${hero.paragon}`}</div>
-            <div className="text-sm">XP {fmt(hero.xp)} / {fmt(xpToNext(hero))}</div>
-            <div className="text-sm">Campaign stage {hero.stage} · Conquest {hero.spire} · Wins {hero.wins}</div>
-            <div className="text-sm">Specialization: {trees.find((t) => t.id === hero.spec)?.name ?? "none"}</div>
-            <div className="pt-2 font-display text-gold">Battle Rating {fmt(s.power)}</div>
+            <div className="text-muted-foreground">{CLASSES[hero.cls].name}  {tr("· Level")} {hero.level}{hero.paragon > 0 && ` · Ascension ${hero.paragon}`}</div>
+            <div className="text-sm">{tr("XP")} {fmt(hero.xp)} / {fmt(xpToNext(hero))}</div>
+            <div className="text-sm">{tr("Campaign stage")} {hero.stage}  {tr("· Conquest")} {hero.spire}  {tr("· Wins")} {hero.wins}</div>
+            <div className="text-sm">{tr("Specialization:")} {trees.find((t) => t.id === hero.spec)?.name ?? "none"}</div>
+            <div className="pt-2 font-display text-gold">{tr("Battle Rating")} {fmt(s.power)}</div>
             {powerBreakdown(hero).map((p) => <div key={p.label} className="flex justify-between text-sm"><span>{p.label}</span><span>{fmt(p.power)}</span></div>)}
           </div>
           <div>
-            <div className="mb-2 font-display">Gear set bonuses</div>
-            {activeSets(hero.equipment).filter((x) => x.count >= 2).length === 0 && <p className="mb-3 text-sm text-muted-foreground">Equip 2+ pieces from the same family (e.g. two "Bloodforged" items) to activate bonuses.</p>}
+            <div className="mb-2 font-display">{tr("Gear set bonuses")}</div>
+            {activeSets(hero.equipment).filter((x) => x.count >= 2).length === 0 && <p className="mb-3 text-sm text-muted-foreground">{tr("Equip 2+ pieces from the same family (e.g. two \"Bloodforged\" items) to activate bonuses.")}</p>}
             {activeSets(hero.equipment).filter((x) => x.count >= 2).map((x) => (
               <div key={x.name} className="slot mb-1 px-3 py-1.5 text-sm">
-                <b>{x.name}</b> ({x.count}/6): {SET_BONUSES.map((b) => <span key={b.pieces} className={x.count >= b.pieces ? "text-gold" : "text-muted-foreground"}> {b.pieces}pc {b.label};</span>)}
+                <b>{x.name}</b> ({x.count}/6): {SET_BONUSES.map((b) => <span key={b.pieces} className={x.count >= b.pieces ? "text-gold" : "text-muted-foreground"}> {b.pieces}{tr("pc")} {b.label};</span>)}
               </div>
             ))}
-            <div className="mb-2 mt-4 font-display">Abilities</div>
+            <div className="mb-2 mt-4 font-display">{tr("Abilities")}</div>
             {heroSkills(hero).map((k) => (
               <div key={k.id} className="slot mb-1 px-3 py-1.5 text-sm">
-                <b>{k.name}</b> — {Math.round(k.mult * (k.hits ?? 1) * 100)}% dmg{k.hits ? ` (${k.hits} hits)` : ""}, cooldown {k.cd}
-                {k.heal ? `, heals ${Math.round(k.heal * 100)}%` : ""}{k.stun ? ", stuns" : ""}{k.crit ? ", always crits" : ""}
+                <b>{k.name}</b> — {Math.round(k.mult * (k.hits ?? 1) * 100)}{tr("% dmg")}{k.hits ? ` (${k.hits} hits)` : ""}{tr(", cooldown")} {k.cd}
+                {k.heal ? `, heals ${Math.round(k.heal * 100)}%` : ""}{k.stun ? tr(", stuns") : ""}{k.crit ? tr(", always crits") : ""}
               </div>
             ))}
           </div>

@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -113,21 +114,21 @@ export function WorldChat({ heroId }: { heroId: string | null }) {
   return <>
     <section className="game-panel world-chat pointer-events-auto absolute bottom-16 left-3 z-20 w-[min(22rem,calc(100vw-1.5rem))] p-2">
       <header className="flex items-center justify-between gap-2 border-b border-border pb-1">
-        <div role="tablist" aria-label="Chat channels" className="flex gap-1">
+        <div role="tablist" aria-label={t("Chat channels")} className="flex gap-1">
           {(["world", "general", "guild"] as const).map((room) => (
             <button key={room} role="tab" aria-selected={channel === room}
               className={`rounded px-2 py-0.5 font-display text-sm font-bold transition ${channel === room ? "text-gold" : "text-muted-foreground hover:text-gold"}`}
               onClick={() => { setChannel(room); setError(""); }}>
-              {room === "world" ? "World" : room === "general" ? "General" : "Guild"}
+              {room === "world" ? t("World") : room === "general" ? t("General") : t("Guild")}
             </button>
           ))}
         </div>
-        <button className="text-xs text-muted-foreground hover:text-gold" aria-expanded={!collapsed} onClick={() => setCollapsed((v) => !v)}>{collapsed ? "Expand" : "Collapse"}</button>
+        <button className="text-xs text-muted-foreground hover:text-gold" aria-expanded={!collapsed} onClick={() => setCollapsed((v) => !v)}>{collapsed ? t("Expand") : t("Collapse")}</button>
       </header>
       {!collapsed && <>
         <div ref={listRef} className="mt-1 h-44 overflow-y-auto py-1" aria-live="polite">
           {feed.length === 0
-            ? <p className="py-2 text-sm text-muted-foreground">{channel === "world" ? "No one has spoken yet." : channel === "general" ? "General chat is empty — say hello!" : guildId ? "No guild messages yet." : "Join a guild at the Guild Hall to talk with your guild."}</p>
+            ? <p className="py-2 text-sm text-muted-foreground">{channel === "world" ? t("No one has spoken yet.") : channel === "general" ? t("General chat is empty — say hello!") : guildId ? t("No guild messages yet.") : t("Join a guild at the Guild Hall to talk with your guild.")}</p>
             : feed.map((m) => isEventLine(m.body)
               ? <p key={m.id} className="chat-event mb-1 break-words text-xs">
                   <time className="mr-1 text-[10px] text-muted-foreground">{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time>
@@ -147,17 +148,17 @@ export function WorldChat({ heroId }: { heroId: string | null }) {
             placeholder={canSend ? (channel === "guild" ? "Message your guild…" : "Say something to the realm…") : "Join a guild to chat"} disabled={!canSend}
             maxLength={240}
             value={body} onChange={(e) => setBody(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void send(); } }} />
-          <button type="submit" className="btn-gold px-3 text-sm" disabled={sending || !body.trim() || body.trim().length > 200 || !canSend}>Send</button>
+          <button type="submit" className="btn-gold px-3 text-sm" disabled={sending || !body.trim() || body.trim().length > 200 || !canSend}>{t("Send")}</button>
         </form>
-        {body.trim().length > 200 && <p className="mt-1 text-xs text-muted-foreground">Messages must be 200 characters or fewer.</p>}
+        {body.trim().length > 200 && <p className="mt-1 text-xs text-muted-foreground">{t("Messages must be 200 characters or fewer.")}</p>}
         <p className="mt-1 text-[10px] text-muted-foreground">
           {channel === "guild" && !guildId
-            ? "Guild chat opens once you join a guild."
+            ? t("Guild chat opens once you join a guild.")
             : throttled
-              ? "Slow down a moment — five messages every 15 seconds."
+              ? t("Slow down a moment — five messages every 15 seconds.")
               : channel === "general"
-                ? "General shows player messages only; event announcements appear under World."
-                : "1 message per second · max 5 per 15 seconds. Muted senders cannot chat."}
+                ? t("General shows player messages only; event announcements appear under World.")
+                : t("1 message per second · max 5 per 15 seconds. Muted senders cannot chat.")}
         </p>
         {error && <p role="alert" className="mt-1 break-words text-xs text-hp">{error}</p>}
       </>}

@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useState, useRef, useMemo } from "react";
 import { CLASSES } from "./data";
 import { update, useGame } from "./store";
@@ -74,10 +75,10 @@ export function PassiveTreeContent() {
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="font-display text-lg">Insight: <span className="text-gold">{fmt(insightBank(hero))}</span>
-          <span className="ml-3 text-sm text-muted-foreground">{fmt(spentInsight(hero))} spent · {fmt(totalInsight(hero))} earned</span>
+        <div className="font-display text-lg">{t("Insight:")} <span className="text-gold">{fmt(insightBank(hero))}</span>
+          <span className="ml-3 text-sm text-muted-foreground">{fmt(spentInsight(hero))}  {t("spent ·")} {fmt(totalInsight(hero))}  {t("earned")}</span>
         </div>
-        <div className="text-xs text-muted-foreground">Earn Insight from level-ups, victories, quests & achievements. Ranks are permanent.</div>
+        <div className="text-xs text-muted-foreground">{t("Earn Insight from level-ups, victories, quests & achievements. Ranks are permanent.")}</div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
@@ -98,7 +99,7 @@ export function PassiveTreeContent() {
             </svg>
 
             {/* Branch labels */}
-            <span className="absolute left-2 top-0 font-display text-sm text-gold/80">General</span>
+            <span className="absolute left-2 top-0 font-display text-sm text-gold/80">{t("General")}</span>
             <span className="absolute right-2 top-0 font-display text-sm text-gold/80">{CLASSES[hero.cls].name}</span>
             {([1, 2, 3] as const).map(tier => (
               <span key={tier} className="absolute left-2 text-[10px] text-muted-foreground" style={{ top: tier === 1 ? 55 : tier === 2 ? 195 : 335 }}>
@@ -165,17 +166,16 @@ export function PassiveTreeContent() {
             <span>{detail.name}</span>
           </h3>
           <div className="mb-1 text-sm text-muted-foreground">
-            {detail.group === "general" ? "General" : CLASSES[detail.group as keyof typeof CLASSES]?.name ?? detail.group} · Tier {detail.tier}
+            {detail.group === "general" ? t("General") : CLASSES[detail.group as keyof typeof CLASSES]?.name ?? detail.group}  {t("· Tier")} {detail.tier}
           </div>
           <p className="text-sm">{detail.desc}</p>
           <div className="mt-3 space-y-1 text-sm">
-            <div><span className="text-muted-foreground">Per rank:</span> {effects(detail.fx, 1)}</div>
-            <div><span className="text-muted-foreground">Current ({rank}):</span> {effects(detail.fx, rank)}</div>
-            {rank < detail.max && <div><span className="text-muted-foreground">Next ({rank + 1}):</span> {effects(detail.fx, rank + 1)}</div>}
+            <div><span className="text-muted-foreground">{t("Per rank:")}</span> {effects(detail.fx, 1)}</div>
+            <div><span className="text-muted-foreground">{t("Current (")}{rank}):</span> {effects(detail.fx, rank)}</div>
+            {rank < detail.max && <div><span className="text-muted-foreground">{t("Next (")}{rank + 1}):</span> {effects(detail.fx, rank + 1)}</div>}
           </div>
           <div className="mt-2 text-xs text-muted-foreground">
-            Rank {rank}/{detail.max} · {detail.cost} Insight/rank
-          </div>
+             {t("Rank")} {rank}/{detail.max} · {detail.cost}  {t("Insight/rank")} </div>
           <div className="mt-auto pt-4">
             <button type="button" className="btn-gold w-full px-4 py-2" disabled={!!reason}
               title={reason ?? `Spend ${detail.cost} Insight`}

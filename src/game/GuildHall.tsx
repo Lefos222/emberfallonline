@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useEffect, useState } from "react";
 import { Check, Crown, RefreshCw, Send, Shield, ShieldOff, UserPlus, UserMinus, X, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -141,8 +142,8 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
     const self = m.hero_id === heroId;
     return <div key={m.hero_id} className="flex items-center justify-between gap-2 border-b border-border py-3 text-sm">
       <div className="min-w-0">
-        <p className="truncate"><span className="font-display">{info?.name ?? "Member"}</span>{self && <span className="ml-1 text-[10px] uppercase text-muted-foreground">you</span>}</p>
-        <p className="text-xs text-muted-foreground">Lv {info?.level ?? "—"} · {info ? info.power.toLocaleString() : "—"} power · joined {new Date(m.joined_at).toLocaleDateString()}</p>
+        <p className="truncate"><span className="font-display">{info?.name ?? "Member"}</span>{self && <span className="ml-1 text-[10px] uppercase text-muted-foreground">{t("you")}</span>}</p>
+        <p className="text-xs text-muted-foreground">{t("Lv")} {info?.level ?? "—"} · {info ? info.power.toLocaleString() : "—"}  {t("power · joined")} {new Date(m.joined_at).toLocaleDateString()}</p>
       </div>
       <div className="flex shrink-0 items-center gap-1">
         <span className="mr-1 text-xs text-muted-foreground">{m.role}</span>
@@ -164,34 +165,34 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
       </div>
     </div>;
   };
-  return <Panel title="Guild Hall" subtitle="Your guild, tower and treasury" art="guild" onClose={onClose} wide>
-    <div className="flex justify-end"><Button variant="outline" size="icon" aria-label="Refresh guild" disabled={request.busy} onClick={() => void request.run(load)}><RefreshCw /></Button></div>
+  return <Panel title={t("Guild Hall")} subtitle={t("Your guild, tower and treasury")} art="guild" onClose={onClose} wide>
+    <div className="flex justify-end"><Button variant="outline" size="icon" aria-label={t("Refresh guild")} disabled={request.busy} onClick={() => void request.run(load)}><RefreshCw /></Button></div>
     <RequestStatus {...request} />
-    {!loaded && <p role="status" className="py-8 text-center text-muted-foreground">Opening the guild gates…</p>}
+    {!loaded && <p role="status" className="py-8 text-center text-muted-foreground">{t("Opening the guild gates…")}</p>}
     {loaded && !guild && !loadError && <>
       <GuildHallScene name="Guild Hall" level={1} members={0} location="headquarters" court onSelect={() => {}} />
-      <h3 className="mb-4 font-display text-2xl text-gold">Guild invitations</h3>
-      {invites.length === 0 && <p className="mb-6 text-sm text-muted-foreground">No pending invitations.</p>}
+      <h3 className="mb-4 font-display text-2xl text-gold">{t("Guild invitations")}</h3>
+      {invites.length === 0 && <p className="mb-6 text-sm text-muted-foreground">{t("No pending invitations.")}</p>}
       {invites.map((i) => <div key={i.id} className="mb-3 flex items-center justify-between gap-2 border-b border-border py-3"><span>{inviteNames[i.guild_id] ?? "Guild invitation"}</span><span className="flex gap-2">{[true, false].map((accept) => <Button key={String(accept)} variant="outline" size="icon" aria-label={accept ? "Accept invitation" : "Decline invitation"} disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("respond_invite", { _hero: id, _invite: i.id, _accept: accept })))}>{accept ? <Check /> : <X />}</Button>)}</span></div>)}
       {/* My pending applications */}
       {myApps.length > 0 && <div className="mb-6">
-        <h4 className="mb-2 font-display text-lg">Your applications</h4>
-        {myApps.map((a) => <div key={a.id} className="flex items-center justify-between gap-2 border-b border-border py-2 text-sm"><div><span className="text-gold">{allGuilds.find((g) => g.id === a.guild_id)?.name ?? "Guild"}</span>{a.message && <span className="ml-2 text-muted-foreground">"{a.message}"</span>}</div><Button variant="ghost" size="sm" disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("withdraw_application", { _hero: id, _application: a.id })))}>Withdraw</Button></div>)}
+        <h4 className="mb-2 font-display text-lg">{t("Your applications")}</h4>
+        {myApps.map((a) => <div key={a.id} className="flex items-center justify-between gap-2 border-b border-border py-2 text-sm"><div><span className="text-gold">{allGuilds.find((g) => g.id === a.guild_id)?.name ?? "Guild"}</span>{a.message && <span className="ml-2 text-muted-foreground">"{a.message}"</span>}</div><Button variant="ghost" size="sm" disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("withdraw_application", { _hero: id, _application: a.id })))}>{t("Withdraw")}</Button></div>)}
       </div>}
       {/* Browse and apply to guilds */}
       <div className="mb-6 border-t border-border pt-5">
-        <h4 className="mb-3 font-display text-2xl">Available guilds</h4>
-        <input aria-label="Search guilds" className="slot mb-3 w-full px-3 py-2" placeholder="Search guilds" value={search} onChange={(e) => setSearch(e.target.value)} />
-        {allGuilds.length === 0 && <p className="text-sm text-muted-foreground">No guilds have been founded yet.</p>}
+        <h4 className="mb-3 font-display text-2xl">{t("Available guilds")}</h4>
+        <input aria-label={t("Search guilds")} className="slot mb-3 w-full px-3 py-2" placeholder={t("Search guilds")} value={search} onChange={(e) => setSearch(e.target.value)} />
+        {allGuilds.length === 0 && <p className="text-sm text-muted-foreground">{t("No guilds have been founded yet.")}</p>}
         <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
           {allGuilds.filter((g) => g.name.toLowerCase().includes(search.toLowerCase())).map((g) => <div key={g.id} className="slot p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div><span className="font-display text-lg text-gold">{g.name}</span><span className="ml-2 text-xs text-muted-foreground">Lv {g.level}</span></div>
+              <div><span className="font-display text-lg text-gold">{g.name}</span><span className="ml-2 text-xs text-muted-foreground">{t("Lv")} {g.level}</span></div>
               {myApps.some((a) => a.guild_id === g.id)
-                ? <span className="text-xs text-muted-foreground">Applied</span>
+                ? <span className="text-xs text-muted-foreground">{t("Applied")}</span>
                 : <div className="flex items-center gap-1">
-                    <input aria-label={`Application message for ${g.name}`} className="slot min-w-0 w-40 px-2 py-1 text-sm" placeholder="Message (optional)" maxLength={200} value={applyMsg[g.id] ?? ""} onChange={(e) => setApplyMsg((m) => ({ ...m, [g.id]: e.target.value }))} />
-                    <Button variant="outline" size="sm" disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("apply_guild", { _hero: id, _guild: g.id, _message: applyMsg[g.id] ?? "" })))}><UserPlus className="h-4 w-4" />Apply</Button>
+                    <input aria-label={`Application message for ${g.name}`} className="slot min-w-0 w-40 px-2 py-1 text-sm" placeholder={t("Message (optional)")} maxLength={200} value={applyMsg[g.id] ?? ""} onChange={(e) => setApplyMsg((m) => ({ ...m, [g.id]: e.target.value }))} />
+                    <Button variant="outline" size="sm" disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("apply_guild", { _hero: id, _guild: g.id, _message: applyMsg[g.id] ?? "" })))}><UserPlus className="h-4 w-4" />{t("Apply")}</Button>
                   </div>}
             </div>
             {g.description && <p className="mt-1 text-sm text-muted-foreground">{g.description}</p>}
@@ -199,15 +200,15 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
         </div>
       </div>
       <form className="max-w-md space-y-3 border-t border-border pt-5" onSubmit={(e) => { e.preventDefault(); void request.run(() => mutate((id) => supabase.rpc("create_guild", { _hero: id, _name: name.trim(), _description: description, _emblem: "shield" }))); }}>
-        <h3 className="font-display text-2xl">Found a guild</h3>
-        <label className="block text-sm">Guild name<input className="slot mt-1 w-full px-3 py-2" required minLength={3} maxLength={20} value={name} onChange={(e) => setName(e.target.value)} /></label>
-        <label className="block text-sm">Description<textarea className="slot mt-1 w-full px-3 py-2" maxLength={200} value={description} onChange={(e) => setDescription(e.target.value)} /></label>
-        <Button disabled={request.busy || !hero || hero.gold < 10000}><Shield />Create guild · 10,000 gold</Button>
+        <h3 className="font-display text-2xl">{t("Found a guild")}</h3>
+        <label className="block text-sm">{t("Guild name")}<input className="slot mt-1 w-full px-3 py-2" required minLength={3} maxLength={20} value={name} onChange={(e) => setName(e.target.value)} /></label>
+        <label className="block text-sm">{t("Description")}<textarea className="slot mt-1 w-full px-3 py-2" maxLength={200} value={description} onChange={(e) => setDescription(e.target.value)} /></label>
+        <Button disabled={request.busy || !hero || hero.gold < 10000}><Shield />{t("Create guild · 10,000 gold")}</Button>
       </form>
     </>}
     {loaded && !guild && loadError && <>
       <GuildHallScene name="Guild Hall" level={1} members={0} location="headquarters" court onSelect={() => {}} />
-      <p className="py-4 text-center text-sm text-muted-foreground">The guild hall could not be opened. Refresh to try again.</p>
+      <p className="py-4 text-center text-sm text-muted-foreground">{t("The guild hall could not be opened. Refresh to try again.")}</p>
     </>}
     {guild && <>
       <GuildHallScene name={guild.name} level={guild.level} members={members.length} power={memberPower}
@@ -233,46 +234,46 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
         {/* The guild charter: the words every member reads on the way in. */}
         <div className="mt-3 border-y border-border py-4">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="font-display text-lg text-gold">Guild charter</h4>
-            {canManage && !editingCharter && <Button variant="outline" size="sm" onClick={() => setEditingCharter(true)}><PenLine className="h-4 w-4" />Edit</Button>}
+            <h4 className="font-display text-lg text-gold">{t("Guild charter")}</h4>
+            {canManage && !editingCharter && <Button variant="outline" size="sm" onClick={() => setEditingCharter(true)}><PenLine className="h-4 w-4" />{t("Edit")}</Button>}
           </div>
           {editingCharter ? <div className="mt-2 space-y-2">
-            <label className="block text-sm">Description<textarea className="slot mt-1 w-full px-3 py-2" maxLength={200} value={charter.description} onChange={(e) => setCharter((c) => ({ ...c, description: e.target.value }))} /></label>
-            <label className="block text-sm">Announcement<textarea className="slot mt-1 w-full px-3 py-2" maxLength={300} value={charter.announcement} onChange={(e) => setCharter((c) => ({ ...c, announcement: e.target.value }))} /></label>
+            <label className="block text-sm">{t("Description")}<textarea className="slot mt-1 w-full px-3 py-2" maxLength={200} value={charter.description} onChange={(e) => setCharter((c) => ({ ...c, description: e.target.value }))} /></label>
+            <label className="block text-sm">{t("Announcement")}<textarea className="slot mt-1 w-full px-3 py-2" maxLength={300} value={charter.announcement} onChange={(e) => setCharter((c) => ({ ...c, announcement: e.target.value }))} /></label>
             <div className="flex gap-2">
-              <Button size="sm" disabled={request.busy} onClick={saveCharter}>Save charter</Button>
-              <Button size="sm" variant="ghost" onClick={() => { setEditingCharter(false); setCharter({ description: guild.description ?? "", announcement: guild.announcement ?? "" }); }}>Cancel</Button>
+              <Button size="sm" disabled={request.busy} onClick={saveCharter}>{t("Save charter")}</Button>
+              <Button size="sm" variant="ghost" onClick={() => { setEditingCharter(false); setCharter({ description: guild.description ?? "", announcement: guild.announcement ?? "" }); }}>{t("Cancel")}</Button>
             </div>
           </div> : <>
             <p className="mt-1 break-words text-sm">{guild.description || "No description yet."}</p>
             {guild.announcement && <p className="mt-2 border-l-2 border-primary pl-3 text-sm">{guild.announcement}</p>}
           </>}
-          <p className="mt-2 text-xs text-muted-foreground">Guild level {guild.level} · {guildTotalRanks(hero ?? {})} tower ranks among your own deeds · founded {new Date(guild.created_at).toLocaleDateString()}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{t("Guild level")} {guild.level} · {guildTotalRanks(hero ?? {})}  {t("tower ranks among your own deeds · founded")} {new Date(guild.created_at).toLocaleDateString()}</p>
         </div>
 
         {/* Applications moderation for leaders/officers */}
         {canManage && applications.length > 0 && <div className="mt-5 border-y border-border py-4">
-          <h4 className="mb-3 font-display text-xl text-gold">Applications ({applications.length})</h4>
+          <h4 className="mb-3 font-display text-xl text-gold">{t("Applications (")}{applications.length})</h4>
           {applications.map((a) => <div key={a.id} className="flex items-center justify-between gap-2 border-b border-border py-3">
             <div><span className="font-display text-base">{a.hero_name}</span>{a.message && <p className="text-sm text-muted-foreground">"{a.message}"</p>}</div>
             <div className="flex gap-2">
-              <Button variant="outline" size="icon" aria-label="Accept application" disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("moderate_application", { _hero: id, _application: a.id, _accept: true })))}><Check /></Button>
-              <Button variant="outline" size="icon" aria-label="Reject application" disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("moderate_application", { _hero: id, _application: a.id, _accept: false })))}><X /></Button>
+              <Button variant="outline" size="icon" aria-label={t("Accept application")} disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("moderate_application", { _hero: id, _application: a.id, _accept: true })))}><Check /></Button>
+              <Button variant="outline" size="icon" aria-label={t("Reject application")} disabled={request.busy} onClick={() => void request.run(() => mutate((id) => supabase.rpc("moderate_application", { _hero: id, _application: a.id, _accept: false })))}><X /></Button>
             </div>
           </div>)}
         </div>}
-        <div role="tablist" aria-label="Guild headquarters" className="mt-5 flex flex-wrap gap-2 border-b border-border pb-3">
-          {(["members", "chat", "records"] as const).map((tab) => <Button key={tab} role="tab" aria-selected={headTab === tab} variant={headTab === tab ? "default" : "ghost"} onClick={() => setHeadTab(tab)}>{tab === "members" ? `Members · ${members.length}` : tab === "chat" ? "Guild chat" : "Hall of Records"}</Button>)}
+        <div role="tablist" aria-label={t("Guild headquarters")} className="mt-5 flex flex-wrap gap-2 border-b border-border pb-3">
+          {(["members", "chat", "records"] as const).map((tab) => <Button key={tab} role="tab" aria-selected={headTab === tab} variant={headTab === tab ? "default" : "ghost"} onClick={() => setHeadTab(tab)}>{tab === "members" ? `Members · ${members.length}` : tab === "chat" ? t("Guild chat") : t("Hall of Records")}</Button>)}
         </div>
         <div className="mt-3">
           {headTab === "members" && <div>
-            <h4 className="font-display text-lg">Members <span className="text-sm text-muted-foreground">{members.length}/30</span></h4>
+            <h4 className="font-display text-lg">{t("Members")} <span className="text-sm text-muted-foreground">{members.length}/30</span></h4>
             <div className="max-h-64 overflow-y-auto pr-1">{members.map(memberRow)}</div>
-            {canManage && <form className="mt-4 flex gap-2" onSubmit={(e) => { e.preventDefault(); void request.run(async () => { await mutate((id) => supabase.rpc("guild_invite", { _hero: id, _target_name: target.trim() })); setTarget(""); }); }}><input aria-label="Hero name to invite" className="slot min-w-0 flex-1 px-2" required value={target} onChange={(e) => setTarget(e.target.value)} /><Button size="icon" aria-label="Invite hero" disabled={request.busy}><UserPlus /></Button></form>}
-            <Button variant="outline" className="mt-4" disabled={request.busy} onClick={() => { if (window.confirm("Leave your guild?")) void request.run(() => mutate((id) => supabase.rpc("leave_guild", { _hero: id }))); }}>Leave guild</Button>
+            {canManage && <form className="mt-4 flex gap-2" onSubmit={(e) => { e.preventDefault(); void request.run(async () => { await mutate((id) => supabase.rpc("guild_invite", { _hero: id, _target_name: target.trim() })); setTarget(""); }); }}><input aria-label={t("Hero name to invite")} className="slot min-w-0 flex-1 px-2" required value={target} onChange={(e) => setTarget(e.target.value)} /><Button size="icon" aria-label={t("Invite hero")} disabled={request.busy}><UserPlus /></Button></form>}
+            <Button variant="outline" className="mt-4" disabled={request.busy} onClick={() => { if (window.confirm("Leave your guild?")) void request.run(() => mutate((id) => supabase.rpc("leave_guild", { _hero: id }))); }}>{t("Leave guild")}</Button>
           </div>}
-          {headTab === "chat" && <div><h4 className="mb-2 font-display text-lg">Guild chat</h4><div role="log" aria-label="Guild message history" className="h-72 overflow-y-auto border-y border-border py-2">{messages.length === 0 && <p className="text-sm text-muted-foreground">No guild messages yet.</p>}{messages.map((m) => <p key={m.id} className="mb-2 break-words text-sm"><b className="text-gold">{m.sender_name}</b><span className="ml-2 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span><span className="block">{m.body}</span></p>)}</div>
-            <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); void request.run(async () => { if (!heroId) return; const { error } = await supabase.rpc("send_chat", { _hero: heroId, _channel: "guild", _body: body, _to: "00000000-0000-0000-0000-000000000000" }); if (error) throw new Error(error.message); setBody(""); await load(); }); }}><input className="slot min-w-0 flex-1 px-3" aria-label="Guild message" maxLength={200} required value={body} onChange={(e) => setBody(e.target.value)} /><Button size="icon" aria-label="Send guild message" disabled={request.busy || !body.trim()}><Send /></Button></form>
+          {headTab === "chat" && <div><h4 className="mb-2 font-display text-lg">{t("Guild chat")}</h4><div role="log" aria-label={t("Guild message history")} className="h-72 overflow-y-auto border-y border-border py-2">{messages.length === 0 && <p className="text-sm text-muted-foreground">{t("No guild messages yet.")}</p>}{messages.map((m) => <p key={m.id} className="mb-2 break-words text-sm"><b className="text-gold">{m.sender_name}</b><span className="ml-2 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span><span className="block">{m.body}</span></p>)}</div>
+            <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); void request.run(async () => { if (!heroId) return; const { error } = await supabase.rpc("send_chat", { _hero: heroId, _channel: "guild", _body: body, _to: "00000000-0000-0000-0000-000000000000" }); if (error) throw new Error(error.message); setBody(""); await load(); }); }}><input className="slot min-w-0 flex-1 px-3" aria-label={t("Guild message")} maxLength={200} required value={body} onChange={(e) => setBody(e.target.value)} /><Button size="icon" aria-label={t("Send guild message")} disabled={request.busy || !body.trim()}><Send /></Button></form>
           </div>}
           {headTab === "records" && <GuildRecords guild={guild} members={members} memberHeroes={memberHeroes} heroId={heroId} />}
         </div>

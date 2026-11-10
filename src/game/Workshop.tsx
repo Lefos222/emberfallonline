@@ -1,4 +1,4 @@
-import { itemName } from "./i18n";
+import { itemName , tr} from "./i18n";
 import { AstralIcon, MatIcon, GemIcon } from "./MatIcon";
 import { CharacterModel } from "./CharacterModel";
 import { useState } from "react";
@@ -115,8 +115,8 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
   const act = (fn: Parameters<typeof update>[0]) => update(fn);
   return (
     <Panel
-      title="Gem Workshop"
-      subtitle="Cut, socket and fuse gems"
+      title={tr("Gem Workshop")}
+      subtitle={tr("Cut, socket and fuse gems")}
       art="gem"
       onClose={onClose}
       wide
@@ -125,12 +125,10 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
       {toast}
       <div className="grid gap-5 lg:grid-cols-3">
         <div>
-          <div className="mb-2 font-display">Socketed gear</div>
+          <div className="mb-2 font-display">{tr("Socketed gear")}</div>
           {gear.length === 0 && (
             <p className="text-sm text-muted-foreground">
-              Uncommon or better gear is born with sockets (Epic: 2, Mythic: 3), and the Gem
-              Workshop cuts extra holes into any piece — up to four.
-            </p>
+               {tr("Uncommon or better gear is born with sockets (Epic: 2, Mythic: 3), and the Gem Workshop cuts extra holes into any piece — up to four.")} </p>
           )}
           <div className="max-h-96 space-y-1 overflow-y-auto">
             {gear.map((it) => (
@@ -164,7 +162,7 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
                         {gemName(g)} (+{gemValue(g)} {GEM_STAT_LABEL[GEMS[parseGem(g)!.type].stat]})
                       </span>
                     ) : (
-                      <span className="text-muted-foreground">Empty socket {i + 1}</span>
+                      <span className="text-muted-foreground">{tr("Empty socket")} {i + 1}</span>
                     )}
                     {g ? (
                       <button
@@ -176,12 +174,10 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
                           })
                         }
                       >
-                        <X className="inline h-3 w-3" /> Remove
-                      </button>
+                        <X className="inline h-3 w-3" />  {tr("Remove")} </button>
                     ) : (
                       <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => setPick(i)}>
-                        <Gem className="inline h-3 w-3" /> Insert gem
-                      </button>
+                        <Gem className="inline h-3 w-3" />  {tr("Insert gem")} </button>
                     )}
                   </div>
                 ))}
@@ -190,11 +186,9 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
                 <div className="mb-2 flex items-center justify-between font-display text-sm">
                   <span className="flex items-center gap-2">
                     <Gem className="h-4 w-4" />
-                    Cut a socket
-                  </span>
+                     {tr("Cut a socket")} </span>
                   <span className="text-xs text-muted-foreground">
-                    {socketCount(sel)}/{MAX_SOCKETS} holes
-                  </span>
+                    {socketCount(sel)}/{MAX_SOCKETS}  {tr("holes")} </span>
                 </div>
                 <div className="mb-2 flex items-center gap-1.5">
                   {Array.from({ length: MAX_SOCKETS }, (_, i) => (
@@ -221,38 +215,32 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
                     `All ${MAX_SOCKETS} sockets cut`
                   ) : (
                     <>
-                      Cut a gem socket{" "}
+                       {tr("Cut a gem socket")}{" "}
                       <Gold n={holeCost(sel, hero.level)} className="text-primary-foreground" />
                     </>
                   )}
                 </button>
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Each extra hole costs more than the last; every piece can hold up to {MAX_SOCKETS}{" "}
-                  gems.
-                </p>
+                   {tr("Each extra hole costs more than the last; every piece can hold up to")} {MAX_SOCKETS}{" "}
+                   {tr("gems.")} </p>
               </div>
             </>
           ) : (
             <p className="py-16 text-center text-muted-foreground">
-              Pick a piece of gear to socket
-            </p>
+               {tr("Pick a piece of gear to socket")} </p>
           )}
         </div>
         <div>
           <div className="mb-2 flex items-center justify-between font-display">
-            Your gems
-            <Button size="sm" onClick={() => setForgeOpen(true)}>
+             {tr("Your gems")} <Button size="sm" onClick={() => setForgeOpen(true)}>
               <Gem className="h-4 w-4" />
-              Forge a gem
-            </Button>
+               {tr("Forge a gem")} </Button>
           </div>
           <p className="mb-3 text-xs text-muted-foreground">
-            The forge shows exactly what a gem grants and what it costs before you spend anything.
-          </p>
+             {tr("The forge shows exactly what a gem grants and what it costs before you spend anything.")} </p>
           {owned.length === 0 && (
             <p className="text-sm text-muted-foreground">
-              No gems yet. Forge one from materials, or buy one with Conquest Tokens.
-            </p>
+               {tr("No gems yet. Forge one from materials, or buy one with Conquest Tokens.")} </p>
           )}
           <div className="space-y-1">
             {owned.map(([k, n]) => {
@@ -268,7 +256,7 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
                     <GemIcon type={g.type} />
                     {gemName(k)} ×{n}
                     <span className="block text-xs text-muted-foreground">
-                      Level {g.tier} · +{gemValue(k)} {GEM_STAT_LABEL[GEMS[g.type].stat]}
+                       {tr("Level")} {g.tier} · +{gemValue(k)} {GEM_STAT_LABEL[GEMS[g.type].stat]}
                     </span>
                   </span>
                   <span className="flex gap-1">
@@ -284,8 +272,7 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
                         })
                       }
                     >
-                      Insert
-                    </button>
+                       {tr("Insert")} </button>
                     {g.tier < GEM_MAX_TIER && (
                       <button
                         className="btn-ghost px-2 py-0.5 text-xs"
@@ -299,8 +286,7 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
                         }
                       >
                         <ArrowUp className="inline h-3 w-3" />
-                        Fuse
-                      </button>
+                         {tr("Fuse")} </button>
                     )}
                   </span>
                 </div>
@@ -376,16 +362,15 @@ function AstralRow({
             </span>
             {seated && (
               <span className="rounded bg-gold/20 px-1 text-[10px] font-bold text-gold">
-                SEATED
-              </span>
+                 {tr("SEATED")} </span>
             )}
           </div>
           <div className="text-xs text-foreground/90">{astralStatText(a)}</div>
           <div className="text-[10px] text-muted-foreground">{species.power}</div>
         </div>
         <div className="shrink-0 text-right">
-          <div className="font-display text-lg leading-none text-gold">Lv {a.lvl}</div>
-          <div className="text-[10px] text-muted-foreground">endless</div>
+          <div className="font-display text-lg leading-none text-gold">{tr("Lv")} {a.lvl}</div>
+          <div className="text-[10px] text-muted-foreground">{tr("endless")}</div>
         </div>
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -396,36 +381,32 @@ function AstralRow({
           onClick={onUpgrade}
         >
           <ArrowUp className="h-3 w-3" />
-          Upgrade <Gold n={cost} className="text-primary-foreground" />
+           {tr("Upgrade")} <Gold n={cost} className="text-primary-foreground" />
         </button>
         <span className="text-[11px] text-muted-foreground">
-          next: {astralStatText({ ...a, lvl: a.lvl + 1 })}
+           {tr("next:")} {astralStatText({ ...a, lvl: a.lvl + 1 })}
         </span>
         <span className="ml-auto flex gap-1">
           {seated ? (
             <button className="btn-ghost px-2 py-0.5 text-xs" onClick={onUnseat}>
-              Unseat
-            </button>
+               {tr("Unseat")} </button>
           ) : (
             <button className="btn-ghost px-2 py-0.5 text-xs" onClick={onSeat}>
-              Seat
-            </button>
+               {tr("Seat")} </button>
           )}
           {canAbsorb && (
             <button
               className="btn-ghost px-2 py-0.5 text-xs"
-              title="Feed a duplicate of this species into it for a free level"
+              title={tr("Feed a duplicate of this species into it for a free level")}
               onClick={onAbsorb}
             >
-              <Sparkles className="inline h-3 w-3" /> Absorb
-            </button>
+              <Sparkles className="inline h-3 w-3" />  {tr("Absorb")} </button>
           )}
         </span>
       </div>
       {hero.gold < cost && (
         <p className="mt-1 text-[10px] text-hp" role="note">
-          Not enough gold for the next level — raise {fmt(cost - hero.gold)} more.
-        </p>
+           {tr("Not enough gold for the next level — raise")} {fmt(cost - hero.gold)}  {tr("more.")} </p>
       )}
     </div>
   );
@@ -461,8 +442,8 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
 
   return (
     <Panel
-      title="Magic Tower"
-      subtitle="The Astral Vault · every stone unique, every level endless"
+      title={tr("Magic Tower")}
+      subtitle={tr("The Astral Vault · every stone unique, every level endless")}
       art="astral"
       onClose={onClose}
       wide
@@ -470,7 +451,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
       {toast}
       <div className="rounded-lg border border-[#2a2a32] bg-[#0a0b12] p-3 text-foreground">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <div className="font-display text-lg text-gold">ASTRAL VAULT</div>
+          <div className="font-display text-lg text-gold">{tr("ASTRAL VAULT")}</div>
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="flex items-center gap-1">
               <MatIcon mat="starshard" size={16} />
@@ -480,7 +461,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
               <Gold n={hero.gold} />
             </span>
             <span className="text-xs text-muted-foreground">
-              Seated {equipped}/{ASTRAL_SLOTS}
+               {tr("Seated")} {equipped}/{ASTRAL_SLOTS}
             </span>
           </div>
         </div>
@@ -510,7 +491,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
                   className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-[#3d3d44] bg-black/60 text-center"
                 >
                   <Lock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-[9px] leading-tight text-muted-foreground">Lv {lv}</span>
+                  <span className="text-[9px] leading-tight text-muted-foreground">{tr("Lv")} {lv}</span>
                 </div>
               );
             if (a)
@@ -546,9 +527,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
           })}
         </div>
         <p className="mb-3 text-center text-[11px] text-muted-foreground">
-          Click an open slot to seat an Astral beside your hero. Click a seated Astral to send it
-          back.
-        </p>
+           {tr("Click an open slot to seat an Astral beside your hero. Click a seated Astral to send it back.")} </p>
 
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <button
@@ -565,13 +544,13 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
             }
           >
             <Sparkles className="h-4 w-4" />
-            Random Summon <Gold n={500} className="text-primary-foreground" />
+             {tr("Random Summon")} <Gold n={500} className="text-primary-foreground" />
           </button>
           <span className="text-xs text-muted-foreground">
-            Species found {speciesOwned.size}/{Object.keys(ASTRAL_BASES).length}
+             {tr("Species found")} {speciesOwned.size}/{Object.keys(ASTRAL_BASES).length}
           </span>
           <span className="text-xs text-muted-foreground">
-            Total summons: {hero.astralSummons ?? 0}
+             {tr("Total summons:")} {hero.astralSummons ?? 0}
           </span>
           <div className="ml-auto flex gap-1">
             {ASTRAL_MILESTONES.map((m) => {
@@ -633,7 +612,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
         </div>
 
         <GameTabs
-          label="Astral families"
+          label={tr("Astral families")}
           value={tab}
           onChange={setTab}
           tabs={[
@@ -643,15 +622,15 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
         />
         <p className="mb-2 text-[11px] text-muted-foreground">
           {tab === "owned"
-            ? "Every Astral you hold. Upgrades cost gold and never stop."
+            ? tr("Every Astral you hold. Upgrades cost gold and never stop.")
             : ASTRAL_FAMILIES.find((f) => f.id === tab)?.blurb}
         </p>
 
         {shown.length === 0 ? (
           <p className="py-4 text-center text-sm text-muted-foreground">
             {tab === "owned"
-              ? "No Astrals yet — Starshards drop from battles and bosses. Summon one above."
-              : "No Astrals of this family yet."}
+              ? tr("No Astrals yet — Starshards drop from battles and bosses. Summon one above.")
+              : tr("No Astrals of this family yet.")}
           </p>
         ) : (
           <div className="grid gap-2 md:grid-cols-2">
@@ -700,8 +679,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
 
         <div className="mt-4">
           <div className="mb-2 font-display text-sm text-gold">
-            Species codex · {speciesList.length} stones
-          </div>
+             {tr("Species codex ·")} {speciesList.length}  {tr("stones")} </div>
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
             {speciesList.map((key) => {
               const sp = ASTRAL_BASES[key];
@@ -744,20 +722,19 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
           >
             <div className="mb-3 flex items-center justify-between gap-2">
               <div className="font-display text-lg text-gold">
-                Seat an Astral · slot {picking + 1}
+                 {tr("Seat an Astral · slot")} {picking + 1}
               </div>
               <button
                 className="btn-ghost px-2 py-1"
                 onClick={() => setPicking(null)}
-                aria-label="Close"
+                aria-label={tr("Close")}
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
             {list.filter((x) => !slots.includes(x.id)).length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">
-                Every Astral you own is already seated. Unseat one or summon more.
-              </p>
+                 {tr("Every Astral you own is already seated. Unseat one or summon more.")} </p>
             ) : (
               <div className="space-y-1.5">
                 {list
@@ -831,7 +808,7 @@ function RecipeRow({
         <div className="font-bold">
           {r.name}{" "}
           <span className="text-xs text-muted-foreground">
-            · item level {ilvl} · Lv {r.minLevel}+
+             {tr("· item level")} {ilvl}  {tr("· Lv")} {r.minLevel}+
           </span>
         </div>
         <div className="text-xs text-muted-foreground">{r.desc}</div>
@@ -855,7 +832,7 @@ function RecipeRow({
                 onClick={() => void payMissing(m, n)}
               >
                 {buying === m
-                  ? "Buying…"
+                  ? tr("Buying…")
                   : `Buy ${n} ${MATS[m].name} · ${materialCost(m as keyof typeof MATERIAL_PRICES, n, vip)}◆`}
               </Button>
             ))}
@@ -865,8 +842,7 @@ function RecipeRow({
       </div>
       <Button size="sm" disabled={!!b || busy} title={b ?? "Craft"} onClick={onCraft}>
         <Hammer className="h-4 w-4" />
-        Craft
-      </Button>
+         {tr("Craft")} </Button>
     </div>
   );
 }
@@ -900,8 +876,8 @@ export function Crafting({ onClose }: { onClose: () => void }) {
   };
   return (
     <Panel
-      title="Forge · Crafting"
-      subtitle="Shape materials into armor"
+      title={tr("Forge · Crafting")}
+      subtitle={tr("Shape materials into armor")}
       art="anvil"
       onClose={onClose}
       wide
@@ -909,7 +885,7 @@ export function Crafting({ onClose }: { onClose: () => void }) {
       <MatsBar />
       {toast}
       <GameTabs
-        label="Forge recipes"
+        label={tr("Forge recipes")}
         value={tab}
         onChange={setTab}
         tabs={[
@@ -946,15 +922,14 @@ export function Crafting({ onClose }: { onClose: () => void }) {
                 onCraft={() => doCraft(r, slot)}
               />
             ))}
-            <p className="text-xs text-muted-foreground">Crafted items: {hero.crafts ?? 0}</p>
+            <p className="text-xs text-muted-foreground">{tr("Crafted items:")} {hero.crafts ?? 0}</p>
           </div>
           <div>
             {last ? (
               <ItemCard item={last} compare={wornCompare(hero, last)} />
             ) : (
               <p className="py-10 text-center text-muted-foreground">
-                Your newest creation appears here, compared with what you wear.
-              </p>
+                 {tr("Your newest creation appears here, compared with what you wear.")} </p>
             )}
           </div>
         </div>

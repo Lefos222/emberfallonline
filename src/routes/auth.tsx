@@ -5,7 +5,7 @@ import castle from "@/assets/castle.jpg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { setUser } from "@/game/store";
-import { useT } from "@/game/i18n";
+import { useT , t} from "@/game/i18n";
 import { LanguagePicker } from "@/game/LanguagePicker";
 
 export const Route = createFileRoute("/auth")({
@@ -93,7 +93,7 @@ function AuthPage() {
       <div className="absolute inset-0 bg-background/60 vignette" />
       <div className="absolute right-3 top-3 z-10"><LanguagePicker /></div>
       <div className="game-panel anim-pop relative w-full max-w-sm p-6">
-        <h1 className="panel-title mb-1 text-center text-3xl font-bold">EmberFall Online</h1>
+        <h1 className="panel-title mb-1 text-center text-3xl font-bold">{t("EmberFall Online")}</h1>
         <p className="mb-5 text-center text-sm text-muted-foreground">{mode === "in" ? t("Return to your castle") : mode === "up" ? t("Forge a new legend") : t("Reset your password")}</p>
         <form onSubmit={submit} className="space-y-3">
           <input className="slot w-full px-3 py-2 outline-none" type="email" required placeholder={t("Email")} value={email} onChange={(e) => setEmail(e.target.value)} />

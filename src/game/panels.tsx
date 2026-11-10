@@ -1,4 +1,4 @@
-import { itemName, tName } from "./i18n";
+import { itemName, tName , t} from "./i18n";
 import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { trainingCost, trainAttribute } from './building-content';
@@ -83,7 +83,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
   const sell = (it: Item) => update((h) => { h.inventory = h.inventory.filter((i) => i.id !== it.id); h.gold += sellValue(it); });
 
   return (
-    <Panel title={title} subtitle="Bag, equipment and sets" art="bag" onClose={onClose} wide>
+    <Panel title={title} subtitle={t("Bag, equipment and sets")} art="bag" onClose={onClose} wide>
       <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
         <div>
           <div className="relative mx-auto grid max-w-xl grid-cols-[auto_minmax(0,1fr)_auto] items-stretch gap-2">
@@ -106,7 +106,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
           <div className="mt-3 text-center">
             <div className="font-display text-2xl">{hero.name}</div>
             <div className="text-sm text-muted-foreground">
-              {CLASSES[hero.cls].name} · Level {hero.level}{hero.paragon > 0 && <span className="text-gold"> · Ascension {hero.paragon}</span>}
+              {CLASSES[hero.cls].name}  {t("· Level")} {hero.level}{hero.paragon > 0 && <span className="text-gold">  {t("· Ascension")} {hero.paragon}</span>}
             </div>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm">
@@ -122,10 +122,10 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             ))}
           </div>
           <div className="mt-2 text-xs text-muted-foreground">
-            Str {hero.attrs.str} · Int {hero.attrs.int} · Agi {hero.attrs.agi} · Vit {hero.attrs.vit}
+             {t("Str")} {hero.attrs.str}  {t("· Int")} {hero.attrs.int}  {t("· Agi")} {hero.attrs.agi}  {t("· Vit")} {hero.attrs.vit}
           </div>
           <div className="slot mt-2 p-2 text-xs">
-            <div className="mb-1 font-display text-sm text-gold"><Trophy className="mr-1 inline h-3 w-3" />Battle Rating sources</div>
+            <div className="mb-1 font-display text-sm text-gold"><Trophy className="mr-1 inline h-3 w-3" />{t("Battle Rating sources")}</div>
             {powerBreakdown(hero).map((p) => (
               <div key={p.label} className="flex justify-between"><span>{p.label}</span><span>+{fmt(p.power)}</span></div>
             ))}
@@ -134,36 +134,34 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
         </div>
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <span className="font-display">Bag {hero.inventory.length}/{invCap(hero)}</span>
+            <span className="font-display">{t("Bag")} {hero.inventory.length}/{invCap(hero)}</span>
             <button className="btn-blood px-3 py-1 text-xs" onClick={() => update((h) => {
               const junk = h.inventory.filter((i) => i.rarity <= 1 && i.enh === 0);
               h.gold += junk.reduce((a, i) => a + sellValue(i), 0);
               h.inventory = h.inventory.filter((i) => !(i.rarity <= 1 && i.enh === 0));
             })}>
-              <Trash2 className="mr-1 inline h-3 w-3" />Sell common
-            </button>
+              <Trash2 className="mr-1 inline h-3 w-3" />{t("Sell common")} </button>
             {(hero.bagRows ?? 0) < MAX_BAG_ROWS && (
               <button className="btn-gold ml-2 px-3 py-1 text-xs" disabled={hero.gold < bagRowCost(hero)}
-                title="Adds one more row of bag slots"
+                title={t("Adds one more row of bag slots")}
                 onClick={() => update((h) => { const c = bagRowCost(h); if (h.gold < c || (h.bagRows ?? 0) >= MAX_BAG_ROWS) return; h.gold -= c; h.bagRows = (h.bagRows ?? 0) + 1; })}>
-                + Row ({fmt(bagRowCost(hero))} gold)
-              </button>
+                 {t("+ Row (")}{fmt(bagRowCost(hero))}  {t("gold)")} </button>
             )}
           </div>
           {(hero.overflow?.length ?? 0) > 0 && (
             <div className="mb-2 flex items-center justify-between rounded-md border border-gold/60 bg-gold/10 px-2 py-1.5 text-xs">
-              <span>Overflow Chest: <b>{hero.overflow!.length}</b> item(s) waiting — free bag space to claim them.</span>
+              <span>{t("Overflow Chest:")} <b>{hero.overflow!.length}</b>  {t("item(s) waiting — free bag space to claim them.")}</span>
               <button className="btn-gold px-2 py-0.5 text-xs" disabled={hero.inventory.length >= invCap(hero)}
-                onClick={async () => { const { claimOverflow } = await import("./logic"); update((h) => { claimOverflow(h); }); }}>Claim</button>
+                onClick={async () => { const { claimOverflow } = await import("./logic"); update((h) => { claimOverflow(h); }); }}>{t("Claim")}</button>
             </div>
           )}
           <div className="mb-2 flex flex-wrap items-center gap-1 text-xs">
             {(["all", ...SLOTS] as const).map((f) => (
-              <button key={f} onClick={() => setFilter(f)} className={`rounded px-2 py-0.5 ${filter === f ? "bg-gold text-background" : "bg-secondary"}`}>{f === "all" ? "All" : SLOT_LABEL[f]}</button>
+              <button key={f} onClick={() => setFilter(f)} className={`rounded px-2 py-0.5 ${filter === f ? "bg-gold text-background" : "bg-secondary"}`}>{f === "all" ? t("All") : SLOT_LABEL[f]}</button>
             ))}
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="ml-auto w-24 rounded bg-secondary px-2 py-0.5" aria-label="Search bag" />
-            <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className="rounded bg-secondary px-1 py-0.5" aria-label="Sort bag">
-              <option value="new">Newest</option><option value="rarity">Rarity</option><option value="level">Item level</option>
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Search…")} className="ml-auto w-24 rounded bg-secondary px-2 py-0.5" aria-label={t("Search bag")} />
+            <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className="rounded bg-secondary px-1 py-0.5" aria-label={t("Sort bag")}>
+              <option value="new">{t("Newest")}</option><option value="rarity">{t("Rarity")}</option><option value="level">{t("Item level")}</option>
             </select>
           </div>
           <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
@@ -185,14 +183,14 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             const total = owned.reduce((a, m) => a + matCount(hero, m), 0);
             return (
               <div className="mt-4">
-                <div className="mb-1.5 font-display text-sm text-gold">Forge materials · {total} in your bag · {owned.length}/{all.length} types</div>
+                <div className="mb-1.5 font-display text-sm text-gold">{t("Forge materials ·")} {total}  {t("in your bag ·")} {owned.length}/{all.length}  {t("types")}</div>
                 <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
                   {all.map((m) => (
                     <div key={m} className={"slot rarity-" + Math.min(MATS[m].rarity + 1, 5) + " flex items-center gap-2 p-1.5"} title={MATS[m].desc + " Source: " + MATS[m].src}>
                       <MatIcon mat={m} size={34} />
                       <div className="min-w-0">
                         <div className="truncate text-[11px] font-bold">{MATS[m].name}</div>
-                        <div className="text-[10px] text-muted-foreground">×{fmt(matCount(hero, m))}{matCount(hero, m) ? " · Bag item" : " · Not found yet"}</div>
+                        <div className="text-[10px] text-muted-foreground">×{fmt(matCount(hero, m))}{" "}{matCount(hero, m) ? t("· Bag item") : t("· Not found yet")}</div>
                       </div>
                     </div>
                   ))}
@@ -201,8 +199,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             );
           })()}
           <div className="mt-4 rounded border border-dashed border-border/60 px-3 py-3 text-center text-xs text-muted-foreground">
-            Tap any bag or worn item and it opens on the spot — compare, equip, unequip or sell without scrolling down.
-          </div>
+             {t("Tap any bag or worn item and it opens on the spot — compare, equip, unequip or sell without scrolling down.")} </div>
         </div>
       </div>
       {selItem && (
@@ -213,15 +210,15 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               item={selItem}
               compare={!sel?.equipped ? wornCompare(hero, selItem) : undefined}
               actions={sel?.equipped ? (
-                <button className="btn-blood px-4 py-1.5 text-sm" onClick={() => { unequip(selItem); setSel(null); }}>Unequip</button>
+                <button className="btn-blood px-4 py-1.5 text-sm" onClick={() => { unequip(selItem); setSel(null); }}>{t("Unequip")}</button>
               ) : (
                 <>
-                  <button className="btn-gold px-4 py-1.5 text-sm" onClick={() => { equip(selItem); setSel(null); }}>Equip</button>
-                  <button className="btn-blood px-4 py-1.5 text-sm" onClick={() => { sell(selItem); setSel(null); }}>Sell <Gold n={sellValue(selItem)} /></button>
+                  <button className="btn-gold px-4 py-1.5 text-sm" onClick={() => { equip(selItem); setSel(null); }}>{t("Equip")}</button>
+                  <button className="btn-blood px-4 py-1.5 text-sm" onClick={() => { sell(selItem); setSel(null); }}>{t("Sell")} <Gold n={sellValue(selItem)} /></button>
                 </>
               )}
             />
-            <button className="btn-ghost mt-3 w-full py-1.5 text-sm" onClick={() => setSel(null)}>Close</button>
+            <button className="btn-ghost mt-3 w-full py-1.5 text-sm" onClick={() => setSel(null)}>{t("Close")}</button>
           </div>
         </div>
       )}
@@ -306,29 +303,29 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
       {/* The gate's status strip: one line each for stamina, the frontier and this fight's pay. */}
       <div className="mb-3 flex flex-wrap items-center gap-1.5 text-xs">
         {spire ? (
-          <span className="slot flex items-center gap-1.5 px-2.5 py-1.5" title="Conquest Tokens — the gate's own coin">
+          <span className="slot flex items-center gap-1.5 px-2.5 py-1.5" title={t("Conquest Tokens — the gate's own coin")}>
             <ConquestCoin size={18} />
             <b className="font-display text-base text-gold">{fmt(conquestTokens(hero))}</b>
-            <span className="text-muted-foreground">tokens</span>
+            <span className="text-muted-foreground">{t("tokens")}</span>
           </span>
         ) : (
           <StaminaMeter hero={hero} cost={CAMPAIGN_STAMINA} unit="battle" compact />
         )}
         <span className="slot px-2.5 py-1.5">
-          {spire ? "Deepest floor" : "Frontier"} <b className="text-gold">{max}</b>
-          <span className="text-muted-foreground"> · {cleared} cleared</span>
+          {spire ? t("Deepest floor") : t("Frontier")} <b className="text-gold">{max}</b>
+          <span className="text-muted-foreground"> · {cleared}  {t("cleared")}</span>
         </span>
         <span className="slot flex items-center gap-1.5 px-2.5 py-1.5" title={`What this ${spire ? "floor" : "stage"} pays`}>
           {spire
             ? <span className="flex items-center gap-1 font-bold text-gold"><ConquestCoin size={16} />+{fmt(floorTokens(stage) * keyMult)}</span>
-            : <span className="font-bold text-xp">+{fmt(rw.xp)} XP</span>}
+            : <span className="font-bold text-xp">+{fmt(rw.xp)}  {t("XP")}</span>}
           <Gold n={spire ? Math.round(rw.gold * keyMult) : rw.gold} />
         </span>
         <span className="slot px-2.5 py-1.5 text-muted-foreground">
           {keyOn
-            ? "Conquest Key ×2 today"
+            ? t("Conquest Key ×2 today")
             : spire
-              ? "Floors never stop scaling"
+              ? t("Floors never stop scaling")
               : `Boss at stage ${nextBoss} · ${nextBoss - stage} to go`}
         </span>
       </div>
@@ -348,13 +345,13 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
               <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/30 to-background" aria-hidden="true" />
               <div className="absolute inset-x-10 bottom-6 h-8 rounded-full bg-blood/50 blur-xl" aria-hidden="true" />
               <img src={foe.img} alt={tName(foe.name)} className="relative h-full w-full object-contain anim-idle" />
-              {foe.boss && <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-blood px-2 py-0.5 font-display text-sm"><Skull className="h-4 w-4" />BOSS</div>}
+              {foe.boss && <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-blood px-2 py-0.5 font-display text-sm"><Skull className="h-4 w-4" />{t("BOSS")}</div>}
               <div className="absolute right-2 top-2"><DangerPill danger={danger} /></div>
             </div>
             <div className="border-t border-border/60 px-3 py-1.5">
               <div className="flex flex-wrap items-baseline justify-between gap-x-2">
                 <span className="font-display text-lg leading-tight">{tName(foe.name)}</span>
-                <span className="text-[11px] text-muted-foreground">Level {foe.level} · {fmt(foePower)} power</span>
+                <span className="text-[11px] text-muted-foreground">{t("Level")} {foe.level} · {fmt(foePower)}  {t("power")}</span>
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-1 text-[11px]">
                 {([["HP", foe.hp], ["ATK", foe.atk], ["DEF", foe.def]] as const).map(([k, v]) => (
@@ -362,7 +359,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
                     <span className="text-muted-foreground">{k}</span> <b>{fmt(v)}</b>
                   </span>
                 ))}
-                <span className="ml-auto flex items-center gap-1 text-muted-foreground"><Trophy className="h-3.5 w-3.5 text-r4" />You <b className="text-gold">{fmt(s.power)}</b></span>
+                <span className="ml-auto flex items-center gap-1 text-muted-foreground"><Trophy className="h-3.5 w-3.5 text-r4" />{t("You")} <b className="text-gold">{fmt(s.power)}</b></span>
               </div>
             </div>
           </div>
@@ -375,22 +372,22 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
               noun={spire ? "floor" : "stage"}
               inputLabel={spire ? "Floor to fight" : "Stage to fight"} />
             {!spire && (
-              <p className="px-1 text-[11px] text-muted-foreground">Stage {stageInZone} of 10 in {zone.name} · every tenth stage is a boss</p>
+              <p className="px-1 text-[11px] text-muted-foreground">{t("Stage")} {stageInZone}  {t("of 10 in")} {zone.name}  {t("· every tenth stage is a boss")}</p>
             )}
             <div className="slot p-3">
               <label className="flex items-center justify-between gap-2 text-sm">
-                <span>Auto-battle <span className="text-[11px] text-muted-foreground">— the hero fights it alone</span></span>
+                <span>{t("Auto-battle")} <span className="text-[11px] text-muted-foreground">{t("— the hero fights it alone")}</span></span>
                 <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} className="h-4 w-4 accent-[var(--gold)]" />
               </label>
               <button className="btn-gold mt-2 w-full py-2.5 text-xl" onClick={fight} disabled={!!staminaLock} title={staminaLock ?? "Fight"}>
-                <Swords className="mr-2 inline" />{staminaLock ? "OUT OF STAMINA" : "FIGHT"}
+                <Swords className="mr-2 inline" />{staminaLock ? t("OUT OF STAMINA") : t("FIGHT")}
               </button>
               {staminaLock
                 ? <p className="mt-1.5 text-xs text-hp">{staminaLock}</p>
                 : <p className="mt-1.5 text-center text-[11px] text-muted-foreground">
                     {staminaCost
-                      ? <><b className="text-foreground">{staminaCost} stamina</b>, win or lose · {Math.floor(staminaLeft(hero) / staminaCost)} battles left today</>
-                      : "Conquest battles cost no stamina"}
+                      ? <><b className="text-foreground">{staminaCost}  {t("stamina")}</b>{t(", win or lose ·")} {Math.floor(staminaLeft(hero) / staminaCost)}  {t("battles left today")}</>
+                      : t("Conquest battles cost no stamina")}
                   </p>}
             </div>
           </div>
@@ -401,7 +398,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
         <>
           {!spire && (
             <div className="mb-4">
-              <div className="mb-1 font-display text-lg text-gold">Level up</div>
+              <div className="mb-1 font-display text-lg text-gold">{t("Level up")}</div>
               <LevelProgress hero={hero} rows={3} />
             </div>
           )}
@@ -412,8 +409,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
       {tab === "adviser" && (
         <>
           <p className="mb-1 text-xs text-muted-foreground">
-            Ask the war tactician about this exact fight — it reads both sides' stats and tells you what to
-            watch for before you spend the {spire ? "floor" : "battle"}.
+             {t("Ask the war tactician about this exact fight — it reads both sides' stats and tells you what to watch for before you spend the")} {spire ? t("floor") : t("battle")}.
           </p>
           <Advisor hero={hero} stats={s} foe={foe} key={stage + (spire ? "s" : "c")} />
         </>
@@ -523,17 +519,16 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
     }
   };
   return (
-    <Panel title="Forge" subtitle="Enhance, socket and salvage your gear" art="hammer" onClose={onClose} wide>
+    <Panel title={t("Forge")} subtitle={t("Enhance, socket and salvage your gear")} art="hammer" onClose={onClose} wide>
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {onCraft && (
           <button className="btn-gold flex-1 px-3 py-2 text-sm" onClick={onCraft}>
-            <Hammer className="mr-2 inline h-4 w-4" />Open crafting recipes · Standard &amp; Synthesis
-          </button>
+            <Hammer className="mr-2 inline h-4 w-4" />{t("Open crafting recipes · Standard &amp; Synthesis")} </button>
         )}
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="slot px-2 py-1" title="Gold in your purse"><Gold n={hero.gold} /></span>
-          <span className="slot px-2 py-1" title="Fate Stones refine gear instead of gold"><MatIcon mat="fateStone" size={16} /> <b className="text-gold">{fmt(fateStoneCount(hero))}</b> Fate</span>
-          <span className="slot px-2 py-1" title={stoneName(stoneLvl) + " — the best grade you hold"}><StoneIcon level={stoneLvl} size={16} /> <b className="text-gold">{fmt(stoneCount(hero, stoneLvl))}</b> Lv {stoneLvl}</span>
+          <span className="slot px-2 py-1" title={t("Gold in your purse")}><Gold n={hero.gold} /></span>
+          <span className="slot px-2 py-1" title={t("Fate Stones refine gear instead of gold")}><MatIcon mat="fateStone" size={16} /> <b className="text-gold">{fmt(fateStoneCount(hero))}</b>  {t("Fate")}</span>
+          <span className="slot px-2 py-1" title={stoneName(stoneLvl) + " " + t("— the best grade you hold")}><StoneIcon level={stoneLvl} size={16} /> <b className="text-gold">{fmt(stoneCount(hero, stoneLvl))}</b>  {t("Lv")} {stoneLvl}</span>
         </div>
       </div>
 
@@ -541,25 +536,23 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
         <div className="space-y-4">
           <section className="slot p-3">
             <div className="mb-2 flex items-center gap-2 font-display text-sm text-gold">
-              <Shield className="h-4 w-4" />Worn gear
-              <span className="ml-auto text-xs font-normal text-muted-foreground">{equipped.length} piece{equipped.length === 1 ? "" : "s"}</span>
+              <Shield className="h-4 w-4" />{t("Worn gear")} <span className="ml-auto text-xs font-normal text-muted-foreground">{equipped.length}  {t("piece")}{equipped.length === 1 ? "" : "s"}</span>
             </div>
             {equipped.length
               ? <div className="grid grid-cols-4 content-start gap-1.5">{equipped.map((it) => <ForgeSlot key={it.id} item={it} selected={it.id === selId} onClick={() => pick(it.id)} />)}</div>
-              : <p className="text-xs text-muted-foreground">Nothing equipped yet.</p>}
+              : <p className="text-xs text-muted-foreground">{t("Nothing equipped yet.")}</p>}
           </section>
           <section className="slot p-3">
             <div className="mb-2 flex items-center gap-2 font-display text-sm text-gold">
-              <Backpack className="h-4 w-4" />In your bag
-              <span className="ml-auto text-xs font-normal text-muted-foreground">{bagged.length} item{bagged.length === 1 ? "" : "s"}</span>
+              <Backpack className="h-4 w-4" />{t("In your bag")} <span className="ml-auto text-xs font-normal text-muted-foreground">{bagged.length}  {t("item")}{bagged.length === 1 ? "" : "s"}</span>
             </div>
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search your bag…" aria-label="Search forge bag"
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Search your bag…")} aria-label={t("Search forge bag")}
               className="mb-2 w-full rounded bg-secondary px-2 py-1 text-xs" />
             {shown.length
               ? <div className="grid max-h-64 grid-cols-4 content-start gap-1.5 overflow-y-auto pr-1">{shown.map((it) => <ForgeSlot key={it.id} item={it} selected={it.id === selId} onClick={() => pick(it.id)} />)}</div>
-              : <p className="text-xs text-muted-foreground">{bagged.length ? "No item matches that name." : "Your bag is empty."}</p>}
+              : <p className="text-xs text-muted-foreground">{bagged.length ? t("No item matches that name.") : t("Your bag is empty.")}</p>}
           </section>
-          <p className="text-[11px] text-muted-foreground">Tap a piece to work on it. A gold badge on an icon counts the gems socketed in it.</p>
+          <p className="text-[11px] text-muted-foreground">{t("Tap a piece to work on it. A gold badge on an icon counts the gems socketed in it.")}</p>
         </div>
 
         <div className="space-y-3">
@@ -569,46 +562,43 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
               <ItemCard item={sel} />
               <section className="slot p-3">
                 <div className="flex flex-wrap items-center justify-between gap-1 text-sm">
-                  <span>Enchantment <b className="text-gold">+{sel.enh}</b> / +{ENHANCE_MAX}</span>
+                  <span>{t("Enchantment")} <b className="text-gold">+{sel.enh}</b> / +{ENHANCE_MAX}</span>
                   {!enhanceMaxed(sel) && (mode === "gold" && !goldEnhanceAllowed(sel)
-                    ? <span className="text-xs text-hp">Enchantment Stones required</span>
-                    : <span>Chance <b className="text-gold">{Math.round((mode === "fate" ? enhanceFateChance(sel) : mode === "stone" ? enhanceStoneChance(sel, stoneLvl) : enhanceChance(sel)) * 100)}%</b>{mode === "stone" && <span className="ml-1 text-xs text-r1">+{stoneBonus(stoneLvl)}% Lv {stoneLvl} stone</span>}{mode === "fate" && <span className="ml-1 text-xs text-r1">+{Math.round(FATE_SUCCESS_BONUS * 100)}% fate</span>}</span>)}
+                    ? <span className="text-xs text-hp">{t("Enchantment Stones required")}</span>
+                    : <span>{t("Chance")} <b className="text-gold">{Math.round((mode === "fate" ? enhanceFateChance(sel) : mode === "stone" ? enhanceStoneChance(sel, stoneLvl) : enhanceChance(sel)) * 100)}%</b>{mode === "stone" && <span className="ml-1 text-xs text-r1">+{stoneBonus(stoneLvl)}{t("% Lv")} {stoneLvl}  {t("stone")}</span>}{mode === "fate" && <span className="ml-1 text-xs text-r1">+{Math.round(FATE_SUCCESS_BONUS * 100)}{t("% fate")}</span>}</span>)}
                 </div>
-                <div className="mt-2 grid grid-cols-3 gap-1 text-xs" role="group" aria-label="Enhancement method">
+                <div className="mt-2 grid grid-cols-3 gap-1 text-xs" role="group" aria-label={t("Enhancement method")}>
                   <button className={`py-1.5 ${mode === "gold" ? "btn-gold" : "btn-ghost"}`} aria-pressed={mode === "gold"} disabled={!goldEnhanceAllowed(sel)}
                     title={goldEnhanceAllowed(sel) ? "Pay gold for the next step" : `Gold stops at +${ENHANCE_GOLD_LIMIT} — use Enchantment Stones`}
-                    onClick={() => setMode("gold")}>Gold</button>
-                  <button className={`py-1.5 ${mode === "stone" ? "btn-gold" : "btn-ghost"}`} aria-pressed={mode === "stone"} onClick={() => setMode("stone")}>Enchantment Stone</button>
+                    onClick={() => setMode("gold")}>{t("Gold")}</button>
+                  <button className={`py-1.5 ${mode === "stone" ? "btn-gold" : "btn-ghost"}`} aria-pressed={mode === "stone"} onClick={() => setMode("stone")}>{t("Enchantment Stone")}</button>
                   <button className={`py-1.5 ${mode === "fate" ? "btn-gold" : "btn-ghost"}`} aria-pressed={mode === "fate"} disabled={!goldEnhanceAllowed(sel)}
                     title={goldEnhanceAllowed(sel) ? "Refine with a Fate Stone" : `Fate refining stops at +${ENHANCE_GOLD_LIMIT} — use Enchantment Stones`}
-                    onClick={() => setMode("fate")}>Fate Stone</button>
+                    onClick={() => setMode("fate")}>{t("Fate Stone")}</button>
                 </div>
                 {mode === "gold" && (
-                  <p className="mt-2 text-xs text-muted-foreground">Pays gold only. The chance shrinks as the piece climbs, and gold stops at +{ENHANCE_GOLD_LIMIT} — deeper steps need Enchantment Stones.</p>
+                  <p className="mt-2 text-xs text-muted-foreground">{t("Pays gold only. The chance shrinks as the piece climbs, and gold stops at +")}{ENHANCE_GOLD_LIMIT}  {t("— deeper steps need Enchantment Stones.")}</p>
                 )}
                 {mode === "fate" && (
                   <div className="slot mt-2 p-2">
                     <div className="mb-1 flex items-center justify-between text-xs">
-                      <span className="flex items-center gap-1 font-display text-gold"><MatIcon mat="fateStone" size={16} />Fate Stone</span>
-                      <span className="text-muted-foreground">+{Math.round(FATE_SUCCESS_BONUS * 100)}% success</span>
+                      <span className="flex items-center gap-1 font-display text-gold"><MatIcon mat="fateStone" size={16} />{t("Fate Stone")}</span>
+                      <span className="text-muted-foreground">+{Math.round(FATE_SUCCESS_BONUS * 100)}{t("% success")}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Held <b className="text-gold">×{fmt(fateStoneCount(hero))}</b> — a refinement spends {fateStoneCost(sel)}, win or lose.
-                      Fate Stones drop from rare battles and are sold in the Auction House shop.
-                    </p>
+                       {t("Held")} <b className="text-gold">×{fmt(fateStoneCount(hero))}</b>  {t("— a refinement spends")} {fateStoneCost(sel)}{t(", win or lose. Fate Stones drop from rare battles and are sold in the Auction House shop.")} </p>
                   </div>
                 )}
                 {mode === "stone" && (
                   <div className="slot mt-2 p-2">
                     <div className="mb-1 flex items-center justify-between text-xs">
-                      <span className="font-display text-gold">Stone grade</span>
-                      <span className="text-muted-foreground">+{stoneBonus(stoneLvl)}% success</span>
+                      <span className="font-display text-gold">{t("Stone grade")}</span>
+                      <span className="text-muted-foreground">+{stoneBonus(stoneLvl)}{t("% success")}</span>
                     </div>
                     <p className="mb-1 text-[11px] text-muted-foreground">
-                      +{sel.enh} demands a <b className="text-gold">Lv {needGrade}</b> stone or better — the deeper the enchantment, the rarer the stone.
-                    </p>
+                      +{sel.enh}  {t("demands a")} <b className="text-gold">{t("Lv")} {needGrade}</b>  {t("stone or better — the deeper the enchantment, the rarer the stone.")} </p>
                     {heldStones.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">No stones yet — battle wins drop them, and the Auction House shop sells all nine grades.</p>
+                      <p className="text-xs text-muted-foreground">{t("No stones yet — battle wins drop them, and the Auction House shop sells all nine grades.")}</p>
                     ) : (
                       <div className="flex flex-wrap gap-1">
                         {heldStones.map((lvl) => (
@@ -625,14 +615,14 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                 )}
                 {!enhanceMaxed(sel) && (
                   <div className="mt-2 flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Next step</span>
+                    <span className="text-muted-foreground">{t("Next step")}</span>
                     {mode === "fate"
-                      ? <span className="flex items-center gap-1"><MatIcon mat="fateStone" size={18} /> {fmt(fateStoneCount(hero))}/{fateStoneCost(sel)} Fate Stone{fateStoneCost(sel) === 1 ? "" : "s"}</span>
+                      ? <span className="flex items-center gap-1"><MatIcon mat="fateStone" size={18} /> {fmt(fateStoneCount(hero))}/{fateStoneCost(sel)}  {t("Fate Stone")}{fateStoneCost(sel) === 1 ? "" : "s"}</span>
                       : mode === "stone"
-                      ? <span className="flex items-center gap-1"><StoneIcon level={stoneLvl} size={18} /> {fmt(stoneCount(hero, stoneLvl))}/{enchantStoneCost(sel)} Lv {stoneLvl}</span>
+                      ? <span className="flex items-center gap-1"><StoneIcon level={stoneLvl} size={18} /> {fmt(stoneCount(hero, stoneLvl))}/{enchantStoneCost(sel)}  {t("Lv")} {stoneLvl}</span>
                       : goldEnhanceAllowed(sel)
                         ? <Gold n={enhanceCost(sel, hero.level)} />
-                        : <span className="text-xs text-hp">Enchantment Stones required</span>}
+                        : <span className="text-xs text-hp">{t("Enchantment Stones required")}</span>}
                   </div>
                 )}
                 <button className="btn-gold mt-2 w-full py-3 text-lg" disabled={
@@ -643,18 +633,18 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                   <Hammer className="mr-2 inline" />{enhanceMaxed(sel)
                     ? `Fully enhanced · +${ENHANCE_MAX}`
                     : mode === "gold" && !goldEnhanceAllowed(sel)
-                      ? "Requires Enchantment Stones"
-                      : `${mode === "fate" ? "Refine" : "Enhance"} +${sel.enh + 1}`}
+                      ? t("Requires Enchantment Stones")
+                      : `${mode === "fate" ? t("Refine") : t("Enhance")} +${sel.enh + 1}`}
                 </button>
               </section>
 
               <section className="slot p-3">
                 <div className="mb-2 flex items-center justify-between font-display text-sm">
-                  <span className="flex items-center gap-2"><Gem className="h-4 w-4" />Gem sockets</span>
-                  <span className="text-xs font-normal text-muted-foreground">{socketCount(sel)}/{MAX_SOCKETS} holes</span>
+                  <span className="flex items-center gap-2"><Gem className="h-4 w-4" />{t("Gem sockets")}</span>
+                  <span className="text-xs font-normal text-muted-foreground">{socketCount(sel)}/{MAX_SOCKETS}  {t("holes")}</span>
                 </div>
                 {socketCount(sel) === 0 ? (
-                  <p className="text-xs text-muted-foreground">This piece has no sockets — Uncommon and better gear is born with them.</p>
+                  <p className="text-xs text-muted-foreground">{t("This piece has no sockets — Uncommon and better gear is born with them.")}</p>
                 ) : (
                   <ul className="space-y-1">
                     {sockets(sel).map((g, i) => {
@@ -670,7 +660,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                           ) : (
                             <>
                               <span className="h-4 w-4 rounded-sm border border-dashed border-border/70" />
-                              <span className="text-muted-foreground">Empty socket {i + 1}</span>
+                              <span className="text-muted-foreground">{t("Empty socket")} {i + 1}</span>
                             </>
                           )}
                         </li>
@@ -678,25 +668,25 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                     })}
                   </ul>
                 )}
-                <p className="mt-2 text-[11px] text-muted-foreground">Sockets are cut and filled at the Gem Workshop — every piece of gear can hold up to {MAX_SOCKETS} gems.</p>
+                <p className="mt-2 text-[11px] text-muted-foreground">{t("Sockets are cut and filled at the Gem Workshop — every piece of gear can hold up to")} {MAX_SOCKETS}  {t("gems.")}</p>
               </section>
 
               <section className="slot p-3">
-                <div className="mb-2 flex items-center gap-2 font-display text-sm"><Trash2 className="h-4 w-4" />Salvage into materials</div>
+                <div className="mb-2 flex items-center gap-2 font-display text-sm"><Trash2 className="h-4 w-4" />{t("Salvage into materials")}</div>
                 <div className="mb-3 flex flex-wrap gap-2 text-xs">
                   {(Object.entries(scrapYield(sel)) as [Mat, number][]).map(([m, n]) => (
                     <span key={m} className="slot px-2 py-0.5"><MatIcon mat={m} size={14} /> {MATS[m].name} +{n}</span>
                   ))}
-                  {sockets(sel).some(Boolean) && <span className="slot px-2 py-0.5">Socketed gems return to your pouch</span>}
+                  {sockets(sel).some(Boolean) && <span className="slot px-2 py-0.5">{t("Socketed gems return to your pouch")}</span>}
                 </div>
                 {equippedSel ? (
                   <>
-                    <p className="mb-2 text-xs text-blood">This piece is equipped right now.</p>
-                    <button className="btn-blood w-full py-2" onClick={() => { setWarn(sel); setArmed(null); }}>Salvage equipped gear...</button>
+                    <p className="mb-2 text-xs text-blood">{t("This piece is equipped right now.")}</p>
+                    <button className="btn-blood w-full py-2" onClick={() => { setWarn(sel); setArmed(null); }}>{t("Salvage equipped gear...")}</button>
                   </>
                 ) : (
                   <button className={"w-full py-2 " + (armed === sel.id ? "btn-blood" : "btn-ghost")} onClick={salvage}>
-                    {armed === sel.id ? "Confirm - destroy " + itemName(sel.name) : "Salvage this piece"}
+                    {armed === sel.id ? "Confirm - destroy " + itemName(sel.name) : t("Salvage this piece")}
                   </button>
                 )}
               </section>
@@ -704,8 +694,8 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
           ) : (
             <div className="slot flex min-h-[260px] flex-col items-center justify-center gap-2 p-6 text-center">
               <Hammer className="h-10 w-10 text-muted-foreground" />
-              <p className="font-display text-lg">Choose a piece of gear</p>
-              <p className="text-xs text-muted-foreground">Pick a worn or bagged item on the left to enhance it, check the gems inside it, or salvage it for materials.</p>
+              <p className="font-display text-lg">{t("Choose a piece of gear")}</p>
+              <p className="text-xs text-muted-foreground">{t("Pick a worn or bagged item on the left to enhance it, check the gems inside it, or salvage it for materials.")}</p>
             </div>
           )}
         </div>
@@ -713,37 +703,36 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
 
       <div className="mt-5 grid gap-3 md:grid-cols-2">
         <section className="slot p-3">
-          <div className="mb-2 flex items-center gap-2 font-display text-sm"><Sparkles className="h-4 w-4" />Enchantment stones</div>
-          <p className="mb-2 text-xs text-muted-foreground">Two stones of one grade plus gold forge one of the next grade.</p>
+          <div className="mb-2 flex items-center gap-2 font-display text-sm"><Sparkles className="h-4 w-4" />{t("Enchantment stones")}</div>
+          <p className="mb-2 text-xs text-muted-foreground">{t("Two stones of one grade plus gold forge one of the next grade.")}</p>
           <div className="space-y-1">
             {heldStoneLevels(hero).filter((lvl) => lvl < STONE_LEVELS).map((lvl) => (
               <button key={lvl} className="btn-ghost flex w-full items-center justify-between gap-2 px-2 py-1 text-xs" disabled={stoneCount(hero, lvl) < 2 || hero.gold < combineGold(lvl, hero.level)}
                 onClick={() => update((h) => { const e = combineStones(h, lvl); setMsg(!e ? { ok: true, t: `Forged a ${stoneName(lvl + 1)}` } : { ok: false, t: e }); })}>
-                <span className="flex items-center gap-1"><StoneIcon level={lvl} size={16} /> ×2 <span className="text-muted-foreground">({fmt(stoneCount(hero, lvl))} held)</span></span>
+                <span className="flex items-center gap-1"><StoneIcon level={lvl} size={16} /> ×2 <span className="text-muted-foreground">({fmt(stoneCount(hero, lvl))}  {t("held)")}</span></span>
                 <span className="flex items-center gap-1 text-gold">→ <StoneIcon level={lvl + 1} size={16} /> <Gold n={combineGold(lvl, hero.level)} /></span>
               </button>
             ))}
             {heldStoneLevels(hero).filter((lvl) => lvl < STONE_LEVELS).length === 0 && (
-              <p className="text-xs text-muted-foreground">Nothing to forge yet — stones drop from won battles and are sold in the Auction House shop.</p>
+              <p className="text-xs text-muted-foreground">{t("Nothing to forge yet — stones drop from won battles and are sold in the Auction House shop.")}</p>
             )}
           </div>
           {heldStoneLevels(hero).some((lvl) => lvl < STONE_LEVELS && stoneCount(hero, lvl) >= 2) && (
             <button className="btn-ghost mt-2 flex w-full items-center justify-center gap-1 px-2 py-1 text-xs"
-              title="Forge every pair you hold into the next grade"
+              title={t("Forge every pair you hold into the next grade")}
               onClick={() => update((h) => {
                 const r = combineAllStones(h);
                 setMsg(r.made
                   ? { ok: true, t: `Forged ${r.made} stone${r.made === 1 ? "" : "s"} into higher grades` }
                   : { ok: false, t: r.error ?? "No pairs to forge" });
               })}>
-              <Layers className="h-3.5 w-3.5" />Forge every pair
-            </button>
+              <Layers className="h-3.5 w-3.5" />{t("Forge every pair")} </button>
           )}
-          <p className="mt-2 text-[11px] text-muted-foreground">A stone that fails an enchantment survives {Math.round(STONE_FAIL_SAVE_CHANCE * 100)}% of the time, so a bad roll still keeps one in the pouch.</p>
+          <p className="mt-2 text-[11px] text-muted-foreground">{t("A stone that fails an enchantment survives")} {Math.round(STONE_FAIL_SAVE_CHANCE * 100)}{t("% of the time, so a bad roll still keeps one in the pouch.")}</p>
         </section>
 
         <section className="slot p-3">
-          <div className="mb-2 flex items-center gap-2 font-display text-sm"><Sparkles className="h-4 w-4" />Refine spare materials</div>
+          <div className="mb-2 flex items-center gap-2 font-display text-sm"><Sparkles className="h-4 w-4" />{t("Refine spare materials")}</div>
           <div className="space-y-2">
             {REFINE.map((r) => (
               <button key={r.id} className="btn-ghost flex w-full items-center justify-between gap-2 px-2 py-1.5 text-xs" disabled={matCount(hero, r.from) < r.need}
@@ -753,17 +742,17 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
               </button>
             ))}
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">Spare materials from battles refine into the ones recipes need.</p>
+          <p className="mt-2 text-xs text-muted-foreground">{t("Spare materials from battles refine into the ones recipes need.")}</p>
         </section>
       </div>
       {warn && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" role="alertdialog" aria-modal="true" aria-label="Confirm salvaging equipped gear">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" role="alertdialog" aria-modal="true" aria-label={t("Confirm salvaging equipped gear")}>
           <div className="game-panel anim-pop w-full max-w-md p-5">
-            <div className="mb-2 flex items-center gap-2 font-display text-xl text-blood"><Trash2 className="h-5 w-5" />This gear is equipped</div>
-            <p className="text-sm"><b>{itemName(warn.name)}</b> is worn right now. Salvaging it will unequip and permanently destroy it, returning its materials and socketed gems. This cannot be undone.</p>
+            <div className="mb-2 flex items-center gap-2 font-display text-xl text-blood"><Trash2 className="h-5 w-5" />{t("This gear is equipped")}</div>
+            <p className="text-sm"><b>{itemName(warn.name)}</b>  {t("is worn right now. Salvaging it will unequip and permanently destroy it, returning its materials and socketed gems. This cannot be undone.")}</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <button className="btn-ghost flex-1 py-2" onClick={() => setWarn(null)}>Keep it equipped</button>
-              <button className="btn-blood flex-1 py-2" onClick={salvageEquipped}>Unequip and destroy</button>
+              <button className="btn-ghost flex-1 py-2" onClick={() => setWarn(null)}>{t("Keep it equipped")}</button>
+              <button className="btn-blood flex-1 py-2" onClick={salvageEquipped}>{t("Unequip and destroy")}</button>
             </div>
           </div>
         </div>
@@ -802,8 +791,8 @@ export function Temple({ onClose }: { onClose: () => void }) {
   if (!hero) return null;
   const s = heroStats(hero);
   return (
-    <Panel title="Barracks — Attribute Training" subtitle="Turn gold into permanent stats" art="profile" onClose={onClose} wide>
-      <GameTabs label="Barracks sections" value={tab} onChange={setTab} tabs={[
+    <Panel title={t("Barracks — Attribute Training")} subtitle={t("Turn gold into permanent stats")} art="profile" onClose={onClose} wide>
+      <GameTabs label={t("Barracks sections")} value={tab} onChange={setTab} tabs={[
         { id: "attributes", name: "Attributes" },
         { id: "drills", name: "Drills" },
         { id: "mastery", name: "Mastery" },
@@ -820,8 +809,8 @@ export function Temple({ onClose }: { onClose: () => void }) {
               </div>
             ))}
           </div>
-          <div className="mb-1 font-display text-sm text-gold">Attribute training</div>
-          <div role="group" aria-label="Training batch" className="mb-4 flex flex-wrap gap-2">{batchSizes(hero).map(n=><Button key={n} size="sm" variant={count===n?'default':'outline'} aria-pressed={count===n} onClick={()=>setCount(n)}>+{n} points</Button>)}</div>
+          <div className="mb-1 font-display text-sm text-gold">{t("Attribute training")}</div>
+          <div role="group" aria-label={t("Training batch")} className="mb-4 flex flex-wrap gap-2">{batchSizes(hero).map(n=><Button key={n} size="sm" variant={count===n?'default':'outline'} aria-pressed={count===n} onClick={()=>setCount(n)}>+{n}  {t("points")}</Button>)}</div>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {ATTRS.map((a) => {
               const cost = trainingCost(hero,a.k,count);
@@ -875,7 +864,7 @@ export function XpBar({ hero }: { hero: Hero }) {
       <div className="mb-0.5 flex items-baseline justify-between gap-1 text-[10px] leading-none">
         <span className="truncate font-bold text-xp">
           {fmt(hero.xp)}
-          <span className="text-muted-foreground"> / {fmt(need)} XP</span>
+          <span className="text-muted-foreground"> / {fmt(need)}  {t("XP")}</span>
         </span>
         <span className="shrink-0 font-bold text-foreground/80">{pct.toFixed(pct < 10 ? 1 : 0)}%</span>
       </div>
@@ -891,11 +880,10 @@ export function XpBar({ hero }: { hero: Hero }) {
       </div>
       <div className="mt-0.5 flex items-baseline justify-between gap-1 text-[9px] uppercase tracking-wider text-muted-foreground">
         <span className="truncate">
-          {left} fight{left === 1 ? "" : "s"} → {next}
+          {left}  {t("fight")}{left === 1 ? "" : "s"} → {next}
         </span>
-        <span className="shrink-0 text-gold/90" title="XP a fight at your own level pays before scrolls and catch-up bonuses">
-          {fmt(xpPerFight(hero.level))} xp/fight
-        </span>
+        <span className="shrink-0 text-gold/90" title={t("XP a fight at your own level pays before scrolls and catch-up bonuses")}>
+          {fmt(xpPerFight(hero.level))}  {t("xp/fight")} </span>
       </div>
     </div>
   );
@@ -923,10 +911,10 @@ export function Advisor({ hero, stats, foe }: { hero: Hero; stats: Stats; foe: F
   return (
     <div className="slot mt-5 p-4">
       <div className="flex items-center justify-between gap-3">
-        <span className="font-display text-gold"><Sparkles className="mr-1 inline h-4 w-4" />War Tactician</span>
+        <span className="font-display text-gold"><Sparkles className="mr-1 inline h-4 w-4" />{t("War Tactician")}</span>
         {userId ? (
-          <button className="btn-blood px-4 py-1.5 text-sm" disabled={loading} onClick={run}>{loading ? "Thinking…" : "Get strategy"}</button>
-        ) : <Link to="/auth" className="btn-gold px-4 py-1.5 text-sm">Sign in</Link>}
+          <button className="btn-blood px-4 py-1.5 text-sm" disabled={loading} onClick={run}>{loading ? t("Thinking…") : t("Get strategy")}</button>
+        ) : <Link to="/auth" className="btn-gold px-4 py-1.5 text-sm">{t("Sign in")}</Link>}
       </div>
       {err && <p className="mt-2 text-sm text-hp">{err}</p>}
       {advice && <p className="anim-pop mt-2 whitespace-pre-line text-sm">{advice}</p>}

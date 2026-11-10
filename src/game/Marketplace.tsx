@@ -1,4 +1,4 @@
-import { itemName } from "./i18n";
+import { itemName , t} from "./i18n";
 import { useEffect, useState } from "react";
 import { Clock, Gavel, KeyRound, Store, Trash2 } from "lucide-react";
 import { AuctionBoard } from "./AuctionHouse";
@@ -97,15 +97,12 @@ function CatalogueTab({ hero }: { hero: Hero }) {
     <div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="max-w-lg text-xs text-muted-foreground">
-          Ordinary armour and weapons, open to every player — every piece {Math.round(CATALOGUE_DISCOUNT * 100)}% off.
-          The catalogue is deliberately modest gear — useful while you are starting out, never a match for the
-          Forge or a boss drop.
-        </p>
-        <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock className="h-3.5 w-3.5" />Restocks in {minutes} min</span>
+           {t("Ordinary armour and weapons, open to every player — every piece")} {Math.round(CATALOGUE_DISCOUNT * 100)}{t("% off. The catalogue is deliberately modest gear — useful while you are starting out, never a match for the Forge or a boss drop.")} </p>
+        <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock className="h-3.5 w-3.5" />{t("Restocks in")} {minutes}  {t("min")}</span>
       </div>
       {notice && <p role="status" className={`mb-2 text-sm ${notice.ok ? "text-r1" : "text-hp"}`}>{notice.t}</p>}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {stock.length === 0 && <p className="col-span-full py-6 text-center text-sm text-muted-foreground">Everything is sold — the next shipment lands on the hour.</p>}
+        {stock.length === 0 && <p className="col-span-full py-6 text-center text-sm text-muted-foreground">{t("Everything is sold — the next shipment lands on the hour.")}</p>}
         {stock.map((it) => {
           const price = cataloguePrice(it, hero.level);
           return (
@@ -114,7 +111,7 @@ function CatalogueTab({ hero }: { hero: Hero }) {
                 <GearIcon item={it} size={52} />
               </button>
               <div className="w-full truncate text-[11px] font-bold">{itemName(it.name)}</div>
-              <div className="text-[10px] text-muted-foreground">{RARITIES[it.rarity].name} · iLvl {it.ilvl}</div>
+              <div className="text-[10px] text-muted-foreground">{RARITIES[it.rarity].name}  {t("· iLvl")} {it.ilvl}</div>
               <button className="btn-gold mt-1 w-full px-1 py-1 text-[11px]" disabled={hero.gold < price || hero.inventory.length >= invCap(hero)}
                 onClick={() => update((h) => { const err = buyCatalogueItem(h, it.id); setNotice(err ? { ok: false, t: err } : { ok: true, t: `Bought ${itemName(it.name)} for ${fmt(price)} gold` }); })}
                 title={hero.gold < price ? "Not enough gold" : "Buy"}>
@@ -126,7 +123,7 @@ function CatalogueTab({ hero }: { hero: Hero }) {
       </div>
       {item && (
         <div className="mt-3">
-          <ItemCard item={item} actions={<button className="btn-ghost px-3 py-1 text-xs" onClick={() => setPreview(null)}>Close</button>} />
+          <ItemCard item={item} actions={<button className="btn-ghost px-3 py-1 text-xs" onClick={() => setPreview(null)}>{t("Close")}</button>} />
         </div>
       )}
     </div>
@@ -139,9 +136,7 @@ function ShopTab({ hero }: { hero: Hero }) {
   return (
     <div>
       <p className="mb-3 text-xs text-muted-foreground">
-        Game goods for gold, every one of them {Math.round(SHOP_DISCOUNT * 100)}% under the old stalls. Potions land straight in
-        your pouch; the HUD pouch beside the stamina bar drinks them. (Battle Scrolls are priced by the game server and are the one exception.)
-      </p>
+         {t("Game goods for gold, every one of them")} {Math.round(SHOP_DISCOUNT * 100)}{t("% under the old stalls. Potions land straight in your pouch; the HUD pouch beside the stamina bar drinks them. (Battle Scrolls are priced by the game server and are the one exception.)")} </p>
       {notice && <p role="status" className={`mb-2 text-sm ${notice.ok ? "text-r1" : "text-hp"}`}>{notice.t}</p>}
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {SHOP_STOCK.map((g) => {
@@ -152,7 +147,7 @@ function ShopTab({ hero }: { hero: Hero }) {
               <img src={POTIONS[g.id].art} alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
               <div className="text-sm font-bold">{g.name}</div>
               <div className="min-h-8 text-[11px] text-muted-foreground">{g.note}</div>
-              <div className="text-[11px]">Held: <b>{fmt(held)}</b>{g.id === "stamina" && <span className="text-muted-foreground"> · {potionUsesLeft(hero)}/{POTION_PER_DAY} drinks left today</span>}</div>
+              <div className="text-[11px]">{t("Held:")} <b>{fmt(held)}</b>{g.id === "stamina" && <span className="text-muted-foreground"> · {potionUsesLeft(hero)}/{POTION_PER_DAY}  {t("drinks left today")}</span>}</div>
               <button className="btn-gold mt-1 w-full py-1.5 text-sm" disabled={hero.gold < price}
                 onClick={() => update((h) => { say(buyShopGood(h, g.id), g.name); })}>
                 <Gold n={price} className="text-primary-foreground" />
@@ -163,13 +158,11 @@ function ShopTab({ hero }: { hero: Hero }) {
       </div>
 
       <div className="mt-5 mb-2 flex flex-wrap items-baseline justify-between gap-1">
-        <span className="font-display text-sm text-gold">Conquest Key</span>
-        <span className="text-xs text-muted-foreground">{conquestKeyActive(hero) ? "Active until Greek midnight" : "One use · doubled conquest rewards"}</span>
+        <span className="font-display text-sm text-gold">{t("Conquest Key")}</span>
+        <span className="text-xs text-muted-foreground">{conquestKeyActive(hero) ? t("Active until Greek midnight") : t("One use · doubled conquest rewards")}</span>
       </div>
       <p className="mb-2 text-xs text-muted-foreground">
-        A key bought today doubles every reward the Conquest Gate pays until Greek midnight: double
-        gold and double Conquest Tokens from every floor you clear and from every conquest blitz.
-      </p>
+         {t("A key bought today doubles every reward the Conquest Gate pays until Greek midnight: double gold and double Conquest Tokens from every floor you clear and from every conquest blitz.")} </p>
       {(() => {
         const price = conquestKeyShopPrice(hero.level);
         const active = conquestKeyActive(hero);
@@ -179,16 +172,16 @@ function ShopTab({ hero }: { hero: Hero }) {
               <KeyRound className="h-5 w-5" />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold">Conquest Key</div>
+              <div className="text-sm font-bold">{t("Conquest Key")}</div>
               <div className="text-[11px] text-muted-foreground">
-                {active ? "In your pack — double gold and tokens at the gate today" : "Double gold and tokens at the Conquest Gate for the day"}
+                {active ? t("In your pack — double gold and tokens at the gate today") : t("Double gold and tokens at the Conquest Gate for the day")}
               </div>
             </div>
             {active ? (
-              <span className="text-xs font-bold text-gold">Active</span>
+              <span className="text-xs font-bold text-gold">{t("Active")}</span>
             ) : (
               <button className="btn-gold px-3 py-1.5 text-sm" disabled={hero.gold < price}
-                aria-label="Buy a Conquest Key"
+                aria-label={t("Buy a Conquest Key")}
                 title={hero.gold < price ? "Not enough gold" : "Buy a Conquest Key"}
                 onClick={() => update((h) => { say(buyConquestKey(h), "today's Conquest Key"); })}>
                 <Gold n={price} className="text-primary-foreground" />
@@ -198,11 +191,9 @@ function ShopTab({ hero }: { hero: Hero }) {
         );
       })()}
 
-      <div className="mt-5 mb-2 font-display text-sm text-gold">Enchantment Stones · nine grades</div>
+      <div className="mt-5 mb-2 font-display text-sm text-gold">{t("Enchantment Stones · nine grades")}</div>
       <p className="mb-2 text-xs text-muted-foreground">
-        Stones taken to the Forge enchant gear instead of gold — each grade adds 10% success. Two stones of one grade
-        plus gold forge the next grade up at the Forge.
-      </p>
+         {t("Stones taken to the Forge enchant gear instead of gold — each grade adds 10% success. Two stones of one grade plus gold forge the next grade up at the Forge.")} </p>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
         {Array.from({ length: STONE_LEVELS }, (_, i) => i + 1).map((grade) => {
           const price = stoneShopPrice(grade, hero.level);
@@ -210,7 +201,7 @@ function ShopTab({ hero }: { hero: Hero }) {
           return (
             <article key={grade} className="slot flex flex-col items-center gap-1 p-2 text-center">
               <StoneIcon level={grade} size={34} />
-              <div className="text-[11px] font-bold">Lv {grade}</div>
+              <div className="text-[11px] font-bold">{t("Lv")} {grade}</div>
               <div className="text-[10px] text-muted-foreground">+{stoneBonus(grade)}% · ×{fmt(held)}</div>
               <button className="btn-gold mt-1 w-full px-1 py-1 text-[11px]" disabled={hero.gold < price}
                 aria-label={`Buy a Lv ${grade} stone`}
@@ -224,24 +215,22 @@ function ShopTab({ hero }: { hero: Hero }) {
       </div>
 
       <div className="mt-5 mb-2 flex flex-wrap items-baseline justify-between gap-1">
-        <span className="font-display text-sm text-gold">Fate Stones · refinement</span>
-        <span className="text-xs text-muted-foreground">Held ×{fmt(fateStoneCount(hero))}</span>
+        <span className="font-display text-sm text-gold">{t("Fate Stones · refinement")}</span>
+        <span className="text-xs text-muted-foreground">{t("Held ×")}{fmt(fateStoneCount(hero))}</span>
       </div>
       <p className="mb-2 text-xs text-muted-foreground">
-        One Fate Stone adds a flat +{Math.round(FATE_SUCCESS_BONUS * 100)}% to a Forge refinement and is spent whether the
-        metal holds or not — one stone per step, more as the gear climbs.
-      </p>
+         {t("One Fate Stone adds a flat +")}{Math.round(FATE_SUCCESS_BONUS * 100)}{t("% to a Forge refinement and is spent whether the metal holds or not — one stone per step, more as the gear climbs.")} </p>
       {(() => {
         const price = fateStoneShopPrice(hero.level);
         return (
           <article className="slot flex items-center gap-3 p-3 sm:max-w-sm">
             <MatIcon mat="fateStone" size={40} />
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold">Fate Stone</div>
-              <div className="text-[11px] text-muted-foreground">Refines gear at the Forge · held ×{fmt(fateStoneCount(hero))}</div>
+              <div className="text-sm font-bold">{t("Fate Stone")}</div>
+              <div className="text-[11px] text-muted-foreground">{t("Refines gear at the Forge · held ×")}{fmt(fateStoneCount(hero))}</div>
             </div>
             <button className="btn-gold px-3 py-1.5 text-sm" disabled={hero.gold < price}
-              aria-label="Buy a Fate Stone"
+              aria-label={t("Buy a Fate Stone")}
               title={hero.gold < price ? "Not enough gold" : "Buy a Fate Stone"}
               onClick={() => update((h) => { say(buyFateStone(h), "a Fate Stone"); })}>
               <Gold n={price} className="text-primary-foreground" />
@@ -250,7 +239,7 @@ function ShopTab({ hero }: { hero: Hero }) {
         );
       })()}
 
-      <div className="mt-5 mb-1 font-display text-sm text-gold">Battle Scrolls</div>
+      <div className="mt-5 mb-1 font-display text-sm text-gold">{t("Battle Scrolls")}</div>
       <ScrollGoods />
     </div>
   );
@@ -270,15 +259,15 @@ export function AuctionHousePanel({ onClose }: { onClose: () => void }) {
   }, [hero?.catalogue?.hour]);
   if (!hero) return null;
   return (
-    <Panel title="Auction House" subtitle="Catalogue · Shop · Farm · Player auctions" art="auction" onClose={onClose} wide>
+    <Panel title={t("Auction House")} subtitle={t("Catalogue · Shop · Farm · Player auctions")} art="auction" onClose={onClose} wide>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-        <span className="font-display text-gold">Auction House</span>
+        <span className="font-display text-gold">{t("Auction House")}</span>
         <span className="flex items-center gap-3">
           <Gold n={hero.gold} />
           <span className="flex items-center gap-1 text-xs text-muted-foreground"><img src={POTIONS.stamina.art} alt="" aria-hidden="true" className="h-4 w-4 object-contain" />{potionHeld(hero, "stamina")}</span>
         </span>
       </div>
-      <GameTabs label="Auction House sections" value={tab} onChange={setTab} tabs={[
+      <GameTabs label={t("Auction House sections")} value={tab} onChange={setTab} tabs={[
         { id: "catalogue", name: "Catalogue" },
         { id: "shop", name: "Shop" },
         { id: "farm", name: "Farm" },
@@ -289,10 +278,7 @@ export function AuctionHousePanel({ onClose }: { onClose: () => void }) {
       {tab === "farm" && <FarmShopTab hero={hero} />}
       {tab === "auction" && <AuctionBoard />}
       <p className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-        <Store className="h-3.5 w-3.5" />The catalogue restocks every hour.
-        <Gavel className="h-3.5 w-3.5" />The Auction tab is where players trade with each other.
-        <Trash2 className="h-3.5 w-3.5" />Selling gear works from the Auction tab, straight from your bag.
-      </p>
+        <Store className="h-3.5 w-3.5" />{t("The catalogue restocks every hour.")} <Gavel className="h-3.5 w-3.5" />{t("The Auction tab is where players trade with each other.")} <Trash2 className="h-3.5 w-3.5" />{t("Selling gear works from the Auction tab, straight from your bag.")} </p>
     </Panel>
   );
 }

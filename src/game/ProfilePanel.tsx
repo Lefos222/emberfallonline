@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useState } from "react";
 import { Check, Gift, Sparkles, Trophy } from "lucide-react";
 import { AVATAR_COUNT, AvatarIcon } from "./AvatarIcon";
@@ -54,9 +55,9 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <Panel title="Hero Profile" subtitle="Your hero, titles, achievements and look" art="profile" onClose={onClose} wide>
+    <Panel title={tr("Hero Profile")} subtitle={tr("Your hero, titles, achievements and look")} art="profile" onClose={onClose} wide>
       <GameTabs
-        label="Profile"
+        label={tr("Profile")}
         value={tab}
         onChange={setTab}
         tabs={[
@@ -78,7 +79,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
             <div className="text-center">
               <div className="font-display text-2xl leading-tight">{hero.name}</div>
               <div className="text-xs text-muted-foreground">
-                {CLASSES[hero.cls].name} · Level {hero.level}
+                {CLASSES[hero.cls].name}  {tr("· Level")} {hero.level}
                 {hero.paragon > 0 && ` · Ascension ${hero.paragon}`}
               </div>
               {equipped && (
@@ -89,7 +90,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
               )}
             </div>
             <div className="slot w-full p-2 text-center">
-              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Battle Rating</div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{tr("Battle Rating")}</div>
               <div className="font-display text-3xl text-gold">{fmt(stats.power)}</div>
             </div>
           </div>
@@ -105,15 +106,15 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
             </div>
             <div>
               <div className="mb-1 flex items-baseline justify-between">
-                <span className="font-display text-gold">Next level</span>
-                <span className="text-xs text-muted-foreground">{fmt(hero.xp)} / {fmt(xpToNext(hero))} XP</span>
+                <span className="font-display text-gold">{tr("Next level")}</span>
+                <span className="text-xs text-muted-foreground">{fmt(hero.xp)} / {fmt(xpToNext(hero))}  {tr("XP")}</span>
               </div>
               <LevelProgress hero={hero} rows={1} />
             </div>
             <div>
               <div className="mb-1 flex items-baseline justify-between">
-                <span className="font-display text-gold">Where the rating comes from</span>
-                <span className="text-xs text-muted-foreground">Every upgrade raises it</span>
+                <span className="font-display text-gold">{tr("Where the rating comes from")}</span>
+                <span className="text-xs text-muted-foreground">{tr("Every upgrade raises it")}</span>
               </div>
               <div className="space-y-1">
                 {powerBreakdown(hero).map((p) => (
@@ -126,14 +127,14 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
             </div>
             <div className="grid gap-2 text-sm sm:grid-cols-2">
               <div className="slot p-2">
-                <div className="flex items-center gap-1 font-display text-gold"><Trophy className="h-3.5 w-3.5" />Titles</div>
-                <div>{earnedCount} / {TITLES.length} earned</div>
-                {claimableTitles > 0 && <div className="text-xs text-xp">{claimableTitles} ready to claim</div>}
+                <div className="flex items-center gap-1 font-display text-gold"><Trophy className="h-3.5 w-3.5" />{tr("Titles")}</div>
+                <div>{earnedCount} / {TITLES.length}  {tr("earned")}</div>
+                {claimableTitles > 0 && <div className="text-xs text-xp">{claimableTitles}  {tr("ready to claim")}</div>}
               </div>
               <div className="slot p-2">
-                <div className="flex items-center gap-1 font-display text-gold"><Sparkles className="h-3.5 w-3.5" />Achievements</div>
-                <div>{(hero.achClaimed ?? []).length} / {ACHIEVEMENTS.length} claimed</div>
-                {claimableAch > 0 && <div className="text-xs text-xp">{claimableAch} ready to claim</div>}
+                <div className="flex items-center gap-1 font-display text-gold"><Sparkles className="h-3.5 w-3.5" />{tr("Achievements")}</div>
+                <div>{(hero.achClaimed ?? []).length} / {ACHIEVEMENTS.length}  {tr("claimed")}</div>
+                {claimableAch > 0 && <div className="text-xs text-xp">{claimableAch}  {tr("ready to claim")}</div>}
               </div>
             </div>
           </div>
@@ -144,13 +145,12 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
         <div>
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
-              Every title grants permanent buffs while equipped. {earnedCount} of {TITLES.length} earned.
-            </p>
-            <div className="flex gap-1" role="group" aria-label="Title filter">
+               {tr("Every title grants permanent buffs while equipped.")} {earnedCount}  {tr("of")} {TITLES.length}  {tr("earned.")} </p>
+            <div className="flex gap-1" role="group" aria-label={tr("Title filter")}>
               {(["all", "earned", "locked"] as const).map((f) => (
                 <button key={f} onClick={() => setTitleFilter(f)} aria-pressed={titleFilter === f}
                   className={`px-2 py-0.5 text-xs ${titleFilter === f ? "btn-gold" : "btn-ghost"}`}>
-                  {f === "all" ? "All" : f === "earned" ? "Earned" : "Locked"}
+                  {f === "all" ? tr("All") : f === "earned" ? tr("Earned") : tr("Locked")}
                 </button>
               ))}
             </div>
@@ -174,23 +174,23 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
                     <div className="text-[11px] text-muted-foreground">{t.howToEarn}</div>
                     <div className="text-[11px]">{buffs}</div>
                   </div>
-                  {canClaim && <button className="btn-gold shrink-0 px-2 py-0.5 text-[10px]" onClick={() => update((h) => { claimTitle(h, t.id); })}>Claim</button>}
-                  {owned && !isEquipped && <button className="btn-ghost shrink-0 px-2 py-0.5 text-[10px]" onClick={() => equip(t.id)}>Equip</button>}
-                  {isEquipped && <span className="shrink-0 rounded bg-gold/20 px-2 py-0.5 text-[10px] font-bold text-gold">Equipped</span>}
-                  {!owned && !canClaim && <span className="shrink-0 text-[10px] text-muted-foreground">Locked</span>}
+                  {canClaim && <button className="btn-gold shrink-0 px-2 py-0.5 text-[10px]" onClick={() => update((h) => { claimTitle(h, t.id); })}>{tr("Claim")}</button>}
+                  {owned && !isEquipped && <button className="btn-ghost shrink-0 px-2 py-0.5 text-[10px]" onClick={() => equip(t.id)}>{tr("Equip")}</button>}
+                  {isEquipped && <span className="shrink-0 rounded bg-gold/20 px-2 py-0.5 text-[10px] font-bold text-gold">{tr("Equipped")}</span>}
+                  {!owned && !canClaim && <span className="shrink-0 text-[10px] text-muted-foreground">{tr("Locked")}</span>}
                 </article>
               );
             })}
           </div>
           {hero.equippedTitle && (
-            <button className="btn-ghost mt-2 px-2 py-0.5 text-[10px]" onClick={() => equip(null)}>Unequip title</button>
+            <button className="btn-ghost mt-2 px-2 py-0.5 text-[10px]" onClick={() => equip(null)}>{tr("Unequip title")}</button>
           )}
         </div>
       )}
 
       {tab === "achievements" && (
         <div>
-          <div className="mb-2 flex flex-wrap gap-1" role="group" aria-label="Achievement categories">
+          <div className="mb-2 flex flex-wrap gap-1" role="group" aria-label={tr("Achievement categories")}>
             {(["All", ...ACH_CATEGORIES] as const).map((c) => {
               const n = c === "All" ? ACHIEVEMENTS.length : ACHIEVEMENTS.filter((a) => a.cat === c).length;
               return (
@@ -212,16 +212,16 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
                     <div className="min-w-0">
                       <div className="truncate text-sm font-bold">{a.name} <span className="text-[10px] text-muted-foreground">· {a.cat}</span></div>
                       <div className="text-[11px] text-muted-foreground">{a.desc}: {fmt(p)} / {fmt(a.goal)}</div>
-                      <div className="text-[11px]"><span className="text-gold">{fmt(achGold(a))} gold</span>{a.title && <span className="ml-2 text-gold">Title: {a.title}</span>}</div>
+                      <div className="text-[11px]"><span className="text-gold">{fmt(achGold(a))}  {tr("gold")}</span>{a.title && <span className="ml-2 text-gold">{tr("Title:")} {a.title}</span>}</div>
                     </div>
-                    {done ? <Check className="h-5 w-5 shrink-0 text-gold" aria-label="Claimed" /> : (
+                    {done ? <Check className="h-5 w-5 shrink-0 text-gold" aria-label={tr("Claimed")} /> : (
                       <button className="btn-gold flex shrink-0 items-center gap-1 px-2 py-1 text-xs" disabled={!canClaim}
                         title={canClaim ? "Claim reward" : "Not completed yet"}
                         onClick={() => update((h) => {
                           if (!isClaimable(h, a)) return;
                           h.achClaimed = [...(h.achClaimed ?? []), a.id];
                           h.gold += achGold(a);
-                        })}><Gift className="h-3.5 w-3.5" />Claim</button>
+                        })}><Gift className="h-3.5 w-3.5" />{tr("Claim")}</button>
                     )}
                   </div>
                   <div className="mt-2 h-1.5 overflow-hidden rounded bg-muted">
@@ -243,11 +243,10 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
                 : <Portrait cls={hero.cls} gender={gender} className="w-full" />}
             </div>
             <div className="text-sm text-muted-foreground">
-              Portrait, frame and biography appear on your public profile, in the arena and on the rankings.
-            </div>
+               {tr("Portrait, frame and biography appear on your public profile, in the arena and on the rankings.")} </div>
           </div>
           <div className="text-sm">
-            <div className="font-display text-gold">Portrait</div>
+            <div className="font-display text-gold">{tr("Portrait")}</div>
             <div className="mt-1 grid grid-cols-5 gap-1 sm:grid-cols-10">
               {Array.from({ length: AVATAR_COUNT }, (_, i) => (
                 <button key={i} type="button" aria-label={`Portrait ${i + 1}`} aria-pressed={hero.avatar === i}
@@ -259,7 +258,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
             </div>
           </div>
           <div className="text-sm">
-            <div className="font-display text-gold">Frame</div>
+            <div className="font-display text-gold">{tr("Frame")}</div>
             <div className="mt-1 flex flex-wrap gap-1">
               {FRAMES.map((f) => (
                 <button key={f.id} disabled={hero.level + hero.paragon < f.minLevel}
@@ -269,18 +268,16 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
               ))}
             </div>
           </div>
-          <label className="block text-sm">Biography
-            <textarea className="slot mt-1 w-full p-2 outline-none" maxLength={200} rows={3} value={bio}
+          <label className="block text-sm">{tr("Biography")} <textarea className="slot mt-1 w-full p-2 outline-none" maxLength={200} rows={3} value={bio}
               onChange={(e) => setBio(e.target.value)} />
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={pub} onChange={(e) => setPub(e.target.checked)} />
-            Public profile (visible in arena &amp; rankings)
-          </label>
+             {tr("Public profile (visible in arena &amp; rankings)")} </label>
           <button className="btn-gold px-6 py-2" onClick={async () => {
             const e = await updateProfile({ bio: bio.trim(), title: activeTitle(hero)?.name ?? "", frame, is_public: pub });
             setMsg(e ?? "Profile saved");
-          }}>Save profile</button>
+          }}>{tr("Save profile")}</button>
           {msg && <span className="ml-3 text-sm text-gold">{msg}</span>}
         </div>
       )}

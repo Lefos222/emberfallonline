@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useState, useRef, useMemo } from "react";
 import { Eye, Lock, RotateCcw, Star } from "lucide-react";
 import { CLASSES } from "./data";
@@ -87,27 +88,26 @@ export function SkillTreeContent() {
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="font-display text-lg">Skill points: <span className="text-gold">{fmt(free)}</span>
-          <span className="ml-3 text-sm text-muted-foreground">{fmt(spentIn(hero))} spent · {fmt(totalPoints(hero))} earned</span>
+        <div className="font-display text-lg">{tr("Skill points:")} <span className="text-gold">{fmt(free)}</span>
+          <span className="ml-3 text-sm text-muted-foreground">{fmt(spentIn(hero))}  {tr("spent ·")} {fmt(totalPoints(hero))}  {tr("earned")}</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">Earn 1 point per level, plus a bonus every 5 levels — quests and achievements can add more.</span>
+          <span className="text-xs text-muted-foreground">{tr("Earn 1 point per level, plus a bonus every 5 levels — quests and achievements can add more.")}</span>
           {!confirmReset ? (
             <button className="btn-ghost flex items-center gap-1 px-3 py-1.5 text-sm" disabled={spentIn(hero) === 0 && !hero.spec} onClick={() => setConfirmReset(true)}>
-              <RotateCcw className="h-4 w-4" /> Reset tree
-            </button>
+              <RotateCcw className="h-4 w-4" />  {tr("Reset tree")} </button>
           ) : (
             <span className="flex items-center gap-2 text-sm">
-              Reset for <Gold n={resetCost(hero)} />?
-              <button className="btn-gold px-3 py-1" disabled={hero.gold < resetCost(hero)} onClick={() => { reset(); setConfirmReset(false); }}>Confirm</button>
-              <button className="btn-ghost px-3 py-1" onClick={() => setConfirmReset(false)}>Cancel</button>
+               {tr("Reset for")} <Gold n={resetCost(hero)} />?
+              <button className="btn-gold px-3 py-1" disabled={hero.gold < resetCost(hero)} onClick={() => { reset(); setConfirmReset(false); }}>{tr("Confirm")}</button>
+              <button className="btn-ghost px-3 py-1" onClick={() => setConfirmReset(false)}>{tr("Cancel")}</button>
             </span>
           )}
         </div>
       </div>
 
       {hero.level >= SPEC_LEVEL && !hero.spec && (
-        <p className="mb-3 text-sm text-gold">Choose a specialization to unlock its tier 3+ abilities — you can change it later with a reset.</p>
+        <p className="mb-3 text-sm text-gold">{tr("Choose a specialization to unlock its tier 3+ abilities — you can change it later with a reset.")}</p>
       )}
 
       <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
@@ -136,7 +136,7 @@ export function SkillTreeContent() {
                   {!hero.spec && (
                     <button className="btn-ghost mt-0.5 px-2 py-0.5 text-[10px]" disabled={hero.level < SPEC_LEVEL}
                       title={hero.level < SPEC_LEVEL ? `Requires level ${SPEC_LEVEL}` : `Specialize in ${spec.name}`}
-                      onClick={() => chooseSpec(spec.id)}>{hero.level < SPEC_LEVEL ? `Lv ${SPEC_LEVEL}` : "Specialize"}</button>
+                      onClick={() => chooseSpec(spec.id)}>{hero.level < SPEC_LEVEL ? `Lv ${SPEC_LEVEL}` : tr("Specialize")}</button>
                   )}
                 </div>
               );
@@ -210,17 +210,16 @@ export function SkillTreeContent() {
             <span>{detail.ability ? "◆ " : ""}{detail.name}</span>
           </h3>
           <div className="mb-1 text-sm text-muted-foreground">
-            {detailSpec.name} specialization · Tier {detail.tier}
+            {detailSpec.name}  {tr("specialization · Tier")} {detail.tier}
           </div>
           <p className="text-sm">{detail.desc}</p>
           <div className="mt-3 space-y-1 text-sm">
-            <div><span className="text-muted-foreground">Per rank:</span> {talentEffects(detail, 1)}</div>
-            <div><span className="text-muted-foreground">Current ({rank}):</span> {rank > 0 ? talentEffects(detail, rank) : "—"}</div>
-            {rank < detail.max && <div><span className="text-muted-foreground">Next ({rank + 1}):</span> {talentEffects(detail, rank + 1)}</div>}
+            <div><span className="text-muted-foreground">{tr("Per rank:")}</span> {talentEffects(detail, 1)}</div>
+            <div><span className="text-muted-foreground">{tr("Current (")}{rank}):</span> {rank > 0 ? talentEffects(detail, rank) : "—"}</div>
+            {rank < detail.max && <div><span className="text-muted-foreground">{tr("Next (")}{rank + 1}):</span> {talentEffects(detail, rank + 1)}</div>}
           </div>
           <div className="mt-2 text-xs text-muted-foreground">
-            Rank {rank}/{detail.max} · {rankCost(detail, rank)} pt/rank
-          </div>
+             {tr("Rank")} {rank}/{detail.max} · {rankCost(detail, rank)}  {tr("pt/rank")} </div>
           {blocker && blocker !== "Maxed" && (
             <div className="mt-1 text-xs text-blood"><Lock className="inline h-3 w-3" /> {blocker}</div>
           )}
@@ -233,7 +232,7 @@ export function SkillTreeContent() {
             {detail.ability && (
               <button type="button" className="btn-ghost w-full px-4 py-2 text-sm text-gold"
                 onClick={() => setPreviewId(id => id === detail.id ? null : detail.id)}>
-                <Eye className="h-4 w-4" />{previewId === detail.id ? "Hide preview" : `Preview ${detail.name}`}
+                <Eye className="h-4 w-4" />{previewId === detail.id ? tr("Hide preview") : `Preview ${detail.name}`}
               </button>
             )}
           </div>

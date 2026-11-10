@@ -1,4 +1,4 @@
-import { tName } from "./i18n";
+import { tName , tr} from "./i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   FastForward, Skull, Zap,
@@ -186,8 +186,8 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
       {/* Top bar: title + turn order */}
       <div className="safe-top relative z-10 flex flex-col items-center gap-2">
         {title && <div className="font-display text-xl panel-title md:text-2xl">{title}</div>}
-        <div className="flex items-center gap-1.5 rounded-full bg-background/70 px-3 py-1 backdrop-blur" aria-label="Turn order">
-          <span className="mr-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Round {s.round}</span>
+        <div className="flex items-center gap-1.5 rounded-full bg-background/70 px-3 py-1 backdrop-blur" aria-label={tr("Turn order")}>
+          <span className="mr-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{tr("Round")} {s.round}</span>
           {order.map((u, i) => (
             <div key={u.id + i} title={tName(u.name)}
               className={`h-8 w-8 overflow-hidden rounded-full border-2 bg-card ${i === 0 ? "border-gold scale-110 shadow-[0_0_12px_var(--gold)]" : u.side === "hero" ? "border-r1" : "border-blood"}`}>
@@ -196,7 +196,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
           ))}
         </div>
         <div className={`font-display text-sm ${myTurn ? "text-gold" : "text-muted-foreground"}`}>
-          {s.over ? "" : myTurn ? (skill ? (skill.target === "multi" ? `Choose up to ${skill.maxTargets} targets` : "Choose a target") : "Your turn — choose a skill") : `${actor ? tName(actor.name) : ""}'s turn…`}
+          {s.over ? "" : myTurn ? (skill ? (skill.target === "multi" ? `Choose up to ${skill.maxTargets} targets` : tr("Choose a target")) : tr("Your turn — choose a skill")) : `${actor ? tName(actor.name) : ""}'s turn…`}
         </div>
       </div>
 
@@ -218,19 +218,19 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
 
       {/* Bottom: log + action bar */}
       <div className="battle-actions relative z-10 grid gap-2 bg-gradient-to-t from-background via-background/90 to-transparent md:grid-cols-[260px_1fr]">
-        <div className="hidden h-28 overflow-y-auto rounded-md border border-border bg-background/70 p-2 text-xs md:block" aria-label="Combat log">
+        <div className="hidden h-28 overflow-y-auto rounded-md border border-border bg-background/70 p-2 text-xs md:block" aria-label={tr("Combat log")}>
           {s.log.map((l, i) => <div key={i} className={i === 0 ? "text-foreground" : "text-muted-foreground"}>{l}</div>)}
         </div>
         <div className="flex flex-col items-center gap-2">
-          {hero.scrolls && hero.scrolls.length > 0 && <div className="flex flex-wrap justify-center gap-2 text-xs text-gold">{hero.scrolls.map(k => <span key={k} title="Server-confirmed for this battle">{SCROLLS[k].name} +20%</span>)}</div>}
+          {hero.scrolls && hero.scrolls.length > 0 && <div className="flex flex-wrap justify-center gap-2 text-xs text-gold">{hero.scrolls.map(k => <span key={k} title={tr("Server-confirmed for this battle")}>{SCROLLS[k].name} +20%</span>)}</div>}
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
             <span className="font-bold text-r3">{resourceName(hero.cls)} {hero.mana}/{hero.maxMana}</span>
             {err && <span className="text-blood">{err}</span>}
-            {skill && <span className="text-gold">{skill.name} · {skill.target === "all" ? "All enemies" : skill.target === "self" ? "Self" : skill.target === "multi" ? `Up to ${skill.maxTargets} enemies` : "One enemy"} · {skill.hits ?? 1} hit{(skill.hits ?? 1) > 1 ? "s" : ""} · {skill.cd} turn cooldown</span>}
+            {skill && <span className="text-gold">{skill.name} · {skill.target === "all" ? tr("All enemies") : skill.target === "self" ? tr("Self") : skill.target === "multi" ? `Up to ${skill.maxTargets} enemies` : tr("One enemy")} · {skill.hits ?? 1}  {tr("hit")}{(skill.hits ?? 1) > 1 ? "s" : ""} · {skill.cd}  {tr("turn cooldown")}</span>}
             {skill?.target === "multi" && selTargets.length > 0 && (
-              <Button variant="ghost" className="btn-gold px-3 py-1 text-xs" onClick={() => void execute(skill.id, selTargets)}>Fire at {selTargets.length}</Button>
+              <Button variant="ghost" className="btn-gold px-3 py-1 text-xs" onClick={() => void execute(skill.id, selTargets)}>{tr("Fire at")} {selTargets.length}</Button>
             )}
-            {skill && <Button variant="ghost" className="text-muted-foreground underline" onClick={() => { setSelSkill(null); setSelTargets([]); }}>Cancel</Button>}
+            {skill && <Button variant="ghost" className="text-muted-foreground underline" onClick={() => { setSelSkill(null); setSelTargets([]); }}>{tr("Cancel")}</Button>}
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2">
             {hero.kit.map((sk) => {
@@ -244,18 +244,17 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
                   <SkillIcon icon={sk.icon} className="h-8 w-8 md:h-10 md:w-10" />
                   <span className="px-0.5 text-center text-[9px] font-bold uppercase leading-tight">{sk.name}</span>
                   {sk.cost > 0 && <span className="absolute right-0.5 top-0.5 rounded bg-background/80 px-1 text-[9px] text-r3">{sk.cost}</span>}
-                  {cd > 0 && <span className="absolute inset-0 flex flex-col items-center justify-center rounded-md bg-background/75"><span className="font-display text-2xl">{cd}</span><span className="text-[9px]">turn{cd > 1 ? "s" : ""}</span></span>}
+                  {cd > 0 && <span className="absolute inset-0 flex flex-col items-center justify-center rounded-md bg-background/75"><span className="font-display text-2xl">{cd}</span><span className="text-[9px]">{tr("turn")}{cd > 1 ? "s" : ""}</span></span>}
                 </Button>
               );
             })}
             <Button variant="ghost" onClick={potion} disabled={!myTurn || s.potions <= 0 || autoOn} className="slot relative flex h-16 w-16 flex-col items-center justify-center gap-0.5 rarity-5 transition hover:scale-105 disabled:opacity-50 md:h-20 md:w-20">
               <SkillIcon icon="potion" className="h-8 w-8 md:h-10 md:w-10" />
-              <span className="text-[9px] font-bold uppercase">Potion ×{s.potions}</span>
+              <span className="text-[9px] font-bold uppercase">{tr("Potion ×")}{s.potions}</span>
             </Button>
-            <Button variant="ghost" onClick={() => setAutoOn((a) => !a)} className={`slot flex h-12 w-12 flex-col items-center justify-center text-[9px] font-bold ${autoOn ? "rarity-2" : ""}`} title="Auto battle">
-              <Zap className="h-4 w-4" />AUTO
-            </Button>
-            <Button variant="ghost" onClick={() => setFast((f) => !f)} className={`slot flex h-12 w-12 items-center justify-center ${fast ? "rarity-2" : ""}`} title="Speed">
+            <Button variant="ghost" onClick={() => setAutoOn((a) => !a)} className={`slot flex h-12 w-12 flex-col items-center justify-center text-[9px] font-bold ${autoOn ? "rarity-2" : ""}`} title={tr("Auto battle")}>
+              <Zap className="h-4 w-4" />{tr("AUTO")} </Button>
+            <Button variant="ghost" onClick={() => setFast((f) => !f)} className={`slot flex h-12 w-12 items-center justify-center ${fast ? "rarity-2" : ""}`} title={tr("Speed")}>
               <FastForward className="h-5 w-5" />
             </Button>
           </div>
@@ -264,7 +263,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
 
       {s.over && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/40">
-          <div className={`font-display text-6xl font-black anim-pop ${s.over === "won" ? "panel-title" : "text-blood"}`}>{s.over === "won" ? "VICTORY" : "DEFEAT"}</div>
+          <div className={`font-display text-6xl font-black anim-pop ${s.over === "won" ? "panel-title" : "text-blood"}`}>{s.over === "won" ? tr("VICTORY") : tr("DEFEAT")}</div>
         </div>
       )}
     </div>
@@ -284,14 +283,14 @@ function UnitView({ u, anim, effect, move, victory, floats, active, targetable, 
       <div className={`mb-1 w-full max-w-44 rounded-md bg-background/75 px-2 py-1 text-left backdrop-blur ${active ? "ring-2 ring-gold" : ""}`}>
         <div className="flex items-center justify-between gap-1 truncate text-[11px] font-bold">
           <span className="truncate">{u.boss && <Skull className="mr-0.5 inline h-3 w-3 text-blood" />}{u.elite && <span className="text-r4">★ </span>}{tName(u.name)}</span>
-          <span className="text-muted-foreground">Lv {u.level}</span>
+          <span className="text-muted-foreground">{tr("Lv")} {u.level}</span>
         </div>
         <div className="bar-track mt-0.5 h-2.5"><div className="bar-hp h-full transition-all duration-300" style={{ width: `${(u.hp / u.maxHp) * 100}%` }} /></div>
         <div className="flex justify-between text-[9px] text-muted-foreground"><span>{u.hp.toLocaleString()}/{u.maxHp.toLocaleString()}</span>{u.side === "hero" && <span className="text-r3">{u.mana}</span>}</div>
         {u.side === "hero" && <div className="bar-track mt-0.5 h-1.5"><div className="h-full bg-r3 transition-all" style={{ width: `${(u.mana / u.maxMana) * 100}%` }} /></div>}
         {(u.statuses.length > 0 || u.telegraph) && (
           <div className="mt-0.5 flex flex-wrap gap-0.5">
-            {u.telegraph && <span className="rounded bg-blood px-1 text-[8px] font-bold animate-pulse">⚠ CHARGING</span>}
+            {u.telegraph && <span className="rounded bg-blood px-1 text-[8px] font-bold animate-pulse">{tr("⚠ CHARGING")}</span>}
             {u.statuses.map((x) => <span key={x.kind} className="rounded bg-secondary px-1 text-[8px] font-bold">{STATUS_LABEL[x.kind]} {x.turns}</span>)}
           </div>
         )}

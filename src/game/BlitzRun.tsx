@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useEffect, useState } from "react";
 import { Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -90,19 +91,19 @@ export function BlitzRunCard() {
   };
 
   return (
-    <div role="group" aria-label="Running blitz" className="slot mt-3 border-gold/50 p-3">
+    <div role="group" aria-label={t("Running blitz")} className="slot mt-3 border-gold/50 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2 font-display text-gold">
         <span className="flex items-center gap-2">
           <Zap className="h-4 w-4" />
-          Blitz running · {run.gate === "campaign" ? "campaign" : "conquest"} {run.target}
-          <span className="text-xs font-normal text-muted-foreground">({Math.round(total / 60_000)} min run)</span>
+           {t("Blitz running ·")} {run.gate === "campaign" ? t("campaign") : t("conquest")} {run.target}
+          <span className="text-xs font-normal text-muted-foreground">({Math.round(total / 60_000)}  {t("min run)")}</span>
         </span>
         <span className="font-bold tabular-nums">{formatBlitzLeft(left)}</span>
       </div>
       <div
         className="mt-2 h-2 overflow-hidden rounded-full border border-gold/40 bg-black/45"
         role="progressbar"
-        aria-label="Blitz progress"
+        aria-label={t("Blitz progress")}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={pct}
@@ -113,19 +114,18 @@ export function BlitzRunCard() {
         />
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        The run pays <span className="font-bold text-xp">+{fmt(run.xp)} XP</span>
+         {t("The run pays")} <span className="font-bold text-xp">+{fmt(run.xp)}  {t("XP")}</span>
         {run.tokens ? (
           <>
             {" "}
-            and <span className="font-bold text-gold">+{fmt(run.tokens)} tokens</span>
+             {t("and")} <span className="font-bold text-gold">+{fmt(run.tokens)}  {t("tokens")}</span>
           </>
         ) : null}{" "}
-        and <Gold n={run.gold} /> when it lands. No battle can start until it finishes.
-      </p>
+         {t("and")} <Gold n={run.gold} />  {t("when it lands. No battle can start until it finishes.")} </p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <Button size="sm" disabled={busy || short} onClick={() => void skip()}>
           <ArtIcon name="diamond" size={16} />
-          Finish now · {BLITZ_SKIP_DIAMONDS}
+           {t("Finish now ·")} {BLITZ_SKIP_DIAMONDS}
         </Button>
         <span className="text-[11px] text-muted-foreground">
           {short

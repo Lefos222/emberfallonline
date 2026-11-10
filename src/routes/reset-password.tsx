@@ -1,3 +1,4 @@
+import { t } from "@/game/i18n";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import castle from "@/assets/castle.jpg.asset.json";
@@ -32,9 +33,9 @@ function ResetPage() {
         setBusy(false);
         if (error) setMsg(error.message); else void nav({ to: "/" });
       }}>
-        <h1 className="panel-title text-center text-2xl font-bold">New password</h1>
-        <input className="slot w-full px-3 py-2 outline-none" type="password" minLength={6} required placeholder="New password" value={pw} onChange={(e) => setPw(e.target.value)} />
-        <button className="btn-gold w-full py-2.5" disabled={busy}>Save password</button>
+        <h1 className="panel-title text-center text-2xl font-bold">{t("New password")}</h1>
+        <input className="slot w-full px-3 py-2 outline-none" type="password" minLength={6} required placeholder={t("New password")} value={pw} onChange={(e) => setPw(e.target.value)} />
+        <button className="btn-gold w-full py-2.5" disabled={busy}>{t("Save password")}</button>
         {msg && <p className="text-center text-sm text-hp">{msg}</p>}
       </form>
     </div>

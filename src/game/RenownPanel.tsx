@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import {
   Award,
   Crosshair,
@@ -36,7 +37,7 @@ export function RenownBadge({ n }: { n: number }) {
   return (
     <span
       className="inline-flex items-center gap-1 font-bold text-[#f0b429]"
-      title="Renown — earned from every battle you win"
+      title={tr("Renown — earned from every battle you win")}
     >
       <Award className="h-4 w-4" />
       {fmt(n)}
@@ -56,16 +57,12 @@ export function RenownTraining({ hero }: { hero: Hero }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 font-display text-lg text-gold">
           <Award className="h-5 w-5" />
-          Hero training
-          <RenownBadge n={banked} />
+           {tr("Hero training")} <RenownBadge n={banked} />
         </div>
-        <span className="text-xs text-muted-foreground">{renownTotal(hero)} ranks trained</span>
+        <span className="text-xs text-muted-foreground">{renownTotal(hero)}  {tr("ranks trained")}</span>
       </div>
       <p className="mb-3 mt-1 text-xs text-muted-foreground">
-        Every battle you win pays Renown, and Renown buys permanent upgrades for the hero alone — no
-        gold and no barracks level involved. Losses pay nothing, so the training grows with your
-        fighting.
-      </p>
+         {tr("Every battle you win pays Renown, and Renown buys permanent upgrades for the hero alone — no gold and no barracks level involved. Losses pay nothing, so the training grows with your fighting.")} </p>
       <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
         {RENOWN_TRACKS.map((t) => {
           const Icon = ICONS[t.id] ?? Award;
@@ -81,13 +78,13 @@ export function RenownTraining({ hero }: { hero: Hero }) {
                   {t.name}
                 </span>
                 <span className="shrink-0 text-xs text-muted-foreground">
-                  Rank {rank}/{t.max}
+                   {tr("Rank")} {rank}/{t.max}
                 </span>
               </div>
               <div className="mt-1 font-display text-2xl text-gold">{renownText(t, rank)}</div>
               <div className="text-xs text-muted-foreground">{t.desc}</div>
               <div className="mt-1 text-xs">
-                Next rank <b className="text-gold">{renownText(t)}</b>
+                 {tr("Next rank")} <b className="text-gold">{renownText(t)}</b>
               </div>
               <button
                 className="btn-gold mt-2 w-full py-1.5 text-sm"
@@ -103,7 +100,7 @@ export function RenownTraining({ hero }: { hero: Hero }) {
                   "Fully trained"
                 ) : (
                   <>
-                    Train rank {rank + 1} <RenownBadge n={cost} />
+                     {tr("Train rank")} {rank + 1} <RenownBadge n={cost} />
                   </>
                 )}
               </button>
@@ -113,8 +110,7 @@ export function RenownTraining({ hero }: { hero: Hero }) {
       </div>
       {banked === 0 && (
         <p className="mt-3 text-xs text-muted-foreground">
-          No Renown banked yet — win a fight at any gate and come back.
-        </p>
+           {tr("No Renown banked yet — win a fight at any gate and come back.")} </p>
       )}
     </div>
   );

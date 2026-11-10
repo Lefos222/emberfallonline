@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useState } from "react";
 import { GemChestIcon, GoldChestIcon } from "./CoinIcon";
 import { CHESTS, chestCount, openChest, ownedChests, type ChestKind } from "./chests";
@@ -35,12 +36,11 @@ export function Vault() {
   };
 
   return (
-    <section className="mt-4" aria-label="Vault">
+    <section className="mt-4" aria-label={t("Vault")}>
       <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-1">
-        <span className="font-display text-sm text-gold">Vault · items</span>
+        <span className="font-display text-sm text-gold">{t("Vault · items")}</span>
         <span className="text-[10px] text-muted-foreground">
-          Chests open here · gems are socketed at the Gem Workshop
-        </span>
+           {t("Chests open here · gems are socketed at the Gem Workshop")} </span>
       </div>
       <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
         {chests.map((c) => (
@@ -56,7 +56,7 @@ export function Vault() {
             {c.id === "gold" ? <GoldChestIcon size={34} /> : <GemChestIcon size={34} />}
             <div className="min-w-0">
               <div className="truncate text-[11px] font-bold">{c.name}</div>
-              <div className="text-[10px] text-muted-foreground">×{c.count} in vault</div>
+              <div className="text-[10px] text-muted-foreground">×{c.count}  {t("in vault")}</div>
             </div>
           </button>
         ))}
@@ -75,7 +75,7 @@ export function Vault() {
               {g && <GemIcon type={g.type} size={30} />}
               <div className="min-w-0">
                 <div className="truncate text-[11px] font-bold">{gemName(key)}</div>
-                <div className="text-[10px] text-muted-foreground">×{n} in vault</div>
+                <div className="text-[10px] text-muted-foreground">×{n}  {t("in vault")}</div>
               </div>
             </button>
           );
@@ -84,9 +84,7 @@ export function Vault() {
 
       {chests.every((c) => c.count === 0) && gems.length === 0 && (
         <p className="mt-2 text-xs text-muted-foreground">
-          No items yet. The reward board, the Conquest Gate and the four-hourly reward chest fill
-          this vault.
-        </p>
+           {t("No items yet. The reward board, the Conquest Gate and the four-hourly reward chest fill this vault.")} </p>
       )}
 
       {chestPick && (
@@ -101,7 +99,7 @@ export function Vault() {
             disabled={chestCount(hero, chestPick.id) < 1}
             onClick={() => open(chestPick.id)}
           >
-            Open ({chestCount(hero, chestPick.id)})
+             {t("Open (")}{chestCount(hero, chestPick.id)})
           </button>
         </div>
       )}
@@ -115,12 +113,11 @@ export function Vault() {
             </div>
             <p className="text-xs text-muted-foreground">
               +{gemValue(pick.key)} {GEM_STAT_LABEL[GEMS[gemPick.type].stat]} ·{" "}
-              {GEM_TIER_NAMES[gemPick.tier - 1]} tier · best on {GEMS[gemPick.type].classes}
+              {GEM_TIER_NAMES[gemPick.tier - 1]}  {t("tier · best on")} {GEMS[gemPick.type].classes}
             </p>
           </div>
           <span className="text-xs text-muted-foreground">
-            Socket or fuse it at the Gem Workshop
-          </span>
+             {t("Socket or fuse it at the Gem Workshop")} </span>
         </div>
       )}
 

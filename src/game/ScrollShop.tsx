@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useState } from 'react';
 import scrollArt from '@/assets/battle-scrolls.png';
 import { Button } from '@/components/ui/button';
@@ -29,9 +30,9 @@ export function ScrollGoods() {
         const scroll = SCROLLS[kind]; const col = kind === 'dmg' ? 0 : kind === 'def' ? 1 : 2;
         return <div key={kind} className="flex flex-wrap items-center gap-3 border-b border-border py-3">
           <div className="relative h-14 w-14 shrink-0 overflow-hidden slot rarity-2"><img src={scrollArt} alt={scroll.name} loading="lazy" width={1536} height={512} className="absolute h-full max-w-none" style={{ width: '300%', left: `${-col * 100}%` }} /></div>
-          <div className="min-w-36 flex-1"><h3 className="font-display text-gold">{scroll.name}</h3><p className="text-sm">+20% · 10 battles</p><p className="text-xs text-muted-foreground">Owned {owned[kind]}{buffs[kind] > 0 ? ` · Active: ${buffs[kind]} battles remaining` : ''}</p></div>
-          <Button variant="outline" disabled={busy || owned[kind] < 1 || buffs[kind] > 0} onClick={() => void act(kind, false)}>{buffs[kind] > 0 ? 'Active' : 'Activate'}</Button>
-          <Button disabled={busy || (getState().hero?.gold ?? 0) < scroll.price} onClick={() => void act(kind, true)}>Buy · {scroll.price.toLocaleString()} gold</Button>
+          <div className="min-w-36 flex-1"><h3 className="font-display text-gold">{scroll.name}</h3><p className="text-sm">{t("+20% · 10 battles")}</p><p className="text-xs text-muted-foreground">{t("Owned")} {owned[kind]}{buffs[kind] > 0 ? ` · Active: ${buffs[kind]} battles remaining` : ''}</p></div>
+          <Button variant="outline" disabled={busy || owned[kind] < 1 || buffs[kind] > 0} onClick={() => void act(kind, false)}>{buffs[kind] > 0 ? t("Active") : t("Activate")}</Button>
+          <Button disabled={busy || (getState().hero?.gold ?? 0) < scroll.price} onClick={() => void act(kind, true)}>{t("Buy ·")} {scroll.price.toLocaleString()}  {t("gold")}</Button>
         </div>;
       })}</div>
       {error && <p role="alert" className="mt-3 text-sm text-destructive">{error}</p>}
@@ -42,7 +43,7 @@ export function ScrollGoods() {
 export function ScrollShop({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
   if (!hero) return null;
-  return <Panel title="Battle Scrolls" subtitle="One-fight boosts and effects" art="scroll" onClose={onClose}>
+  return <Panel title={t("Battle Scrolls")} subtitle={t("One-fight boosts and effects")} art="scroll" onClose={onClose}>
     <div className="mb-4"><Gold n={hero.gold} /></div>
     <ScrollGoods />
   </Panel>;
