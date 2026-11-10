@@ -67,7 +67,7 @@ import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
 import { addStones, rollStoneDrop } from "./enchant";
 import { addFateStones, rollFateStone } from "./fate";
-import { ItemCard, Panel } from "./ui";
+import { ItemCard, Panel, useEscapeClose } from "./ui";
 import { CONQUEST_LEVEL, canEnterConquest } from "./data";
 import { QuestsButton, QuestsPanel } from "./Quests";
 import { claimableLevelQuests, rollLevelQuests } from "./level-quests";
@@ -107,6 +107,9 @@ export function Game() {
     setSound((s) => saveAudioSettings({ ...s, ...patch }));
   const audio = useRef<HTMLAudioElement>(null);
   const starting = useRef(false);
+  // The fight on screen, plus the options that started it so a result can offer a rematch.
+  const fightOpen = useRef(false);
+  const lastFight = useRef<Parameters<StartBattle>[0] | null>(null);
   const [entryError, setEntryError] = useState("");
   const [checkoutNotice, setCheckoutNotice] = useState("");
 
@@ -213,7 +216,7 @@ export function Game() {
   const keepsPanel = open !== null && (BATTLE_PANELS as readonly string[]).includes(open);
 
   const start: StartBattle = (o) => {
-    if (!hero || starting.current || battle) return;
+    if (!hero || starting.current || fightOpen.current) return;
     // A blitz keeps the hero out in the field: nothing fights until the run lands (see blitz-run.ts).
     const blitzLock = battleLockedByBlitz(hero);
     if (blitzLock) {
@@ -245,6 +248,9 @@ export function Game() {
       });
     if (staminaCost > 0) update((h) => spendStamina(h, staminaCost));
     if (o.arena) update((h) => spendArenaFight(h));
+    // Remembered so the result screen can offer the same fight again — through this same entry
+    // point, so its stamina, duel allowance and blitz lock are checked once more.
+    lastFight.current = o;
     starting.current = true;
     setEntryError("");
     void (async () => {
@@ -255,6 +261,7 @@ export function Game() {
         // The Campaign Gate, Conquest Gate, Dungeon Gate and World Tree stay mounted under the
         // battle, so the player comes back to the exact screen they fought from instead of the castle.
         if (!keepsPanel) setOpen(null);
+        fightOpen.current = true;
         setBattle({
           ...o,
           left: scrollFighter(
@@ -266,12 +273,58 @@ export function Game() {
           ),
         });
       } catch (e) {
+        fightOpen.current = false;
         setEntryError(e instanceof Error ? e.message : "Battle entry failed.");
       } finally {
         starting.current = false;
       }
     })();
   };
+  // A rematch goes back through `start` after the screen has closed, so the freshest closure runs.
+  const nextFight = useRef(start);
+  nextFight.current = start;
+
+  /** Leave the result screen (and the fight under it). */
+  const closeResult = () => {
+    fightOpen.current = false;
+    setResult(null);
+    setBattle(null);
+  };
+
+  /** Retry the fight that just ended — the same foe, through the same checks as the first time. */
+  const repeatFight = () => {
+    const o = lastFight.current;
+    closeResult();
+    if (o) window.setTimeout(() => nextFight.current(o), 0);
+  };
+
+  /** The battle-entry lock: dismissing it clears the scroll marker, exactly like its button. */
+  const dismissEntryError = () => {
+    const id = getState().heroId;
+    if (id) localStorage.removeItem(`ef-scroll-battle:${id}`);
+    setEntryError("");
+  };
+
+  // Escape closes whatever is on top: an entry lock, the battle's result, or the friends list.
+  const dialogOpen = !!entryError || !!result || open === "friends";
+  useEscapeClose(() => {
+    if (entryError) dismissEntryError();
+    else if (result) closeResult();
+    else setOpen(null);
+  }, dialogOpen);
+
+  // Enter takes the battle's result, so a fight can be closed without the mouse.
+  useEffect(() => {
+    if (!result) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (e.key !== "Enter" || (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+      e.preventDefault();
+      closeResult();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }); // eslint-disable-line react-hooks/exhaustive-deps
 
   const settled = useRef<object | null>(null);
   const onEnd = async (won: boolean) => {
@@ -631,14 +684,7 @@ export function Game() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4">
           <div className="game-panel max-w-md p-5">
             <p role="alert">{entryError}</p>
-            <Button
-              className="mt-4"
-              onClick={() => {
-                const id = getState().heroId;
-                if (id) localStorage.removeItem(`ef-scroll-battle:${id}`);
-                setEntryError("");
-              }}
-            >
+            <Button className="mt-4" onClick={dismissEntryError}>
                {tr("Acknowledge and close")} </Button>
           </div>
         </div>
@@ -657,14 +703,16 @@ export function Game() {
               ))}
             </div>
             {result.loot && <ItemCard item={result.loot} />}
-            <button
-              className="btn-gold mt-5 w-full py-2.5 text-lg"
-              onClick={() => {
-                setResult(null);
-                setBattle(null);
-              }}
-            >
-               {tr("Continue")} </button>
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+              <button className="btn-gold flex-1 py-2.5 text-lg" onClick={closeResult}>
+                 {tr("Continue")} </button>
+              {lastFight.current && (
+                <button className="btn-ghost flex-1 py-2.5 text-lg" onClick={repeatFight}>
+                  {tr("Fight again")}
+                </button>
+              )}
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">{tr("Enter continues · Esc closes")}</p>
           </div>
         </div>
       )}

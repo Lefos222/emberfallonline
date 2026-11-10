@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Gem, Diamond } from "lucide-react";
 import { X } from "./PaintedIcons";
@@ -10,6 +10,35 @@ import { gemName, gemStatText, parseGem, socketCount, sockets } from "./crafting
 import { itemStats, itemScore, RARITIES, type Item } from "./data";
 import { itemName, useT , tr} from "./i18n";
 
+/** The windows currently on screen, innermost last: Escape only closes the top one. */
+const panelStack: symbol[] = [];
+
+/**
+ * Close the calling window on Escape, but only while it is the innermost one on screen, so a
+ * screen opened over another (the Forge's crafting table, the Vault, a battle's result) closes
+ * alone. `active` lets a component that is always mounted sit outside the stack.
+ */
+export function useEscapeClose(onClose: () => void, active = true) {
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    if (!active) return;
+    const token = Symbol("window");
+    panelStack.push(token);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || panelStack[panelStack.length - 1] !== token) return;
+      e.preventDefault();
+      close.current();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      const at = panelStack.indexOf(token);
+      if (at >= 0) panelStack.splice(at, 1);
+    };
+  }, [active]);
+}
+
 /** Every window wears the same painted crest in its header, so the castle's screens read as one game. */
 export function Panel({ title, subtitle, art, onClose, children, wide }: {
   title: string; subtitle?: string; art?: ArtIconName; onClose: () => void; children: ReactNode; wide?: boolean;
@@ -17,6 +46,8 @@ export function Panel({ title, subtitle, art, onClose, children, wide }: {
   // Panel headings are translated in one place, so every screen keeps its frame in the
   // player's language even while its body copy is still English (see i18n.ts).
   const t = useT();
+  // Escape closes a window the way its ✕ does.
+  useEscapeClose(onClose);
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-background/85 p-3" onClick={onClose}>
       <div
