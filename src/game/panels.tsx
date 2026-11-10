@@ -13,7 +13,8 @@ import {
   CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, scaledFoe, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import {
-  addConquestTokens, conquestKeyActive, conquestRewardMultiplier, conquestTokens, floorTokens,
+  addConquestTokens, CONQUEST_XP_RATE, conquestDropFloor, conquestKeyActive, conquestRewardMultiplier,
+  conquestTokens, floorTokens,
 } from "./conquest";
 import { CAMPAIGN_STAMINA, staminaBlocker, staminaLeft } from "./stamina";
 import { ConquestTokens } from "./ConquestGate";
@@ -282,12 +283,13 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
         const gold = spire ? Math.round(rw.gold * keyMult) : rw.gold;
         update((h) => {
           // Fighting above the hero's level pays catch-up XP (see catchUpXpFactor).
-          // Non-campaign (Conquest) fights pay 30% XP but never enough to level up.
+          // Non-campaign (Conquest) fights pay CONQUEST_XP_RATE of the stage XP but never enough to level up.
           const xp = spire
-            ? Math.max(0, Math.min(Math.round(rw.xp * 0.3 * xpMultiplier), Math.max(0, xpToNext(h) - h.xp - 1)))
+            ? Math.max(0, Math.min(Math.round(rw.xp * CONQUEST_XP_RATE * xpMultiplier), Math.max(0, xpToNext(h) - h.xp - 1)))
             : scrollXp(rw.xp * catchUpXpFactor(h.level, stage), xpMultiplier);
           const { levels } = grant(h, xp, gold);
-          loot = rollLoot(h, stage, foe.boss || spire ? 1 : 0.45, spire ? 2 : foe.boss ? 2 : 0);
+          // A Conquest floor no longer guarantees Rare gear: its rarity floor is rolled (see conquestDropFloor).
+          loot = rollLoot(h, stage, foe.boss || spire ? 1 : 0.45, spire ? conquestDropFloor() : foe.boss ? 2 : 0);
           if (loot) addLoot(h, loot);
           if (tokens) addConquestTokens(h, tokens);
           if (spire && stage === h.spire) h.spire++;

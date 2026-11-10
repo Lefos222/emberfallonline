@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  BLITZ_PER_DAY, CONQUEST_KEY_MULTIPLIER, activateConquestKey, blitz, blitzBlocker, blitzDay,
-  blitzesLeft, blitzesUsed, blitzRewards, buyTokenOffer, conquestFloorRewards, conquestKeyActive,
-  conquestRewardMultiplier, conquestTokens, floorTokens, floorsCleared, TOKEN_OFFERS,
+  BLITZ_PER_DAY, CONQUEST_KEY_MULTIPLIER, CONQUEST_XP_RATE, activateConquestKey, blitz, blitzBlocker,
+  blitzDay, blitzesLeft, blitzesUsed, blitzRewards, buyTokenOffer, conquestDropFloor, conquestFloorRewards,
+  conquestKeyActive, conquestRewardMultiplier, conquestTokens, floorTokens, floorsCleared, TOKEN_OFFERS,
 } from "@/game/conquest";
 import { finishBlitzRun } from "@/game/blitz-run";
 import { matCount } from "@/game/crafting";
@@ -22,6 +22,20 @@ describe("endless conquest", () => {
   it("counts cleared floors from the frontier floor", () => {
     expect(floorsCleared(hero(11))).toBe(10);
     expect(floorsCleared(hero(1))).toBe(0);
+  });
+
+  it("rolls the floor drop's rarity floor down from the old guaranteed Rare", () => {
+    expect(conquestDropFloor(0)).toBe(0); // Common (grey)
+    expect(conquestDropFloor(21.9)).toBe(0);
+    expect(conquestDropFloor(22)).toBe(1); // Uncommon (green), the common case
+    expect(conquestDropFloor(81.9)).toBe(1);
+    expect(conquestDropFloor(82)).toBe(2); // the old Rare-or-better floor, now the rare slice
+    expect(conquestDropFloor(99.9)).toBe(2);
+  });
+
+  it("pays 7% more XP per floor than the old 30% rate", () => {
+    expect(CONQUEST_XP_RATE).toBeCloseTo(0.321, 5);
+    expect(CONQUEST_XP_RATE / 0.3).toBeCloseTo(1.07, 5);
   });
 
   it("pays more tokens the deeper the floor", () => {
