@@ -636,7 +636,7 @@ export interface Hero {
   /** Carved rune ranks by rune id (see runes.ts). */
   runes?: Record<string, number>;
   /** The VIP Black Market's current stock (see black-market.ts). */
-  blackMarket?: { window: number; items: Item[]; mats: { mat: import("./crafting").Mat; qty: number; gold: number }[]; sold: string[] };
+  blackMarket?: { window: number; items: Item[]; mats: { mat: import("./crafting").Mat; qty: number; gold: number }[]; sold: string[]; lucky?: boolean };
   /** Bestiary entries the character has defeated, by bestiary id. */
   kills?: Record<string, number>;
   weekly?: { week: number; kills: number; claimed: boolean };

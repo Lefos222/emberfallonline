@@ -321,11 +321,11 @@ const chapters: GuideChapter[] = [
       ),
       step(
         "Wheel of Fortune",
-        "Spin the Wheel of Fortune using daily free spins or lucky tickets to win gold piles, enhancement stones, and jackpot diamonds.",
+        "Each spin costs 100 Diamonds. The wheel has sixteen slices, but only the six gold ones are big prizes — together they hit about 5% of spins. See the Diamonds & Luck chapter for the full odds.",
       ),
       step(
         "VIP Black Market",
-        "Exclusive market tiers featuring discounted high-end materials, rare boss cores, and mythic synthesis recipes.",
+        "VIP members can buy slightly better gear and crystals for gold. Stock rolls every six hours, quantities swing every roll, and 1 roll in 20 is Lucky Stock with an Epic piece and a Sun Crystal.",
       ),
     ],
     tip: "Browse the Auction House regularly — players who outlevel mid-tier legendary gear often sell it at bargain prices.",
@@ -445,6 +445,68 @@ const chapters: GuideChapter[] = [
       ),
     ],
     tip: "Speed and first-turn burst damage are king in the Arena — striking before your opponent acts often decides the fight.",
+  },
+  {
+    id: "diamonds",
+    tab: "Diamonds & Luck",
+    title: "Diamonds, the Wheel and pure luck",
+    blurb: "Everything that costs Diamonds, and exactly how much luck each roll needs.",
+    steps: [
+      step(
+        "What Diamonds are for",
+        "Diamonds are the premium currency. They pay for Wheel spins, VIP, mounts, name and gender cards, shop refreshes, extra arena duels and Black Market restocks. Gold can never buy them.",
+      ),
+      step(
+        "The Wheel is mostly small prizes",
+        "95% of spins land on a common slice: gold, XP, ore, essence, Frost Crystals or a few Armor Fragments. Every common prize is rolled between half and one and a half of its usual size, so two spins on the same slice rarely pay the same.",
+      ),
+      step(
+        "The six gold slices (5% together)",
+        "Void Crystals 1.6%, Sun Crystals 1.2%, 100–300 Diamonds back 0.8%, Fate Stones 0.8%, the gold Jackpot 0.5%, and the Mega Jackpot 0.1% — 1,000 Diamonds, 3 Sun Crystals and a mountain of gold.",
+      ),
+      step(
+        "The Dust slice",
+        "One slice in twenty is Dust: a handful of coins and nothing else. It is the wheel's way of reminding you it is a gamble.",
+      ),
+      step(
+        "Luck has no memory",
+        "Every spin is rolled fresh by the server. A long losing streak does not make the next spin luckier, and a jackpot does not make the next one worse.",
+      ),
+      step(
+        "Black Market Lucky Stock",
+        "Each Black Market roll — the free one every six hours or a 50-Diamond restock — has a 5% chance of Lucky Stock: one weapon or trinket turns Epic and a Sun Crystal is added to the shelf. Crystal and fragment quantities also change every roll.",
+      ),
+    ],
+    tip: "Spin for fun, not for a plan: on average you need about 20 spins (2,000 Diamonds) to see one gold slice.",
+  },
+  {
+    id: "premium",
+    tab: "VIP & Services",
+    title: "VIP, mounts and Diamond services",
+    blurb: "The fixed-price side of the Diamond shop — no luck involved.",
+    steps: [
+      step(
+        "VIP levels",
+        "VIP unlocks the Black Market, a daily VIP board and better daily rewards. Higher VIP levels last longer and add more perks; check the Premium Shop for the current price of each level.",
+      ),
+      step(
+        "Diamond mounts",
+        "Stallion 300, Drake 600, Stag 900, Nightmare 1,300 and Griffin 2,000 Diamonds. Every mount shortens blitz time and speeds up world travel, and you keep it forever.",
+      ),
+      step(
+        "Name and gender cards",
+        "A name card (700 Diamonds) renames your hero — 3 to 16 letters, numbers, spaces, _ or -, and the name must be free. A gender card (500) swaps your hero's look.",
+      ),
+      step(
+        "Small services (50 each)",
+        "Refresh a shop, buy one extra arena duel, or restock the Black Market for 50 Diamonds. Restocking is also a fresh chance at Lucky Stock.",
+      ),
+      step(
+        "Your Diamond history",
+        "Every Diamond spent or won is written to your history in the Premium Shop, so you can always see where they went.",
+      ),
+    ],
+    tip: "Buy permanent things first — a mount or VIP keeps paying every day, a spin is gone in four seconds.",
   },
   {
     id: "daily",
