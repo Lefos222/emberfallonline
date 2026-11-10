@@ -14,6 +14,7 @@ import { GuildSkillTower, GuildReliquary } from './GuildTower';
 import { GuildRecords, type MemberHero } from './GuildRecords';
 import { GuildHallScene, type GuildLocation } from './GuildHallScene';
 import { GuildWars } from './GuildWars';
+import { GuildStorage } from './GuildStorage';
 import type { StartBattle } from './panels';
 import { GUILD_RELICS, guildTotalRanks, relicUnlocked } from './guild-tower';
 
@@ -221,6 +222,7 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
       {location === "merchant" && <div className="mt-5">
         <GuildContribute />
         <GuildShopPanel />
+        <GuildStorage guildId={guild.id} />
         <GuildVaultPanel />
       </div>}
 

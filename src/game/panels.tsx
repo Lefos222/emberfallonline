@@ -1,5 +1,5 @@
 import { itemName, tName , t} from "./i18n";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from '@/components/ui/button';
 import { trainingCost, trainAttribute } from './building-content';
 import { Link } from "@tanstack/react-router";
@@ -9,7 +9,7 @@ import { Shield, Swords } from "./PaintedIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import {
-  SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, enchantStoneGrade, goldEnhanceAllowed, ENHANCE_MAX, ENHANCE_GOLD_LIMIT, heroStats, invCap, bagRowCost, MAX_BAG_ROWS, sellValue,
+  SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, enchantStoneGrade, goldEnhanceAllowed, ENHANCE_MAX, ENHANCE_GOLD_LIMIT, heroStats, invCap, bagSize, matSlots, MAT_STACK, bagRowCost, MAX_BAG_ROWS, sellValue,
   CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, scaledFoe, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import {
@@ -135,7 +135,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
         </div>
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <span className="font-display">{t("Bag")} {hero.inventory.length}/{invCap(hero)}</span>
+            <span className="font-display">{t("Bag")} {hero.inventory.length + matSlots(hero)}/{bagSize(hero)}</span>
             <button className="btn-blood px-3 py-1 text-xs" onClick={() => update((h) => {
               const junk = h.inventory.filter((i) => i.rarity <= 1 && i.enh === 0);
               h.gold += junk.reduce((a, i) => a + sellValue(i), 0);
@@ -172,9 +172,18 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               if (sort === "level") view.sort((a, b) => b.ilvl - a.ilvl);
               const filtered = filter !== "all" || !!q;
               return Array.from({ length: filtered ? Math.max(view.length, 8) : invCap(hero) }).map((_, i) => [view[i], i] as const);
-            })().map(([it, i]) => {
-              return <ItemSlot key={it?.id ?? i} item={it} size={44} selected={!!it && sel?.id === it.id} onClick={() => it && setSel({ id: it.id, equipped: false })} />;
-            })}
+            })().reduce<ReactNode[]>((cells, [it, i]) => {
+              cells.push(<ItemSlot key={it?.id ?? "e" + i} item={it} size={44} selected={!!it && sel?.id === it.id} onClick={() => it && setSel({ id: it.id, equipped: false })} />);
+              return cells;
+            }, filter !== "all" || q ? [] : (Object.keys(MATS) as Mat[]).flatMap((m) => {
+              const n = matCount(hero, m); if (n <= 0) return [];
+              return Array.from({ length: Math.ceil(n / MAT_STACK) }, (_, k) => {
+                const here = Math.min(MAT_STACK, n - k * MAT_STACK);
+                return <div key={m + k} className={"slot bag-mat rarity-" + Math.min(MATS[m].rarity + 1, 5)} style={{ width: 44, height: 44 }} title={`${MATS[m].name} ×${fmt(here)} — ${MATS[m].src}`}>
+                  <MatIcon mat={m} size={34} /><span className="bag-mat-count">{here >= 1000 ? `${Math.floor(here / 1000)}k` : here}</span>
+                </div>;
+              });
+            }))}
           </div>
           <Vault />
           <GearCodex cls={hero.cls} />

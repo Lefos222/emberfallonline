@@ -569,6 +569,47 @@ export type Database = {
           },
         ]
       }
+      guild_vault: {
+        Row: {
+          created_at: string
+          deposited_by: string
+          depositor_name: string
+          guild_id: string
+          id: string
+          item: Json
+          page: number
+          slot: number
+        }
+        Insert: {
+          created_at?: string
+          deposited_by: string
+          depositor_name: string
+          guild_id: string
+          id?: string
+          item: Json
+          page: number
+          slot: number
+        }
+        Update: {
+          created_at?: string
+          deposited_by?: string
+          depositor_name?: string
+          guild_id?: string
+          id?: string
+          item?: Json
+          page?: number
+          slot?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_vault_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_war_attacks: {
         Row: {
           created_at: string
@@ -1228,6 +1269,14 @@ export type Database = {
           _hero: string
         }
         Returns: undefined
+      }
+      guild_vault_deposit: {
+        Args: { _hero: string; _item_id: string; _req: string }
+        Returns: Json
+      }
+      guild_vault_withdraw: {
+        Args: { _entry: string; _hero: string; _req: string }
+        Returns: Json
       }
       guild_war_attack: {
         Args: { _hero: string; _target: string; _war: string; _won: boolean }

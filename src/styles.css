@@ -791,3 +791,6 @@ html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
 .anim-hit-shake { animation: hit-shake .3s ease-in-out; }
 @keyframes hit-shake { 0%,100% { translate: 0 0; } 25% { translate: -6px 2px; } 50% { translate: 5px -2px; } 75% { translate: -3px 1px; } }
 .battle-shake { animation: hit-shake .28s ease-in-out; }
+/* Material stacks sit in the bag grid like any item. */
+.bag-mat { position: relative; display: flex; align-items: center; justify-content: center; }
+.bag-mat-count { position: absolute; right: 2px; bottom: 0; font-size: 10px; font-weight: 800; color: var(--foreground); text-shadow: 0 1px 2px var(--background); }

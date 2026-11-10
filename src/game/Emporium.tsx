@@ -136,18 +136,13 @@ export function BlackMarketTab() {
   const { hero } = useGame();
   const [note, setNote] = useState<Note>(null);
   const vip = hero ? vipLevelOf(hero) : 0;
-  useEffect(() => { if (hero && vip > 0) update((h) => { blackMarketStock(h); }); }, [vip, hero?.blackMarket?.window]);
+  useEffect(() => { if (hero) update((h) => { blackMarketStock(h); }); }, [hero?.blackMarket?.window]);
   if (!hero) return null;
-  if (vip <= 0) return (
-    <div className="relative overflow-hidden rounded-lg border border-gold/40 p-8 text-center">
-      <img src={marketImg} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />
-      <div className="relative"><p className="font-display text-2xl text-gold">{tr("Black Market")}</p><p className="text-sm">{tr("Only VIP members may trade in the shadows. Activate VIP in the Premium Shop.")}</p></div>
-    </div>
-  );
   const bm = hero.blackMarket;
   if (!bm) return null;
   const buyItem = (id: string) => update((h) => {
     const b = h.blackMarket; const it = b?.items.find((i) => i.id === id);
+    if (vipLevelOf(h) <= 0) return setNote({ ok: false, t: tr("Only VIP members can buy from the Black Market.") });
     if (!b || !it || b.sold.includes(id)) return setNote({ ok: false, t: tr("Already sold") });
     const p = bmItemPrice(it, h.level); if (h.gold < p) return setNote({ ok: false, t: tr("Not enough gold") });
     h.gold -= p; b.sold = [...b.sold, id]; addLoot(h, it); // a full bag goes to the Overflow Chest, never lost
@@ -155,6 +150,7 @@ export function BlackMarketTab() {
   });
   const buyMat = (i: number) => update((h) => {
     const b = h.blackMarket; const o = b?.mats[i]; const key = `mat${i}`;
+    if (vipLevelOf(h) <= 0) return setNote({ ok: false, t: tr("Only VIP members can buy from the Black Market.") });
     if (!b || !o || b.sold.includes(key)) return setNote({ ok: false, t: tr("Already sold") });
     if (h.gold < o.gold) return setNote({ ok: false, t: tr("Not enough gold") });
     h.gold -= o.gold; b.sold = [...b.sold, key]; addMats(h, { [o.mat]: o.qty });
@@ -169,19 +165,20 @@ export function BlackMarketTab() {
       <NoteLine n={note} />
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="max-w-lg text-xs text-muted-foreground">{tr("Slightly better wares for VIP members — restocks every six hours.")}</p>
-        <DiamondService kind="black_market_refresh" label="Restock now" onDone={() => update((h) => rollBlackMarket(h))} />
+        {vip > 0 ? <DiamondService kind="black_market_refresh" label="Restock now" onDone={() => update((h) => rollBlackMarket(h))} />
+          : <p className="text-xs text-gold">{tr("Anyone can browse — only VIP members can buy. Activate VIP in the Premium Shop.")}</p>}
       </div>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {bm.items.map((it) => (
           <div key={it.id} className="slot flex flex-col gap-2 p-2">
             <ItemCard item={it} />
-            <Button size="sm" disabled={bm.sold.includes(it.id)} onClick={() => buyItem(it.id)}>{bm.sold.includes(it.id) ? tr("Sold") : `${fmt(bmItemPrice(it, hero.level))} ${tr("gold")}`}</Button>
+            <Button size="sm" disabled={vip <= 0 || bm.sold.includes(it.id)} onClick={() => buyItem(it.id)}>{bm.sold.includes(it.id) ? tr("Sold") : `${fmt(bmItemPrice(it, hero.level))} ${tr("gold")}`}</Button>
           </div>
         ))}
         {bm.mats.map((o, i) => (
           <div key={o.mat} className="slot flex items-center gap-2 p-2">
             <MatIcon mat={o.mat} size={36} /><span className="flex-1 text-sm">{o.qty}× {MATS[o.mat].name}</span>
-            <Button size="sm" disabled={bm.sold.includes(`mat${i}`)} onClick={() => buyMat(i)}>{bm.sold.includes(`mat${i}`) ? tr("Sold") : `${fmt(o.gold)} ${tr("gold")}`}</Button>
+            <Button size="sm" disabled={vip <= 0 || bm.sold.includes(`mat${i}`)} onClick={() => buyMat(i)}>{bm.sold.includes(`mat${i}`) ? tr("Sold") : `${fmt(o.gold)} ${tr("gold")}`}</Button>
           </div>
         ))}
       </div>

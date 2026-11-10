@@ -102,7 +102,7 @@ export function GuildVaultPanel() {
   return (
     <div className="slot mb-4 p-4">
       <div className="mb-1 flex items-center justify-between gap-2 font-display text-gold">
-        <span className="flex items-center gap-2"><Archive className="h-4 w-4" />{tr("Guild Vault")}</span>
+        <span className="flex items-center gap-2"><Archive className="h-4 w-4" />{tr("Vaultkeeper")}</span>
         <span>{fmt(hero.guildCoins ?? 0)}  {tr("coins")}</span>
       </div>
       <p className="text-xs text-muted-foreground">{tr("The vaultkeeper buys surplus materials from your bag and pays in guild coins. Rates are a fraction of shop prices, so this is a way to clear clutter — not to turn a profit.")}</p>
