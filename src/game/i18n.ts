@@ -541,6 +541,22 @@ const TRANSLATIONS: Record<string, [el: string, pl: string]> = {
   "The Emberfall soundtrack": ["Το soundtrack του Emberfall", "Ścieżka dźwiękowa Emberfall"],
   "Sibling Showdown": ["Αδελφική Αναμέτρηση", "Bratobójczy pojedynek"],
   "The duel score": ["Το θέμα της μονομαχίας", "Muzyka pojedynku"],
+  "Sound, music and fight pacing": [
+    "Ήχος, μουσική και ρυθμός μάχης",
+    "Dźwięk, muzyka i tempo walk",
+  ],
+  "Fight speed": ["Ταχύτητα μάχης", "Tempo walk"],
+  Fast: ["Γρήγορη", "Szybka"],
+  Normal: ["Κανονική", "Normalna"],
+  "Fast-forward shortens every fight. Remembered on this device; F switches it during a battle.": [
+    "Η γρήγορη προώθηση συντομεύει κάθε μάχη. Θυμάται σε αυτή τη συσκευή· το F την αλλάζει μέσα στη μάχη.",
+    "Szybkie przewijanie skraca każdą walkę. Zapamiętywane na tym urządzeniu; F przełącza je w walce.",
+  ],
+  "Fight again": ["Πολέμησε ξανά", "Walcz ponownie"],
+  "Enter continues · Esc closes": [
+    "Το Enter συνεχίζει · το Esc κλείνει",
+    "Enter kontynuuje · Esc zamyka",
+  ],
   "Music starts after your first tap on the castle. Your choice and volume are remembered on this device.":
     [
       "Η μουσική ξεκινά με το πρώτο σου άγγιγμα στο κάστρο. Η επιλογή και η ένταση θυμούνται σε αυτή τη συσκευή.",

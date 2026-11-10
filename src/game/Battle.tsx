@@ -12,6 +12,7 @@ import { SkillIcon } from "./SkillIcon";
 import { BattleCharacter, CombatEffect, SkillImpact, WeaponArc } from "./BattleArt";
 import { effectFor, moveFor, skillFx, type Move } from "./skillAnim";
 import { SCROLLS } from "./scrolls";
+import { saveFastFights, readFastFights } from "./battle-prefs";
 import { Button } from "@/components/ui/button";
 import {
   current, drinkPotion, enemyAct, formation, heroUnit, initBattle, playerAct, resourceName, skillReady, STATUS_LABEL, upcoming, validTargets,
@@ -63,7 +64,8 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
   const [moves, setMoves] = useState<Record<string, Move>>({});
   // Presentation-only: the thrown spell, loosed arrow or sword wave that crosses the field.
   const [proj, setProj] = useState<{ kind: string; dir: "ltr" | "rtl"; key: number; cls: string } | null>(null);
-  const [fast, setFast] = useState(auto);
+  // Fast-forward is remembered for the next fight; auto-battle is always a per-fight choice.
+  const [fast, setFast] = useState(() => auto || readFastFights());
   const [autoOn, setAutoOn] = useState(auto);
   const [banner, setBanner] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -117,6 +119,13 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
     ended.current = true;
     rerender();
     setTimeout(() => onEnd(s.over === "won"), fast ? 600 : 1100);
+  }
+
+  /** Pacing is a device preference: the next fight starts the way this one was left. */
+  function toggleFast() {
+    const next = !fast;
+    setFast(next);
+    saveFastFights(next);
   }
 
   /** Run enemy turns until it's the hero's turn again or the battle ends. Never gets stuck. */
@@ -217,7 +226,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const key = e.key.toLowerCase();
       if (key === "a") { setAutoOn((a) => !a); return; }
-      if (key === "f") { setFast((f) => !f); return; }
+      if (key === "f") { toggleFast(); return; }
       if (key === "p") { if (myTurn && !autoOn) void potion(); return; }
       const n = Number(key);
       if (n >= 1 && n <= hero.kit.length && myTurn && !autoOn) pickSkill(hero.kit[n - 1]);
@@ -315,7 +324,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
             </Button>
             <Button variant="ghost" onClick={() => setAutoOn((a) => !a)} className={`slot flex h-12 w-12 flex-col items-center justify-center text-[9px] font-bold ${autoOn ? "rarity-2" : ""}`} title={tr("Auto battle")}>
               <Zap className="h-4 w-4" />{tr("AUTO")} </Button>
-            <Button variant="ghost" onClick={() => setFast((f) => !f)} className={`slot flex h-12 w-12 items-center justify-center ${fast ? "rarity-2" : ""}`} title={tr("Speed")}>
+            <Button variant="ghost" onClick={toggleFast} className={`slot flex h-12 w-12 items-center justify-center ${fast ? "rarity-2" : ""}`} title={tr("Speed")}>
               <FastForward className="h-5 w-5" />
             </Button>
           </div>
