@@ -93,6 +93,9 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
   const finishRun = useCallback(() => {
     if (timer.current) clearInterval(timer.current);
     timer.current = null;
+    // The fight is over for this hero: the next join must be free to start a fresh climb.
+    battleRef.current = null;
+    casts.current = [];
     void endSpire()
       .catch(() => {})
       .then(() => refresh());
@@ -114,7 +117,16 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
         case "hello": {
           // Only the leader keeps the roster, and it never grows past four heroes.
           if (!leaderRef.current) return;
-          if (matesRef.current.some((x) => x.id === m.member.id)) return;
+          const partyNow = () =>
+            (selfRef.current ? [selfRef.current, ...matesRef.current] : matesRef.current).slice(0, SPIRE_PARTY_MAX);
+          // A hero who already joined may have lost the start or a tick: hand them the live fight
+          // again (or the roster while it waits), so a dropped broadcast heals by itself.
+          if (matesRef.current.some((x) => x.id === m.member.id)) {
+            const live = battleRef.current;
+            if (live) link.current.send({ kind: "tick", battle: live, cleared: null });
+            else link.current.send({ kind: "roster", members: partyNow() });
+            return;
+          }
           // A fight cannot take a new hero halfway through: their own run would be out of order.
           if (battleRef.current) {
             link.current.send({ kind: "busy", hero: m.member.id });
@@ -124,7 +136,7 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
           const next = [...matesRef.current, m.member];
           matesRef.current = next;
           setMates(next);
-          const roster = selfRef.current ? [selfRef.current, ...next] : next;
+          const roster = partyNow();
           membersRef.current = roster;
           setMembers(roster);
           link.current.send({ kind: "roster", members: roster });
@@ -167,20 +179,21 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
           break;
         }
         case "bye": {
-          if (leaderRef.current && !m.leader) {
-            // One hero left the party; the climb carries on without them.
-            const next = matesRef.current.filter((x) => x.id !== m.hero);
-            matesRef.current = next;
-            setMates(next);
-            const roster = selfRef.current ? [selfRef.current, ...next] : next;
-            membersRef.current = roster;
-            setMembers(roster);
-            link.current.send({ kind: "roster", members: roster });
+          // Only the leader's departure disbands the party: another hero leaving must never
+          // tear down everyone else's fight.
+          if (m.leader) {
+            stopFight();
+            setNote(tr("The party disbanded."));
+            finishRun();
             return;
           }
-          stopFight();
-          setNote(tr("The party disbanded."));
-          finishRun();
+          const next = matesRef.current.filter((x) => x.id !== m.hero);
+          matesRef.current = next;
+          setMates(next);
+          const rest = membersRef.current.filter((x) => x.id !== m.hero);
+          membersRef.current = leaderRef.current ? (selfRef.current ? [selfRef.current, ...next] : next) : rest;
+          setMembers(membersRef.current);
+          if (leaderRef.current) link.current.send({ kind: "roster", members: membersRef.current });
           break;
         }
       }
@@ -199,14 +212,13 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
     return () => opened.close();
   }, [code, onMessage]);
 
-  // A joiner greets again until the leader has them in the roster, so a lost message cannot
-  // leave them standing outside the party.
+  // A joiner greets again until the shared fight arrives, so a lost greeting — or a lost start —
+  // cannot leave their screen behind the rest of the party.
   useEffect(() => {
     if (leader) return;
     const id = setInterval(() => {
       const member = selfRef.current;
       if (!member || battleRef.current) return;
-      if (membersRef.current.some((m) => m.id === member.id)) return;
       link.current.send({ kind: "hello", member });
     }, 3000);
     return () => clearInterval(id);
@@ -338,7 +350,9 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
     onClose();
   };
 
-  const ready = !!st && (st.runs_left > 0 || st.active);
+  // Only a real run starts a climb: an abandoned run cannot be resumed by the server, so a stale
+  // `active` flag must never arm a button that the server would refuse.
+  const ready = !!st && st.runs_left > 0;
   const me = battle?.heroes.find((h) => h.id === heroId);
   /** The hero's own abilities — the same kit the rest of the game fights with. */
   const myKit = self ? kitOf(self) : [];
