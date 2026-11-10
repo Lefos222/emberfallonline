@@ -200,7 +200,7 @@ BEGIN
   SELECT * INTO w FROM public.guild_wars WHERE id = _war;
   RETURN jsonb_build_object(
     'my_score', CASE WHEN side = 'a' THEN w.score_a ELSE w.score_b END,
-    'their_score', CASE WHEN side = 'a' THEN w.score_a ELSE w.score_b END,
+    'their_score', CASE WHEN side = 'a' THEN w.score_b ELSE w.score_a END,
     'attacks_left', 1 - used
   );
 END $$;

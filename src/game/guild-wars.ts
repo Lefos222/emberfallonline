@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Guild Wars (drizzle/migrations/0026_guild_wars.sql + 0027_guild_wars_v2.sql). A war is
+ * Guild Wars (drizzle/migrations/0021_guild_wars.sql + 0022_guild_wars_v2.sql). A war is
  * server-owned: the client only reports each attack it fought, the database keeps every score and
  * hands out the spoils through a save-writing RPC, exactly like the rest of the guild tables.
  *

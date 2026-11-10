@@ -65,7 +65,7 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
     const ids = (invitation.data ?? []).map((i) => i.guild_id);
     if (ids.length) {
       const { data, error } = await supabase.from("guilds").select("id,name").in("id", ids);
-      if (error) throw new Error(error.message);
+      if (error) return fail(new Error(error.message));
       setInviteNames(Object.fromEntries((data ?? []).map((g) => [g.id, g.name])));
     }
     // Own pending applications (for withdrawing)
@@ -90,7 +90,7 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
     const heroIds = (roster.data ?? []).map((m) => m.hero_id);
     if (heroIds.length) {
       const { data, error } = await supabase.from("heroes").select("id,name,level,power").in("id", heroIds);
-      if (error) throw new Error(error.message);
+      if (error) return fail(new Error(error.message));
       setMemberHeroes(Object.fromEntries((data ?? []).map((h) => [h.id, { name: h.name, level: h.level, power: h.power }])));
     } else {
       setMemberHeroes({});
@@ -204,6 +204,10 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
         <label className="block text-sm">Description<textarea className="slot mt-1 w-full px-3 py-2" maxLength={200} value={description} onChange={(e) => setDescription(e.target.value)} /></label>
         <Button disabled={request.busy || !hero || hero.gold < 10000}><Shield />Create guild · 10,000 gold</Button>
       </form>
+    </>}
+    {loaded && !guild && loadError && <>
+      <GuildHallScene name="Guild Hall" level={1} members={0} location="headquarters" court onSelect={() => {}} />
+      <p className="py-4 text-center text-sm text-muted-foreground">The guild hall could not be opened. Refresh to try again.</p>
     </>}
     {guild && <>
       <GuildHallScene name={guild.name} level={guild.level} members={members.length} power={memberPower}
