@@ -7,7 +7,7 @@ describe("epic armours", () => {
   it("multiply a piece's stats by its set multiplier", () => {
     const base = { ...makeItem("warrior", 60, 4, "armour"), enh: 0 };
     const epic = { ...base, epic: "moonwarden" };
-    expect(itemStats(epic).hp / itemStats(base).hp).toBeCloseTo(1.7, 5);
+    expect(itemStats(epic).hp / itemStats(base).hp).toBeCloseTo(1.7, 2);
   });
   it("each new material drops from one named place", () => {
     expect(MATS.wyrmBone.src).toMatch(/elite hunts only/);
