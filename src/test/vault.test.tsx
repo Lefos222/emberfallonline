@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { Vault } from "@/game/Vault";
+import { useState } from "react";
+import { Vault, vaultTiles, type VaultPick } from "@/game/Vault";
+import { useGame } from "@/game/store";
 import { DailyRewardsBoard } from "@/game/DailyRewardsBoard";
 import { newHero } from "@/game/data";
 import { addChests, chestCount, goldChestValue } from "@/game/chests";
@@ -14,14 +16,19 @@ describe("vault inventory slots", () => {
     addChests(hero, "gold", 1);
     hero.gems = { "ruby:1": 2 };
     setHero(hero);
-    render(<Vault />);
+    function Bag() {
+      const { hero: h } = useGame();
+      const [pick, setPick] = useState<VaultPick | null>(null);
+      return <>{h && vaultTiles(h, pick, setPick)}<Vault pick={pick} setPick={setPick} /></>;
+    }
+    render(<Bag />);
 
-    expect(screen.getByRole("button", { name: /Gold Chest, 1 in vault/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Gem Chest, 0 in vault/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Chipped Ruby, 2 in vault/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Gold Chest, 1/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Gem Chest/ })).toBeNull();
+    expect(screen.getByRole("button", { name: /Chipped Ruby, 2/ })).toBeInTheDocument();
 
     const goldBefore = getState().hero?.gold ?? 0;
-    fireEvent.click(screen.getByRole("button", { name: /Gold Chest, 1 in vault/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Gold Chest, 1/ }));
     fireEvent.click(screen.getByRole("button", { name: /^Open \(1\)/ }));
 
     expect(getState().hero?.gold).toBe(goldBefore + goldChestValue(hero.level));

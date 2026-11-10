@@ -79,10 +79,13 @@ export const MAX_BAG_ROWS = 10;
 export const bagSize = (h: { bagRows?: number }) => INVENTORY_CAP + BAG_ROW * (h.bagRows ?? 0);
 /** Materials live in the bag too: each type takes one slot per stack of MAT_STACK. */
 export const MAT_STACK = 9999;
-export const matSlots = (h: { mats?: Partial<Record<string, number>> }) =>
-  Object.values(h.mats ?? {}).reduce<number>((a, n) => a + (n && n > 0 ? Math.ceil(n / MAT_STACK) : 0), 0);
+type Stacks = { mats?: Partial<Record<string, number>>; gems?: unknown; chests?: unknown };
+const kinds = (r: unknown) => (r && typeof r === "object" && !Array.isArray(r) ? Object.values(r as Record<string, unknown>).filter((n) => typeof n === "number" && n > 0).length : 0);
+/** Bag slots held by stacks: materials per MAT_STACK, plus one per gem kind and chest kind (mirrored by SQL _bag_room). */
+export const matSlots = (h: Stacks) =>
+  Object.values(h.mats ?? {}).reduce<number>((a, n) => a + (n && n > 0 ? Math.ceil(n / MAT_STACK) : 0), 0) + kinds(h.gems) + kinds(h.chests);
 /** Free room for gear: the bag minus the slots materials occupy (mirrored in guild_vault_withdraw). */
-export const invCap = (h: { bagRows?: number; mats?: Partial<Record<string, number>> }) => Math.max(0, bagSize(h) - matSlots(h));
+export const invCap = (h: { bagRows?: number } & Stacks) => Math.max(0, bagSize(h) - matSlots(h));
 /** Gold cost of the next bag row: 5,000 doubling each row, scaled by the hero's level. */
 export const bagRowCost = (h: { bagRows?: number; level?: number }) =>
   scaledGold(5000 * 2 ** (h.bagRows ?? 0), h.level ?? 1);

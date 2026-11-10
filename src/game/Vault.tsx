@@ -6,23 +6,39 @@ import { GEMS, GEM_STAT_LABEL, GEM_TIER_NAMES, gemName, gemValue, parseGem } fro
 import { GemIcon } from "./MatIcon";
 import { update, useGame } from "./store";
 
-type VaultPick = { type: "chest"; kind: ChestKind } | { type: "gem"; key: string };
+export type VaultPick = { type: "chest"; kind: ChestKind } | { type: "gem"; key: string };
 
 /**
  * The Armory vault: chests and gems are items in their own slots. A chest is
  * redeemed here (opening it pays its gold, materials or gems); gem stacks stay
  * here until they are socketed, fused or sold at the Gem Workshop.
  */
-export function Vault() {
+/** Chest and gem stacks as square bag tiles, so they sit in the bag grid beside gear and materials. */
+export function vaultTiles(hero: { gems?: Record<string, number>; chests?: Partial<Record<ChestKind, number>> }, pick: VaultPick | null, onPick: (p: VaultPick) => void) {
+  const chests = ownedChests(hero).filter((c) => c.count > 0).map((c) => (
+    <button key={"chest-" + c.id} className={`slot bag-mat ${pick?.type === "chest" && pick.kind === c.id ? "ring-2 ring-gold" : ""}`} style={{ width: 44, height: 44 }}
+      onClick={() => onPick({ type: "chest", kind: c.id })} aria-label={`${c.name}, ${c.count}`} title={c.name}>
+      {c.id === "gold" ? <GoldChestIcon size={34} /> : <GemChestIcon size={34} />}<span className="bag-mat-count">{c.count}</span>
+    </button>
+  ));
+  const gems = Object.entries(hero.gems ?? {}).filter(([, n]) => n > 0).sort(([a], [b]) => a.localeCompare(b)).map(([key, n]) => {
+    const g = parseGem(key);
+    return (
+      <button key={"gem-" + key} className={`slot bag-mat ${pick?.type === "gem" && pick.key === key ? "ring-2 ring-gold" : ""}`} style={{ width: 44, height: 44 }}
+        onClick={() => onPick({ type: "gem", key })} aria-label={`${gemName(key)}, ${n}`} title={gemName(key)}>
+        {g && <GemIcon type={g.type} size={30} />}<span className="bag-mat-count">{n}</span>
+      </button>
+    );
+  });
+  return [...chests, ...gems];
+}
+
+/** Details for the chest or gem picked in the bag grid: chests open here, gems go to the Gem Workshop. */
+export function Vault({ pick, setPick }: { pick: VaultPick | null; setPick: (p: VaultPick | null) => void }) {
   const { hero } = useGame();
-  const [pick, setPick] = useState<VaultPick | null>(null);
   const [msg, setMsg] = useState("");
   if (!hero) return null;
 
-  const chests = ownedChests(hero);
-  const gems = Object.entries(hero.gems ?? {})
-    .filter(([, n]) => n > 0)
-    .sort(([a], [b]) => a.localeCompare(b));
   const gemPick = pick?.type === "gem" ? parseGem(pick.key) : null;
   const chestPick = pick?.type === "chest" ? CHESTS[pick.kind] : null;
 
@@ -36,57 +52,7 @@ export function Vault() {
   };
 
   return (
-    <section className="mt-4" aria-label={t("Vault")}>
-      <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-1">
-        <span className="font-display text-sm text-gold">{t("Vault · items")}</span>
-        <span className="text-[10px] text-muted-foreground">
-           {t("Chests open here · gems are socketed at the Gem Workshop")} </span>
-      </div>
-      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-        {chests.map((c) => (
-          <button
-            key={c.id}
-            className={`slot flex items-center gap-2 p-1.5 text-left ${c.count ? "" : "opacity-50"} ${pick?.type === "chest" && pick.kind === c.id ? "ring-2 ring-gold" : ""}`}
-            onClick={() => {
-              setPick({ type: "chest", kind: c.id });
-              setMsg("");
-            }}
-            aria-label={`${c.name}, ${c.count} in vault`}
-          >
-            {c.id === "gold" ? <GoldChestIcon size={34} /> : <GemChestIcon size={34} />}
-            <div className="min-w-0">
-              <div className="truncate text-[11px] font-bold">{c.name}</div>
-              <div className="text-[10px] text-muted-foreground">×{c.count}  {t("in vault")}</div>
-            </div>
-          </button>
-        ))}
-        {gems.map(([key, n]) => {
-          const g = parseGem(key);
-          return (
-            <button
-              key={key}
-              className={`slot flex items-center gap-2 p-1.5 text-left ${pick?.type === "gem" && pick.key === key ? "ring-2 ring-gold" : ""}`}
-              onClick={() => {
-                setPick({ type: "gem", key });
-                setMsg("");
-              }}
-              aria-label={`${gemName(key)}, ${n} in vault`}
-            >
-              {g && <GemIcon type={g.type} size={30} />}
-              <div className="min-w-0">
-                <div className="truncate text-[11px] font-bold">{gemName(key)}</div>
-                <div className="text-[10px] text-muted-foreground">×{n}  {t("in vault")}</div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {chests.every((c) => c.count === 0) && gems.length === 0 && (
-        <p className="mt-2 text-xs text-muted-foreground">
-           {t("No items yet. The reward board, the Conquest Gate and the four-hourly reward chest fill this vault.")} </p>
-      )}
-
+    <section className="mt-2" aria-label={t("Vault")}>
       {chestPick && (
         <div className="slot mt-2 flex flex-wrap items-center gap-3 p-2.5" role="status">
           {chestPick.id === "gold" ? <GoldChestIcon size={40} /> : <GemChestIcon size={40} />}

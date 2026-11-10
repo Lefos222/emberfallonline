@@ -1059,6 +1059,7 @@ export type Database = {
     }
     Functions: {
       _apply_reward: { Args: { rw: Json; s: Json }; Returns: Json }
+      _bag_room: { Args: { _save: Json }; Returns: number }
       _daily_kinds: { Args: never; Returns: string[] }
       _daily_target: { Args: { _k: string }; Returns: number }
       _guild_role: {
@@ -1272,6 +1273,16 @@ export type Database = {
       }
       guild_vault_deposit: {
         Args: { _hero: string; _item_id: string; _req: string }
+        Returns: Json
+      }
+      guild_vault_deposit_stack: {
+        Args: {
+          _hero: string
+          _key: string
+          _kind: string
+          _qty: number
+          _req: string
+        }
         Returns: Json
       }
       guild_vault_withdraw: {

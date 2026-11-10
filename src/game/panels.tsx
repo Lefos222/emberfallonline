@@ -25,7 +25,7 @@ import { GameTabs, Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { ConquestCoin } from "./CoinIcon";
 import { DangerPill, StageStepper, StaminaMeter } from "./GateUI";
 import { GemIcon, MatIcon, StoneIcon } from "./MatIcon";
-import { Vault } from "./Vault";
+import { Vault, vaultTiles, type VaultPick } from "./Vault";
 import { GearCodex } from "./GearCodex";
 import { MAX_SOCKETS, MATS, REFINE, gemName, gemStatText, matCount, parseGem, refine, scrapItem, scrapYield, socketCount, sockets, type Mat } from "./crafting";
 import { STONE_FAIL_SAVE_CHANCE, STONE_LEVELS, combineAllStones, combineGold, combineStones, heldStoneLevels, spendStones, stoneBonus, stoneCount, stoneName } from "./enchant";
@@ -65,6 +65,7 @@ const RIGHT_DOLL: WearSlot[] = ["weapon", "ring", "ring2", "talisman"];
 export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; title?: string }) {
   const { hero, gender } = useGame();
   const [sel, setSel] = useState<{ id: string; equipped: boolean } | null>(null);
+  const [vpick, setVpick] = useState<VaultPick | null>(null);
   const [filter, setFilter] = useState<Slot | "all">("all");
   const [sort, setSort] = useState<"new" | "rarity" | "level">("new");
   const [q, setQ] = useState("");
@@ -175,7 +176,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             })().reduce<ReactNode[]>((cells, [it, i]) => {
               cells.push(<ItemSlot key={it?.id ?? "e" + i} item={it} size={44} selected={!!it && sel?.id === it.id} onClick={() => it && setSel({ id: it.id, equipped: false })} />);
               return cells;
-            }, filter !== "all" || q ? [] : (Object.keys(MATS) as Mat[]).flatMap((m) => {
+            }, filter !== "all" || q ? [] : [...vaultTiles(hero, vpick, (p) => { setVpick(p); setSel(null); }), ...(Object.keys(MATS) as Mat[]).flatMap((m) => {
               const n = matCount(hero, m); if (n <= 0) return [];
               return Array.from({ length: Math.ceil(n / MAT_STACK) }, (_, k) => {
                 const here = Math.min(MAT_STACK, n - k * MAT_STACK);
@@ -183,31 +184,10 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
                   <MatIcon mat={m} size={34} /><span className="bag-mat-count">{here >= 1000 ? `${Math.floor(here / 1000)}k` : here}</span>
                 </div>;
               });
-            }))}
+            })])}
           </div>
-          <Vault />
+          <Vault pick={vpick} setPick={setVpick} />
           <GearCodex cls={hero.cls} />
-          {(() => {
-            const all = Object.keys(MATS) as Mat[];
-            const owned = all.filter((m) => matCount(hero, m) > 0);
-            const total = owned.reduce((a, m) => a + matCount(hero, m), 0);
-            return (
-              <div className="mt-4">
-                <div className="mb-1.5 font-display text-sm text-gold">{t("Forge materials ·")} {total}  {t("in your bag ·")} {owned.length}/{all.length}  {t("types")}</div>
-                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-                  {all.map((m) => (
-                    <div key={m} className={"slot rarity-" + Math.min(MATS[m].rarity + 1, 5) + " flex items-center gap-2 p-1.5"} title={MATS[m].desc + " Source: " + MATS[m].src}>
-                      <MatIcon mat={m} size={34} />
-                      <div className="min-w-0">
-                        <div className="truncate text-[11px] font-bold">{MATS[m].name}</div>
-                        <div className="text-[10px] text-muted-foreground">×{fmt(matCount(hero, m))}{" "}{matCount(hero, m) ? t("· Bag item") : t("· Not found yet")}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
           <div className="mt-4 rounded border border-dashed border-border/60 px-3 py-3 text-center text-xs text-muted-foreground">
              {t("Tap any bag or worn item and it opens on the spot — compare, equip, unequip or sell without scrolling down.")} </div>
         </div>

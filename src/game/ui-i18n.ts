@@ -54,6 +54,8 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Join a guild first": ["Μπες πρώτα σε συντεχνία", "Najpierw dołącz do gildii"],
   "The guild vault is full": ["Το θησαυροφυλάκιο της συντεχνίας είναι γεμάτο", "Skarbiec gildii jest pełny"],
   "Your bag is full": ["Ο σάκος σου είναι γεμάτος", "Twoja torba jest pełna"],
+  "VIP level": ["Επίπεδο VIP", "Poziom VIP"],
+  "Amount": ["Ποσότητα", "Ilość"],
   "Crafting guide": ["Οδηγός κατασκευής", "Poradnik rzemiosła"],
   "How to craft armour": ["Πώς φτιάχνεις πανοπλία", "Jak wykuć zbroję"],
   "Win battles, elites and Dungeon Gate boss challenges to gather materials.": ["Νίκα μάχες, επίλεκτους και προκλήσεις αφεντικών της Πύλης Μπουντρουμιών για να μαζέψεις υλικά.", "Wygrywaj bitwy, elity i wyzwania bossów Bramy Lochów, by zbierać materiały."],

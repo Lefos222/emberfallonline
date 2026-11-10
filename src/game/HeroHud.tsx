@@ -5,9 +5,8 @@ import { AvatarIcon } from "./AvatarIcon";
 import { Portrait } from "./CharacterSelect";
 import { frameClass } from "./profile-frames";
 import { heroAppearance } from "./appearance";
-import { CLASSES, heroStats, type Hero } from "./data";
-import { premiumState } from "./economy";
-import { XpBar } from "./panels";
+import { CLASSES, heroStats, xpToNext, type Hero } from "./data";
+import { premiumState, premiumVipLevel } from "./economy";
 import {
   CAMPAIGN_STAMINA,
   DUNGEON_STAMINA,
@@ -64,12 +63,15 @@ export function Hud({
   const frame = me?.frame ?? "iron";
   if (!hero) return null;
   const s = heroStats(hero);
+  const vip = premiumVipLevel(hero);
+  const need = xpToNext(hero);
+  const xpPct = Math.min(100, Math.max(0, (hero.xp / Math.max(1, need)) * 100));
   return (
     <div className="hud-top pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2">
-      <div className="player-card pointer-events-auto">
-        <div className="flex items-center gap-2.5">
+      <div className="player-card pc2 pointer-events-auto">
+        <div className="pc2-row">
           <button
-            className={`player-portrait ${frameClass(frame)}`}
+            className={`pc2-portrait ${frameClass(frame)}`}
             onClick={onProfile}
             aria-label={`Profile — level ${hero.level}${hero.paragon > 0 ? `, ascension ${hero.paragon}` : ""}`}
             title={t("Open your profile")}
@@ -79,39 +81,31 @@ export function Hud({
             ) : (
               <Portrait cls={hero.cls} gender={gender} className="w-full" {...heroAppearance(hero, gender)} />
             )}
-            <span className="player-level">{t("Lv")} {hero.level}</span>
           </button>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-baseline gap-1.5">
-              <span className="player-name" title={hero.name}>{hero.name}</span>
-              {hero.paragon > 0 && (
-                <span className="shrink-0 rounded bg-gold/20 px-1 text-[10px] font-bold text-gold">
-                   {t("Asc")} {hero.paragon}
-                </span>
-              )}
+          <span className="pc2-level" title={t("Level")}>{hero.level}</span>
+          <div className="pc2-body">
+            <div className="pc2-head">
+              <span className="player-name" title={`${hero.name} · ${CLASSES[hero.cls].name}${me?.title ? ` · ${me.title}` : ""}`}>{hero.name}</span>
+              {hero.paragon > 0 && <span className="pc2-asc">{t("Asc")} {hero.paragon}</span>}
+              <span className={`pc2-vip ${vip > 0 ? "" : "pc2-vip-off"}`} title={t("VIP level")}>VIP{vip > 0 ? ` ${vip}` : ""}</span>
             </div>
-            <div className="mb-1 truncate text-[10px] uppercase tracking-wider text-muted-foreground">
-              {CLASSES[hero.cls].name}
-              {me?.title ? ` · ${me.title}` : ""}
+            <div className="pc2-money" role="group" aria-label={t("Currencies and power")}>
+              <Gold n={hero.gold} />
+              <Diamonds n={premiumState(hero).balance} />
+              <VoidCrystals n={hero.voidCrystals ?? 0} />
             </div>
-            <XpBar hero={hero} />
-            <div className="player-stats" aria-label={t("Combat stats")}>
-              <span title={t("Health")}>HP {fmt(s.hp)}</span>
-              <span title={t("Attack")}>ATK {fmt(s.atk)}</span>
-              <span title={t("Defense")}>DEF {fmt(s.def)}</span>
-              <span title={t("Crit")}>CRIT {Math.round(s.crit)}%</span>
+            <div className="pc2-bar pc2-hp" role="progressbar" aria-label={t("Health")} aria-valuenow={s.hp}>
+              <div style={{ width: "100%" }} /><span>{fmt(s.hp)} / {fmt(s.hp)}</span>
+            </div>
+            <div className="pc2-bar pc2-xp" role="progressbar" aria-label={t("XP")} aria-valuenow={Math.round(xpPct)}
+              title={`${fmt(hero.xp)} / ${fmt(need)} XP`}>
+              <div style={{ width: `${xpPct}%` }} /><span>{fmt(hero.xp)} / {fmt(need)}</span>
+            </div>
+            <div className="pc2-rating">
+              <span className="pc2-rating-label">{t("Battle Rating:")}</span>
+              <span className="pc2-rating-num"><Trophy className="text-r4" />{fmt(s.power)}</span>
             </div>
           </div>
-        </div>
-        <div className="player-divider" />
-        <div className="player-currencies" role="group" aria-label={t("Currencies and power")}>
-          <Gold n={hero.gold} />
-          <Diamonds n={premiumState(hero).balance} />
-          <VoidCrystals n={hero.voidCrystals ?? 0} />
-          <span className="font-bold" title={t("Power")}>
-            <Trophy className="text-r4" />
-            {fmt(s.power)}
-          </span>
         </div>
         <StaminaBar hero={hero} />
       </div>
