@@ -3,12 +3,17 @@ import { tr } from "./i18n";
 import { useGame } from "./store";
 import { GameTabs, Panel } from "./ui";
 import { GUIDE_CHAPTERS, GUIDE_GOALS, goalsDone, type GuideChapter } from "./guide";
+import arenaCrypt from "@/assets/arena-crypt.jpg";
 import arenaField from "@/assets/arena-field.jpg";
+import cardGender from "@/assets/card-gender.webp";
+import craftingTrophies from "@/assets/crafting-trophies.png";
+import farmCountryside from "@/assets/farm-countryside.jpg";
 import farmEstate from "@/assets/farm-estate.jpg";
 import gateCampaign from "@/assets/gate-campaign.webp";
 import gateConquest from "@/assets/gate-conquest.webp";
 import gateDungeon from "@/assets/gate-dungeon.webp";
 import gearAtlas from "@/assets/gear-atlas.jpg";
+import sceneAuctionHouse from "@/assets/scene-auction-house.jpg";
 import sceneGuildHall from "@/assets/scene-guild-hall.jpg";
 import sceneWorldMap from "@/assets/scene-world-map.jpg";
 import spireChest from "@/assets/spire-chest.webp";
@@ -17,14 +22,20 @@ import worldCastle from "@/assets/world-castle.png";
 /** One painted picture per chapter, so a new player can see what a gate or a building looks like. */
 const CHAPTER_ART: Record<string, { src: string; fit: string }> = {
   start: { src: gateCampaign, fit: "object-cover" },
+  classes: { src: cardGender, fit: "object-contain" },
   fight: { src: arenaField, fit: "object-cover" },
   gear: { src: gearAtlas, fit: "object-cover object-top" },
+  forge: { src: craftingTrophies, fit: "object-cover" },
   gates: { src: gateDungeon, fit: "object-cover" },
   spire: { src: spireChest, fit: "object-contain" },
   castle: { src: worldCastle, fit: "object-contain" },
-  guild: { src: sceneGuildHall, fit: "object-cover" },
+  farm: { src: farmEstate, fit: "object-cover" },
+  economy: { src: sceneAuctionHouse, fit: "object-cover" },
   grow: { src: gateConquest, fit: "object-cover" },
-  daily: { src: farmEstate, fit: "object-cover" },
+  guild: { src: sceneGuildHall, fit: "object-cover" },
+  world: { src: sceneWorldMap, fit: "object-cover" },
+  arena: { src: arenaCrypt, fit: "object-cover" },
+  daily: { src: farmCountryside, fit: "object-cover" },
   tips: { src: sceneWorldMap, fit: "object-cover" },
 };
 

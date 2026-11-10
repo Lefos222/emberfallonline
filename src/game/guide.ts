@@ -54,8 +54,41 @@ const chapters: GuideChapter[] = [
         "Wear anything better",
         "Open the Armory, tap a bag item and press Equip. Anything you no longer need can be salvaged at the Forge for gold and materials. An empty slot is a free stat upgrade.",
       ),
+      step(
+        "Collect your idle income",
+        "Visit the Gold Mine and the Farm in your castle. Both accumulate rewards while you are battling or logged off.",
+      ),
     ],
     tip: "Battles cost stamina, not gold: 20 for the Campaign Gate and 10 for the Dungeon Gate, win or lose. Stamina refills every day.",
+  },
+  {
+    id: "classes",
+    tab: "Classes & Stats",
+    title: "Mastering classes and attributes",
+    blurb: "How the three hero archetypes, resource pools, and primary attributes function.",
+    steps: [
+      step(
+        "Warrior: Iron and Energy",
+        "Warriors excel at soaking damage and close-quarters cleaves. They use Energy, which starts depleted and generates through basic attacks and receiving hits, fueling devastating strikes like Whirlwind and Shield Slam.",
+      ),
+      step(
+        "Mage: Arcane and Mana",
+        "Mages channel Mana pools to unleash destructive elemental bursts and crowd control. Spells consume mana upfront, demanding tactical timing between high-cost nukes and basic mana-restoring cantrips.",
+      ),
+      step(
+        "Archer: Precision and Focus",
+        "Archers rely on Focus to execute piercing critical shots and arrow volleys. With naturally high dodge and crit rates, they whittle down high-threat targets before enemies can close the distance.",
+      ),
+      step(
+        "Primary Attributes",
+        "Strength boosts physical attack and health for Warriors; Agility drives attack, critical chance, and dodge for Archers; Intelligence powers spell damage and mana capacity for Mages; Vitality grants maximum HP and armor across all classes.",
+      ),
+      step(
+        "Secondary Combat Stats",
+        "Critical Rate (% chance to critically strike), Critical Damage (% bonus damage on crit), Accuracy (counters enemy dodge), and Damage Reduction (mitigates incoming physical and magical hits).",
+      ),
+    ],
+    tip: "Attribute points can be reallocated if you wish to experiment with full-damage or defensive survival builds.",
   },
   {
     id: "fight",
@@ -65,15 +98,19 @@ const chapters: GuideChapter[] = [
     steps: [
       step(
         "Turns follow speed",
-        "The strip at the top of the fight shows who acts next. When it is your turn, pick a skill and then tap a target. Some skills hit one enemy, some hit all of them, and some help you instead.",
+        "The strip at the top of the fight shows who acts next. When it is your turn, pick a skill and then tap a target. Some skills hit one enemy, some hit all of them, and some help you instead. High-speed heroes can even act twice before slower behemoths.",
       ),
       step(
         "Skills cost your resource",
         "Every skill has a cooldown in turns, and most also cost energy, mana or focus. The basic attack is always free and refills your bar, so it is never wasted.",
       ),
       step(
+        "Status conditions and crowd control",
+        "Watch for status icons: Burn deals fire damage over turns; Freeze skips enemy turns; Bleed damages on action; Stun incapacitates; and Shields absorb incoming damage before touching your HP.",
+      ),
+      step(
         "Two potions per fight",
-        "The potion button heals you and you carry two into every battle. They are free — use them instead of losing.",
+        "The potion button heals you and you carry two into every battle. They are free and refill every match — use them instead of losing.",
       ),
       step(
         "AUTO and the fast-forward",
@@ -84,32 +121,69 @@ const chapters: GuideChapter[] = [
         "Entry is charged up front, so a loss is never double-priced. You keep what you already own, and the XP from a defeat still helps.",
       ),
     ],
-    tip: "Number keys 1-4 cast your skills during a battle and P drinks a potion.",
+    tip: "Number keys 1-4 cast your skills during a battle, P drinks a potion, A toggles AUTO, and F toggles fast-forward.",
   },
   {
     id: "gear",
     tab: "Gear",
-    title: "Gear, the Forge and gems",
-    blurb: "Where your power really comes from after the first few levels.",
+    title: "Equipment, rarities and slots",
+    blurb: "How item tiers, equipment slots, and stat rolls define your hero's power.",
     steps: [
       step(
+        "Six rarity tiers",
+        "Gear drops in six color-coded rarities: Common (Grey), Uncommon (Green), Rare (Blue), Epic (Purple), Legendary (Orange), and Mythic (Red). Higher rarities roll more bonus affix lines.",
+      ),
+      step(
+        "Eight equipment slots",
+        "Equip Main Hand, Off-Hand, Helm, Chest, Gloves, Boots, Ring, and Amulet. Weapons give the highest raw attack, while Chest and Helm supply the largest defensive pools.",
+      ),
+      step(
         "Rarity first, level second",
-        "Gear drops in rarities from common to mythic; the colour of the slot tells you which. A higher rarity with the right class bonus usually beats a higher item level.",
+        "A higher rarity with the right class bonus usually beats a higher item level with unfocused stats. Always prioritize pieces carrying your hero's main attribute.",
       ),
       step(
-        "Enhance at the Forge",
-        "The Forge raises a piece up to +30 with gold and materials. Enhancing keeps working at every level, so it is never wasted on a piece you use often.",
+        "Armory and Bag management",
+        "Open the Armory to equip items, compare stat changes, and lock prized equipment so you never salvage them by accident.",
       ),
       step(
-        "Gems and astrals",
-        "The Gem Workshop cuts gems that are socketed into gear for flat stats; Astrals are slotted on your hero for percentage bonuses. Both stack with everything else.",
-      ),
-      step(
-        "Sets and special armours",
-        "Synthesis sets are forged piece by piece and pay a set bonus when worn together. Epic Armours are tagged set pieces whose materials each drop from one specific place — the guide in the Forge lists every recipe.",
+        "Overflow Chest protection",
+        "When your bag is completely full, new loot is never destroyed. It drops directly into the Armory Overflow Chest, waiting until you clear inventory space.",
       ),
     ],
     tip: "Salvage spare gear at the Forge instead of selling it: the materials come back and feed your next craft.",
+  },
+  {
+    id: "forge",
+    tab: "Forge & Craft",
+    title: "Enhancing, gems, synthesis and runes",
+    blurb: "The workshop systems that transform standard drops into endgame armaments.",
+    steps: [
+      step(
+        "Enhance at the Forge (+1 to +30)",
+        "The Forge raises a piece up to +30 with gold and materials. Enhancing keeps working at every level, so it is never wasted on a piece you use often.",
+      ),
+      step(
+        "Gem Workshop & Socketing",
+        "The Gem Workshop cuts gems socketed into gear for flat stats: Rubies grant Attack, Sapphires boost Mana and Defense, Emeralds grant Health, and Topazes raise Speed and Crit.",
+      ),
+      step(
+        "Astrals for percentage power",
+        "Astrals are celestial spheres slotted directly onto your hero for massive percentage bonuses. Both gems and astrals stack with everything else.",
+      ),
+      step(
+        "Synthesis sets",
+        "Synthesis sets are forged piece by piece and pay powerful 2-piece and 4-piece set bonuses when worn together.",
+      ),
+      step(
+        "Epic Armours and Boss Drops",
+        "Epic Armours are tagged set pieces whose materials each drop from specific Dungeon Gate bosses (Wyrm Bones, Phoenix Ash, Dragon Scales, and Titan Hearts).",
+      ),
+      step(
+        "Runic Inscriptions",
+        "Carve ancient runic stones using crystals collected from deep runs. Runes apply global stat multipliers to your entire combat profile.",
+      ),
+    ],
+    tip: "Salvage all unwanted gear at the Forge instead of selling to generic vendors — crafting dust and ores are indispensable.",
   },
   {
     id: "gates",
@@ -127,7 +201,11 @@ const chapters: GuideChapter[] = [
       ),
       step(
         "Conquest Gate — tokens",
-        "Endless floors past level 10 that pay Conquest Tokens instead of XP. Tokens buy chests, materials and any gem in the gate's own shop. Deeper floors pay more, and a Conquest Key doubles a whole day of payouts.",
+        "Endless floors past level 10 that pay Conquest Tokens instead of XP. Tokens buy chests, materials and any gem in the gate's own shop. Deeper floors pay more.",
+      ),
+      step(
+        "Conquest Keys",
+        "A Conquest Key doubles an entire day of Conquest Gate token payouts and shop currency. Always activate one before doing heavy runs!",
       ),
       step(
         "Spire Gate — parties",
@@ -172,23 +250,110 @@ const chapters: GuideChapter[] = [
     blurb: "Income and free rewards that cost you nothing but a tap each day.",
     steps: [
       step(
-        "Gold Mine",
+        "Gold Mine accumulation",
         "The mine banks gold every hour into a cart that holds a full day, even while you are offline. Upgrade it when you can afford it — it is the steadiest gold in the game.",
       ),
       step(
-        "Farm",
-        "Plant seeds, come back later and harvest gold, Farm XP and produce. Harvests also feed Hearth feasts, which are timed combat buffs for the whole party.",
+        "Upgrading the Mine",
+        "Invest surplus gold into the Gold Mine to increase both gold generation rate per hour and the total cart storage capacity.",
+      ),
+      step(
+        "Castle facilities",
+        "The castle complex houses the Barracks, the Workshop, the Vault, the Hearth, the War Gates, and the central World Tree.",
       ),
       step(
         "Daily Rewards and the daily chest",
         "The reward board pays a gift every day and even more for a streak; the small chest in the corner refills through the day. Both are free — never leave them unclaimed.",
       ),
       step(
-        "Auction House and the Wheel",
-        "Sell what you do not need and buy what you do need. The Wheel of Fortune and the VIP Black Market are the Diamond side of the castle; the Premium Shop explains the rest.",
+        "Mailbox collections",
+        "The Mailbox collects rewards that arrive while you are away, including tournament payouts, auction proceeds, and system gifts.",
       ),
     ],
-    tip: "The Mailbox collects rewards that arrive while you are away — check it after every session.",
+    tip: "Empty the mine cart at least once every 24 hours so it never sits capped at maximum capacity.",
+  },
+  {
+    id: "farm",
+    tab: "Farmstead",
+    title: "Farming, harvesting and Hearth feasts",
+    blurb: "Cultivate 16 fertile plots, raise exotic crops, and prepare combat-enhancing feasts.",
+    steps: [
+      step(
+        "The 16-slot farm",
+        "Your farmstead features a 4x4 grid of fertile soil. Purchase seeds from the farm shop, plant them into open plots, and water them to start growth.",
+      ),
+      step(
+        "Six Seed Families",
+        "Grow Sun seeds (Gold affinity), Moon seeds (XP affinity), Star seeds (Essence), Frost seeds (Crafting materials), Blood seeds (Vitality), and Ember seeds (Combat power).",
+      ),
+      step(
+        "Growth cycles and stages",
+        "Crops progress visually through seed, sprout, and bloom stages. Fast crops mature in minutes; legendary crops take hours but yield massive bounties.",
+      ),
+      step(
+        "Farm XP and soil upgrades",
+        "Harvesting crops earns Farm XP, raising your farm rank. Higher farm ranks unlock richer seed varieties, faster growth modifiers, and higher yield chances.",
+      ),
+      step(
+        "Hearth Feasts",
+        "Take harvested produce to the Castle Hearth to cook legendary feasts. Consuming a feast grants long-duration party combat buffs such as bonus attack or maximum health.",
+      ),
+    ],
+    tip: "Plant quick-growing seeds while you are actively playing and exploring, and plant long-growth crops right before you log off for the night.",
+  },
+  {
+    id: "economy",
+    tab: "Economy & Trade",
+    title: "Currencies, Auction House and markets",
+    blurb: "Trading with other players, shopping at vendors, and managing the realm's currencies.",
+    steps: [
+      step(
+        "Currencies of Emberfall",
+        "Gold (upgrades, crafting, forging); Diamonds (premium shop, special rolls, auction buyout); Conquest Tokens (gem shop); and Guild Contribution (guild store).",
+      ),
+      step(
+        "The Auction House",
+        "Buy and sell equipment, crafting reagents, and rare blueprints with other real players. List unwanted high-rarity loot for gold or diamonds.",
+      ),
+      step(
+        "Marketplace and Emporium",
+        "Daily rotating vendors offering discounted materials, stamina potions, and rare upgrade scrolls.",
+      ),
+      step(
+        "Wheel of Fortune",
+        "Spin the Wheel of Fortune using daily free spins or lucky tickets to win gold piles, enhancement stones, and jackpot diamonds.",
+      ),
+      step(
+        "VIP Black Market",
+        "Exclusive market tiers featuring discounted high-end materials, rare boss cores, and mythic synthesis recipes.",
+      ),
+    ],
+    tip: "Browse the Auction House regularly — players who outlevel mid-tier legendary gear often sell it at bargain prices.",
+  },
+  {
+    id: "grow",
+    tab: "Get stronger",
+    title: "Every way to grow",
+    blurb: "Past level 20 the hero grows along many tracks at once. Here is what each one is for.",
+    steps: [
+      step(
+        "Talents and the Barracks",
+        "Talents unlock and improve abilities; the Barracks drills raise your percentage stats and your attributes over real time. Both are permanent and always worth doing.",
+      ),
+      step(
+        "Renown and Enlightenment",
+        "Winning any fight banks Renown, which buys six permanent stat ladders. Battle Essence from won fights feeds Enlightenment, and Soul Shards buy infusions — the two late-game tracks.",
+      ),
+      step(
+        "Mounts and runes",
+        "Mounts shorten blitzes, speed up world travel, and add stats; runes are carved with crystals and join the same percentage pipeline as everything else.",
+      ),
+      step(
+        "Titles, relics and the Bestiary",
+        "Titles are earned from milestones and grant real buffs when worn. Relic trials recover class relic pieces, and the Bestiary keeps your kill counters.",
+      ),
+    ],
+    tip: "Barracks drills work in real time even while you are logged out — keep training drills queued around the clock.",
   },
   {
     id: "guild",
@@ -202,43 +367,84 @@ const chapters: GuideChapter[] = [
       ),
       step(
         "Bank and buffs",
-        "Donate gold to fill the guild bank and earn contribution. Leaders and officers light guild buffs from that bank; they last 24 hours and help every member.",
+        "Donate gold to fill the guild bank and earn contribution. Leaders and officers light guild buffs from that bank; they last 24 hours and help every member with Attack, Defense, XP, and Gold.",
       ),
       step(
         "Bosses, quests, the tournament",
         "The guild boss wakes through the day and everyone chips away at it; weekly quests and the weekly tournament pay for teamwork. All of the rewards are minted by the server.",
       ),
       step(
+        "Guild Tower",
+        "Ascend the Guild Tower floor by floor together. Every milestone floor conquered permanently enhances baseline attributes for all guild members.",
+      ),
+      step(
         "Wars and the vault",
         "Guild wars are declared in brackets from 5v5 to 100v100 and every roster hero gets two attacks. The guild vault is a shared store of gear, gems and materials with three pages.",
       ),
+      step(
+        "Guild Shop",
+        "Spend earned Contribution tokens on exclusive XP scrolls, high-tier crafting recipes, and rare gems in the guild shop.",
+      ),
     ],
-    tip: "Contribution is what buys guild shop goods — donating spare gold is never wasted.",
+    tip: "Always use both of your Guild War attacks — even a partial defeat or chip damage awards valuable war points and contribution.",
   },
   {
-    id: "grow",
-    tab: "Get stronger",
-    title: "Every way to grow",
-    blurb: "Past level 20 the hero grows along many tracks at once. Here is what each one is for.",
+    id: "world",
+    tab: "World Map",
+    title: "The World Map and player castles",
+    blurb: "Journey through the World Tree gateway into a shared living realm.",
     steps: [
       step(
-        "Talents and the Barracks",
-        "Talents unlock and improve abilities; the Barracks drills raise your percentage stats and your attributes over time. Both are permanent and always worth doing.",
+        "The World Tree Gateway",
+        "Tap the majestic World Tree at the center of your castle to open the expansive global world map.",
       ),
       step(
-        "Renown and Enlightenment",
-        "Winning any fight banks Renown, which buys six permanent stat ladders. Battle Essence from won fights feeds Enlightenment, and Soul Shards buy infusions — the two late-game tracks.",
+        "Regions and gathering grounds",
+        "Explore distinct wilderness zones, monster territories, and rich gathering grounds (Ember, Verdant, Sunken, Astral).",
       ),
       step(
-        "Mounts and runes",
-        "Mounts shorten blitzes and add stats; runes are carved with crystals and join the same percentage pipeline as everything else. Both live in the castle.",
+        "Real player castles",
+        "Every active player's castle stands on the global map. Select any player castle to inspect their Lord's level, equipment, and character model.",
       ),
       step(
-        "Titles, relics and the Bestiary",
-        "Titles are earned from milestones and grant real buffs when worn. Relic trials recover class relic pieces, and the Bestiary keeps your kill counters.",
+        "Relocating your castle",
+        "You are granted 3 castle relocations per UTC day. Move your castle between 24 distinct strategic castle plots to be near resources or allies.",
+      ),
+      step(
+        "World events and roaming bosses",
+        "Keep watch for roaming world bosses and temporal rifts appearing across global territories for limited-time server encounters.",
       ),
     ],
-    tip: "Nothing in this list replaces gear: the fastest way to get stronger is still a better weapon and a higher enhancement.",
+    tip: "Relocate your castle close to your guildmates to coordinate map control and rally for world events.",
+  },
+  {
+    id: "arena",
+    tab: "Arena & PvP",
+    title: "Glory in the Arena",
+    blurb: "Test your build against other heroes, climb rankings, and earn Honor.",
+    steps: [
+      step(
+        "Asynchronous PvP Duels",
+        "Challenge rival player heroes in the Arena. Battles simulate asynchronous combat against their registered equipment and skill loadouts.",
+      ),
+      step(
+        "Ladder ranks and leagues",
+        "Win duels to earn ladder rating. Advance from Bronze and Silver up to Diamond and Master leagues for higher daily rewards.",
+      ),
+      step(
+        "Honor Tokens and Arena Shop",
+        "Every duel awards Honor Tokens regardless of outcome. Spend Honor in the Arena vendor for exclusive PvP gear and combat scrolls.",
+      ),
+      step(
+        "Setting your defensive loadout",
+        "Configure your defensive skill bar and gear in the Arena panel so your hero fights effectively when other players challenge you.",
+      ),
+      step(
+        "Daily duel allowances",
+        "You have a set number of free arena duel attempts daily. Use all free attempts to maximize your daily Honor earnings.",
+      ),
+    ],
+    tip: "Speed and first-turn burst damage are king in the Arena — striking before your opponent acts often decides the fight.",
   },
   {
     id: "daily",
@@ -247,8 +453,8 @@ const chapters: GuideChapter[] = [
     blurb: "Ten minutes a day keeps every counter running. Do these in order.",
     steps: [
       step(
-        "1. Collect",
-        "Claim the daily chest, the reward board, the mine cart and your farm harvest before anything else — they are free.",
+        "1. Collect free resources",
+        "Claim the daily chest, the reward board streak, the mine cart and your farm harvest before anything else — they are free.",
       ),
       step(
         "2. Spend stamina",
@@ -256,18 +462,18 @@ const chapters: GuideChapter[] = [
       ),
       step(
         "3. Use your allowances",
-        "Three Conquest blitzes, three Spire climbs, three castle raids and your arena duels all reset daily or half-daily. They are the cheapest rewards in the game.",
+        "Three Conquest blitzes, three Spire climbs, three castle raids and your arena duels all reset daily. They are the cheapest rewards in the game.",
       ),
       step(
         "4. Help the guild",
-        "Hit the guild boss, hand in the weekly quests and keep your two war attacks for a bracket you can win.",
+        "Hit the guild boss, donate gold, hand in weekly quests and keep your two war attacks for a bracket you can win.",
       ),
       step(
-        "5. Tidy up",
-        "Salvage junk gear, sell what is worth gold, spend your attribute and talent points, and check the Auction House for an upgrade.",
+        "5. Tidy up & drill",
+        "Salvage junk gear, spend your attribute and talent points, queue up Barracks drills, and check the Auction House for an upgrade.",
       ),
     ],
-    tip: "Everything daily resets at midnight in Greece (UTC+2), not at your own midnight.",
+    tip: "Everything daily resets at midnight in Greece (UTC+2 / EET), not at your own local midnight.",
   },
   {
     id: "tips",
@@ -290,6 +496,10 @@ const chapters: GuideChapter[] = [
       step(
         "Play in your language",
         "Settings has the language picker — English, Greek or Polish — and the whole game follows, including gear names and enemy names.",
+      ),
+      step(
+        "Percentage and flat stat stacking",
+        "Flat stats from Gems and Enhancements multiply with percentage bonuses from Astrals, Runes, and Guild Buffs for exponential power.",
       ),
       step(
         "Use the guide's checklist",
