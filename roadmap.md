@@ -56,3 +56,5 @@
 - [ ] Wheel of Fortune, 100 Diamonds per spin
 - [ ] Rune system; new crystals for higher armour
 - [ ] Window renovation; art for things missing it
+- [ ] Higher armour tier (Forge + Synthesis), new class/gender outfit looks, new materials from specific dungeons only
+- [ ] Paint remaining small line icons (stats, arrows, locks) not covered by the painted icon set

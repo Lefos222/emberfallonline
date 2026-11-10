@@ -1,6 +1,7 @@
 import { t } from "./i18n";
 import { useEffect, useRef, useState } from "react";
-import { Check, Gift, Loader2, Mail, RefreshCw, Sparkles } from "lucide-react";
+import { Check, Gift, Loader2, Mail, Sparkles } from "lucide-react";
+import { RefreshCw } from "./PaintedIcons";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";

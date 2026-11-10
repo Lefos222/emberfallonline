@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Gem, X, Diamond } from "lucide-react";
+import { Gem, Diamond } from "lucide-react";
+import { X } from "./PaintedIcons";
 import { ArtIcon, type ArtIconName } from "./ArtIcon";
 import { GoldCoin } from "./CoinIcon";
 import { GearIcon } from "./GearIcon";

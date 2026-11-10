@@ -1,6 +1,7 @@
 import { t } from "./i18n";
 import { useEffect, useRef, useState } from "react";
-import { Check, Clock, Copy, Loader2, MessageSquare, Search, Swords, UserPlus, Users, X } from "lucide-react";
+import { Check, Copy, Loader2, Search, UserPlus } from "lucide-react";
+import { Clock, MessageSquare, Swords, Users, X } from "./PaintedIcons";
 import { Button } from "@/components/ui/button";
 import { heroStats } from "./data";
 import { useGame } from "./store";

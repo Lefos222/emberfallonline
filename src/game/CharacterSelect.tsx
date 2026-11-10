@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Loader2, Plus, Trash2, Play, ArrowLeft, LogOut, RefreshCw } from "lucide-react";
+import { Loader2, Plus, Trash2, Play, ArrowLeft } from "lucide-react";
+import { LogOut, RefreshCw } from "./PaintedIcons";
 import { CharacterModel } from './CharacterModel';
 import { CharacterPose } from './CharacterPose';
 import selectionBackground from "@/assets/heroes/selection-bloodmoon.jpg";

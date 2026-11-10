@@ -1,6 +1,7 @@
 import { tr } from "./i18n";
 import { useState } from "react";
-import { Gem, Hammer, ShoppingBag, X } from "lucide-react";
+import { Gem, Hammer, ShoppingBag } from "lucide-react";
+import { X } from "./PaintedIcons";
 import { ConquestCoin } from "./CoinIcon";
 import { GemIcon, MatIcon } from "./MatIcon";
 import {

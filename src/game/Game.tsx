@@ -897,7 +897,7 @@ const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIcon
   { id: "gems", label: "Gem Workshop", tip: "Cut, socket & fuse gems", icon: "gem" },
   { id: "daily", label: "Daily Rewards", tip: "30-day reward board", icon: "gift" },
   { id: "calendar", label: "Events", tip: "World event calendar & reminders", icon: "calendar" },
-  { id: "friends", label: "Friends", tip: "Friends & messages", icon: "goblet" },
+  { id: "friends", label: "Friends", tip: "Friends & messages", icon: "friends" },
   { id: "profile", label: "Profile", tip: "Your hero profile", icon: "profile" },
   { id: "oracle", label: "Quest Board", tip: "AI-generated quests", icon: "quest" },
 ];

@@ -1,6 +1,7 @@
 import { t } from "./i18n";
 import { useState } from "react";
-import { Check, Gift, Lock, ScrollText } from "lucide-react";
+import { Check, Gift, Lock } from "lucide-react";
+import { ScrollText } from "./PaintedIcons";
 import { Gold, Panel, fmt } from "./ui";
 import { update, useGame } from "./store";
 import { claimLevelQuest, levelQuestRows, questsForLevel } from "./level-quests";

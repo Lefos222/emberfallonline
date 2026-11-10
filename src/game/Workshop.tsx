@@ -3,7 +3,8 @@ import { AstralIcon, MatIcon, GemIcon } from "./MatIcon";
 import { CharacterModel } from "./CharacterModel";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, Gem, Hammer, Lock, Plus, Sparkles, X } from "lucide-react";
+import { ArrowUp, Gem, Hammer, Lock, Plus, Sparkles } from "lucide-react";
+import { X } from "./PaintedIcons";
 import {
   invCap,
   SLOTS,

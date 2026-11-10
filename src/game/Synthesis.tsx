@@ -1,6 +1,7 @@
 import { tr } from "./i18n";
 import { useState } from "react";
-import { Check, Hammer, Lock, Shield, Sparkles, X } from "lucide-react";
+import { Check, Hammer, Lock, Sparkles } from "lucide-react";
+import { Shield, X } from "./PaintedIcons";
 import { CharacterModel } from "./CharacterModel";
 import { GearIcon } from "./GearIcon";
 import { MatIcon } from "./MatIcon";

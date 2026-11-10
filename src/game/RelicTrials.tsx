@@ -1,7 +1,8 @@
 import { tName , t} from "./i18n";
 import { itemName } from "./i18n";
 import { useState } from "react";
-import { Lock, Swords } from "lucide-react";
+import { Lock } from "lucide-react";
+import { Swords } from "./PaintedIcons";
 import { Button } from "@/components/ui/button";
 import { GearIcon } from "./GearIcon";
 import { Sprite } from "./Sprite";

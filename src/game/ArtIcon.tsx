@@ -16,7 +16,15 @@ import guild from "@/assets/icons/ui-guild.png";
 import profile from "@/assets/icons/ui-profile.png";
 import quest from "@/assets/icons/ui-quest.png";
 import astral from "@/assets/icons/ui-astral.png";
-import auction from "@/assets/icons/ui-auction.svg";
+import auction from "@/assets/icons/ui-auction.webp";
+import settings from "@/assets/icons/ui-settings.webp";
+import notes from "@/assets/icons/ui-notes.webp";
+import swords from "@/assets/icons/ui-swords.webp";
+import shield from "@/assets/icons/ui-shield.webp";
+import chat from "@/assets/icons/ui-chat.webp";
+import friends from "@/assets/icons/ui-friends.webp";
+import coins from "@/assets/icons/ui-coins.webp";
+import hourglass from "@/assets/icons/ui-hourglass.webp";
 
 /**
  * Painted interface art, keyed by icon name. Add the asset file here and every
@@ -43,6 +51,14 @@ const ART_ICONS = {
   quest,
   astral,
   auction,
+  settings,
+  notes,
+  swords,
+  shield,
+  chat,
+  friends,
+  coins,
+  hourglass,
 } as const;
 
 export type ArtIconName = keyof typeof ART_ICONS;

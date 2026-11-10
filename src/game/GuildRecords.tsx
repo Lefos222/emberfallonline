@@ -1,5 +1,6 @@
 import { t } from "./i18n";
-import { ScrollText, Trophy, Users } from "lucide-react";
+import { Trophy } from "lucide-react";
+import { ScrollText, Users } from "./PaintedIcons";
 import type { Tables } from "@/integrations/supabase/types";
 import { useGame } from "./store";
 import { fmt } from "./ui";

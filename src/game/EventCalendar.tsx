@@ -1,7 +1,8 @@
 import { itemName , t} from "./i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Bell, BellOff, Calendar, X } from "lucide-react";
+import { Bell, BellOff, Calendar } from "lucide-react";
+import { X } from "./PaintedIcons";
 import { Button } from "@/components/ui/button";
 import { Panel, fmt } from "./ui";
 import { stageRewards, type Hero, type Item } from "./data";

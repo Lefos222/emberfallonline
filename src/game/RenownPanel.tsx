@@ -1,14 +1,7 @@
 import { tr } from "./i18n";
-import {
-  Award,
-  Crosshair,
-  Flame,
-  HeartPulse,
-  ShieldCheck,
-  Swords,
-  Wind,
-  type LucideIcon,
-} from "lucide-react";
+import { Award, Crosshair, Flame, HeartPulse, ShieldCheck, Wind } from "lucide-react";
+type LucideIcon = import("react").ComponentType<{ className?: string }>;
+import { Swords } from "./PaintedIcons";
 import type { Hero } from "./data";
 import { update } from "./store";
 import {

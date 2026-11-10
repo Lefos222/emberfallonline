@@ -1,7 +1,8 @@
 import { mountBlitzPct } from "./mounts";
 import { tr } from "./i18n";
 import { useState } from "react";
-import { Gem, KeyRound, Sparkles, Swords, Zap } from "lucide-react";
+import { Gem, KeyRound, Sparkles, Zap } from "lucide-react";
+import { Swords } from "./PaintedIcons";
 import { Button } from "@/components/ui/button";
 import { ConquestCoin, GemChestIcon, GoldChestIcon } from "./CoinIcon";
 import { GemIcon, MatIcon } from "./MatIcon";

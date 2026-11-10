@@ -1,6 +1,7 @@
 import { tr } from "./i18n";
 import { useEffect, useState } from "react";
-import { Check, Clock, Flag, RefreshCw, ScrollText, Shield, Swords, Trophy, X } from "lucide-react";
+import { Check, Flag, Trophy } from "lucide-react";
+import { Clock, RefreshCw, ScrollText, Shield, Swords, X } from "./PaintedIcons";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { CLASSES, type HeroClass, type Stats } from "./data";

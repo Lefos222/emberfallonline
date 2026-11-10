@@ -1,5 +1,6 @@
 import { t } from "./i18n";
-import { Map as MapIcon, Shield, Swords, ArrowUp, Coins, Users } from "lucide-react";
+import { Map as MapIcon, ArrowUp } from "lucide-react";
+import { Shield, Swords, Coins, Users } from "./PaintedIcons";
 import { Button } from "@/components/ui/button";
 import buildingsArt from "@/assets/guild-courtyard.jpg";
 

@@ -1,6 +1,7 @@
 import { itemName , t} from "./i18n";
 import { useEffect, useState } from "react";
-import { Clock, Gavel, KeyRound, Store, Trash2 } from "lucide-react";
+import { Gavel, KeyRound, Store, Trash2 } from "lucide-react";
+import { Clock } from "./PaintedIcons";
 import { AuctionBoard } from "./AuctionHouse";
 import { CATALOGUE_DISCOUNT, buyCatalogueItem, catalogueHour, cataloguePrice, catalogueRefreshAt, catalogueStock, restockCatalogue } from "./catalogue";
 import { DiamondService } from "./DiamondService";

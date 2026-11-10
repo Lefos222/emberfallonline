@@ -1,7 +1,8 @@
 import { t } from "./i18n";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Lock, RefreshCw, Swords, Trophy } from "lucide-react";
+import { Lock, Trophy } from "lucide-react";
+import { RefreshCw, Swords } from "./PaintedIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { CLASSES, type HeroClass, type Stats } from "./data";
 import { CharacterModel } from "./CharacterModel";

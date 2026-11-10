@@ -1,6 +1,7 @@
 import { tr } from "./i18n";
 import { useEffect, useState } from "react";
-import { Coins, Pickaxe, Timer } from "lucide-react";
+import { Pickaxe, Timer } from "lucide-react";
+import { Coins } from "./PaintedIcons";
 import { Button } from "@/components/ui/button";
 import { update, useGame } from "./store";
 import { Gold, Panel, fmt } from "./ui";

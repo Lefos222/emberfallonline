@@ -1,6 +1,7 @@
 import { t } from "./i18n";
 import { useEffect, useState } from "react";
-import { Check, Crown, RefreshCw, Send, Shield, ShieldOff, UserPlus, UserMinus, X, PenLine } from "lucide-react";
+import { Check, Crown, Send, ShieldOff, UserPlus, UserMinus, PenLine } from "lucide-react";
+import { RefreshCw, Shield, X } from "./PaintedIcons";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";

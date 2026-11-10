@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Cloud, CloudOff, IdCard, LogOut, Settings, Trophy, Users, Volume2, VolumeX, Gift } from "lucide-react";
+import { Cloud, CloudOff, IdCard, Trophy, Volume2, VolumeX, Gift } from "lucide-react";
+import { LogOut, Settings, Users } from "./PaintedIcons";
 import { AvatarIcon } from "./AvatarIcon";
 import { Portrait } from "./CharacterSelect";
 import { frameClass } from "./profile-frames";

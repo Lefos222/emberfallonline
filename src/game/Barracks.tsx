@@ -1,5 +1,7 @@
 import { t } from "./i18n";
-import { ChevronRight, Clover, Crosshair, Eye, Heart, HeartPulse, Lock, Shield, ShieldCheck, Sparkles, Swords, Trophy, Wind, type LucideIcon } from "lucide-react";
+import { ChevronRight, Clover, Crosshair, Eye, Heart, HeartPulse, Lock, ShieldCheck, Sparkles, Trophy, Wind } from "lucide-react";
+type LucideIcon = import("react").ComponentType<{ className?: string }>;
+import { Shield, Swords } from "./PaintedIcons";
 import type { Hero } from "./data";
 import { BARRACKS_UNLOCKS, barracksCost, barracksLevel, trainingDiscount, upgradeBarracks } from "./barracks";
 import {

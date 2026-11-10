@@ -1,20 +1,7 @@
 import { tName , t} from "./i18n";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Castle,
-  Compass,
-  Crown,
-  Flag,
-  Gem,
-  Hammer,
-  Landmark,
-  Minus,
-  PackageOpen,
-  Plus,
-  ScrollText,
-  Skull,
-  X,
-} from "lucide-react";
+import { Castle, Compass, Crown, Flag, Gem, Hammer, Landmark, Minus, PackageOpen, Plus, Skull } from "lucide-react";
+import { ScrollText, X } from "./PaintedIcons";
 import mapImg from "@/assets/world-map.jpg";
 import { update, useGame } from "./store";
 import type { StartBattle } from "./panels";
