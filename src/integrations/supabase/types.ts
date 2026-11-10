@@ -157,6 +157,57 @@ export type Database = {
           },
         ]
       }
+      castle_raids: {
+        Row: {
+          attacker_id: string
+          attacker_name: string
+          created_at: string
+          defender_id: string
+          defender_name: string
+          gold: number
+          id: string
+          request_id: string
+          won: boolean
+        }
+        Insert: {
+          attacker_id: string
+          attacker_name: string
+          created_at?: string
+          defender_id: string
+          defender_name: string
+          gold?: number
+          id?: string
+          request_id: string
+          won: boolean
+        }
+        Update: {
+          attacker_id?: string
+          attacker_name?: string
+          created_at?: string
+          defender_id?: string
+          defender_name?: string
+          gold?: number
+          id?: string
+          request_id?: string
+          won?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "castle_raids_attacker_id_fkey"
+            columns: ["attacker_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "castle_raids_defender_id_fkey"
+            columns: ["defender_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           body: string
@@ -1374,6 +1425,10 @@ export type Database = {
       }
       my_guild_ids: { Args: never; Returns: string[] }
       my_hero_ids: { Args: never; Returns: string[] }
+      player_castle_raid: {
+        Args: { _hero: string; _req: string; _target: string; _won: boolean }
+        Returns: Json
+      }
       premium_service: {
         Args: { _hero: string; _kind: string; _req: string; _value?: string }
         Returns: Json

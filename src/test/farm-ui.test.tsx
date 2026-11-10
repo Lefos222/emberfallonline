@@ -28,10 +28,10 @@ describe("the farm panel", () => {
     render(<FarmPanel onClose={() => {}} />);
 
     expect(screen.getByText("Farm Level")).toBeInTheDocument();
-    expect(screen.getByText("1 / 16 plots")).toBeInTheDocument();
+    expect(screen.getByText("1 / 20 plots")).toBeInTheDocument();
     expect(screen.getByLabelText("Empty plot 1 — plant a seed")).toBeInTheDocument();
     expect(screen.getByLabelText("Plot 2 locked — Farm Level 2 required")).toBeInTheDocument();
-    expect(screen.getAllByLabelText(/locked — Farm Level \d+ required/)).toHaveLength(15);
+    expect(screen.getAllByLabelText(/locked — Farm Level \d+ required/)).toHaveLength(19);
   });
 
   it("charges the Bloodoak for gold and Farm XP, then shows its cooldown", () => {

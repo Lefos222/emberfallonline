@@ -126,7 +126,7 @@ export async function plantBanner(
     return { castle, synced: false, error: "Select a character first." };
   }
   update((h) => {
-    h.worldCastle = { x: castle.x, y: castle.y, at: castle.placedAt };
+    h.worldCastle = { ...h.worldCastle, x: castle.x, y: castle.y, at: castle.placedAt };
   });
   const saved = await flushSave();
   return saved

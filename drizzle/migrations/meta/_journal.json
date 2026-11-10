@@ -204,6 +204,13 @@
       "when": 1794324438778,
       "tag": "0028_guild_vault_stacks",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794325251222,
+      "tag": "0029_player_castle_raids",
+      "breakpoints": true
     }
   ]
 }

@@ -36,14 +36,14 @@ const hero = () => {
 };
 
 describe("the farm ladder", () => {
-  it("tills one plot at level 1 and one more per level, up to sixteen", () => {
-    expect(FARM_TOTAL_SLOTS).toBe(16);
+  it("tills one plot at level 1 and one more per level, up to twenty", () => {
+    expect(FARM_TOTAL_SLOTS).toBe(20);
     expect(slotsForLevel(1)).toBe(FARM_STARTING_SLOTS);
     expect(slotsForLevel(2)).toBe(FARM_STARTING_SLOTS + 1);
     expect(slotsForLevel(FARM_MAX_LEVEL)).toBe(FARM_TOTAL_SLOTS);
     expect(unlockLevelForSlot(0)).toBe(1);
     expect(unlockLevelForSlot(FARM_STARTING_SLOTS)).toBe(2);
-    expect(unlockLevelForSlot(FARM_TOTAL_SLOTS - 1)).toBe(FARM_MAX_LEVEL);
+    expect(unlockLevelForSlot(FARM_TOTAL_SLOTS - 1)).toBe(20);
   });
 
   it("starts a new hero at Farm Level 1 with one open plot", () => {
@@ -86,7 +86,7 @@ describe("seeds", () => {
     const h = hero();
     expect(plantSeed(h, 0.5, "gold", 1)).toBe("Unknown plot");
     expect(plantSeed(h, 0, "gold", NaN)).toBe("Unknown seed");
-    expect(plantSeed(h, 0, "gold", 17)).toBe("Unknown seed");
+    expect(plantSeed(h, 0, "gold", 31)).toBe("Unknown seed");
     expect(h.gold).toBe(1_000_000);
     expect(h.farm?.slots?.every((crop) => crop === null)).toBe(true);
   });
@@ -173,17 +173,18 @@ describe("harvesting", () => {
     expect(base?.gold).toBe(goldSeedReward(1));
 
     const maxed = hero();
-    maxed.farm = { ...ensureFarm(maxed), level: FARM_MAX_LEVEL, xp: 0 };
+    maxed.farm = { ...ensureFarm(maxed), level: 16, xp: 0 };
     expect(farmMastered(maxed)).toBe(true);
     plantSeed(maxed, 0, "gold", 1, 0);
     const ripe = maxed.farm!.slots![0]!;
     const boosted = harvestSlot(maxed, 0, ripe.readyAt);
-    expect(boosted?.gold).toBe(Math.round(goldSeedReward(1) * (1 + FARM_MASTERY_BONUS)));
+    // Level 16 also carries the +10% harvest-gold perk earned at Farm Level 10.
+    expect(boosted?.gold).toBe(Math.round(Math.round(goldSeedReward(1) * (1 + FARM_MASTERY_BONUS)) * 1.1));
 
     // The Bloodoak carries the same mastery bonus.
     const tree = chargeBloodoak(maxed, 10_000);
-    expect(tree?.gold).toBe(Math.round(bloodoakRewards(FARM_MAX_LEVEL).gold * (1 + FARM_MASTERY_BONUS)));
-    expect(tree?.xp).toBe(Math.round(bloodoakRewards(FARM_MAX_LEVEL).xp * (1 + FARM_MASTERY_BONUS)));
+    expect(tree?.gold).toBe(Math.round(bloodoakRewards(16).gold * (1 + FARM_MASTERY_BONUS)));
+    expect(tree?.xp).toBe(Math.round(bloodoakRewards(16).xp * (1 + FARM_MASTERY_BONUS)));
   });
 
   it("banks Farm XP into levels and tills a new plot each time", () => {
@@ -210,5 +211,35 @@ describe("harvesting", () => {
     expect(total.gold).toBe(goldSeedReward(1) * 2);
     expect(h.farm?.slots?.[0]).toBeNull();
     expect(h.farm?.slots?.[2]).not.toBeNull();
+  });
+});
+
+import { FARM_PERKS, FEASTS, cookFeast, farmGrowthMult, feastFx, rollRareHarvest, SEED_UNLOCK } from "@/game/farm";
+describe("farm expansion", () => {
+  it("opens special seeds only at their Farm Level", () => {
+    const h = hero();
+    h.gold = 1e9;
+    expect(SEED_UNLOCK.frost).toBe(6);
+    expect(buySeed(h, "frost", 1, 1)).toBe("Farm level 6 needed");
+    h.farm = { ...ensureFarm(h), level: 6 };
+    expect(buySeed(h, "frost", 1, 1)).toBeNull();
+  });
+  it("speeds growth with perks", () => {
+    expect(farmGrowthMult(1)).toBe(1);
+    expect(farmGrowthMult(30)).toBeCloseTo(0.8);
+    expect(FARM_PERKS.length).toBeGreaterThan(10);
+  });
+  it("rolls rare materials only once the perk is earned", () => {
+    expect(rollRareHarvest("frost", 1, 5, () => 0)).toBeNull();
+    expect(rollRareHarvest("frost", 1, 6, () => 0)).toEqual({ frostCrystal: 1 });
+  });
+  it("cooks a feast from produce into a timed battle bonus", () => {
+    const h = hero();
+    h.farm = { ...ensureFarm(h), level: 5, produce: { gold: 3, xp: 2 } };
+    expect(cookFeast(h, "stew", 0)).toBeNull();
+    expect(h.farm!.produce!.gold).toBe(0);
+    expect(feastFx(h, 1000)).toEqual({ atkPct: 10, matkPct: 10 });
+    expect(feastFx(h, FEASTS[0]!.minutes * 60_000 + 1)).toEqual({});
+    expect(cookFeast(h, "stew", 0)).toBe("Not enough Gold produce");
   });
 });

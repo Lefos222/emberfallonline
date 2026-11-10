@@ -14,10 +14,13 @@ import { locValues } from "./i18n";
  * the hero save), so a crop keeps growing while the player is offline and survives a refresh.
  */
 
-export type SeedKind = "gold" | "xp" | "ember" | "moon";
+export type SeedKind = "gold" | "xp" | "ember" | "moon" | "frost" | "sun" | "blood" | "star";
 
 /** Every seed kind, in shop / pouch order. */
-export const SEED_KINDS: readonly SeedKind[] = ["gold", "xp", "ember", "moon"];
+export const SEED_KINDS: readonly SeedKind[] = ["gold", "xp", "ember", "moon", "frost", "sun", "blood", "star"];
+
+/** Farm Level each seed kind first appears at. */
+export const SEED_UNLOCK: Record<SeedKind, number> = { gold: 1, xp: 1, ember: 1, moon: 1, frost: 6, sun: 10, blood: 14, star: 20 };
 
 /** Display names for each seed kind. */
 export const SEED_LABELS: Record<SeedKind, string> = locValues({
@@ -25,10 +28,16 @@ export const SEED_LABELS: Record<SeedKind, string> = locValues({
   xp: "XP",
   ember: "Emberbloom",
   moon: "Moonroot",
+  frost: "Frostberry",
+  sun: "Sunwheat",
+  blood: "Bloodvine",
+  star: "Starbloom",
 });
 
-export const FARM_MAX_LEVEL = 16;
-export const FARM_TOTAL_SLOTS = 16;
+export const FARM_MAX_LEVEL = 30;
+export const FARM_TOTAL_SLOTS = 20;
+/** Farm Mastery switches on at this Farm Level. */
+export const FARM_MASTERY_LEVEL = 16;
 /**
  * Farm Mastery: once all sixteen plots are tilled (Farm Level 16) every gold and Farm XP payout
  * the fields and the Bloodoak make is worth this much more, so a finished farm keeps paying.
@@ -62,6 +71,7 @@ export const unlockLevelForSlot = (index: number) =>
  */
 export const FARM_XP_STEPS: readonly number[] = [
   120, 220, 360, 560, 820, 1150, 1550, 2050, 2700, 3500, 4500, 5800, 7400, 9400, 12000,
+  14500, 17500, 21000, 25000, 29500, 34500, 40000, 46000, 52500, 59500, 67000, 75000, 83500, 92500,
 ];
 
 /** Farm XP the next level costs; 0 at the top of the ladder. */
@@ -75,7 +85,7 @@ export const farmXpToNext = (level: number) =>
 export const farmXp = (h: Pick<Hero, "farm">) => Math.max(0, safeWhole(h.farm?.xp, 0));
 
 /** True once all sixteen plots are tilled — the fields are mastered (see FARM_MASTERY_BONUS). */
-export const farmMastered = (h: Pick<Hero, "farm">) => farmLevel(h) >= FARM_MAX_LEVEL;
+export const farmMastered = (h: Pick<Hero, "farm">) => farmLevel(h) >= FARM_MASTERY_LEVEL;
 
 /** The multiplier every gold and Farm XP payout carries (1 until Farm Level 16, then +20%). */
 export const farmMastery = (h: Pick<Hero, "farm">) =>
@@ -102,6 +112,7 @@ export const GOLD_SEED_PRICES: readonly number[] = Array.from(
 /** XP Seed price at each tier. They cost a little gold and pay only Farm XP. */
 export const XP_SEED_PRICES: readonly number[] = [
   150, 240, 350, 480, 640, 830, 1050, 1300, 1600, 1950, 2350, 2800, 3300, 3850, 4500, 5200,
+  6000, 6900, 7900, 9000, 10200, 11500, 12900, 14400, 16000, 17700, 19500, 21400, 23400, 25500,
 ];
 
 /** How long each seed takes to grow, in minutes. Deeper seeds take longer to ripen. */
@@ -117,9 +128,15 @@ export const seedMinutes = (kind: SeedKind, tier: number) =>
     ? goldSeedMinutes(tier)
     : kind === "xp"
       ? xpSeedMinutes(tier)
-      : kind === "ember"
+      : kind === "ember" || kind === "frost"
         ? emberSeedMinutes(tier)
-        : moonSeedMinutes(tier);
+        : kind === "sun"
+          ? goldSeedMinutes(tier) * 2
+          : kind === "blood"
+            ? xpSeedMinutes(tier) * 2
+            : kind === "star"
+              ? moonSeedMinutes(tier) + 30
+              : moonSeedMinutes(tier);
 
 /** Gold Seed prices are the table above; XP Seeds have their own ladder. */
 export const seedPrice = (kind: SeedKind, tier: number) => {
@@ -130,6 +147,10 @@ export const seedPrice = (kind: SeedKind, tier: number) => {
   if (kind === "xp") return xp;
   // Emberbloom costs as much as both basic seeds together; Moonroot twice an XP Seed.
   if (kind === "ember") return gold + xp;
+  if (kind === "frost") return gold + xp;
+  if (kind === "sun") return gold * 2;
+  if (kind === "blood") return Math.round((gold + xp) * 1.5);
+  if (kind === "star") return (gold + xp) * 2;
   return xp * 2;
 };
 
@@ -156,7 +177,13 @@ export const seedGold = (kind: SeedKind, tier: number) =>
     ? goldSeedReward(tier)
     : kind === "ember"
       ? Math.round(goldSeedReward(tier) * 0.75)
-      : 0;
+      : kind === "sun"
+        ? Math.round(goldSeedReward(tier) * 2.5)
+        : kind === "blood"
+          ? Math.round(goldSeedReward(tier) * 0.9)
+          : kind === "frost" || kind === "star"
+            ? Math.round(goldSeedReward(tier) * 0.5)
+            : 0;
 
 /**
  * Farm XP a ripe seed pays: XP Seeds in full, Emberbloom 60% of an XP Seed, Moonroot 2.2x —
@@ -169,7 +196,11 @@ export const seedXp = (kind: SeedKind, tier: number) =>
       ? Math.round(xpSeedReward(tier) * 0.6)
       : kind === "moon"
         ? Math.round(xpSeedReward(tier) * 2.2)
-        : 0;
+        : kind === "blood"
+          ? Math.round(xpSeedReward(tier) * 1.4)
+          : kind === "frost" || kind === "star"
+            ? Math.round(xpSeedReward(tier) * 0.8)
+            : 0;
 
 /** The main harvest a seed pays (gold for Gold Seeds, Farm XP otherwise). */
 export const seedReward = (kind: SeedKind, tier: number) =>
@@ -204,6 +235,10 @@ export interface FarmState {
   seeds?: Record<string, number>;
   /** Epoch milliseconds of the last Bloodoak charge; 0 (or absent) means never charged. */
   treeChargedAt?: number;
+  /** Produce banked from harvests, spent at the Hearth on feasts. */
+  produce?: Partial<Record<SeedKind, number>>;
+  /** Active feast: id and expiry epoch ms. */
+  feast?: { id: string; until: number } | null;
 }
 
 /** A brand-new farm: level 1, no XP, sixteen plots of which one is tilled. */
@@ -214,6 +249,8 @@ export function newFarm(): Required<FarmState> {
     slots: Array.from({ length: FARM_TOTAL_SLOTS }, () => null),
     seeds: {},
     treeChargedAt: 0,
+    produce: {},
+    feast: null,
   };
 }
 
@@ -227,6 +264,8 @@ export function ensureFarm(h: Hero): Required<FarmState> {
     slots,
     seeds: { ...(current.seeds ?? {}) },
     treeChargedAt: Math.max(0, safeWhole(current.treeChargedAt, 0)),
+    produce: { ...(current.produce ?? {}) },
+    feast: current.feast ?? null,
   };
   h.farm = farm;
   return farm;
@@ -270,6 +309,7 @@ export function buySeed(h: Hero, kind: SeedKind, tier: number, qty = 1): string 
   const farm = ensureFarm(h);
   const t = Math.max(1, Math.min(FARM_MAX_LEVEL, Math.floor(tier)));
   if (t > farm.level) return `Farm level ${t} needed`;
+  if (SEED_UNLOCK[kind] > farm.level) return `Farm level ${SEED_UNLOCK[kind]} needed`;
   const count = Math.max(1, Math.floor(qty));
   const total = seedPrice(kind, t) * count;
   if (!Number.isSafeInteger(total) || !Number.isFinite(h.gold) || h.gold < total)
@@ -298,6 +338,7 @@ export function plantSeed(
     return `Farm level ${unlockLevelForSlot(index)} needed for that plot`;
   if (farm.slots[index]) return "That plot is already planted";
   if (t > farm.level) return `Farm level ${t} needed for that seed`;
+  if (SEED_UNLOCK[kind] > farm.level) return `Farm level ${SEED_UNLOCK[kind]} needed for that seed`;
   const key = seedKey(kind, t);
   if ((farm.seeds[key] ?? 0) > 0) {
     farm.seeds[key] = (farm.seeds[key] ?? 0) - 1;
@@ -307,7 +348,8 @@ export function plantSeed(
       return `Not enough gold — ${price.toLocaleString()} needed`;
     h.gold -= price;
   }
-  farm.slots[index] = { kind, tier: t, plantedAt: now, readyAt: now + seedDurationMs(kind, t) };
+  const grow = Math.round(seedDurationMs(kind, t) * farmGrowthMult(farm.level));
+  farm.slots[index] = { kind, tier: t, plantedAt: now, readyAt: now + grow };
   return null;
 }
 
@@ -316,6 +358,8 @@ export interface HarvestResult {
   xp: number;
   /** Farm Levels gained by this harvest (normally 0 or 1). */
   levels: number;
+  /** Rare materials found in the soil. */
+  mats?: Record<string, number>;
 }
 
 /** Add Farm XP, carrying the excess over, and report how many levels it bought. */
@@ -335,7 +379,7 @@ export function addFarmXp(h: Hero, xp: number): number {
 }
 
 /** Harvest one ripe plot. Returns null when the plot is empty or still growing (so no double harvest). */
-export function harvestSlot(h: Hero, index: number, now = Date.now()): HarvestResult | null {
+export function harvestSlot(h: Hero, index: number, now = Date.now(), rand: () => number = Math.random): HarvestResult | null {
   if (!validSlot(index) || !Number.isFinite(now) || now < 0) return null;
   const farm = ensureFarm(h);
   const crop = farm.slots[index];
@@ -350,23 +394,30 @@ export function harvestSlot(h: Hero, index: number, now = Date.now()): HarvestRe
   )
     return null;
   farm.slots[index] = null;
-  // A mastered farm (+20% at Farm Level 16) pays every harvest more.
-  const gold = withFarmMastery(seedGold(crop.kind, crop.tier), h);
+  // A mastered farm (+20% at Farm Level 16) pays every harvest more; perks add a gold bonus.
+  const gold = Math.round(withFarmMastery(seedGold(crop.kind, crop.tier), h) * (1 + farmGoldPerk(farm.level)));
   const xp = withFarmMastery(seedXp(crop.kind, crop.tier), h);
   if (gold > 0) h.gold += gold;
+  farm.produce[crop.kind] = (farm.produce[crop.kind] ?? 0) + farmProduceYield(farm.level);
+  const mats = rollRareHarvest(crop.kind, crop.tier, farm.level, rand);
+  if (mats) {
+    const bag = (h.mats ??= {}) as Record<string, number>;
+    for (const [k, v] of Object.entries(mats)) bag[k] = (bag[k] ?? 0) + v;
+  }
   const levels = xp > 0 ? addFarmXp(h, xp) : 0;
-  return { gold, xp, levels };
+  return mats ? { gold, xp, levels, mats } : { gold, xp, levels };
 }
 
 /** Harvest every ripe plot at once, skipping anything still growing. */
-export function harvestAll(h: Hero, now = Date.now()): HarvestResult & { crops: number } {
-  const total = { gold: 0, xp: 0, levels: 0, crops: 0 };
+export function harvestAll(h: Hero, now = Date.now()): HarvestResult & { crops: number; mats: Record<string, number> } {
+  const total = { gold: 0, xp: 0, levels: 0, crops: 0, mats: {} as Record<string, number> };
   for (let i = 0; i < FARM_TOTAL_SLOTS; i += 1) {
     const got = harvestSlot(h, i, now);
     if (!got) continue;
     total.gold += got.gold;
     total.xp += got.xp;
     total.levels += got.levels;
+    for (const [k, v] of Object.entries(got.mats ?? {})) total.mats[k] = (total.mats[k] ?? 0) + v;
     total.crops += 1;
   }
   return total;
@@ -444,4 +495,109 @@ export function chargeBloodoak(h: Hero, now = Date.now()): HarvestResult | null 
   h.gold += gold;
   const levels = addFarmXp(h, xp);
   return { gold, xp, levels };
+}
+
+// ---------- Level perks ----------
+
+export type FarmPerkKind = "growth" | "gold" | "rare" | "produce" | "feast";
+export interface FarmPerk { level: number; kind: FarmPerkKind; value: number; label: string }
+
+/** Every permanent bonus the Farm earns as it levels, in order. */
+export const FARM_PERKS: readonly FarmPerk[] = [
+  { level: 3, kind: "growth", value: 0.05, label: "Crops grow 5% faster" },
+  { level: 5, kind: "feast", value: 1, label: "The Hearth opens: cook battle feasts" },
+  { level: 6, kind: "rare", value: 0.08, label: "8% chance of rare materials per harvest" },
+  { level: 8, kind: "growth", value: 0.05, label: "Crops grow another 5% faster" },
+  { level: 10, kind: "gold", value: 0.1, label: "+10% harvest gold" },
+  { level: 12, kind: "produce", value: 1, label: "Every harvest banks 2 produce" },
+  { level: 15, kind: "rare", value: 0.07, label: "+7% rare material chance" },
+  { level: 18, kind: "growth", value: 0.1, label: "Crops grow another 10% faster" },
+  { level: 20, kind: "feast", value: 2, label: "Grand feasts: +50% feast strength" },
+  { level: 22, kind: "gold", value: 0.15, label: "+15% harvest gold" },
+  { level: 25, kind: "rare", value: 0.1, label: "+10% rare material chance" },
+  { level: 28, kind: "produce", value: 1, label: "Every harvest banks 3 produce" },
+  { level: 30, kind: "feast", value: 3, label: "Royal feasts last twice as long" },
+];
+
+const perkSum = (level: number, kind: FarmPerkKind) =>
+  FARM_PERKS.filter((p) => p.kind === kind && p.level <= level).reduce((a, p) => a + p.value, 0);
+
+/** Growing-time multiplier at a Farm Level (0.8 at the top). */
+export const farmGrowthMult = (level: number) => Math.max(0.5, 1 - perkSum(level, "growth"));
+export const farmGoldPerk = (level: number) => perkSum(level, "gold");
+export const farmRareChance = (level: number) => perkSum(level, "rare");
+export const farmProduceYield = (level: number) => 1 + perkSum(level, "produce");
+export const feastTier = (level: number) => perkSum(level, "feast");
+
+/** What each special seed can turn up in the soil. */
+const RARE_FINDS: Record<SeedKind, readonly string[]> = {
+  gold: ["ore"], xp: ["essence"], ember: ["bloom"], moon: ["crystal"],
+  frost: ["frostCrystal"], sun: ["sunCrystal"], blood: ["essence", "voidCrystal"], star: ["starshard"],
+};
+
+/** Roll a rare harvest. Special seeds roll twice the base chance. */
+export function rollRareHarvest(kind: SeedKind, tier: number, level: number, rand: () => number = Math.random) {
+  const base = farmRareChance(level);
+  if (base <= 0) return null;
+  const special = SEED_UNLOCK[kind] > 1;
+  if (rand() >= Math.min(0.9, base * (special ? 2 : 1))) return null;
+  const pool = RARE_FINDS[kind] ?? ["ore"];
+  const mat = pool[Math.floor(rand() * pool.length)] ?? pool[0]!;
+  const qty = 1 + Math.floor(Math.max(1, tier) / 8);
+  return { [mat]: qty };
+}
+
+// ---------- The Hearth: feasts ----------
+
+export interface FeastDef {
+  id: string;
+  name: string;
+  desc: string;
+  cost: Partial<Record<SeedKind, number>>;
+  buff: { atkPct?: number; matkPct?: number; defPct?: number; mdefPct?: number; hpPct?: number; crit?: number; critDmg?: number; dodge?: number };
+  minutes: number;
+  level: number;
+}
+
+export const FEASTS: readonly FeastDef[] = [
+  { id: "stew", name: "Hunter's Stew", desc: "+10% attack and magic attack", cost: { gold: 3, xp: 2 }, buff: { atkPct: 10, matkPct: 10 }, minutes: 45, level: 5 },
+  { id: "bread", name: "Moonroot Bread", desc: "+12% health and defence", cost: { moon: 3, xp: 2 }, buff: { hpPct: 12, defPct: 12, mdefPct: 12 }, minutes: 45, level: 5 },
+  { id: "tart", name: "Frostberry Tart", desc: "+6% crit and +6% dodge", cost: { frost: 3, ember: 2 }, buff: { crit: 6, dodge: 6 }, minutes: 45, level: 6 },
+  { id: "roast", name: "Sunwheat Roast", desc: "+15% attack, +20% crit damage", cost: { sun: 3, gold: 3 }, buff: { atkPct: 15, matkPct: 15, critDmg: 20 }, minutes: 60, level: 10 },
+  { id: "wine", name: "Bloodvine Wine", desc: "+18% health, +10% attack", cost: { blood: 3, moon: 2 }, buff: { hpPct: 18, atkPct: 10, matkPct: 10 }, minutes: 60, level: 14 },
+  { id: "banquet", name: "Starbloom Banquet", desc: "+15% to every combat stat", cost: { star: 3, sun: 2, blood: 2 }, buff: { atkPct: 15, matkPct: 15, defPct: 15, mdefPct: 15, hpPct: 15, crit: 5 }, minutes: 60, level: 20 },
+];
+
+export const produceCount = (h: Pick<Hero, "farm">, kind: SeedKind) =>
+  Math.max(0, safeWhole(h.farm?.produce?.[kind], 0));
+
+/** Strength multiplier and duration multiplier from the Hearth perks. */
+export const feastPower = (level: number) => (feastTier(level) >= 3 ? 1.5 : 1);
+export const feastLength = (level: number) => (feastTier(level) >= 6 ? 2 : 1);
+
+export function cookFeast(h: Hero, id: string, now = Date.now()): string | null {
+  const def = FEASTS.find((f) => f.id === id);
+  if (!def) return "Unknown feast";
+  const farm = ensureFarm(h);
+  if (feastTier(farm.level) < 1 || farm.level < def.level) return `Farm level ${Math.max(5, def.level)} needed`;
+  for (const [k, n] of Object.entries(def.cost) as [SeedKind, number][])
+    if ((farm.produce[k] ?? 0) < n) return `Not enough ${SEED_LABELS[k]} produce`;
+  for (const [k, n] of Object.entries(def.cost) as [SeedKind, number][]) farm.produce[k] = (farm.produce[k] ?? 0) - n;
+  farm.feast = { id, until: now + def.minutes * 60_000 * feastLength(farm.level) };
+  return null;
+}
+
+export function activeFeast(h: Pick<Hero, "farm">, now = Date.now()) {
+  const f = h.farm?.feast;
+  if (!f || !Number.isFinite(f.until) || f.until <= now) return null;
+  const def = FEASTS.find((d) => d.id === f.id);
+  return def ? { def, until: f.until } : null;
+}
+
+/** The feast's battle bonus, joined into computeStats beside potion elixirs. */
+export function feastFx(h: Pick<Hero, "farm">, now = Date.now()): Record<string, number> {
+  const a = activeFeast(h, now);
+  if (!a) return {};
+  const m = feastPower(farmLevel(h));
+  return Object.fromEntries(Object.entries(a.def.buff).map(([k, v]) => [k, Math.round((v ?? 0) * m)]));
 }

@@ -5,7 +5,12 @@ import goldRipe from "@/assets/farm-gold-2.webp";
 import xpSprout from "@/assets/farm-xp-0.webp";
 import xpGrowing from "@/assets/farm-xp-1.webp";
 import xpRipe from "@/assets/farm-xp-2.webp";
-import farmScene from "@/assets/farm-scene.png";
+import farmScene from "@/assets/farm-estate.jpg";
+import frostCrop from "@/assets/farm-frost.webp";
+import sunCrop from "@/assets/farm-sun.webp";
+import bloodCrop from "@/assets/farm-blood.webp";
+import starCrop from "@/assets/farm-star.webp";
+import { MATS } from "./crafting";
 import emberCrop from "@/assets/farm-ember.webp";
 import moonCrop from "@/assets/farm-moon.webp";
 import { useEffect, useRef, useState } from "react";
@@ -19,6 +24,7 @@ import { Gold, Panel, fmt } from "./ui";
 import {
   BLOODOAK_COOLDOWN_MS,
   FARM_MASTERY_BONUS,
+  FARM_MASTERY_LEVEL,
   FARM_MAX_LEVEL,
   FARM_TOTAL_SLOTS,
   bloodoakRewards,
@@ -49,6 +55,15 @@ import {
   unlockLevelForSlot,
   waitLabel,
   withFarmMastery,
+  FARM_PERKS,
+  FEASTS,
+  SEED_LABELS,
+  SEED_UNLOCK,
+  activeFeast,
+  cookFeast,
+  feastLength,
+  feastPower,
+  produceCount,
   type SeedKind,
 } from "./farm";
 
@@ -57,6 +72,10 @@ const cropImages: Record<SeedKind, readonly string[]> = {
   xp: [xpSprout, xpGrowing, xpRipe],
   ember: [emberCrop, emberCrop, emberCrop],
   moon: [moonCrop, moonCrop, moonCrop],
+  frost: [frostCrop, frostCrop, frostCrop],
+  sun: [sunCrop, sunCrop, sunCrop],
+  blood: [bloodCrop, bloodCrop, bloodCrop],
+  star: [starCrop, starCrop, starCrop],
 };
 /** Seeds painted as a single ripe plant grow by scale instead of separate stage art. */
 const STAGE_SCALE: Record<SeedKind, readonly number[]> = {
@@ -64,6 +83,10 @@ const STAGE_SCALE: Record<SeedKind, readonly number[]> = {
   xp: [1, 1, 1],
   ember: [0.5, 0.78, 1],
   moon: [0.5, 0.78, 1],
+  frost: [0.5, 0.78, 1],
+  sun: [0.5, 0.78, 1],
+  blood: [0.5, 0.78, 1],
+  star: [0.5, 0.78, 1],
 };
 
 /**
@@ -71,22 +94,26 @@ const STAGE_SCALE: Record<SeedKind, readonly number[]> = {
  * Ordered back row to front row, left to right along each row.
  */
 const PLOT_SPOTS: readonly [number, number][] = [
-  [56.6, 45.9],
-  [47.6, 49.8],
-  [38.3, 53.7],
-  [27.1, 58.7],
-  [64.9, 51.8],
-  [56.0, 55.8],
-  [46.5, 60.5],
-  [35.4, 65.8],
-  [73.7, 57.4],
-  [64.8, 62.4],
-  [55.2, 67.8],
-  [44.4, 73.6],
-  [82.1, 63.5],
-  [73.9, 69.2],
-  [64.2, 75.2],
-  [53.9, 82.2],
+  [28.0, 47.0],
+  [39.0, 47.0],
+  [50.0, 47.0],
+  [61.0, 47.0],
+  [72.0, 47.0],
+  [26.2, 56.5],
+  [38.1, 56.5],
+  [50.0, 56.5],
+  [61.9, 56.5],
+  [73.8, 56.5],
+  [24.4, 66.0],
+  [37.2, 66.0],
+  [50.0, 66.0],
+  [62.8, 66.0],
+  [75.6, 66.0],
+  [22.6, 75.5],
+  [36.3, 75.5],
+  [50.0, 75.5],
+  [63.7, 75.5],
+  [77.4, 75.5],
 ];
 
 /** One line naming everything a seed pays, with the Farm Mastery bonus once the fields are maxed. */
@@ -140,9 +167,9 @@ function FarmProgress({ hero }: { hero: Hero }) {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="font-display text-lg text-gold">
            {tr("Farm Level")} <b className="text-2xl">{level}</b>
-          {maxed && (
+          {farmMastered(hero) && (
             <span className="ml-2 text-xs text-r1">
-               {tr("MAX LEVEL · +")}{Math.round(FARM_MASTERY_BONUS * 100)}{tr("% MASTERY")} </span>
+               {maxed ? tr("MAX LEVEL · +") : "+"}{Math.round(FARM_MASTERY_BONUS * 100)}{tr("% MASTERY")} </span>
           )}
         </span>
         <span className="text-xs text-muted-foreground">
@@ -154,9 +181,9 @@ function FarmProgress({ hero }: { hero: Hero }) {
           )}
           <span className="ml-2">
             {slotsForLevel(level)} / {FARM_TOTAL_SLOTS}  {tr("plots")} </span>
-          {!maxed && (
+          {!farmMastered(hero) && (
             <span className="ml-2 text-gold/80">
-               {tr("Level")} {FARM_MAX_LEVEL}  {tr("mastery: +")}{Math.round(FARM_MASTERY_BONUS * 100)}{tr("% gold &amp; Farm XP")} </span>
+               {tr("Level")} {FARM_MASTERY_LEVEL}  {tr("mastery: +")}{Math.round(FARM_MASTERY_BONUS * 100)}{tr("% gold &amp; Farm XP")} </span>
           )}
         </span>
       </div>
@@ -283,6 +310,7 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
     const parts: string[] = [];
     if (got.gold > 0) parts.push(`+${fmt(got.gold)} gold`);
     if (got.xp > 0) parts.push(`+${fmt(got.xp)} Farm XP`);
+    for (const [k, v] of Object.entries(got.mats ?? {})) parts.push(`+${v} ${MATS[k as keyof typeof MATS]?.name ?? k}`);
     say(`Harvested ${parts.join(" · ")}`);
     if (got.levels > 0) setLevelUp(farmLevel(getState().hero ?? hero));
   };
@@ -300,6 +328,7 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
     const parts: string[] = [];
     if (total.gold > 0) parts.push(`+${fmt(total.gold)} gold`);
     if (total.xp > 0) parts.push(`+${fmt(total.xp)} Farm XP`);
+    for (const [k, v] of Object.entries(total.mats)) parts.push(`+${v} ${MATS[k as keyof typeof MATS]?.name ?? k}`);
     say(`Harvested ${total.crops} crop${total.crops === 1 ? "" : "s"} · ${parts.join(" · ")}`);
     if (total.levels > 0) setLevelUp(farmLevel(getState().hero ?? hero));
   };
@@ -364,9 +393,9 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
       <div className="farm-scene farm-board" aria-label={tr("Farm plots")} role="group">
         <img
           src={farmScene}
-          alt={tr("The farm beneath the blood moon — a fenced field of sixteen plots, the barn and the great red Bloodoak")}
-          width={1679}
-          height={937}
+          alt={tr("The farmstead beneath the blood moon — the barn, the windmill, the Hearth and the great red Bloodoak around the fields")}
+          width={1680}
+          height={944}
         />
         {Array.from({ length: FARM_TOTAL_SLOTS }, (_, index) => {
           const locked = index >= unlocked;
@@ -462,6 +491,8 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
         </Button>
       </section>
 
+      <FarmPerksAndHearth hero={hero} say={say} />
+
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         <section className="slot p-3">
           <div className="mb-1 flex items-center gap-2 font-display text-sm text-gold">
@@ -492,40 +523,20 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
             <Sparkles className="h-4 w-4" />
              {tr("Farm Shop")} </div>
           <p className="mb-2 text-xs text-muted-foreground">
-             {tr("Gold Seeds pay gold, XP Seeds pay Farm XP, Emberbloom pays a little of both and the slow Moonroot pays a big share of Farm XP. Higher tiers unlock as the Farm grows.")} </p>
+             {tr("Gold Seeds pay gold, XP Seeds pay Farm XP, Emberbloom pays a little of both and the slow Moonroot pays a big share of Farm XP. Frostberry, Sunwheat, Bloodvine and Starbloom open at higher Farm Levels.")} </p>
           <div className="flex flex-wrap gap-1.5">
-            <Button
-              variant="ghost"
-              className="btn-ghost px-2 py-1 text-xs"
-              onClick={() => buy("gold", level, 1)}
-            >
-              <Coins className="mr-1 inline h-3.5 w-3.5" />
-               {tr("Gold Seed Lv")} {level} · <Gold n={seedPrice("gold", level)} />
-            </Button>
-            <Button
-              variant="ghost"
-              className="btn-ghost px-2 py-1 text-xs"
-              onClick={() => buy("xp", level, 1)}
-            >
-              <Sparkles className="mr-1 inline h-3.5 w-3.5" />
-               {tr("XP Seed Lv")} {level} · <Gold n={seedPrice("xp", level)} />
-            </Button>
-            <Button
-              variant="ghost"
-              className="btn-ghost px-2 py-1 text-xs"
-              onClick={() => buy("ember", level, 1)}
-            >
-              <Sprout className="mr-1 inline h-3.5 w-3.5" />
-               {tr("Emberbloom Lv")} {level} · <Gold n={seedPrice("ember", level)} />
-            </Button>
-            <Button
-              variant="ghost"
-              className="btn-ghost px-2 py-1 text-xs"
-              onClick={() => buy("moon", level, 1)}
-            >
-              <Sparkles className="mr-1 inline h-3.5 w-3.5" />
-               {tr("Moonroot Lv")} {level} · <Gold n={seedPrice("moon", level)} />
-            </Button>
+            {SEED_KINDS.filter((k) => SEED_UNLOCK[k] <= level).map((k) => (
+              <Button
+                key={k}
+                variant="ghost"
+                className="btn-ghost px-2 py-1 text-xs"
+                onClick={() => buy(k, level, 1)}
+              >
+                <CropArt kind={k} stage={2} size={16} />
+                <span className="ml-1">{SEED_LABELS[k]} {tr("Lv")} {level} · </span>
+                <Gold n={seedPrice(k, level)} />
+              </Button>
+            ))}
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">
              {tr("The full seed catalogue lives in the Shop's Farm tab.")} </p>
@@ -546,9 +557,9 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
              {tr("Plant in plot")} {(pickSlot ?? 0) + 1}
           </DialogTitle>
           <div className="space-y-1.5">
-            {Array.from({ length: level }, (_, i) => level - i).map((tier) => (
+            {[level, level - 1, level - 2].filter((t) => t >= 1).map((tier) => (
               <div key={`t${tier}`} className="space-y-1.5">
-                {SEED_KINDS.map((kind) => (
+                {SEED_KINDS.filter((k) => SEED_UNLOCK[k] <= level).map((kind) => (
                   <SeedOption
                     key={kind}
                     hero={hero}
@@ -580,6 +591,9 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
             <div className="my-2 font-display text-6xl font-black text-r1">{farmLevel(hero)}</div>
             <p className="text-sm">
                {tr("A new plot is tilled.")} {slotsForLevel(farmLevel(hero))}  {tr("of")} {FARM_TOTAL_SLOTS}  {tr("plots are now yours.")} </p>
+            {FARM_PERKS.filter((p) => p.level === farmLevel(hero)).map((p) => (
+              <p key={p.label} className="mt-2 font-display text-sm text-r1">★ {tr(p.label)}</p>
+            ))}
             <Button
               variant="ghost"
               className="btn-gold mt-4 w-full py-2"
@@ -609,19 +623,16 @@ export function FarmShopTab({ hero }: { hero: Hero }) {
   const section = (kind: SeedKind, title: string, blurb: string) => (
     <section className="mt-4">
       <div className="mb-1 flex items-center gap-2 font-display text-sm text-gold">
-        {kind === "gold" ? (
-          <Wheat className="h-4 w-4" />
-        ) : kind === "ember" ? (
-          <Sprout className="h-4 w-4" />
-        ) : (
-          <Sparkles className="h-4 w-4" />
-        )}
+        <CropArt kind={kind} stage={2} size={20} />
         {title}
+        {SEED_UNLOCK[kind] > level && (
+          <span className="flex items-center gap-1 text-[10px] text-muted-foreground"><Lock className="h-3 w-3" /> {tr("Farm Level")} {SEED_UNLOCK[kind]}</span>
+        )}
       </div>
       <p className="mb-2 text-xs text-muted-foreground">{blurb}</p>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-        {Array.from({ length: FARM_MAX_LEVEL }, (_, i) => i + 1).map((tier) => {
-          const locked = tier > level;
+        {Array.from({ length: Math.min(FARM_MAX_LEVEL, level + 2) }, (_, i) => i + 1).map((tier) => {
+          const locked = tier > level || SEED_UNLOCK[kind] > level;
           const price = seedPrice(kind, tier);
           const held = seedCount(hero, kind, tier);
           return (
@@ -699,8 +710,88 @@ export function FarmShopTab({ hero }: { hero: Hero }) {
         "Moonroot Seeds",
         "The slow seed: three times as long as an XP Seed, but more than double its Farm XP.",
       )}
+      {section("frost", "Frostberry Seeds", "Pays gold and Farm XP, and turns up Frost Crystals far more often.")}
+      {section("sun", "Sunwheat Seeds", "The richest gold crop on the farm — a long grow for a heavy purse.")}
+      {section("blood", "Bloodvine Seeds", "Pays plenty of both, and can yield Soul Essence or Void Crystals.")}
+      {section("star", "Starbloom Seeds", "The rarest bloom. It can yield Starshards and feeds the Starbloom Banquet.")}
       <p className="mt-4 text-[11px] text-muted-foreground">
          {tr("Farm Level")} {level}  {tr("of")} {FARM_MAX_LEVEL}  {tr("· seeds up to Lv")} {level}  {tr("are available.")} </p>
+    </div>
+  );
+}
+
+/** Level perks ladder and the Hearth, where produce is cooked into timed battle feasts. */
+function FarmPerksAndHearth({ hero, say }: { hero: Hero; say: (t: string, bad?: boolean) => void }) {
+  const level = farmLevel(hero);
+  const feast = activeFeast(hero);
+  const power = feastPower(level);
+  const cook = (id: string) => {
+    let err: string | null = "Please wait for your character to finish syncing, then try again.";
+    update((h) => {
+      err = cookFeast(h, id);
+    });
+    say(err ?? tr("The feast is served — its bonus lasts into your battles."), !!err);
+  };
+  return (
+    <div className="mt-3 grid gap-3 md:grid-cols-2">
+      <section className="slot p-3">
+        <div className="mb-2 font-display text-sm text-gold">{tr("Farm perks")}</div>
+        <ol className="space-y-1 text-xs">
+          {FARM_PERKS.map((p) => {
+            const got = p.level <= level;
+            return (
+              <li key={p.level + p.label} className={`flex items-center gap-2 ${got ? "" : "opacity-55"}`}>
+                <b className={`w-10 shrink-0 font-display ${got ? "text-r1" : "text-muted-foreground"}`}>{tr("Lv")} {p.level}</b>
+                <span>{got ? "✓ " : ""}{tr(p.label)}</span>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+      <section className="slot p-3">
+        <div className="mb-1 font-display text-sm text-gold">{tr("The Hearth")}</div>
+        {level < 5 ? (
+          <p className="text-xs text-muted-foreground"><Lock className="mr-1 inline h-3 w-3" />{tr("The Hearth opens at Farm Level 5. Every harvest banks produce for its feasts.")}</p>
+        ) : (
+          <>
+            <p className="mb-2 text-[11px] text-muted-foreground">{tr("Cook produce into a feast. Only one feast is active at a time; its bonus joins every battle until it ends.")}</p>
+            {feast && (
+              <p className="mb-2 rounded border border-r1/50 bg-r1/10 px-2 py-1 text-xs text-r1">
+                {tr(feast.def.name)} · {waitLabel(feast.until - Date.now())}
+              </p>
+            )}
+            <div className="mb-2 flex flex-wrap gap-1.5 text-[11px]">
+              {SEED_KINDS.filter((k) => produceCount(hero, k) > 0).map((k) => (
+                <span key={k} className="slot flex items-center gap-1 px-1.5 py-0.5">
+                  <CropArt kind={k} stage={2} size={14} /> {fmt(produceCount(hero, k))}
+                </span>
+              ))}
+            </div>
+            <ul className="space-y-1.5">
+              {FEASTS.map((f) => {
+                const locked = level < f.level;
+                const can = !locked && (Object.entries(f.cost) as [SeedKind, number][]).every(([k, n]) => produceCount(hero, k) >= n);
+                return (
+                  <li key={f.id} className={`flex items-center gap-2 text-xs ${locked ? "opacity-55" : ""}`}>
+                    <div className="min-w-0 flex-1">
+                      <b>{tr(f.name)}</b> <span className="text-muted-foreground">· {tr(f.desc)}{power > 1 ? " ×1.5" : ""} · {f.minutes * feastLength(level)} {tr("min")}</span>
+                      <div className="flex flex-wrap gap-1 text-[10px] text-muted-foreground">
+                        {(Object.entries(f.cost) as [SeedKind, number][]).map(([k, n]) => (
+                          <span key={k} className="flex items-center gap-0.5"><CropArt kind={k} stage={2} size={12} />{n}</span>
+                        ))}
+                        {locked && <span>· {tr("Farm Level")} {f.level}</span>}
+                      </div>
+                    </div>
+                    <Button variant="ghost" className="btn-gold px-2 py-1 text-[11px]" disabled={!can} onClick={() => cook(f.id)}>
+                      {tr("Cook")}
+                    </Button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+      </section>
     </div>
   );
 }

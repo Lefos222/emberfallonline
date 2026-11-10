@@ -52,6 +52,7 @@ import {
   type MyCastle,
   type WorldBanner,
 } from "./worldcastles";
+import { MyCastleCard, PlayerCastleRaid, castleArt } from "./WorldCastleCards";
 
 const KIND_STYLE: Record<SiteKind, { ring: string; dot: string; label: string; Icon: typeof Gem }> = {
   gold: { ring: "ring-sky-400", dot: "bg-sky-400", label: "Gold mine", Icon: Gem },
@@ -97,6 +98,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
   const [selected, setSelected] = useState<WorldSite | null>(null);
   const [picked, setPicked] = useState<WorldBanner | null>(null);
   const [planting, setPlanting] = useState(false);
+  const [showMine, setShowMine] = useState(false);
   const [showBounties, setShowBounties] = useState(false);
   const [castle, setCastle] = useState(() => loadMyCastle(heroId));
   const [castleRaids, setCastleRaids] = useState(() => castleRaidsLeft(heroId));
@@ -578,7 +580,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                     ? `${cluster.items.length} player castles`
                     : `${lead.name} · level ${lead.level}`
                 }
-                className="absolute flex h-4 min-w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-0.5 rounded-full border border-gold/40 bg-background/70 px-0.5 text-gold ring-1 ring-gold/60 backdrop-blur-sm transition hover:scale-125"
+                className="absolute flex h-10 w-10 -translate-x-1/2 -translate-y-3/4 items-end justify-center text-gold transition hover:scale-125"
                 style={{ left: p.left, top: p.top }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -591,8 +593,8 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                   setPicked(lead);
                 }}
               >
-                <Crown className="h-2.5 w-2.5" />
-                {cluster.items.length > 1 && <b className="text-[9px] leading-none">{cluster.items.length}</b>}
+                <img src={castleArt} alt="" width={512} height={512} loading="lazy" className="absolute inset-0 h-full w-full object-contain" />
+                {cluster.items.length > 1 && <b className="relative rounded-full bg-background/80 px-1 text-[9px] leading-none">{cluster.items.length}</b>}
               </button>
             );
           })}
@@ -602,13 +604,15 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
               const p = screen(castle.x, castle.y);
               if (!onStage(p)) return null;
               return (
-                <span
-                  className="pointer-events-none absolute flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-background/60 bg-background/80 text-gold ring-2 ring-gold backdrop-blur-sm"
+                <button
+                  className="absolute z-20 h-16 w-16 -translate-x-1/2 -translate-y-3/4 drop-shadow-[0_0_8px_hsl(var(--gold))] transition hover:scale-110"
                   style={{ left: p.left, top: p.top }}
                   title={t("Your castle")}
+                  aria-label={t("Your castle")}
+                  onClick={(e) => { e.stopPropagation(); if (!moved.current) setShowMine((v) => !v); }}
                 >
-                  <Crown className="h-5 w-5" />
-                </span>
+                  <img src={castleArt} alt="" width={512} height={512} className="h-full w-full object-contain" />
+                </button>
               );
             })()
           )}
@@ -707,8 +711,11 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
               <p className="mt-1 text-xs text-muted-foreground">
                  {t("Level")} {picked.level} · {regionAt(picked.x, picked.y).name}
               </p>
+              <PlayerCastleRaid banner={picked} start={start} hasCastle={!!castle} />
             </div>
           )}
+
+          {showMine && castle && <MyCastleCard onClose={() => setShowMine(false)} />}
 
           {selected && (
             <div

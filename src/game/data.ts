@@ -30,7 +30,7 @@ import { renownFx } from "./renown";
 import { runeFx } from "./runes";
 import { potionFx } from "./potions";
 import { titleFx } from "./titles";
-import { normalizeFarm, type FarmState } from "./farm";
+import { feastFx, normalizeFarm, type FarmState } from "./farm";
 import { normalizeMine, type MineState } from "./mine";
 
 export type HeroClass = "warrior" | "mage" | "archer";
@@ -532,7 +532,7 @@ export interface Hero {
   /** The Gold Mine: its upgrade level and the gold its cart has banked since the hero last collected (see mine.ts). */
   mine?: MineState;
   /** The banner this hero planted on the world map; every lord can read it (see worldcastles.ts). */
-  worldCastle?: { x: number; y: number; at: string };
+  worldCastle?: { x: number; y: number; at: string; fort?: number };
   /** World Tree: today's bounty ledger and the sealed vaults already broken (see worldtree.ts). */
   worldTree?: {
     bounties?: {
@@ -876,7 +876,7 @@ function computeStats(
   // Runes are carved with crystals and join Renown in the same percentage slot (see runes.ts).
   const rw = opts.talents ? addFx(renownFx(h), runeFx(h)) : zeroFx();
   // Potion elixirs are timed battle buffs and join the same pipeline (see potions.ts).
-  const pb = opts.talents ? potionFx(h) : zeroFx();
+  const pb = opts.talents ? addFx(potionFx(h), feastFx(h)) : zeroFx();
   // Equipped title buffs are permanent and join the same pipeline (see titles.ts).
   const tf2 = opts.talents ? titleFx(h) : zeroFx();
   // Individual stat trainings: permanent percentage bonuses from barracks training (see drills.ts).
