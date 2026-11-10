@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { SkillId, SpireBattle, SpireMember } from "./spire-party";
+import type { SpireBattle, SpireMember } from "./spire-party";
 
 /**
  * The living room of a Spire party: one Supabase Realtime broadcast channel per party code.
@@ -14,8 +14,10 @@ export type PartyMsg =
   | { kind: "roster"; members: SpireMember[] }
   | { kind: "begin"; members: SpireMember[]; floor: number }
   | { kind: "tick"; battle: SpireBattle; cleared: number | null }
-  | { kind: "cast"; hero: string; skill: SkillId }
-  | { kind: "bye"; hero: string; leader: boolean };
+  | { kind: "cast"; hero: string; skill: string }
+  | { kind: "bye"; hero: string; leader: boolean }
+  /** The climb already started, so a late hero has to wait for the next one. */
+  | { kind: "busy"; hero: string };
 
 export interface PartyLink {
   /** False when Realtime is unavailable: the climb still runs, as a party of one. */
@@ -26,7 +28,7 @@ export interface PartyLink {
 
 interface Channel {
   on: (type: string, filter: unknown, cb: (payload: { payload?: unknown }) => void) => unknown;
-  subscribe: () => unknown;
+  subscribe: (cb?: (status: string) => void) => unknown;
   send: (message: Record<string, unknown>) => unknown;
 }
 type Realtime = {
@@ -36,7 +38,11 @@ type Realtime = {
 
 const SILENT: PartyLink = { live: false, send: () => {}, close: () => {} };
 
-export function openParty(code: string, onMessage: (m: PartyMsg) => void): PartyLink {
+/**
+ * Joins the party's channel. `onReady` runs once the socket is actually subscribed: anything sent
+ * before that is dropped, which is why the greeting waits for it instead of firing on open.
+ */
+export function openParty(code: string, onMessage: (m: PartyMsg) => void, onReady?: () => void): PartyLink {
   if (!code) return SILENT;
   try {
     const client = supabase as unknown as Realtime;
@@ -46,8 +52,7 @@ export function openParty(code: string, onMessage: (m: PartyMsg) => void): Party
       const body = payload?.payload as PartyMsg | undefined;
       if (body && typeof body === "object" && typeof body.kind === "string") onMessage(body);
     });
-    channel.subscribe();
-    return {
+    const link: PartyLink = {
       live: true,
       send: (m) => {
         try {
@@ -64,6 +69,14 @@ export function openParty(code: string, onMessage: (m: PartyMsg) => void): Party
         }
       },
     };
+    try {
+      channel.subscribe((status) => { if (status === "SUBSCRIBED") onReady?.(); });
+    } catch {
+      // An older client cannot report its status; the greeting goes out anyway.
+      channel.subscribe();
+      onReady?.();
+    }
+    return link;
   } catch {
     return SILENT;
   }

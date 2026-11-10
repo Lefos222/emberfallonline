@@ -14,12 +14,11 @@ import {
   SPIRE_FLOORS,
   SPIRE_PARTY_MAX,
   SPIRE_RUNS_PER_DAY,
-  SPIRE_SKILLS,
-  SPIRE_SKILL_IDS,
   TICK_MS,
   beginSpire,
   cleanPartyCode,
   endSpire,
+  kitOf,
   loadSpire,
   memberOf,
   newBattle,
@@ -28,19 +27,11 @@ import {
   reportClear,
   skillReady,
   tick,
-  type SkillId,
   type SpireBattle,
   type SpireMember,
   type SpireReward,
   type SpireState,
 } from "./spire-party";
-
-/** One painted icon per skill, by class (see SkillIcon's atlas). */
-const SKILL_ICON: Record<SkillId, Record<SpireMember["cls"], string>> = {
-  strike: { warrior: "sword", mage: "flame", archer: "crosshair" },
-  sweep: { warrior: "swords", mage: "snowflake", archer: "target" },
-  mend: { warrior: "megaphone", mage: "heart", archer: "wind" },
-};
 
 const message = (e: unknown, fallback: string) => (e instanceof Error && e.message ? e.message : fallback);
 
@@ -73,7 +64,7 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
   const matesRef = useRef<SpireMember[]>([]);
   const membersRef = useRef<SpireMember[]>([]);
   const battleRef = useRef<SpireBattle | null>(null);
-  const casts = useRef<{ hero: string; skill: SkillId }[]>([]);
+  const casts = useRef<{ hero: string; skill: string }[]>([]);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const starting = useRef(false);
 
@@ -107,6 +98,16 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
       .then(() => refresh());
   }, [refresh]);
 
+  /** Every cleared floor is one Spire Chest: the server mints it, the panel counts it at once. */
+  const creditChest = useCallback((floor: number) => {
+    setEarned((n) => n + 1);
+    setNote(tr("Spire Chest won — floor {floor}.", { floor }));
+    void reportClear(floor).then((paid) => {
+      if (!paid) return;
+      setSt((s) => (s ? { ...s, chests: s.chests + 1, best: Math.max(s.best, floor) } : s));
+    });
+  }, []);
+
   const onMessage = useCallback(
     (m: PartyMsg) => {
       switch (m.kind) {
@@ -114,6 +115,11 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
           // Only the leader keeps the roster, and it never grows past four heroes.
           if (!leaderRef.current) return;
           if (matesRef.current.some((x) => x.id === m.member.id)) return;
+          // A fight cannot take a new hero halfway through: their own run would be out of order.
+          if (battleRef.current) {
+            link.current.send({ kind: "busy", hero: m.member.id });
+            return;
+          }
           if (matesRef.current.length >= SPIRE_PARTY_MAX - 1) return;
           const next = [...matesRef.current, m.member];
           matesRef.current = next;
@@ -146,12 +152,14 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
         case "tick": {
           battleRef.current = m.battle;
           setBattle(m.battle);
-          if (m.cleared) {
-            setEarned((n) => n + 1);
-            // Each hero is paid their own chest by their own server run.
-            void reportClear(m.cleared);
-          }
+          // Each hero is paid their own chest by their own server run.
+          if (m.cleared) creditChest(m.cleared);
           if (m.battle.over) finishRun();
+          break;
+        }
+        case "busy": {
+          if (leaderRef.current) return;
+          setNote(tr("The party's climb is already underway — wait for the next one."));
           break;
         }
         case "cast": {
@@ -177,17 +185,43 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
         }
       }
     },
-    [finishRun, stopFight],
+    [creditChest, finishRun, stopFight],
   );
 
   // One broadcast channel per party code. Without Realtime the climb still runs, as a party of one.
   useEffect(() => {
-    const opened = openParty(code, onMessage);
+    const opened = openParty(code, onMessage, () => {
+      // The greeting is only sent once the socket is subscribed; earlier messages are dropped.
+      if (!leaderRef.current && selfRef.current) link.current.send({ kind: "hello", member: selfRef.current });
+    });
     link.current = opened;
     setLive(opened.live);
-    if (opened.live && !leaderRef.current && selfRef.current) opened.send({ kind: "hello", member: selfRef.current });
     return () => opened.close();
   }, [code, onMessage]);
+
+  // A joiner greets again until the leader has them in the roster, so a lost message cannot
+  // leave them standing outside the party.
+  useEffect(() => {
+    if (leader) return;
+    const id = setInterval(() => {
+      const member = selfRef.current;
+      if (!member || battleRef.current) return;
+      if (membersRef.current.some((m) => m.id === member.id)) return;
+      link.current.send({ kind: "hello", member });
+    }, 3000);
+    return () => clearInterval(id);
+  }, [leader]);
+
+  // The leader repeats the roster while nobody is fighting, the same self-healing way.
+  useEffect(() => {
+    if (!leader) return;
+    const id = setInterval(() => {
+      const member = selfRef.current;
+      if (!member || battleRef.current) return;
+      link.current.send({ kind: "roster", members: [member, ...matesRef.current].slice(0, SPIRE_PARTY_MAX) });
+    }, 5000);
+    return () => clearInterval(id);
+  }, [leader]);
 
   useEffect(
     () => () => {
@@ -230,10 +264,7 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
         battleRef.current = result.battle;
         setBattle(result.battle);
         link.current.send({ kind: "tick", battle: result.battle, cleared: result.cleared });
-        if (result.cleared) {
-          setEarned((n) => n + 1);
-          void reportClear(result.cleared);
-        }
+        if (result.cleared) creditChest(result.cleared);
         if (result.battle.over) finishRun();
       }, TICK_MS);
     } catch (e) {
@@ -244,7 +275,7 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const cast = (skill: SkillId) => {
+  const cast = (skill: string) => {
     const me = battle?.heroes.find((h) => h.id === heroId);
     if (!me || !skillReady(me, skill)) return;
     if (leaderRef.current) casts.current.push({ hero: me.id, skill });
@@ -309,6 +340,8 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
 
   const ready = !!st && (st.runs_left > 0 || st.active);
   const me = battle?.heroes.find((h) => h.id === heroId);
+  /** The hero's own abilities — the same kit the rest of the game fights with. */
+  const myKit = self ? kitOf(self) : [];
 
   return (
     <>
@@ -445,16 +478,20 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
                     key={h.id}
                     className={`relative flex w-20 flex-col items-center md:w-28 ${down ? "opacity-40" : ""}`}
                   >
-                    <CharacterModel
-                      cls={m?.cls ?? "warrior"}
-                      gender={m?.gender ?? "male"}
-                      synth={m?.synth}
-                      look={m?.look ?? null}
-                      pose={struck ? "action" : "auto"}
-                      className={struck ? "anim-lunge-r" : ""}
-                    />
+                    {/* The model needs its own box: `.hero-model` is absolutely laid out inside it. */}
+                    <div className={`h-24 w-20 shrink-0 md:h-36 md:w-28 ${struck ? "anim-lunge-r" : ""}`}>
+                      <CharacterModel
+                        cls={m?.cls ?? "warrior"}
+                        gender={m?.gender ?? "male"}
+                        synth={m?.synth}
+                        look={m?.look ?? null}
+                        pose={struck ? "action" : "auto"}
+                        className="h-full w-full"
+                      />
+                    </div>
                     <span className="w-full truncate text-center text-[10px] font-bold">{m?.name ?? ""}</span>
                     <Meter value={h.hp} max={h.max} fill="bar-hp" label={`${m?.name ?? ""} ${tr("Health")}`} />
+                    {h.guard ? <span className="text-[9px] font-bold text-r2">◈ {tr("Guard")}</span> : null}
                     {battle.fx
                       .filter((f) => f.tgt === h.id)
                       .map((f, i) => (
@@ -507,24 +544,22 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
 
           <div className="relative z-10 flex flex-col items-center gap-2 bg-gradient-to-t from-background via-background/90 to-transparent pb-3">
             <div className="flex flex-wrap items-center justify-center gap-2">
-              {SPIRE_SKILL_IDS.map((id) => {
-                const cd = me?.cd[id] ?? 0;
-                const readyNow = skillReady(me, id);
+              {myKit.map((sk) => {
+                const cd = me?.cd[sk.id] ?? 0;
+                const readyNow = skillReady(me, sk.id);
                 return (
                   <Button
-                    key={id}
+                    key={sk.id}
                     variant="ghost"
-                    onClick={() => cast(id)}
+                    onClick={() => cast(sk.id)}
                     disabled={!readyNow || battle.over}
                     className={`slot relative flex h-16 w-16 flex-col items-center justify-center gap-0.5 rarity-4 transition hover:scale-105 disabled:opacity-50 md:h-20 md:w-20 ${
                       readyNow ? "ring-1 ring-gold/60" : ""
                     }`}
-                    title={self ? SPIRE_SKILLS[id].names[self.cls] : ""}
+                    title={sk.name}
                   >
-                    <SkillIcon icon={SKILL_ICON[id][self?.cls ?? "warrior"]} className="h-8 w-8 md:h-10 md:w-10" />
-                    <span className="px-0.5 text-center text-[9px] font-bold uppercase leading-tight">
-                      {self ? SPIRE_SKILLS[id].names[self.cls] : ""}
-                    </span>
+                    <SkillIcon icon={sk.icon} className="h-8 w-8 md:h-10 md:w-10" />
+                    <span className="px-0.5 text-center text-[9px] font-bold uppercase leading-tight">{sk.name}</span>
                     {cd > 0 && (
                       <span className="absolute inset-0 flex items-center justify-center rounded-md bg-background/75 font-display text-xl">
                         {Math.ceil(cd / 1000)}
