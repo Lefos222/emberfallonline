@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MOUNTS, buyGoldMount, mountPrice, ownsMount, rideMount, mountBlitzPct } from "./mounts";
 import { RUNES, RUNE_MAX, carveRune, runeBlocker, runeCost, runeRank } from "./runes";
@@ -13,7 +13,8 @@ import { addLoot } from "./logic";
 import { ItemCard, Panel, fmt } from "./ui";
 import { itemName, tName, tr } from "./i18n";
 import { ArtIcon } from "./ArtIcon";
-import { WHEEL_PRICE, WHEEL_SEGMENTS, WHEEL_SEG_DEG, wheelGoodChance } from "./wheel";
+import { WHEEL_PRICE, WHEEL_SEGMENTS, WHEEL_SEG_DEG, landingOffset, wheelGoodChance } from "./wheel";
+import wheelImg from "@/assets/wheel-of-fortune-16.webp";
 import marketImg from "@/assets/scene-black-market.jpg";
 
 type Note = { ok: boolean; t: string } | null;
@@ -91,71 +92,82 @@ export function RunesPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** The wheel face: one slice per prize, good prizes in gold, drawn clockwise from the pointer. */
-function WheelFace() {
-  const n = WHEEL_SEGMENTS.length;
-  const pt = (deg: number, r: number) => {
-    const a = ((deg - 90) * Math.PI) / 180;
-    return `${50 + r * Math.cos(a)} ${50 + r * Math.sin(a)}`;
-  };
-  return (
-    <svg viewBox="0 0 100 100" className="h-full w-full">
-      <circle cx="50" cy="50" r="49.5" className="fill-background stroke-gold" strokeWidth="1" />
-      {WHEEL_SEGMENTS.map((s, i) => {
-        const a0 = i * WHEEL_SEG_DEG - WHEEL_SEG_DEG / 2;
-        const a1 = a0 + WHEEL_SEG_DEG;
-        const fill = s.good ? "fill-gold" : i % 2 ? "fill-secondary" : "fill-card";
-        return (
-          <g key={i}>
-            <path d={`M50 50 L${pt(a0, 48)} A48 48 0 0 1 ${pt(a1, 48)} Z`} className={`${fill} stroke-border`} strokeWidth="0.3" />
-            <text
-              x="50" y="9" textAnchor="middle" transform={`rotate(${i * WHEEL_SEG_DEG} 50 50)`}
-              className={s.good ? "fill-background font-bold" : "fill-foreground"} style={{ fontSize: n > 12 ? 3 : 4 }}
-            >{tr(s.label)}</text>
-          </g>
-        );
-      })}
-      <circle cx="50" cy="50" r="7" className="fill-gold stroke-background" strokeWidth="1" />
-    </svg>
-  );
-}
+const WHEEL_SPIN_MS = 6500;
+/** Fast start, then a long slow crawl past the last few slices — that is where the suspense is. */
+const wheelEase = (t: number) => 1 - Math.pow(1 - t, 4);
 
 export function WheelPanel({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
-  const [angle, setAngle] = useState(0);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note>(null);
+  const [rare, setRare] = useState(false);
+  const angle = useRef(0);
+  const wheelRef = useRef<HTMLImageElement>(null);
+  const pointerRef = useRef<HTMLSpanElement>(null);
+  const frame = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(frame.current), []);
   if (!hero) return null;
   const balance = (hero.srv?.premium?.balance ?? 0) as number;
+
+  /** Turn the wheel to `target` degrees, flicking the pointer every time a divider passes it. */
+  const turnTo = (target: number, done: () => void) => {
+    const from = angle.current;
+    const t0 = performance.now();
+    const sliceUnder = (a: number) => Math.floor((-a + WHEEL_SEG_DEG / 2) / WHEEL_SEG_DEG);
+    let last = sliceUnder(from);
+    const step = (now: number) => {
+      const t = Math.min(1, (now - t0) / WHEEL_SPIN_MS);
+      const a = from + (target - from) * wheelEase(t);
+      angle.current = a;
+      if (wheelRef.current) wheelRef.current.style.transform = `rotate(${a}deg)`;
+      const under = sliceUnder(a);
+      if (under !== last) {
+        last = under;
+        pointerRef.current?.animate([{ rotate: "-24deg" }, { rotate: "0deg" }], { duration: 150, easing: "ease-out" });
+      }
+      if (t < 1) frame.current = requestAnimationFrame(step);
+      else done();
+    };
+    frame.current = requestAnimationFrame(step);
+  };
+
   const spin = async () => {
-    setBusy(true); setNote(null);
+    setBusy(true); setNote(null); setRare(false);
     try {
       await spinWheel();
       const { grant } = await import("./logic");
       update((h) => { grant(h, 0, 0); }); // settle any level-up from wheel XP
       const w = (getState().hero?.srv as { wheel?: { seg: number; gold: number; xp: number; diamonds?: number; mats: Record<string, number> } } | undefined)?.wheel;
       const seg = w?.seg ?? 0;
-      const jitter = (Math.random() - 0.5) * WHEEL_SEG_DEG * 0.7; // land anywhere inside the slice
-      setAngle((a) => a - (a % 360) + 360 * 6 - seg * WHEEL_SEG_DEG + jitter);
-      setTimeout(() => {
-        const parts = [w?.diamonds ? `+${fmt(w.diamonds)} ${tr("Diamonds")}` : "", w?.gold ? `+${fmt(w.gold)} ${tr("gold")}` : "", w?.xp ? `+${fmt(w.xp)} XP` : "", ...Object.entries(w?.mats ?? {}).map(([k, n]) => `+${n} ${MATS[k as Mat]?.name ?? k}`)].filter(Boolean);
-        const s = WHEEL_SEGMENTS[seg];
-        setNote({ ok: true, t: `${s?.good ? "★ " : ""}${tr(s?.label ?? "Gold")}! ${parts.join(" · ")}` });
+      const s = WHEEL_SEGMENTS[seg];
+      const off = landingOffset(seg);
+      const n = WHEEL_SEGMENTS.length;
+      const nearMiss = !s?.good && Math.abs(off) > (WHEEL_SEG_DEG / 2) * 0.75
+        ? WHEEL_SEGMENTS[(seg + Math.sign(off) + n) % n] : undefined;
+      const a = angle.current;
+      // Seven full turns, then stop with the pointer `off` degrees clockwise of the slice centre.
+      const target = a - (((a % 360) + 360) % 360) + 360 * 7 + (360 - seg * WHEEL_SEG_DEG - off);
+      turnTo(target, () => {
+        const parts = [w?.diamonds ? `+${fmt(w.diamonds)} ${tr("Diamonds")}` : "", w?.gold ? `+${fmt(w.gold)} ${tr("gold")}` : "", w?.xp ? `+${fmt(w.xp)} XP` : "", ...Object.entries(w?.mats ?? {}).map(([k, v]) => `+${v} ${MATS[k as Mat]?.name ?? k}`)].filter(Boolean);
+        const head = s?.good ? `★ ${tr("Rare prize!")} ${tr(s.label)}!` : nearMiss?.good ? `${tr("So close to the")} ★ ${tr(nearMiss.label)}… ${tr(s?.label ?? "Gold")}:` : `${tr(s?.label ?? "Gold")}!`;
+        setNote({ ok: true, t: `${head} ${parts.join(" · ")}` });
+        setRare(!!s?.good);
         setBusy(false);
-      }, 4200);
+      });
     } catch (e) { setNote({ ok: false, t: e instanceof Error ? e.message : String(e) }); setBusy(false); }
   };
   return (
     <Panel title={tr("Wheel of Fortune")} subtitle={tr("100 Diamonds per spin")} art="diamond" onClose={onClose}>
       <NoteLine n={note} />
       <div className="relative mx-auto aspect-square w-full max-w-[22rem]">
-        <div className="h-full w-full drop-shadow-[0_0_24px_hsl(var(--gold)/0.35)]" style={{ transform: `rotate(${angle}deg)`, transition: busy ? "transform 4s cubic-bezier(.17,.67,.21,1)" : "none" }}><WheelFace /></div>
-        <span aria-hidden className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1 border-x-[12px] border-t-[22px] border-x-transparent border-t-gold drop-shadow" />
+        <img ref={wheelRef} src={wheelImg} alt={tr("Wheel of Fortune")} className="h-full w-full object-contain drop-shadow-[0_0_24px_hsl(var(--gold)/0.35)]" style={{ transform: `rotate(${angle.current}deg)` }} />
+        {rare && !busy && <span aria-hidden className="reward-glow pointer-events-none absolute inset-[6%] rounded-full" />}
+        <span ref={pointerRef} aria-hidden className="absolute left-1/2 top-0 origin-top -translate-x-1/2 -translate-y-1 border-x-[12px] border-t-[22px] border-x-transparent border-t-gold drop-shadow" />
       </div>
       <div className="mt-3 flex flex-col items-center gap-2">
         <p className="flex items-center gap-1 text-sm"><ArtIcon name="diamond" size={16} />{fmt(balance)} {tr("Diamonds")}</p>
         <Button disabled={busy || balance < WHEEL_PRICE} onClick={() => void spin()}>{busy ? tr("Spinning…") : tr("Spin · 100 Diamonds")}</Button>
-        <p className="text-center text-xs text-muted-foreground">{tr("Only the gold slices are worth chasing — together they hit about")} {wheelGoodChance()}% {tr("of the time. Every other prize is rolled between half and one and a half of its usual size.")}</p>
+        <p className="text-center text-xs text-muted-foreground">{tr("Prizes: gold, XP, ore and essence, hide and bloom, Frost Crystals, Starshards, Enchantment Stones and Armor Fragments. The six ★ slices are the big prizes and land only")} {wheelGoodChance()}% {tr("of spins together.")}</p>
         <details className="w-full text-xs">
           <summary className="cursor-pointer text-center text-gold">{tr("Show the odds")}</summary>
           <ul className="mt-2 grid gap-1">
