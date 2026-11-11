@@ -1325,6 +1325,7 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Next at level": ["Επόμενο στο επίπεδο", "Następne na poziomie"],
   "Plant in plot": ["Φύτεψε στο τεμάχιο", "Zasiej na działce"],
   "Player castle": ["Κάστρο παίκτη", "Zamek gracza"],
+  "castles": ["κάστρα", "zamki"],
   "Raid castle ·": ["Επιδρομή κάστρου ·", "Rajd na zamek ·"],
   "Random Summon": ["Τυχαία Κλήτευση", "Losowe Przywołanie"],
   "ranks trained": ["βαθμίδες εκπαιδευμένες", "stopni wytrenowanych"],

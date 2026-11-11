@@ -54,6 +54,15 @@ import {
   type WorldBanner,
 } from "./worldcastles";
 import { MyCastleCard, PlayerCastleRaid, castleArt } from "./WorldCastleCards";
+import icGold from "@/assets/worldtree/gold.webp";
+import icOre from "@/assets/worldtree/ore.webp";
+import icBoss from "@/assets/worldtree/boss.webp";
+import icKeep from "@/assets/worldtree/keep.webp";
+import icRuin from "@/assets/worldtree/ruin.webp";
+import icLandmark from "@/assets/worldtree/landmark.webp";
+import icCache from "@/assets/worldtree/cache.webp";
+import icPlayer from "@/assets/worldtree/player.webp";
+const KIND_ART: Record<SiteKind, string> = { gold: icGold, ore: icOre, boss: icBoss, keep: icKeep, ruin: icRuin, landmark: icLandmark, cache: icCache };
 
 const KIND_STYLE: Record<SiteKind, { ring: string; dot: string; label: string; Icon: typeof Gem }> = {
   gold: { ring: "ring-sky-400", dot: "bg-sky-400", label: "Gold mine", Icon: Gem },
@@ -516,12 +525,12 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
             const kinds = new Set(cluster.items.map((s) => s.kind));
             if (cluster.items.length > 1) {
               const primary = cluster.items.find((s) => s.kind === "gold") ?? cluster.items[0]!;
-              const { ring, Icon } = KIND_STYLE[primary.kind];
+              const { ring } = KIND_STYLE[primary.kind];
               return (
                 <button
                   key={cluster.key}
                   aria-label={`${cluster.items.length} places of interest`}
-                  className={`absolute z-10 flex h-9 min-w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-1 rounded-full border border-background/60 bg-background/80 px-2 ring-2 backdrop-blur-sm transition hover:scale-110 ${ring}`}
+                  className={`absolute z-10 flex h-11 min-w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-1 rounded-full border border-background/60 bg-background/85 pl-0.5 pr-2 ring-2 backdrop-blur-sm transition hover:scale-110 ${ring}`}
                   style={{ left: p.left, top: p.top }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -529,19 +538,19 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                     zoomAt(2.2, p.left, p.top);
                   }}
                 >
-                  <Icon className="h-4 w-4" />
+                  <img src={KIND_ART[primary.kind]} alt="" width={192} height={192} className="h-9 w-9 object-contain" />
                   <b className="text-[11px]">{cluster.items.length}</b>
                 </button>
               );
             }
             if (!lead) return null;
-            const { ring, dot, Icon, label } = KIND_STYLE[lead.kind];
+            const { ring, dot, label } = KIND_STYLE[lead.kind];
             const multi = kinds.size > 1;
             return (
               <button
                 key={cluster.key}
                 aria-label={`${lead.name} (${label})`}
-                className={`absolute z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-background/60 bg-background/70 ring-2 backdrop-blur-sm transition hover:scale-125 ${ring} ${
+                className={`absolute z-10 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-background/60 bg-background/60 ring-2 backdrop-blur-sm transition hover:scale-125 ${ring} ${
                   selected?.id === lead.id ? "scale-125" : ""
                 }`}
                 style={{ left: p.left, top: p.top }}
@@ -555,7 +564,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                   setSelected(lead);
                 }}
               >
-                <Icon className="h-4 w-4" />
+                <img src={KIND_ART[lead.kind]} alt="" width={192} height={192} className="h-11 w-11 object-contain drop-shadow" />
                 <span className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ${dot}`} />
                 {hover === lead.id && !multi && (
                   <span
@@ -582,7 +591,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                     ? `${cluster.items.length} player castles`
                     : `${lead.name} · level ${lead.level}`
                 }
-                className="absolute flex h-10 w-10 -translate-x-1/2 -translate-y-3/4 items-end justify-center text-gold transition hover:scale-125"
+                className="absolute z-[15] flex h-16 w-16 -translate-x-1/2 -translate-y-3/4 flex-col items-center justify-end drop-shadow-[0_0_6px_hsl(var(--background))] transition hover:z-30 hover:scale-125"
                 style={{ left: p.left, top: p.top }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -595,8 +604,10 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                   setPicked(lead);
                 }}
               >
-                <img src={castleArt} alt="" width={512} height={512} loading="lazy" className="absolute inset-0 h-full w-full object-contain" />
-                {cluster.items.length > 1 && <b className="relative rounded-full bg-background/80 px-1 text-[9px] leading-none">{cluster.items.length}</b>}
+                <img src={icPlayer} alt="" width={192} height={192} loading="lazy" className="absolute inset-0 h-full w-full object-contain" />
+                <span className="relative -mb-4 max-w-28 truncate rounded border border-gold/50 bg-background/90 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-gold">
+                  {cluster.items.length > 1 ? `${cluster.items.length} ${t("castles")}` : `${lead.name} · ${lead.level}`}
+                </span>
               </button>
             );
           })}
@@ -607,7 +618,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
               if (!onStage(p)) return null;
               return (
                 <button
-                  className="absolute z-20 h-16 w-16 -translate-x-1/2 -translate-y-3/4 drop-shadow-[0_0_8px_hsl(var(--gold))] transition hover:scale-110"
+                  className="absolute z-20 h-20 w-20 -translate-x-1/2 -translate-y-3/4 drop-shadow-[0_0_8px_hsl(var(--gold))] transition hover:scale-110"
                   style={{ left: p.left, top: p.top }}
                   title={t("Your castle")}
                   aria-label={t("Your castle")}
