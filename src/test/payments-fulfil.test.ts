@@ -47,7 +47,9 @@ describe("stripe webhook signatures", () => {
 describe("checkout session lock ids", () => {
   it("gives one stable uuid per session and a different one per payment", () => {
     const first = sessionLockId("cs_test_a");
-    expect(first).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{2}-[0-9a-f]{12}$/);
+    expect(first).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
     expect(sessionLockId("cs_test_a")).toBe(first);
     expect(sessionLockId("cs_test_b")).not.toBe(first);
   });
@@ -103,7 +105,7 @@ describe("what a paid session buys", () => {
     expect(() =>
       verifiedCardPurchase({
         ...diamondSession(),
-        metadata: { userId: "user-1", heroId: HERO, kind: "diamonds", itemId: "vault" },
+        metadata: { userId: "user-1", heroId: HERO, kind: "diamonds", itemId: "no-such-pack" },
       }),
     ).toThrow(/unknown diamond pack/i);
     expect(() => verifiedCardPurchase({ ...diamondSession(), currency: "eur" })).toThrow(
