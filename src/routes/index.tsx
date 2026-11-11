@@ -36,6 +36,24 @@ const FEATURES = [
   { img: farm, title: "Farm, mine & minigames", text: "Grow crops, fill your gold cart while offline and relax with fishing, archery and tavern dice." },
 ];
 
+const EVENTS = [
+  { when: "Every 6 hours", title: "Arena Clash", text: "Form a party of 1 to 4 and fight another party live — everyone sees the same battle. Winners and losers both earn gold." },
+  { when: "Every 2 hours", title: "World Boss", text: "The whole realm strikes one giant foe. Every hit counts toward the shared reward." },
+  { when: "Every day", title: "Minigame Hall", text: "Fishing Pier, Rune Memory, Archery Range and Tavern Dice — quick rounds for gold and materials." },
+  { when: "All week", title: "Calendar & bounties", text: "Daily and weekly boards, login rewards, World Tree bounties and seasonal events on the calendar." },
+];
+const GUILD = [
+  "Declare a challenge against another guild in brackets from 5v5 up to 100v100.",
+  "Once accepted, rosters lock and a 24-hour war begins — every fighter gets two attacks.",
+  "Each win scores a point; the higher score takes the bigger spoils, and the losers are still paid.",
+  "Between wars: timed guild boss raids, weekly shared quests, tournaments and a shared Guild Vault.",
+];
+const STEPS = [
+  { title: "Sign in", text: "Use Google or email — your progress is saved to the cloud." },
+  { title: "Create your hero", text: "Choose Knight, Mage or Archer, male or female." },
+  { title: "Enter your castle", text: "Press Play, upgrade buildings, fight and join a guild." },
+];
+
 function Home() {
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   useEffect(() => {
@@ -49,11 +67,14 @@ function Home() {
     <Link to="/auth" className="btn-gold inline-block px-8 py-3 font-display text-lg">Sign in to play</Link>
   );
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="h-screen overflow-y-auto scroll-smooth bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b border-gold/30 bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <span className="font-display text-xl text-gold">EmberFall Online</span>
           <nav className="flex items-center gap-3 text-sm">
+            <a href="#features" className="hidden text-muted-foreground hover:text-gold sm:inline">Features</a>
+            <a href="#events" className="hidden text-muted-foreground hover:text-gold sm:inline">Events</a>
+            <a href="#guild-wars" className="hidden text-muted-foreground hover:text-gold sm:inline">Guild Wars</a>
             <Link to="/guide" className="text-muted-foreground hover:text-gold">Guide</Link>
             {signedIn ? (
               <>
@@ -90,7 +111,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <section id="features" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-16">
         <h2 className="text-center font-display text-3xl text-gold">What you do in EmberFall</h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
           Fight, craft, build and trade. Your hero, castle and loot are saved to your account, so you pick up exactly where you left off on any device.
@@ -104,6 +125,54 @@ function Home() {
                 <p className="mt-1 text-sm text-muted-foreground">{f.text}</p>
               </div>
             </article>
+          ))}
+        </div>
+      </section>
+
+
+      <section id="events" className="scroll-mt-16 border-y border-gold/20 bg-card/40">
+        <div className="mx-auto max-w-6xl px-4 py-16">
+          <p className="text-center font-display text-sm uppercase tracking-widest text-gold/80">Something is always happening</p>
+          <h2 className="mt-1 text-center font-display text-3xl text-gold">Live events</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+            The realm runs on a clock. When an event opens, a notice appears in your castle and the Events button takes you straight there.
+          </p>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {EVENTS.map((e) => (
+              <div key={e.title} className="game-panel rounded-md p-5">
+                <p className="font-display text-xs uppercase tracking-widest text-gold/70">{e.when}</p>
+                <h3 className="mt-1 font-display text-xl text-gold">{e.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{e.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="guild-wars" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-16">
+        <div className="grid items-center gap-10 md:grid-cols-2">
+          <img src={guildHall} alt="The Guild Hall" loading="lazy" className="game-panel w-full rounded-md object-cover" />
+          <div>
+            <p className="font-display text-sm uppercase tracking-widest text-gold/80">Stronger together</p>
+            <h2 className="mt-1 font-display text-3xl text-gold">Guilds & Guild Wars</h2>
+            <ul className="mt-5 space-y-3 text-foreground/85">
+              {GUILD.map((g) => (
+                <li key={g} className="flex gap-3"><span className="text-gold">◆</span><span>{g}</span></li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <h2 className="text-center font-display text-3xl text-gold">How to begin</h2>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {STEPS.map((s, i) => (
+            <div key={s.title} className="game-panel rounded-md p-6 text-center">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-gold/50 font-display text-lg text-gold">{i + 1}</div>
+              <h3 className="mt-3 font-display text-lg text-gold">{s.title}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{s.text}</p>
+            </div>
           ))}
         </div>
       </section>
