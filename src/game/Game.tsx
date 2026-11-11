@@ -63,6 +63,7 @@ import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
 import { SpireGate } from "./SpireGate";
 import { GameGuide } from "./GameGuide";
+import { playGuideSound } from "./guide-sound";
 import { RelicTrials } from "./RelicTrials";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
@@ -524,8 +525,8 @@ export function Game() {
           <WorldChat heroId={heroId} />
           <nav aria-label={tr("Help and quests")} className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-2">
             <Button variant="ghost" aria-label={tr("Game Guide")} title={tr("Game Guide")} className="game-panel h-auto min-h-16 w-20 flex-col gap-1 rounded-md px-2 py-2 font-display text-xs text-gold" onClick={() => setOpen("guide")}><ArtIcon name="spellbook" size={32} />{tr("Guide")}</Button>
-            <QuestsButton count={claimableLevelQuests(hero)} onClick={() => setOpen("quests")} />
-            <Button variant="ghost" aria-label={tr("Announcements")} title={tr("Announcements")} className="game-panel h-auto min-h-16 w-20 flex-col gap-1 whitespace-normal rounded-md px-1 py-2 font-display text-[10px] text-gold" onClick={() => setOpen("notes")}><ArtIcon name="notes" size={30} />{tr("Announcements")}</Button>
+            <QuestsButton count={claimableLevelQuests(hero)} onClick={() => { playGuideSound(); setOpen("quests"); }} />
+            <Button variant="ghost" aria-label={tr("Announcements")} title={tr("Announcements")} className="game-panel h-auto min-h-16 w-20 flex-col gap-1 whitespace-normal rounded-md px-1 py-2 font-display text-[10px] text-gold" onClick={() => { playGuideSound(); setOpen("notes"); }}><ArtIcon name="notes" size={30} />{tr("Announcements")}</Button>
           </nav>
           <Hud
             muted={sound.muted}
