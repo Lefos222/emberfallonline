@@ -176,7 +176,18 @@ export function SpireVentures({ onClose, start, header }: { onClose: () => void;
 }
 
 /** The Spire's three ways to play: party dungeons with floors, warden hunts and the rift path. */
-export function SpireHub({ onClose, start, onBattleVisible }: { onClose: () => void; start: StartBattle; onBattleVisible: (v: boolean) => void }) {
+export function SpireHub({
+  onClose,
+  start,
+  onBattleVisible,
+  invite,
+}: {
+  onClose: () => void;
+  start: StartBattle;
+  onBattleVisible: (v: boolean) => void;
+  /** A friend's call to their party: the party tab opens already joined. */
+  invite?: { code: string; from: string } | null;
+}) {
   const { hero } = useGame();
   const [mode, setMode] = useState<"party" | "ventures">("party");
   const v = ventureOf(hero?.spireVentures);
@@ -200,6 +211,6 @@ export function SpireHub({ onClose, start, onBattleVisible }: { onClose: () => v
     </div>
   );
   return mode === "party"
-    ? <SpireGateLazy onClose={onClose} onBattleVisible={onBattleVisible} header={header} />
+    ? <SpireGateLazy onClose={onClose} onBattleVisible={onBattleVisible} header={header} invite={invite} />
     : <SpireVentures onClose={onClose} start={start} header={header} />;
 }

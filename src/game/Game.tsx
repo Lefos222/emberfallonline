@@ -1,6 +1,8 @@
 import { Announcements } from "./Announcements";
 import { MinigamesPanel } from "./Minigames";
 import { ArenaEventPanel } from "./ArenaEvent";
+import { PartyInvites } from "./PartyInvites";
+import type { PartyKind } from "./party-invite";
 import { EventsHub, EventPopup } from "./EventsHub";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { MountsPanel, RunesPanel, WheelPanel } from "./Emporium";
@@ -106,6 +108,12 @@ export function Game() {
     loot?: Item | null;
   }>(null);
   const [partyBattleVisible, setPartyBattleVisible] = useState(false);
+  // The room a friend's card pointed at, handed to the Spire or Arena Clash panel it opens.
+  const [invite, setInvite] = useState<{ kind: PartyKind; code: string; from: string } | null>(null);
+  const closeInvite = () => {
+    setOpen(null);
+    setInvite(null);
+  };
   const [crafting, setCrafting] = useState(false);
   const [expeditions, setExpeditions] = useState(false);
   const [relics, setRelics] = useState(false);
@@ -538,6 +546,12 @@ export function Game() {
             </Button>
           </nav>
           <WorldChat heroId={heroId} />
+          <PartyInvites
+            onAccept={(inv) => {
+              setInvite({ kind: inv.kind, code: inv.code, from: inv.from.name });
+              setOpen(inv.kind === "spire" ? "party" : "arenaEvent");
+            }}
+          />
           <EventPopup onOpen={() => setOpen("events")} />
           <nav aria-label={tr("Help and quests")} className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-2">
             <Button variant="ghost" aria-label={tr("Game Guide")} title={tr("Game Guide")} className="game-panel h-auto min-h-16 w-20 flex-col gap-1 rounded-md px-2 py-2 font-display text-xs text-gold" onClick={() => setOpen("guide")}><ArtIcon name="spellbook" size={32} />{tr("Guide")}</Button>
@@ -605,7 +619,12 @@ export function Game() {
           {open === "quests" && <QuestsPanel onClose={() => setOpen(null)} />}
           {open === "events" && <EventsHub onClose={() => setOpen(null)} onOpen={(id) => setOpen(id)} />}
           {open === "minigames" && <MinigamesPanel onClose={() => setOpen(null)} />}
-          {open === "arenaEvent" && <ArenaEventPanel onClose={() => setOpen(null)} />}
+          {open === "arenaEvent" && (
+            <ArenaEventPanel
+              onClose={closeInvite}
+              invite={invite?.kind === "arena" ? { code: invite.code, from: invite.from } : null}
+            />
+          )}
           {open === "mailbox" && <Mailbox onClose={() => setOpen(null)} />}
           {open === "lucky" && <LuckyShots onClose={() => setOpen(null)} />}
           {open === "daily" && <ActivityBoard onClose={() => setOpen(null)} />}
@@ -650,7 +669,14 @@ export function Game() {
             ) : (
               <ComingSoon id="spire" locked onClose={() => setOpen(null)} />
             ))}
-          {open === "party" && <SpireHub onClose={() => setOpen(null)} start={start} onBattleVisible={setPartyBattleVisible} />}
+          {open === "party" && (
+            <SpireHub
+              onClose={closeInvite}
+              start={start}
+              onBattleVisible={setPartyBattleVisible}
+              invite={invite?.kind === "spire" ? { code: invite.code, from: invite.from } : null}
+            />
+          )}
           {open === "forge" && (
             <Forge onClose={() => setOpen(null)} onCraft={() => setCrafting(true)} />
           )}

@@ -1,6 +1,6 @@
 import artCatacomb from "@/assets/spire-catacomb.jpg";
 import artObservatory from "@/assets/spire-observatory.jpg";
-import { listFriends, sendDirectMessage, type FriendProfile } from "./social";
+import { InviteFriends } from "./InviteFriends";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { tr } from "./i18n";
@@ -81,7 +81,18 @@ const message = (e: unknown, fallback: string) => (e instanceof Error && e.messa
  * tick; the others only send their casts back. Runs, floors, chests and their rewards are minted
  * by the `spire_*` RPCs, so nothing here can be forged from the browser.
  */
-export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () => void; onBattleVisible?: (visible: boolean) => void; header?: import("react").ReactNode }) {
+export function SpireGate({
+  onClose,
+  onBattleVisible,
+  header,
+  invite,
+}: {
+  onClose: () => void;
+  onBattleVisible?: (visible: boolean) => void;
+  header?: import("react").ReactNode;
+  /** A friend's call to their party: the room opens already joined, waiting for its leader. */
+  invite?: { code: string; from: string } | null;
+}) {
   const { hero, heroId, gender } = useGame();
   const [st, setSt] = useState<SpireState | null>(null);
   const [error, setError] = useState("");
@@ -359,13 +370,10 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
     else void refresh();
   };
 
-  const join = (e: FormEvent) => {
-    e.preventDefault();
-    const next = cleanPartyCode(joinCode);
-    if (next.length !== 5) {
-      setError(tr("A party code is five letters."));
-      return;
-    }
+  /** Joins a room by its code: a guest waits for the leader, who starts the climb. */
+  const joinParty = useCallback((raw: string, from?: string) => {
+    const next = cleanPartyCode(raw);
+    if (next.length !== 5) return;
     setError("");
     matesRef.current = [];
     setMates([]);
@@ -374,8 +382,22 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
     leaderRef.current = false;
     setLeader(false);
     setCode(next);
-    setNote(tr("Joining party {code}…", { code: next }));
+    setNote(from ? tr("Joining {name}'s party…", { name: from }) : tr("Joining party {code}…", { code: next }));
+  }, []);
+
+  const join = (e: FormEvent) => {
+    e.preventDefault();
+    if (cleanPartyCode(joinCode).length !== 5) {
+      setError(tr("A party code is five letters."));
+      return;
+    }
+    joinParty(joinCode);
   };
+
+  // A friend's call puts this hero straight into their party, as a guest of its leader.
+  useEffect(() => {
+    if (invite?.code) joinParty(invite.code, invite.from);
+  }, [invite?.code, invite?.from, joinParty]);
 
   const openChest = async () => {
     if (busy) return;
@@ -465,8 +487,13 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
           </p>
         )}
 
+        <p className="mt-2 text-xs text-muted-foreground">
+          {tr("Pick a dungeon, gather up to four heroes, then start the climb. Every hero spends their own run and keeps the chests they win.")}
+        </p>
+
         {/* The gate's dungeons: pick the climb, see how far the hero has been. */}
-        <div role="radiogroup" aria-label={tr("Dungeons of the Spire Gate")} className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <Step n={1} title={tr("Choose your dungeon")} />
+        <div role="radiogroup" aria-label={tr("Dungeons of the Spire Gate")} className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {SPIRE_DUNGEONS.map((d) => {
             const open = dungeonUnlocked(d, heroLevel);
             const best = bests[d.id] ?? 0;
@@ -510,9 +537,12 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
           })}
         </div>
 
-        <div className="slot mt-3 p-3">
+        <Step n={2} title={tr("Your party")} />
+        <div className="slot mt-2 p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="font-display text-gold">{tr("Party code")}</span>
+            <span className="font-display text-sm text-gold">
+              {tr("Party code")} · {roster.length}/{SPIRE_PARTY_MAX}
+            </span>
             <b className="font-display text-2xl tracking-[0.3em]">{code}</b>
             <Button variant="ghost" className="btn-ghost px-2 py-1 text-xs" onClick={copyCode}>
               {copied ? tr("Copied") : tr("Copy code")}
@@ -543,7 +573,7 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
             ))}
           </ul>
 
-          {leader && heroId && <InviteFriends heroId={heroId} code={code} />}
+          {leader && heroId && <InviteFriends heroId={heroId} kind="spire" code={code} dungeon={picked.id} />}
 
           {leader && (
             <form className="mt-2 flex flex-wrap items-center gap-2" onSubmit={join}>
@@ -561,20 +591,30 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
           )}
         </div>
 
+        <Step n={3} title={tr("Ready to climb")} />
         {leader ? (
-          <Button
-            className="btn-gold mt-3 w-full py-2.5 text-lg"
-            onClick={() => void startRun()}
-            disabled={busy || !ready}
-          >
-            {!gateOpen
-              ? tr("Unlocks at level {n}", { n: picked.level })
-              : ready
-                ? tr("Start the climb")
-                : tr("No runs left today")}
-          </Button>
+          <>
+            <Button
+              className="btn-gold mt-2 w-full py-2.5 text-lg"
+              onClick={() => void startRun()}
+              disabled={busy || !ready}
+            >
+              {!gateOpen
+                ? tr("Unlocks at level {n}", { n: picked.level })
+                : ready
+                  ? tr("Start the climb")
+                  : tr("No runs left today")}
+            </Button>
+            <p className="mt-1 text-center text-[11px] text-muted-foreground">
+              {tr("{heroes} heroes · {floors} floors · {runs} runs left", {
+                heroes: roster.length,
+                floors: picked.floors,
+                runs: st?.runs_left ?? 0,
+              })}
+            </p>
+          </>
         ) : (
-          <p className="mt-3 text-center text-xs text-muted-foreground">{tr("Waiting for the party leader…")}</p>
+          <p className="mt-2 text-center text-xs text-muted-foreground">{tr("Waiting for the party leader…")}</p>
         )}
       </Panel>
 
@@ -755,38 +795,14 @@ function rewardLine(reward: SpireReward): string {
 }
 
 
-/** Invite a friend: sends them a direct message carrying the party code. */
-function InviteFriends({ heroId, code }: { heroId: string; code: string }) {
-  const [friends, setFriends] = useState<FriendProfile[] | null>(null);
-  const [sent, setSent] = useState<Record<string, boolean>>({});
-  const [err, setErr] = useState("");
-  useEffect(() => {
-    let on = true;
-    listFriends(heroId).then((f) => on && setFriends(f)).catch(() => on && setFriends([]));
-    return () => { on = false; };
-  }, [heroId]);
-  if (!friends) return null;
-  if (!friends.length) return <p className="mt-2 text-xs text-muted-foreground">{tr("Add friends to invite them to your party.")}</p>;
+/** A numbered stop in the gate's flow: pick a dungeon, gather the party, climb. */
+function Step({ n, title }: { n: number; title: string }) {
   return (
-    <div className="mt-2">
-      <p className="mb-1 text-xs font-bold text-gold">{tr("Invite friends")}</p>
-      <ul className="grid gap-1 sm:grid-cols-2">
-        {friends.map((f) => (
-          <li key={f.id} className="slot flex items-center justify-between gap-2 p-1.5 text-xs">
-            <span className="truncate">{f.name}</span>
-            <Button size="sm" variant="ghost" className="btn-gold h-7 px-2 text-xs" disabled={sent[f.id]}
-              onClick={() => {
-                setErr("");
-                sendDirectMessage(heroId, f.id, tr("Join my Spire party! Code: {code}", { code }))
-                  .then(() => setSent((s) => ({ ...s, [f.id]: true })))
-                  .catch((e) => setErr(e instanceof Error ? e.message : tr("Invite failed")));
-              }}>
-              {sent[f.id] ? tr("Invited") : tr("Invite")}
-            </Button>
-          </li>
-        ))}
-      </ul>
-      {err && <p role="alert" className="mt-1 text-xs text-blood">{err}</p>}
+    <div className="mt-3 flex items-center gap-2">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold font-display text-[11px] font-bold text-background">
+        {n}
+      </span>
+      <span className="font-display text-sm text-gold">{title}</span>
     </div>
   );
 }
