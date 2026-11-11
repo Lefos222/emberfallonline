@@ -1,5 +1,26 @@
 [
   {
+    "id": "e238c86",
+    "date": "2026-11-11T01:45:13Z",
+    "title": "Expand combat classes, rose friendships, guild rally and realm rewards",
+    "details": "Health and class resource values sit within the combat orbs; Guide, Quests and Announcements share the right castle rail without the duplicate inventory shortcut. Each class gains four active and four passive talents with painted existing skill icons and animation variants. Renewal Wave heals living party members for 8/16/24/32 percent max health. Campaign, Conquest, boss challenges, elite hunts, expeditions and Spire random drops use a 70 percent material / 30 percent gear split; guaranteed relic collection pieces and Spire chests remain intact. Relic wardens hit harder. Roses are server-owned, gold-purchasable and server-rolled on eligible reward claims; sending one to an accepted friend gives both heroes uncapped friendship health progression. Claimed activity/login/world/dice rewards gain ordinary materials and level/VIP-scaled gold. World Tree explorer and shared weekly Guild Rally milestones have server claim ledgers. Playable guild bank and bank-funded buff activation are retired without deleting balances. Normal and VIP 30-day boards receive additional ordinary materials. Tested signed-in rose purchase and desktop/mobile orb rendering.",
+    "kind": "update"
+  },
+  {
+    "id": "f66f17e",
+    "date": "2026-11-11T01:43:37Z",
+    "title": "Added mage Renewal skill",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "9c30404",
+    "date": "2026-11-11T01:25:24Z",
+    "title": "Include the combat and progression overhaul in announcements",
+    "details": "",
+    "kind": "update"
+  },
+  {
     "id": "3e9b71a",
     "date": "2026-11-11T01:25:16Z",
     "title": "Overhaul combat hotbar, level quests, announcements, relic trials and activity board",
