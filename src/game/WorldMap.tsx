@@ -1,3 +1,4 @@
+import { REGION_ART } from "./region-art";
 import { tName , t} from "./i18n";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Castle, Compass, Crown, Flag, Gem, Hammer, Landmark, Minus, PackageOpen, Plus, Skull } from "lucide-react";
@@ -723,6 +724,16 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
               className="game-panel absolute bottom-3 left-3 z-30 w-[min(92vw,25rem)] p-3"
               onClick={(e) => e.stopPropagation()}
             >
+              {REGION_ART[regionAt(selected.x, selected.y).id] && (
+                <img
+                  src={REGION_ART[regionAt(selected.x, selected.y).id]}
+                  alt={regionAt(selected.x, selected.y).name}
+                  width={992}
+                  height={672}
+                  loading="lazy"
+                  className="-mx-3 -mt-3 mb-2 block h-28 w-[calc(100%+1.5rem)] max-w-none rounded-t object-cover"
+                />
+              )}
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground">

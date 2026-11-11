@@ -164,17 +164,41 @@ export function nextRelic(h: Pick<Hero, "guildSkills">): GuildRelic | null {
   return GUILD_RELICS.find((r) => !relicUnlocked(h, r)) ?? null;
 }
 
-export function relicFx(h: Pick<Hero, "guildSkills">): BonusFx {
+/** A woken relic can be attuned with guild coins; each attunement adds half its base bonus again. */
+export const RELIC_MAX_ATTUNE = 5;
+export const relicLevel = (h: Pick<Hero, "relicAttune">, id: string) =>
+  Math.min(RELIC_MAX_ATTUNE, Math.max(0, Math.floor(h.relicAttune?.[id] ?? 0)));
+export const relicPower = (h: Pick<Hero, "relicAttune">, id: string) => 1 + 0.5 * relicLevel(h, id);
+/** Guild coins for the next attunement of a relic: deeper shelves and higher levels cost more. */
+export function attuneCost(relic: GuildRelic, level: number): number {
+  const shelf = GUILD_RELICS.findIndex((r) => r.id === relic.id) + 1;
+  return 600 * shelf * (level + 1);
+}
+export function attuneRelic(h: Hero, id: string): string | null {
+  const relic = GUILD_RELICS.find((r) => r.id === id);
+  if (!relic) return "Unknown relic";
+  if (!relicUnlocked(h, relic)) return "This relic still sleeps";
+  const lvl = relicLevel(h, id);
+  if (lvl >= RELIC_MAX_ATTUNE) return "Fully attuned";
+  const cost = attuneCost(relic, lvl);
+  if ((h.guildCoins ?? 0) < cost) return `Need ${cost} guild coins`;
+  h.guildCoins = (h.guildCoins ?? 0) - cost;
+  h.relicAttune = { ...(h.relicAttune ?? {}), [id]: lvl + 1 };
+  return null;
+}
+
+export function relicFx(h: Pick<Hero, "guildSkills" | "relicAttune">): BonusFx {
   const out = zeroFx();
   for (const r of GUILD_RELICS) {
     if (!relicUnlocked(h, r)) continue;
-    for (const [k, v] of Object.entries(r.bonus) as [keyof BonusFx, number][]) out[k] += v;
+    const p = relicPower(h, r.id);
+    for (const [k, v] of Object.entries(r.bonus) as [keyof BonusFx, number][]) out[k] += v * p;
   }
   return out;
 }
 
 /** Combat bonus from guild skill tower ranks and woken relics — feeds into computeStats. */
-export function guildFx(h: Pick<Hero, "guildSkills">): BonusFx {
+export function guildFx(h: Pick<Hero, "guildSkills" | "relicAttune">): BonusFx {
   const out = zeroFx();
   if (h.guildSkills) {
     for (const skill of GUILD_SKILLS) {

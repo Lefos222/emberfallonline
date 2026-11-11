@@ -10,6 +10,7 @@ import {
   GUILD_SKILLS, GUILD_RELICS,
   affordableRanks, guildSkillBlocker, guildSkillPrice, guildSkillRank, guildTotalRanks,
   learnGuildSkill, nextRelic, relicUnlocked,
+  RELIC_MAX_ATTUNE, attuneCost, attuneRelic, relicLevel, relicPower,
 } from "./guild-tower";
 
 function useToast() {
@@ -92,12 +93,14 @@ export function GuildReliquary() {
         <span className="text-sm">{woken}/{GUILD_RELICS.length}  {tr("relics woken ·")} {fmt(total)}  {tr("tower ranks")}</span>
       </div>
       <p className="text-xs text-muted-foreground">
-         {tr("Every relic on these shelves was paid for by the skill tower. Climb the ranks and the next heirloom wakes on its own, adding its bonus to every fight.")} </p>
+         {tr("Every relic on these shelves was paid for by the skill tower. Climb the ranks and the next heirloom wakes on its own, adding its bonus to every fight.")} {tr("Spend guild coins to attune a woken relic: each attunement adds half its bonus again, up to five times.")} </p>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         {GUILD_RELICS.map((relic) => {
           const open = relicUnlocked(hero, relic);
           const text = (Object.entries(relic.bonus) as [keyof typeof STAT_LABEL, number][])
-            .map(([k, v]) => `+${v}${STAT_LABEL[k]}`).join(", ");
+            .map(([k, v]) => `+${Math.round(v * relicPower(hero, relic.id) * 10) / 10}${STAT_LABEL[k]}`).join(", ");
+          const lvl = relicLevel(hero, relic.id);
+          const cost = attuneCost(relic, lvl);
           return <div key={relic.id} className={`slot p-2 text-sm ${open ? "border-gold" : "opacity-70"}`}>
             <div className="flex items-center justify-between gap-1">
               <span className="flex items-center gap-1.5 font-bold"><Sparkles className={`h-3.5 w-3.5 ${open ? "text-gold" : "text-muted-foreground"}`} />{relic.name}</span>
@@ -105,6 +108,15 @@ export function GuildReliquary() {
             </div>
             <p className="text-xs text-muted-foreground">{relic.desc}</p>
             <p className={`mt-1 text-xs ${open ? "text-gold" : ""}`}>{text}</p>
+            {open && <div className="mt-1.5 flex items-center justify-between gap-2">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{tr("Attunement")} {lvl}/{RELIC_MAX_ATTUNE}</span>
+              {lvl < RELIC_MAX_ATTUNE ? (
+                <Button size="sm" variant="outline" className="h-7 px-2 text-xs" disabled={(hero.guildCoins ?? 0) < cost}
+                  onClick={() => update((h) => { attuneRelic(h, relic.id); })}>
+                  {tr("Attune")} · {fmt(cost)} {tr("guild coins")}
+                </Button>
+              ) : <span className="text-xs text-gold">{tr("Fully attuned")}</span>}
+            </div>}
             {!open && <div className="mt-1 h-1.5 w-full overflow-hidden rounded bg-muted">
               <div className="h-full bg-gold" style={{ width: `${Math.min(100, Math.round((total / relic.ranks) * 100))}%` }} />
             </div>}

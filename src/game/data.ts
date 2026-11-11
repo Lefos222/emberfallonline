@@ -644,6 +644,8 @@ export interface Hero {
   guildCoins?: number;
   /** Guild skill tower ranks by skill id (see guild-tower.ts). */
   guildSkills?: Record<string, number>;
+  /** Reliquary attunement level per woken guild relic (0-5). */
+  relicAttune?: Record<string, number>;
   /** Guild ledger: gold given to the guild and coins spent in the hall (see guild-tower.ts). */
   guildLedger?: { donated?: number; spent?: number };
   /** Synthesis armour: forged pieces ("<tier>:<slot>") and the set worn in each slot (see synthesis.ts). */
