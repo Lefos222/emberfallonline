@@ -46,7 +46,9 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
   const earnedCount = TITLES.filter((t) => claimed.has(t.id) || t.earned(hero)).length;
   const titles = TITLES.filter((t) =>
     titleFilter === "earned" ? t.earned(hero) || claimed.has(t.id) : titleFilter === "locked" ? !t.earned(hero) && !claimed.has(t.id) : true,
-  );
+  ).map((t, i) => ({ t, i, rank: t.earned(hero) && !claimed.has(t.id) ? 0 : claimed.has(t.id) ? 1 : 2 }))
+    .sort((a, b) => a.rank - b.rank || a.i - b.i)
+    .map((x) => x.t);
 
   const equip = (id: string | null) => {
     update((h) => { equipTitle(h, id); });

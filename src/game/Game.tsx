@@ -1,7 +1,7 @@
 import { Announcements } from "./Announcements";
 import { MinigamesPanel } from "./Minigames";
 import { ArenaEventPanel } from "./ArenaEvent";
-import { EventsHub } from "./EventsHub";
+import { EventsHub, EventPopup } from "./EventsHub";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { MountsPanel, RunesPanel, WheelPanel } from "./Emporium";
 import mountIcon from "@/assets/mounts/griffin.webp";
@@ -525,17 +525,9 @@ export function Game() {
             >
               <ArtIcon name="auction" size={24} />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={t("Events")}
-              title={t("Events")}
-              onClick={() => setOpen("events")}
-            >
-              <ArtIcon name="calendar" size={24} />
-            </Button>
           </nav>
           <WorldChat heroId={heroId} />
+          <EventPopup onOpen={() => setOpen("events")} />
           <nav aria-label={tr("Help and quests")} className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-2">
             <Button variant="ghost" aria-label={tr("Game Guide")} title={tr("Game Guide")} className="game-panel h-auto min-h-16 w-20 flex-col gap-1 rounded-md px-2 py-2 font-display text-xs text-gold" onClick={() => setOpen("guide")}><ArtIcon name="spellbook" size={32} />{tr("Guide")}</Button>
             <QuestsButton count={claimableLevelQuests(hero)} onClick={() => { playGuideSound(); setOpen("quests"); }} />
@@ -992,7 +984,7 @@ const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIcon
   { id: "forge", label: "Forge", tip: "Enhance & salvage gear", icon: "hammer" },
   { id: "gems", label: "Gem Workshop", tip: "Cut, socket & fuse gems", icon: "gem" },
   { id: "daily", label: "Daily Rewards", tip: "30-day reward board", icon: "gift" },
-  { id: "calendar", label: "Events", tip: "World event calendar & reminders", icon: "calendar" },
+  { id: "events", label: "Events", tip: "Every event in one place", icon: "calendar" },
   { id: "friends", label: "Friends", tip: "Friends & messages", icon: "friends" },
   { id: "profile", label: "Profile", tip: "Your hero profile", icon: "profile" },
   { id: "oracle", label: "Quest Board", tip: "AI-generated quests", icon: "quest" },
