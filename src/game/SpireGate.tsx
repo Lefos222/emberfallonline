@@ -81,7 +81,7 @@ const message = (e: unknown, fallback: string) => (e instanceof Error && e.messa
  * tick; the others only send their casts back. Runs, floors, chests and their rewards are minted
  * by the `spire_*` RPCs, so nothing here can be forged from the browser.
  */
-export function SpireGate({ onClose, onBattleVisible }: { onClose: () => void; onBattleVisible?: (visible: boolean) => void }) {
+export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () => void; onBattleVisible?: (visible: boolean) => void; header?: import("react").ReactNode }) {
   const { hero, heroId, gender } = useGame();
   const [st, setSt] = useState<SpireState | null>(null);
   const [error, setError] = useState("");
@@ -426,7 +426,8 @@ export function SpireGate({ onClose, onBattleVisible }: { onClose: () => void; o
 
   return (
     <>
-      <Panel title="Spire Gate" subtitle="Five dungeons — party climbs, three runs a day" art="swords" onClose={close} wide>
+      <Panel title="Spire Gate" subtitle="Party dungeons, warden hunts and rift paths" art="swords" onClose={close} wide>
+        {!battle && header}
         <div className="grid gap-2 sm:grid-cols-3">
           <div className="slot p-3">
             <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">{tr("Runs left today")}</span>

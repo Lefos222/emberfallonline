@@ -65,7 +65,7 @@ import { Campaign, Forge, HeroHall, Oracle, Temple, heroFighter, type StartBattl
 import { Arena } from "./Arena";
 import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
-import { SpireGate } from "./SpireGate";
+import { SpireHub } from "./SpireVentures";
 import { GameGuide } from "./GameGuide";
 import { playGuideSound } from "./guide-sound";
 import { RelicTrials } from "./RelicTrials";
@@ -83,7 +83,7 @@ import { VERSION } from "./version";
 const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
 
 /** Buildings whose battle leaves the panel open underneath, so the player lands back in it. */
-const BATTLE_PANELS = ["portal", "spire", "dungeon", "worldmap", "guild"] as const;
+const BATTLE_PANELS = ["portal", "spire", "dungeon", "worldmap", "guild", "party"] as const;
 
 export function Game() {
   const t = useT();
@@ -641,7 +641,7 @@ export function Game() {
             ) : (
               <ComingSoon id="spire" locked onClose={() => setOpen(null)} />
             ))}
-          {open === "party" && <SpireGate onClose={() => setOpen(null)} onBattleVisible={setPartyBattleVisible} />}
+          {open === "party" && <SpireHub onClose={() => setOpen(null)} start={start} onBattleVisible={setPartyBattleVisible} />}
           {open === "forge" && (
             <Forge onClose={() => setOpen(null)} onCraft={() => setCrafting(true)} />
           )}
@@ -1052,7 +1052,7 @@ function GateSwitcher({ current, onPick, level }: { current: string; onPick: (g:
     { id: "portal" as const, name: "Campaign Gate", note: "Story stages", art: gateCampaign },
     { id: "dungeon" as const, name: "Dungeon Gate", note: "Bosses & elites", art: gateDungeon },
     { id: "spire" as const, name: "Conquest Gate", note: canEnterConquest(level) ? "Endless floors" : "Lv 10+", art: gateConquest },
-    { id: "party" as const, name: "Spire", note: "Party climb", art: spireChest },
+    { id: "party" as const, name: "Spire", note: "Parties, wardens, rifts", art: spireChest },
   ];
   return (
     <div className="gate-switcher" role="tablist" aria-label={tr("War Gates")}>

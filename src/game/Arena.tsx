@@ -36,17 +36,20 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
   const [ladder, setLadder] = useState<Opp[]>([]);
   const [me, setMe] = useState<Opp | null>(null);
   const [history, setHistory] = useState<Match[]>([]);
-  const [tab, setTab] = useState<"duels" | "ranks">("duels");
+  const [tab, setTab] = useState<"duels" | "ranks" | "power">("duels");
+  const [byPower, setByPower] = useState<Opp[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
     if (!userId) return;
     setLoading(true);
-    const [all, mine, hist] = await Promise.all([
+    const [all, mine, hist, pw] = await Promise.all([
       supabase.from("heroes").select(COLS).order("arena_rating", { ascending: false }).limit(200),
       supabase.from("heroes").select(COLS).eq("id", heroId ?? "").maybeSingle(),
       supabase.from("arena_matches").select("*").order("created_at", { ascending: false }).limit(8),
+      supabase.from("heroes").select(COLS).order("power", { ascending: false }).limit(100),
     ]);
+    setByPower((pw.data as unknown as Opp[]) ?? []);
     setLadder((all.data as unknown as Opp[]) ?? []);
     setMe((mine.data as unknown as Opp) ?? null);
     setHistory((hist.data as Match[]) ?? []);
@@ -109,7 +112,30 @@ export function Arena({ onClose, start }: { onClose: () => void; start: StartBat
       <GameTabs label={t("Arena")} value={tab} onChange={setTab} tabs={[
         { id: "duels", name: `Duels (${opponents.length})` },
         { id: "ranks", name: "Leaderboard" },
+        { id: "power", name: t("Battle Rating") },
       ]} />
+
+      {tab === "power" && (
+        <div className="max-h-[60vh] overflow-y-auto">
+          <div className="mb-1 font-display text-gold">{t("Server leaderboard · strongest heroes by Battle Rating")}</div>
+          {byPower.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">{loading ? t("Loading the ladder…") : t("No heroes ranked yet")}</div>}
+          {byPower.map((o, i) => {
+            const cls = asClass(o.hero_class);
+            const mine = o.id === heroId;
+            const medal = i === 0 ? "text-gold" : i === 1 ? "text-foreground" : i === 2 ? "text-r4" : "text-muted-foreground";
+            return (
+              <div key={o.id} className={`flex items-center justify-between border-b border-border/40 py-1.5 text-sm ${mine ? "bg-gold/10 text-gold" : ""}`}>
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className={`w-8 shrink-0 text-right font-display ${medal}`}>{i < 3 ? <Trophy className="inline h-4 w-4" /> : null}{i + 1}.</span>
+                  <span className="truncate">{o.name}{mine ? ` ${t("(you)")}` : ""}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{t("Lv")} {o.level} · {CLASSES[cls].name}</span>
+                </span>
+                <span className="shrink-0 font-display tabular-nums text-gold">{fmt(o.power)}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {tab === "duels" && (
         <div className="grid max-h-[60vh] gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

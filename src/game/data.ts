@@ -557,6 +557,7 @@ export interface Hero {
   spire: number;
   /** Best floor reached in each dungeon of the Spire Gate, by dungeon id (see spire-party.ts). */
   spireFloors?: Record<string, number>;
+  spireVentures?: import("./spire-ventures").VentureState;
   /** The player has opened the game guide at least once (see guide.ts). */
   guideSeen?: boolean;
   merchant: Item[];
