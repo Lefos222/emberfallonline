@@ -17,11 +17,11 @@ describe("requested progression rules", () => {
     expect(b.hp).toBeGreaterThan(a.hp); expect(c.hp).toBeGreaterThan(b.hp);
     expect(b.atk).toBeGreaterThan(a.atk); expect(c.atk).toBeGreaterThan(b.atk);
   });
-  it("retains an old claimed quest after expanding the board to eight", () => {
+  it("retains a claimed quest on the eight-quest board", () => {
     const hero = newHero("Legacy", "mage"); hero.level = 4; resetLevelQuests(hero);
     if (!hero.levelQuests) throw new Error("Missing quest state");
-    hero.levelQuests.claimed = ["bosses@4"];
+    hero.levelQuests.claimed = ["bosses"];
     expect(levelQuestRows(hero)).toHaveLength(8);
-    expect(claimLevelQuest(hero, "bosses@4")).toBe("Already claimed.");
+    expect(claimLevelQuest(hero, "bosses")).toBe("Already claimed.");
   });
 });

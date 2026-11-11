@@ -34,9 +34,10 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Gold and ordinary crafting materials": ["Χρυσός και κοινά υλικά κατασκευής", "Złoto i zwykłe materiały rzemieślnicze"],
   "Announcements": ["Ανακοινώσεις", "Ogłoszenia"],
   "Help and quests": ["Βοήθεια και αποστολές", "Pomoc i zadania"],
-  "Every level brings eight quests.": ["Κάθε επίπεδο φέρνει οκτώ αποστολές.", "Każdy poziom daje osiem zadań."],
+  "Every quest counts from the moment this board opened, and its rewards grow with your level.": ["Κάθε αποστολή μετράει από τη στιγμή που άνοιξε αυτός ο πίνακας και οι ανταμοιβές της μεγαλώνουν με το επίπεδό σου.", "Każde zadanie liczy się od chwili otwarcia tej tablicy, a jego nagrody rosną z twoim poziomem."],
   "One relic per victory": ["Ένα κειμήλιο ανά νίκη", "Jedna relikwia za zwycięstwo"],
   "Ready to claim": ["Έτοιμα για παραλαβή", "Gotowe do odebrania"],
+  "Battles won": ["Νίκες σε μάχες", "Wygrane bitwy"],
   "Claim the previous stage first.": ["Παρέλαβε πρώτα το προηγούμενο στάδιο.", "Najpierw odbierz poprzedni etap."],
   "No activities ready to claim.": ["Δεν υπάρχουν δραστηριότητες έτοιμες για παραλαβή.", "Brak aktywności gotowych do odebrania."],
   "Updates, hotfixes and merges": ["Ενημερώσεις, διορθώσεις και συγχωνεύσεις", "Aktualizacje, poprawki i scalenia"],
@@ -457,10 +458,15 @@ export const UI_TEXT: Record<string, ContentRow> = {
       "Κιβώτια υλικών σιδηρουργείου από απόμερες τοποθεσίες — ο πιο σταθερός τρόπος να τροφοδοτείς το Σιδηρουργείο όσο ανεβαίνεις.",
       "Skrzynie materiałów kuźni z odległych miejsc — najstabilniejszy sposób karmienia Kuźni podczas zdobywania poziomów.",
     ],
-  "finished on this board — rewards scale with your level, and a new set opens the moment you level up.":
+  "finished — a fresh board opens as soon as every quest here is claimed.":
     [
-      "ολοκληρωμένα σε αυτόν τον πίνακα — οι ανταμοιβές κλιμακώνονται με το επίπεδό σου και ένα νέο σετ ανοίγει μόλις ανέβεις επίπεδο.",
-      "ukończone na tej tablicy — nagrody rosną z twoim poziomem, a nowy zestaw otwiera się w chwili awansu.",
+      "ολοκληρωμένα — ένας νέος πίνακας ανοίγει μόλις παραληφθούν όλες οι αποστολές εδώ.",
+      "ukończone — nowa tablica otwiera się, gdy odbierzesz tu wszystkie zadania.",
+    ],
+  "Board complete — every quest claimed. A fresh board is ready.":
+    [
+      "Ο πίνακας ολοκληρώθηκε — όλες οι αποστολές παραλήφθηκαν. Ένας νέος πίνακας είναι έτοιμος.",
+      "Tablica ukończona — wszystkie zadania odebrane. Nowa tablica jest gotowa.",
     ],
   "No seeds in the pouch. Buy some from the Farm tab of the Shop, or plant straight into an empty plot.":
     [
@@ -943,8 +949,6 @@ export const UI_TEXT: Record<string, ContentRow> = {
     ["Χρήση Κλειδιού Κατάκτησης · ×2 ανταμοιβές", "Użyj Klucza Podboju · ×2 nagrody"],
   "All boss and elite rewards ×":
     ["Όλες οι ανταμοιβές αφεντικών και ελίτ ×", "Wszystkie nagrody bossów i elit ×"],
-  "Coming with your next levels":
-    ["Έρχονται με τα επόμενα επίπεδά σου", "Przyjdą z kolejnymi poziomami"],
   "No Diamond transactions yet.":
     ["Καμία συναλλαγή Διαμαντιών ακόμη.", "Brak transakcji Diamentami."],
   "No messages yet - say hello.":
@@ -2189,7 +2193,6 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "A wall of fire": ["Ένα τείχος φωτιάς", "Ściana ognia"],
   "Glass cannon of starlight": ["Γυάλινο κανόνι αστρόφωτος", "Szklane działo gwiezdnego światła"],
   "Server leaderboard · strongest heroes by Battle Rating": ["Κατάταξη διακομιστή · οι ισχυρότεροι ήρωες κατά Βαθμολογία μάχης", "Ranking serwera · najsilniejsi bohaterowie wg Oceny bojowej"],
-  "Today": ["Σήμερα", "Dziś"],
   "wardens left": ["φύλακες απομένουν", "strażników zostało"],
   "rift rooms left": ["αίθουσες ρήγματος απομένουν", "komnat szczeliny zostało"],
   "1. Pick a dungeon · 2. Share the code or invite friends · 3. Start the climb": ["1. Διάλεξε μπουντρούμι · 2. Μοιράσου τον κωδικό ή κάλεσε φίλους · 3. Ξεκίνα την ανάβαση", "1. Wybierz loch · 2. Udostępnij kod lub zaproś przyjaciół · 3. Rozpocznij wspinaczkę"],

@@ -36,8 +36,7 @@ export function grant(h: Hero, xp: number, gold: number): { levels: number } {
     h.insight = (h.insight ?? 0) + 1;
   }
   if (levels) h.voidCrystals = (h.voidCrystals ?? 0) + levels * CRYSTALS_PER_LEVEL;
-  // A new level brings its own quests; the board re-snapshots on the next read (see level-quests.ts).
-  if (levels) h.levelQuests = undefined;
+  // The quest board survives a level-up: its rewards and targets scale with the new level instead.
   return { levels };
 }
 

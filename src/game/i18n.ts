@@ -419,7 +419,6 @@ const TRANSLATIONS: Record<string, [el: string, pl: string]> = {
   Armory: ["Οπλοστάσιο", "Zbrojownia"],
   Barracks: ["Στρατώνας", "Koszary"],
   Blacksmith: ["Σιδηρουργός", "Kowal"],
-  "Quest Board": ["Πίνακας Αποστολών", "Tablica zadań"],
   "Campaign Gate": ["Πύλη Εκστρατείας", "Wrota kampanii"],
   Farm: ["Αγρόκτημα", "Farma"],
   "Conquest Gate": ["Πύλη Κατάκτησης", "Wrota podboju"],
@@ -623,9 +622,9 @@ const TRANSLATIONS: Record<string, [el: string, pl: string]> = {
     "Ranking, pojedynki i oceny",
   ],
   "Materials by the crate": ["Υλικά με το κιβώτιο", "Materiały na wagę"],
-  "One board per level, paid in gold and XP": [
-    "Ένας πίνακας ανά επίπεδο, με χρυσό και XP",
-    "Jedna tablica na poziom, płatna złotem i PD",
+  "Eight quests, paid in gold and XP": [
+    "Οκτώ αποστολές, με χρυσό και XP",
+    "Osiem zadań, płatnych złotem i PD",
   ],
   "One-fight boosts and effects": ["Ενισχύσεις για μία μάχη", "Wzmocnienia na jedną walkę"],
   "Player auctions — trade gear for gold": [

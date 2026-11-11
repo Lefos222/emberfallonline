@@ -551,8 +551,6 @@ export interface Hero {
     };
     caches?: string[];
   };
-  /** Daily commission board: day snapshot plus claimed quest ids (see quest-board.ts). */
-  daily?: { day: string; base: Record<string, number>; claimed: string[] };
   stage: number;
   spire: number;
   /** Best floor reached in each dungeon of the Spire Gate, by dungeon id (see spire-party.ts). */
@@ -620,8 +618,8 @@ export interface Hero {
   potionBuffs?: Record<string, number>;
   /** Hourly Auction House catalogue stock (see catalogue.ts). */
   catalogue?: { hour: string; items: Item[] };
-  /** Current level's quest board: counter snapshot taken when the level began, plus claimed ids (see level-quests.ts). */
-  levelQuests?: { level: number; base: Record<string, number>; claimed: string[] };
+  /** The quest board: counter snapshot taken when it opened, plus the ids already claimed (see level-quests.ts). */
+  levelQuests?: { base: Record<string, number>; claimed: string[] };
   /** Barracks drill ranks by drill id (see drills.ts). */
   drills?: Record<string, number>;
   /** Barracks attribute drill ranks by attribute — permanent bonuses to Str/Int/Agi/Vit (see drills.ts). */
@@ -1352,16 +1350,6 @@ export const BUILDINGS = [
     r: 4.5,
     desc: "Enhance & salvage gear",
     soon: false,
-  },
-  {
-    id: "oracle",
-    name: "Quest Board",
-    x: 42,
-    y: 52,
-    r: 3.5,
-    desc: "AI-generated quests",
-    soon: false,
-    shortcut: true,
   },
   {
     id: "portal",
