@@ -3,7 +3,6 @@ import { t } from "./i18n";
 import bossArt from "@/assets/guild-raid-boss.webp";
 import trophyArt from "@/assets/guild-tournament.webp";
 import questArt from "@/assets/guild-quests.webp";
-import bankArt from "@/assets/guild-bank.webp";
 import { GuildExtras } from "./GuildExtras";
 import { Button } from "@/components/ui/button";
 import { useGame } from "./store";
@@ -26,7 +25,7 @@ import {
   type GuildEventsState,
 } from "./guild-events";
 
-type Tab = "raid" | "quests" | "tournament" | "bank";
+type Tab = "raid" | "quests" | "tournament" | "members";
 
 /** The guild's events hall: timed boss raids, weekly shared quests and the guild tournament. */
 export function GuildEvents({ start }: { start: StartBattle }) {
@@ -74,18 +73,18 @@ export function GuildEvents({ start }: { start: StartBattle }) {
           ["raid", bossArt, "Boss Raid", "Every 4 hours"],
           ["quests", questArt, "Weekly Quests", "Shared rewards"],
           ["tournament", trophyArt, "Tournament", "Guild vs guild"],
-          ["bank", bankArt, "Guild Bank", "Buffs · shop · dice"],
+          ["members", questArt, "Member Ranks", "Guild Shop"],
         ] as const).map(([id, art, name, note]) => (
-          <button key={id} role="tab" aria-selected={tab === id} className={`gate-tab ${tab === id ? "gate-tab-on" : ""}`} onClick={() => setTab(id)}>
+          <Button variant="ghost" key={id} role="tab" aria-selected={tab === id} className={`gate-tab h-auto ${tab === id ? "gate-tab-on" : ""}`} onClick={() => setTab(id)}>
             <img src={art} alt="" width={256} height={256} />
             <span><b>{t(name)}</b><small>{t(note)}</small></span>
-          </button>
+          </Button>
         ))}
       </div>
       {err && <p className="mt-2 text-sm text-hp">{err}</p>}
       {msg && <p className="mt-2 text-sm text-r1">{msg}</p>}
-      {tab === "bank" && <GuildExtras />}
-      {tab !== "bank" && !st && !err && <p className="mt-4 text-sm text-muted-foreground">{t("Loading…")}</p>}
+      {tab === "members" && <GuildExtras />}
+      {tab !== "members" && !st && !err && <p className="mt-4 text-sm text-muted-foreground">{t("Loading…")}</p>}
 
       {st && tab === "raid" && (() => {
         const r = st.raid;

@@ -114,6 +114,7 @@ export function ActivityBoard({ onClose }: { onClose: () => void }) {
   const ready = (o: Objective) => !o.claimed && o.progress >= o.target && (!o.stage || o.stage === 1 || !!board?.weekly.find(p => p.kind === o.kind && p.stage === (o.stage ?? 1) - 1)?.claimed);
   const shown = list.filter(o => !onlyReady || ready(o)).slice().sort((a,b) => Number(a.claimed)-Number(b.claimed) || Number(ready(b))-Number(ready(a)));
   return <Panel title={t("Daily & Weekly Activities")} subtitle={t("Fresh tasks every reset")} art="gift" onClose={onClose} wide>
+    <p className="my-3 text-sm text-muted-foreground">{t("Extra gold and ordinary materials on every claim. Active VIP adds 10% bonus gold per tier. Each claim has a 20% rose chance.")}</p>
     <img src={activityArt} alt="" width={1536} height={1024} loading="lazy" className="mb-4 h-36 w-full rounded-md object-cover" />
     <div className="flex flex-wrap items-center justify-between gap-3">
       <GameTabs label={t("Activity period")} value={tab} onChange={setTab} tabs={[{ id: "daily", name: "Daily" }, { id: "weekly", name: "Weekly" }, { id: "login", name: t("Login reward") }]} />

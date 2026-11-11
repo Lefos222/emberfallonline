@@ -6,9 +6,8 @@ export function CombatOrb({ value, max, label, kind }: { value: number; max: num
     <div className={`orb orb-${kind}`}>
       <div className="orb-fill" style={{ height: `${percent}%` }} />
       <div className="orb-gloss" />
-      <div className="orb-label"><span>{Math.max(0, value).toLocaleString()}</span><small>/ {max.toLocaleString()}</small></div>
     </div>
     <img src={frame} width={1024} height={1024} alt="" className="combat-orb-frame" />
-    <b className="combat-orb-caption">{label}</b>
+    <div className="combat-orb-values"><b>{label}</b><span>{Math.max(0, value).toLocaleString()}</span><small>/ {max.toLocaleString()}</small></div>
   </div>;
 }

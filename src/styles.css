@@ -899,6 +899,9 @@ html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
 .combat-orb-shell .orb-label { font-size: 13px; }
 .combat-orb-shell .orb-label small { font-size: 9px; letter-spacing: 0; }
 .combat-orb-caption { position: absolute; bottom: 4px; font-family: var(--font-display); font-size: 11px; color: var(--gold); }
+.combat-orb-values { position: absolute; inset: 18px 17px auto; height: 78px; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--foreground); text-shadow: 0 1px 4px var(--background), 0 0 8px var(--background); pointer-events: none; font-size: 13px; font-weight: 700; }
+.combat-orb-values b { font-size: 10px; }
+.combat-orb-values small { font-size: 9px; }
 .orb-bar { align-items: center; border-radius: 6px; background: var(--background); }
 .orb-slots { flex: 1; min-width: 0; padding: 8px 0; }
 .battle-skill { overflow: hidden; padding: 2px; flex: none; }
@@ -911,6 +914,8 @@ html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
  .combat-orb-shell .orb-label { font-size: 10px; }
  .combat-orb-shell .orb-label small { font-size: 7px; }
  .combat-orb-caption { font-size: 9px; }
+ .combat-orb-values { inset: 10px 10px auto; height: 44px; font-size: 10px; }
+ .combat-orb-values b, .combat-orb-values small { font-size: 7px; }
  .orb-bar { padding: 4px; gap: 4px; }
  .orb-slots { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; }
  .orb-slots .slot { flex: none; }

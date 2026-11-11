@@ -1,4 +1,7 @@
 import xpScrollArt from "@/assets/xp-scroll.webp";
+import { warDropKind } from "./war-drops";
+import { RoseItem } from "./Roses";
+import { roseCount } from "./friendship";
 import { xpScrollValue } from "./xp-scrolls";
 import { itemName, tName , t} from "./i18n";
 import { useState, type ReactNode } from "react";
@@ -29,7 +32,7 @@ import { DangerPill, StageStepper, StaminaMeter } from "./GateUI";
 import { GemIcon, MatIcon, StoneIcon } from "./MatIcon";
 import { Vault, vaultTiles, type VaultPick } from "./Vault";
 import { GearCodex } from "./GearCodex";
-import { MAX_SOCKETS, MATS, REFINE, gemName, gemStatText, matCount, parseGem, refine, scrapItem, scrapYield, socketCount, sockets, type Mat } from "./crafting";
+import { MAX_SOCKETS, MATS, REFINE, addMats, gemName, gemStatText, matCount, parseGem, refine, scrapItem, scrapYield, socketCount, sockets, type Mat } from "./crafting";
 import { STONE_FAIL_SAVE_CHANCE, STONE_LEVELS, combineAllStones, combineGold, combineStones, heldStoneLevels, spendStones, stoneBonus, stoneCount, stoneName } from "./enchant";
 import { FATE_SUCCESS_BONUS, enhanceFateChance, fateStoneCost, fateStoneCount, spendFateStones } from "./fate";
 import worldMap from "@/assets/world-map.jpg";
@@ -185,7 +188,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             })().reduce<ReactNode[]>((cells, [it, i]) => {
               cells.push(<ItemSlot key={it?.id ?? "e" + i} item={it} size={44} selected={!!it && sel?.id === it.id} onClick={() => it && setSel({ id: it.id, equipped: false })} />);
               return cells;
-            }, filter !== "all" || q ? [] : [...vaultTiles(hero, vpick, (p) => { setVpick(p); setSel(null); }), ...(Object.keys(MATS) as Mat[]).flatMap((m) => {
+            }, filter !== "all" || q ? [] : [...(roseCount(hero)>0?[<RoseItem key="roses" compact />]:[]), ...vaultTiles(hero, vpick, (p) => { setVpick(p); setSel(null); }), ...(Object.keys(MATS) as Mat[]).flatMap((m) => {
               const n = matCount(hero, m); if (n <= 0) return [];
               return Array.from({ length: Math.ceil(n / MAT_STACK) }, (_, k) => {
                 const here = Math.min(MAT_STACK, n - k * MAT_STACK);
@@ -290,7 +293,8 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
             : scrollXp(rw.xp * catchUpXpFactor(h.level, stage), xpMultiplier);
           const { levels } = grant(h, xp, gold);
           // A Conquest floor no longer guarantees Rare gear: its rarity floor is rolled (see conquestDropFloor).
-          loot = rollLoot(h, stage, foe.boss || spire ? 1 : 0.45, spire ? conquestDropFloor() : foe.boss ? 2 : 0);
+          if (warDropKind() === "gear") loot = rollLoot(h, stage, 1, spire ? conquestDropFloor() : foe.boss ? 2 : 0);
+          else addMats(h, { ore: 2 + Math.floor(stage / 20), ...(stage >= 10 ? { hide: 1, bloom: 1 } : {}) });
           if (loot) addLoot(h, loot);
           if (tokens) addConquestTokens(h, tokens);
           if (spire && stage === h.spire) h.spire++;

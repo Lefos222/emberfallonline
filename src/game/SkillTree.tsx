@@ -24,6 +24,7 @@ function talentEffects(t: Talent, rank: number): string {
   }
   if (t.ability) {
     const a = t.ability;
+    if (t.teamHealPerRank) return `${Math.round(t.teamHealPerRank * Math.max(1,rank) * 100)}% ${tr("Health")} · ${tr("All allies")}`;
     const dmg = `${Math.round(a.mult * 100)}%${a.hits ? ` × ${a.hits} hits` : ""}`;
     const tags = [a.stun ? "stuns" : "", a.crit ? "always crits" : "", a.heal ? `heals ${Math.round(a.heal * 100)}%` : ""].filter(Boolean).join(", ");
     return `${dmg} damage${tags ? ` · ${tags}` : ""}${t.selfBoost && rank > 1 ? ` · +${t.selfBoost.multPct * (rank - 1)}% from upgrades` : ""}`;
@@ -34,7 +35,7 @@ function talentEffects(t: Talent, rank: number): string {
 interface NodePos { x: number; y: number }
 const NODE_R = 28;
 const TREE_W = 780;
-const TREE_H = 460;
+const TREE_H = 780;
 // Three specialization columns (branches), five tiers stacked vertically.
 const COL_X = [140, 390, 640];
 const ROW_Y = [80, 160, 240, 320, 400];
@@ -73,7 +74,7 @@ export function SkillTreeContent() {
   const edges = useMemo(() => {
     const list: { from: NodePos; to: NodePos; active: boolean }[] = [];
     trees.forEach((spec, si) => {
-      for (let i = 1; i < spec.talents.length; i++) {
+      for (let i = 1; i < Math.min(5,spec.talents.length); i++) {
         const from = posOf(si, spec.talents[i - 1].tier);
         const to = posOf(si, spec.talents[i].tier);
         const active = (hero.talents?.[spec.talents[i - 1].id] ?? 0) > 0;
@@ -149,8 +150,8 @@ export function SkillTreeContent() {
             ))}
 
             {/* Nodes */}
-            {trees.map((spec, si) => spec.talents.map(t => {
-              const pos = posOf(si, t.tier);
+            {trees.map((spec, si) => spec.talents.map((t,ti) => {
+              const pos = ti<5 ? posOf(si, t.tier) : {x:COL_X[si] ?? 140,y:480+(ti-5)*75};
               const r = hero.talents?.[t.id] ?? 0;
               const block = learnBlocker(hero, t.id);
               const isHover = hovered === t.id;

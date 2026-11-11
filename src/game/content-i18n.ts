@@ -12,6 +12,12 @@
 export type ContentRow = [el: string, pl: string];
 
 export const CONTENT: Record<string, ContentRow> = {
+  Earthsplit: ["Ρήγμα γης", "Rozdarcie ziemi"], "Iron Oath": ["Σιδερένιος όρκος", "Żelazna przysięga"], "Blood Lance": ["Λόγχη αίματος", "Krwawa lanca"], "Lion's Roar": ["Βρυχηθμός λιονταριού", "Ryk lwa"],
+  "Renewal Wave": ["Κύμα ανανέωσης", "Fala odnowy"], Cometfall: ["Πτώση κομήτη", "Upadek komety"], "Crystal Prison": ["Κρυστάλλινη φυλακή", "Kryształowe więzienie"], "Void Pulse": ["Παλμός κενού", "Puls pustki"],
+  "Thorn Volley": ["Ομοβροντία αγκαθιών", "Salwa cierni"], "Falcon Eye": ["Μάτι γερακιού", "Sokole oko"], "Snare Shot": ["Βολή παγίδας", "Strzał pułapki"], Moonstep: ["Σεληνιακό βήμα", "Księżycowy krok"],
+  "Tempered Steel": ["Σκληρυμένος χάλυβας", "Hartowana stal"], "Titan Vitality": ["Ζωτικότητα τιτάνα", "Witalność tytana"], Warborn: ["Πολεμογεννημένος", "Zrodzony z wojny"], "Merciless Edge": ["Ανελέητη κόψη", "Bezlitosne ostrze"],
+  "Celestial Mind": ["Ουράνιος νους", "Niebiański umysł"], "Runic Endurance": ["Ρουνική αντοχή", "Runiczna wytrzymałość"], "Spell Precision": ["Ακρίβεια ξορκιών", "Precyzja zaklęć"], "Woven Wards": ["Πλεγμένες προστασίες", "Tkane osłony"],
+  "Eagle Instinct": ["Ένστικτο αετού", "Instynkt orła"], Fleetfoot: ["Γοργοπόδαρος", "Rączy krok"], "Wildwood Power": ["Δύναμη άγριου δάσους", "Moc dzikiego lasu"], "Keen Arrows": ["Αιχμηρά βέλη", "Ostre strzały"],
   // ---------- Gear families: prefixes, suffixes and the class nouns ----------
   Worn: ["Φθοράς", "Zużycia"],
   Iron: ["Σιδήρου", "Żelaza"],

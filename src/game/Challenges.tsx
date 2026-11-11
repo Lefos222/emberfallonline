@@ -1,4 +1,5 @@
 import { tName , t} from "./i18n";
+import { warDropKind } from "./war-drops";
 import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { scrollXp } from "./scrolls";
@@ -85,15 +86,18 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
         update((h) => {
           const { levels } = grant(h, scrollXp(rw.xp, xpMultiplier), rw.gold);
           h.challenges = { ...(h.challenges ?? {}), [id]: Math.max(cleared(h, id), d) };
-          if (rw.bossCore) addMats(h, { bossCore: rw.bossCore });
+          const materials = warDropKind() === "materials";
+          if (materials && rw.bossCore) addMats(h, { bossCore: rw.bossCore });
           // Higher-armour crystals: Frost from every boss, Void from deeper ranks, Sun rarely from the deepest.
           const cry = { frostCrystal: 1 + Math.floor(d / 2), ...(d >= 3 ? { voidCrystal: Math.floor(d / 3) } : {}), ...(d >= 5 && Math.random() < 0.35 ? { sunCrystal: 1 } : {}), dragonScale: 1 + Math.floor(d / 2), ...(d >= 3 ? { abyssalShard: Math.floor(d / 3) } : {}), ...(d >= 5 && Math.random() < 0.3 ? { titanHeart: 1 } : {}) };
-          addMats(h, cry);
+          if(materials) addMats(h, cry);
           addWeeklyKill(h);
+          if(!materials) {
           loot = makeDrop(h.cls, h.level + Math.floor(h.paragon / 2) + d * 2, cappedRarity(rw.minRarity, h.level));
           loot.name = `${TIER_BOSSES[id].name.split(",")[0]}'s ${loot.name.split(" ").slice(1).join(" ")}`;
           const full = h.inventory.length >= invCap(h); addLoot(h, loot); if (full) lines.push("Bag full — gear placed in your Overflow Chest (Armory)");
-          lines = [...lines, `+${fmt(scrollXp(rw.xp, xpMultiplier))} XP`, `+${fmt(rw.gold)} gold`, ...(rw.bossCore ? [`+${rw.bossCore} Boss Core`] : []), ...Object.entries(cry).map(([k, n]) => `+${n} ${MATS[k as Mat].name}`), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+          }
+          lines = [...lines, `+${fmt(scrollXp(rw.xp, xpMultiplier))} XP`, `+${fmt(rw.gold)} gold`, ...(materials && rw.bossCore ? [`+${rw.bossCore} Boss Core`] : []), ...(materials ? Object.entries(cry).map(([k, n]) => `+${n} ${MATS[k as Mat].name}`) : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         return { lines, loot };
       },
@@ -112,11 +116,12 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
         let lines: string[] = []; let loot: Item | null = null;
         update((h) => {
           const { levels } = grant(h, scrollXp(lvl * 60, xpMultiplier), lvl * 12);
-          loot = rollLoot(h, lvl + 5, 0.8, 2);
+          const materials = warDropKind() === "materials";
+          loot = materials ? null : rollLoot(h, lvl + 5, 1, 2);
           if (loot) addLoot(h, loot);
           const bones = 1 + Math.floor(lvl / 40);
-          addMats(h, { essence: 2, wyrmBone: bones });
-          lines = [`+${fmt(scrollXp(lvl * 60, xpMultiplier))} XP`, `+${fmt(lvl * 12)} gold`, "+2 Soul Essence", `+${bones} Wyrm Bone`, ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+          if(materials) addMats(h, { essence: 2, wyrmBone: bones });
+          lines = [`+${fmt(scrollXp(lvl * 60, xpMultiplier))} XP`, `+${fmt(lvl * 12)} gold`, ...(materials ? ["+2 Soul Essence", `+${bones} Wyrm Bone`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         return { lines, loot };
       },

@@ -1,4 +1,5 @@
 import { t } from "./i18n";
+import { warDropKind } from "./war-drops";
 import { Swords } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EXPEDITIONS, expeditionFoe } from './building-content';
@@ -24,14 +25,14 @@ export function Expeditions({onClose,start}:{onClose:()=>void;start:StartBattle}
       update(h=>{
         const xp=scrollXp(rw.xp,xpMultiplier);const {levels}=grant(h,xp,rw.gold);
         h.wins++; recordRosterEncounter(h,foe.rosterId,true);
-        addMats(h,{[expedition.material]:expedition.quantity});
-        loot=rollLoot(h,foe.level,0.6,foe.boss?2:0);if(loot)addLoot(h,loot);
-        lines.push(`+${fmt(xp)} XP`,`+${fmt(rw.gold)} gold`,`+${expedition.quantity} ${MATS[expedition.material].name}`);
+        if(warDropKind()==="materials") { addMats(h,{[expedition.material]:expedition.quantity}); lines.push(`+${expedition.quantity} ${MATS[expedition.material].name}`); }
+        else { loot=rollLoot(h,foe.level,1,foe.boss?2:0);if(loot)addLoot(h,loot); }
+        lines.push(`+${fmt(xp)} XP`,`+${fmt(rw.gold)} gold`);
         if(levels)lines.push(`Level up ×${levels}`);
       });return {lines,loot};
     }});
   };
-  return <Panel title={t("Dungeon Gate · Expeditions")} subtitle={t("Materials by the crate")} art="goblet" onClose={onClose} wide><div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{EXPEDITIONS.map((e,i)=>{
+  return <Panel title={t("Dungeon Gate · Expeditions")} subtitle={t("70% materials · 30% equipment")} art="goblet" onClose={onClose} wide><div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{EXPEDITIONS.map((e,i)=>{
     const foe=expeditionFoe(hero,i);const unlocked=hero.level+hero.paragon>=e.level;
     return <article key={e.id} className="slot flex flex-col gap-2 p-4"><Sprite rect={foe.sprite} className="mx-auto h-28 w-28"/><h3 className="font-display text-xl text-gold">{e.name}</h3><p className="text-sm text-muted-foreground">{e.desc}</p><p className="text-sm">{foe.name}  {t("· Lv")} {foe.level}</p><p className="text-xs text-muted-foreground">{t("HP")} {fmt(foe.hp)}  {t("· ATK")} {fmt(foe.atk)}  {t("· DEF")} {fmt(foe.def)}</p><p className="text-sm"><MatIcon mat={e.material}/> +{e.quantity} {MATS[e.material].name}</p><Button className="mt-auto" disabled={!unlocked} onClick={()=>fight(i)}><Swords/>{unlocked?t("Enter expedition"):`Level ${e.level} required`}</Button></article>;
   })}</div></Panel>;

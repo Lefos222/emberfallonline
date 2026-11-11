@@ -141,9 +141,9 @@ export const isRelicItem = (name?: string) => !!name && RELIC_PREFIXES.includes(
 
 /** Trial ranks: their level gates and how the warden is scaled on top of a stage at that level. */
 export const RELIC_RANKS: { rank: RelicRank; label: string; level: number; hp: number; atk: number }[] = [
-  { rank: 1, label: ROMAN[0]!, level: 10, hp: 2.5, atk: 1.2 },
-  { rank: 2, label: ROMAN[1]!, level: 35, hp: 3.2, atk: 1.35 },
-  { rank: 3, label: ROMAN[2]!, level: 60, hp: 4.2, atk: 1.55 },
+  { rank: 1, label: ROMAN[0]!, level: 10, hp: 3, atk: 1.35 },
+  { rank: 2, label: ROMAN[1]!, level: 35, hp: 4, atk: 1.6 },
+  { rank: 3, label: ROMAN[2]!, level: 60, hp: 5.5, atk: 1.9 },
 ];
 
 export interface RelicHero {

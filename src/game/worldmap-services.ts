@@ -20,7 +20,9 @@ export async function completeWorldRaid(node: string): Promise<{ reward: Record<
   const result = await withServerHero(async (heroId) => {
     const { data, error } = await supabase.rpc("world_raid_complete", { _hero: heroId, _node: node, _req: req });
     if (error) throw new Error(error.message);
-    adoptServerSave(heroId, returnedSave(data));
+    const refreshed = await supabase.rpc("refresh_reward_save", { _hero: heroId });
+    if(refreshed.error) throw new Error(refreshed.error.message);
+    adoptServerSave(heroId, returnedSave(refreshed.data));
     return object(data);
   });
   localStorage.removeItem(`ef-pending:${id}:${op}`);

@@ -11,7 +11,12 @@ export async function reward<K extends RewardRpc>(name: K, args: Omit<Rpc[K]["Ar
   return withServerHero(async (id) => {
     const { data, error } = await supabase.rpc(name, { ...args, _hero: id } as Rpc[K]["Args"]);
     if (error) throw new Error(error.message);
-    const save = returnedSave(data);
+    let save = returnedSave(data);
+    if (name === "claim_activity" || name === "claim_login") {
+      const refreshed = await supabase.rpc("refresh_reward_save", { _hero: id });
+      if (refreshed.error) throw new Error(refreshed.error.message);
+      save = returnedSave(refreshed.data);
+    }
     if (name === "lucky_shot") returnedAstral(data);
     adoptServerSave(id, save);
     return data;
@@ -45,6 +50,21 @@ export function rewardLines(value: unknown): string[] {
 }
 
 export type MailAttachments = Json;
+
+export async function useFriendshipRose(friend?: string) {
+  const id = getState().heroId;
+  if (!id) throw new Error("Select a character first.");
+  const op = friend ? `rose-send:${friend}` : "rose-buy";
+  const req = requestKey(localStorage, id, op, () => crypto.randomUUID());
+  await withServerHero(async heroId => {
+    const { data, error } = friend
+      ? await supabase.rpc("friendship_rose", { _hero: heroId, _friend: friend, _req: req })
+      : await supabase.rpc("buy_friendship_rose", { _hero: heroId, _req: req });
+    if(error) throw new Error(error.message);
+    adoptServerSave(heroId, returnedSave(data));
+  });
+  localStorage.removeItem(`ef-pending:${id}:${op}`);
+}
 
 export async function beginScrollBattle() {
   const state = getState();

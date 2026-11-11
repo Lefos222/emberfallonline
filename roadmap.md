@@ -1,4 +1,11 @@
 # Roadmap (current request)
+- [x] Nov 11, 01:28: Health/resource values inside combat balls; remove duplicate bottom Guide shortcut.
+- [x] Nov 11, 01:28: Four active and four passive additions per class; rank-scaled mage party healing.
+- [x] Nov 11, 01:28: Harder Relic Trials; War Gates random rewards split 70% materials / 30% gear; guaranteed relic pieces preserved.
+- [x] Nov 11, 01:28: Remove playable guild bank and add guild rally milestones without deleting owned data.
+- [x] Nov 11, 01:28: Enrich daily/weekly/login claims and normal/VIP board bundles through existing ownership paths.
+- [x] Nov 11, 01:28: Server-owned roses and unlimited friendship progression affecting BR; real rose purchase verified.
+- [x] Nov 11, 01:28: World Tree exploration milestones, rose art, targeted tests and desktop/phone orb checks.
 - [x] Nov 11, 01:13: Rebuild battle hotbar with health, rage and legible ability icons on desktop/phone.
 - [x] Nov 11, 01:13: Guide above Quests on castle edge; eight detailed quests per level preserving progress.
 - [x] Nov 11, 01:13: Announcements panel and maintained update/hotfix/merge history.

@@ -28,6 +28,7 @@ import { normalizeSynth, synthFx } from "./synthesis";
 import { enlightenmentFx, soulFx } from "./enlightenment";
 import { renownFx } from "./renown";
 import { runeFx } from "./runes";
+import { friendshipHealthPct } from "./friendship";
 import { potionFx } from "./potions";
 import { guildBuffFx } from "./guild-extras";
 import { titleFx } from "./titles";
@@ -81,11 +82,11 @@ export const MAX_BAG_ROWS = 10;
 export const bagSize = (h: { bagRows?: number }) => INVENTORY_CAP + BAG_ROW * (h.bagRows ?? 0);
 /** Materials live in the bag too: each type takes one slot per stack of MAT_STACK. */
 export const MAT_STACK = 9999;
-type Stacks = { mats?: Partial<Record<string, number>>; gems?: unknown; chests?: unknown };
+type Stacks = { mats?: Partial<Record<string, number>>; gems?: unknown; chests?: unknown; srv?: { friendship?: { roses?: number } } };
 const kinds = (r: unknown) => (r && typeof r === "object" && !Array.isArray(r) ? Object.values(r as Record<string, unknown>).filter((n) => typeof n === "number" && n > 0).length : 0);
 /** Bag slots held by stacks: materials per MAT_STACK, plus one per gem kind and chest kind (mirrored by SQL _bag_room). */
 export const matSlots = (h: Stacks) =>
-  Object.values(h.mats ?? {}).reduce<number>((a, n) => a + (n && n > 0 ? Math.ceil(n / MAT_STACK) : 0), 0) + kinds(h.gems) + kinds(h.chests);
+  Object.values(h.mats ?? {}).reduce<number>((a, n) => a + (n && n > 0 ? Math.ceil(n / MAT_STACK) : 0), 0) + kinds(h.gems) + kinds(h.chests) + Math.ceil(Math.max(0,h.srv?.friendship?.roses ?? 0)/MAT_STACK);
 /** Free room for gear: the bag minus the slots materials occupy (mirrored in guild_vault_withdraw). */
 export const invCap = (h: { bagRows?: number } & Stacks) => Math.max(0, bagSize(h) - matSlots(h));
 /** Gold cost of the next bag row: 5,000 doubling each row, scaled by the hero's level. */
@@ -495,6 +496,7 @@ export interface Hero {
   /** Server-owned wallet and cosmetics. Written only by SECURITY DEFINER RPCs and the payment
    *  server, never by the client save. */
   srv?: {
+    friendship?: { roses?: number; points?: number };
     premium?: {
       balance?: number;
       vip?: { level?: number; until?: string | null };
@@ -877,6 +879,7 @@ function computeStats(
   const tf = opts.talents
     ? talentFx(h)
     : { hpPct: 0, atkPct: 0, defPct: 0, crit: 0, dodge: 0, critDmg: 0, pen: 0 };
+  if (opts.talents) tf.hpPct += friendshipHealthPct(h);
   // Gems add the chart's flat stats; Astrals, drills and guild skills stay percentage based.
   const gm = opts.gear ? gemFx(h.equipment) : zeroGemFx();
   const xa = opts.talents ? astralFx(h) : null;
@@ -1259,6 +1262,7 @@ export interface Skill {
   cd: number;
   heal?: number;
   stun?: boolean;
+  teamHeal?: number;
   crit?: boolean;
   icon: string;
 }

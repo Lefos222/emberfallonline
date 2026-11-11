@@ -391,6 +391,45 @@ export type Database = {
           },
         ]
       }
+      friendship_rose_transactions: {
+        Row: {
+          created_at: string
+          friend_id: string | null
+          hero_id: string
+          kind: string
+          request_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id?: string | null
+          hero_id: string
+          kind: string
+          request_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string | null
+          hero_id?: string
+          kind?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friendship_rose_transactions_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friendship_rose_transactions_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friendships: {
         Row: {
           created_at: string
@@ -1412,6 +1451,35 @@ export type Database = {
         }
         Relationships: []
       }
+      realm_pursuit_claims: {
+        Row: {
+          hero_id: string
+          milestone: number
+          period: string
+          scope: string
+        }
+        Insert: {
+          hero_id: string
+          milestone: number
+          period: string
+          scope: string
+        }
+        Update: {
+          hero_id?: string
+          milestone?: number
+          period?: string
+          scope?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realm_pursuit_claims_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_reward_challenges: {
         Row: {
           code: string
@@ -1683,6 +1751,10 @@ export type Database = {
         Args: { _hero: string; _item: string; _req: string }
         Returns: Json
       }
+      buy_friendship_rose: {
+        Args: { _hero: string; _req: string }
+        Returns: Json
+      }
       buy_gold_pack: {
         Args: { _hero: string; _pack: string; _req: string }
         Returns: Json
@@ -1737,6 +1809,10 @@ export type Database = {
       }
       daily_profession_quests: { Args: { _hero: string }; Returns: Json }
       finish_gathering: { Args: { _hero: string; _req: string }; Returns: Json }
+      friendship_rose: {
+        Args: { _friend: string; _hero: string; _req: string }
+        Returns: Json
+      }
       get_activities: { Args: { _hero: string }; Returns: Json }
       guild_bank_donate: {
         Args: { _gold: number; _hero: string }
@@ -1927,10 +2003,15 @@ export type Database = {
       premium_state: { Args: { _hero: string }; Returns: Json }
       profession_state: { Args: { _hero: string }; Returns: Json }
       read_mail: { Args: { _hero: string; _mail: string }; Returns: undefined }
+      realm_pursuits: {
+        Args: { _hero: string; _milestone?: number; _scope: string }
+        Returns: Json
+      }
       record_arena_result: {
         Args: { _attacker: string; _defender: string; _won: boolean }
         Returns: number
       }
+      refresh_reward_save: { Args: { _hero: string }; Returns: Json }
       remove_friend: {
         Args: { _friend: string; _hero: string }
         Returns: undefined

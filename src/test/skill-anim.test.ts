@@ -22,7 +22,7 @@ function everySkillId() {
 describe("skill battle animations", () => {
   it("knows every skill the game can actually put on the bar", () => {
     // Nine base abilities, nine specialization abilities and nine endless branches.
-    expect(everySkillId()).toHaveLength(27);
+    expect(everySkillId()).toHaveLength(39);
   });
 
   it("gives every skill its own move", () => {

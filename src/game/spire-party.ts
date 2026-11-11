@@ -34,7 +34,7 @@ export interface SpireDungeon {
   level: number;
   /** A boss every this many floors (the last floor is always one). */
   bossEvery: number;
-  /** The crafting material only this dungeon's floors drop (35% per cleared floor, server-rolled). */
+  /** The crafting material this dungeon's floors drop (70% materials / 30% equipment, server-rolled). */
   mat: Mat;
 }
 
@@ -98,6 +98,7 @@ export interface SpireSkill {
   heal: number;
   /** Share of incoming damage a guard turns aside; 0 for anything else. */
   guard: number;
+  teamHeal?: number;
   kind: "hit" | "heal" | "guard";
 }
 
@@ -110,7 +111,7 @@ export const GUARD_MS = 3000;
 
 /** The tactical kit mapped onto the Spire: attacks, a heal and a guard, nothing invented. */
 const toSpireSkill = (s: TSkill): SpireSkill => {
-  const heal = s.target === "enemy" ? 0 : (s.heal ?? 0);
+  const heal = s.teamHeal ?? (s.target === "enemy" ? 0 : (s.heal ?? 0));
   const raw = s.selfApplies?.value ?? 25;
   const pct = raw > 0 && raw < 1 ? Math.round(raw * 100) : raw;
   const guard = s.mult === 0 && !heal && s.target !== "enemy" ? Math.min(45, Math.max(15, pct)) : 0;
@@ -122,6 +123,7 @@ const toSpireSkill = (s: TSkill): SpireSkill => {
     aoe: s.target === "all",
     crit: !!s.crit,
     heal,
+    teamHeal: s.teamHeal,
     guard,
     kind: heal > 0 ? "heal" : guard > 0 ? "guard" : "hit",
   };
@@ -249,7 +251,7 @@ export function tick(prev: SpireBattle, members: SpireMember[], casts: { hero: s
       for (const f of targets) for (let i = 0; i < sk.hits && f.hp > 0; i += 1) strikeFoe(h.id, f, m.atk, sk.mult, m.crit + (sk.crit ? 100 : 10), sk.id);
     } else if (sk.kind === "heal") {
       const targets = m.cls === "mage" ? liveHeroes() : [h];
-      for (const t of targets) { const v = Math.round(t.max * sk.heal); t.hp = Math.min(t.max, t.hp + v); b.fx.push({ src: h.id, tgt: t.id, kind: "heal", value: v, skill: sk.id }); }
+      for (const t of targets) { const v = Math.min(t.max - t.hp, Math.round(t.max * sk.heal)); t.hp += v; b.fx.push({ src: h.id, tgt: t.id, kind: "heal", value: v, skill: sk.id }); }
       log(`${m.name} calls on ${sk.name}.`);
     } else if (sk.kind === "guard") {
       h.guard = GUARD_MS; h.guardPct = sk.guard;

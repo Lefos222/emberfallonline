@@ -17,6 +17,7 @@ export interface Talent {
   boost?: { skill: string; multPct: number }; // per rank, % damage added to an existing ability
   ability?: Skill; // new active ability (rank 1 unlocks it)
   selfBoost?: { multPct: number }; // per upgrade rank beyond the first, strengthens the ability
+  teamHealPerRank?: number;
 }
 
 export interface Spec { id: string; name: string; blurb: string; talents: Talent[] }
@@ -98,6 +99,33 @@ export const TREES: Record<HeroClass, Spec[]> = {
     ] },
   ],
 };
+
+// Additional nodes retain the same saved ranks and skill-point budget as every existing talent.
+const additions: Record<HeroClass, { actives: Skill[]; passives: { name: string; fx: TalentFx }[] }> = {
+  warrior: { actives: [
+    { id: "earthsplit", name: "Earthsplit", mult: 1.7, cd: 4, icon: "axe" },
+    { id: "iron-oath", name: "Iron Oath", mult: 0, heal: 0.12, cd: 5, icon: "shield" },
+    { id: "blood-lance", name: "Blood Lance", mult: 2.3, cd: 4, icon: "sword" },
+    { id: "lion-roar", name: "Lion's Roar", mult: 1.1, stun: true, cd: 6, icon: "megaphone" },
+  ], passives: [{ name: "Tempered Steel", fx: { defPct: 3 } }, { name: "Titan Vitality", fx: { hpPct: 4 } }, { name: "Warborn", fx: { atkPct: 3 } }, { name: "Merciless Edge", fx: { critDmg: 6 } }] },
+  mage: { actives: [
+    { id: "renewal-wave", name: "Renewal Wave", mult: 0, teamHeal: 0.08, cd: 6, icon: "heart" },
+    { id: "cometfall", name: "Cometfall", mult: 1.6, cd: 5, icon: "flame" },
+    { id: "crystal-prison", name: "Crystal Prison", mult: 2, stun: true, cd: 5, icon: "snowflake" },
+    { id: "void-pulse", name: "Void Pulse", mult: 1.4, hits: 2, cd: 5, icon: "sparkles" },
+  ], passives: [{ name: "Celestial Mind", fx: { atkPct: 3 } }, { name: "Runic Endurance", fx: { hpPct: 4 } }, { name: "Spell Precision", fx: { crit: 1.5 } }, { name: "Woven Wards", fx: { defPct: 3 } }] },
+  archer: { actives: [
+    { id: "thorn-volley", name: "Thorn Volley", mult: 0.8, hits: 3, cd: 5, icon: "wind" },
+    { id: "falcon-eye", name: "Falcon Eye", mult: 2.7, crit: true, cd: 6, icon: "crosshair" },
+    { id: "snare-shot", name: "Snare Shot", mult: 1.5, stun: true, cd: 4, icon: "target" },
+    { id: "moonstep", name: "Moonstep", mult: 1.7, heal: 0.12, cd: 5, icon: "wind" },
+  ], passives: [{ name: "Eagle Instinct", fx: { crit: 1.5 } }, { name: "Fleetfoot", fx: { dodge: 1 } }, { name: "Wildwood Power", fx: { atkPct: 3 } }, { name: "Keen Arrows", fx: { pen: 2 } }] },
+};
+for (const cls of Object.keys(additions) as HeroClass[]) {
+  const data = additions[cls];
+  data.actives.forEach((ability, i) => TREES[cls][i % 3]?.talents.push({ id: `${cls}_new_active_${i}`, name: ability.name, desc: ability.teamHeal ? "Heals every living ally for 8% / 16% / 24% / 32% of their maximum health." : "Unlock a new combat ability. Each upgrade adds 10% damage.", tier: 4, max: 4, cost: 3, upgradeCost: 1, ability, selfBoost: { multPct: 10 }, ...(ability.teamHeal ? { teamHealPerRank: 0.08 } : {}) }));
+  data.passives.forEach((passive, i) => TREES[cls][i % 3]?.talents.push({ id: `${cls}_new_passive_${i}`, name: passive.name, desc: "Permanent combat stats increase with each rank.", tier: 2, max: 4, cost: 1, fx: passive.fx }));
+}
 
 // Every specialisation, talent and unlocked ability follows the player's language.
 for (const specs of Object.values(TREES)) {
@@ -188,6 +216,7 @@ export function talentSkills(base: Skill[], h: TalentState): Skill[] {
     if (t.boost) { const boost = t.boost; const s = list.find((x) => x.id === boost.skill); if (s) s.mult = +(s.mult * (1 + (boost.multPct * rank) / 100)).toFixed(2); }
     if (t.ability) {
       const ability = { ...t.ability };
+      if (t.teamHealPerRank) ability.teamHeal = t.teamHealPerRank * Math.min(t.max, rank);
       if (t.selfBoost && rank > 1) ability.mult = +(ability.mult * (1 + (t.selfBoost.multPct * (rank - 1)) / 100)).toFixed(2);
       list.push(ability);
     }

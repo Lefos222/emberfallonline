@@ -1,4 +1,5 @@
 import { t } from "./i18n";
+import { RoseItem } from "./Roses";
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy, Loader2, Search, UserPlus } from "lucide-react";
 import { Clock, MessageSquare, Swords, Users, X } from "./PaintedIcons";
@@ -415,11 +416,13 @@ function FriendsContent({ heroId }: { heroId: string | null }) {
               </div>
 
               <ul className="space-y-2">
+                <RoseItem />
                 {sortedFriends.map((friend) => {
                   const seen = presence(friend.last_played);
                   const gap = friend.power - myPower;
                   return (
                     <li key={friend.id} className="slot flex flex-wrap items-center gap-2 p-2">
+                      <RoseItem friend={friend.id} />
                       <button
                         type="button"
                         className="min-w-0 flex-1 rounded p-2 text-left focus-visible:outline focus-visible:outline-ring"

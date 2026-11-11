@@ -9,6 +9,9 @@ export type Move =
   | "draw" | "rapid" | "aim" | "dash" | "drink";
 
 export const SKILL_MOVE: Record<string, Move> = {
+  earthsplit: "slam", "iron-oath": "rage", "blood-lance": "thrust", "lion-roar": "overhead",
+  "renewal-wave": "siphon", cometfall: "rise", "crystal-prison": "nova", "void-pulse": "channel",
+  "thorn-volley": "rapid", "falcon-eye": "aim", "snare-shot": "draw", moonstep: "dash",
   // Knight — steel and shield
   strike: "swing",
   cleave: "overhead",
@@ -40,6 +43,9 @@ export const SKILL_MOVE: Record<string, Move> = {
 
 /** Impact art that lands on the target. Heal/block events keep their own kind; this covers strikes. */
 export const SKILL_EFFECT: Record<string, string> = {
+  earthsplit: "slash", "iron-oath": "shield", "blood-lance": "mark", "lion-roar": "shield",
+  "renewal-wave": "heal", cometfall: "meteor", "crystal-prison": "ice", "void-pulse": "arcane",
+  "thorn-volley": "arrow", "falcon-eye": "mark", "snare-shot": "arrow", moonstep: "tether",
   strike: "slash", cleave: "slash", rage: "fire", slam: "shield", whirl: "slash", execute: "slash",
   bolt: "arcane", nova: "ice", meteor: "meteor", inferno: "fire", spike: "ice", drain: "tether",
   shot: "arrow", volley: "arrow", snipe: "mark", pierce: "arrow", rain: "arrow", shadow: "slash",

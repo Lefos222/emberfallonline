@@ -969,7 +969,6 @@ type ShortcutTarget =
   | "guide"
   | "settings";
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIconName; img?: string }[] = [
-  { id: "guide", label: "Guide", tip: "How to play, step by step", icon: "spellbook" },
   { id: "armory", label: "Inventory", tip: "Bag & equipment", icon: "bag" },
   { id: "mounts", label: "Mounts", tip: "Stables — faster blitzes", icon: "crown", img: mountIcon },
   { id: "runes", label: "Runes", tip: "Rune Altar", icon: "gem", img: runeIcon },

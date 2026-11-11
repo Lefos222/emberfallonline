@@ -15,7 +15,7 @@ export interface TSkill {
   id: string; name: string; desc: string; icon: string;
   mult: number; hits?: number; cd: number; cost: number;
   target: TargetMode; maxTargets?: number;
-  crit?: boolean; heal?: number; stun?: boolean; penBonus?: number; gain?: number;
+  crit?: boolean; heal?: number; teamHeal?: number; stun?: boolean; penBonus?: number; gain?: number;
   applies?: Status; selfApplies?: Status;
 }
 
@@ -55,6 +55,18 @@ export const resourceName = (c?: HeroClass) => (c ? RESOURCE[c] : "Energy");
 
 // ---------- Class kits (existing skills + skill-tree abilities, adapted to tactics) ----------
 const ADAPT: Record<string, Partial<TSkill>> = {
+  earthsplit: { target: "all", cost: 40 },
+  "iron-oath": { target: "self", cost: 30, selfApplies: { kind: "guard", turns: 2, value: 35 } },
+  "blood-lance": { cost: 35, penBonus: 25 },
+  "lion-roar": { target: "all", cost: 45 },
+  "renewal-wave": { target: "self", cost: 40 },
+  cometfall: { target: "all", cost: 45, applies: { kind: "burn", turns: 2, value: 0.18 } },
+  "crystal-prison": { cost: 35, applies: { kind: "slow", turns: 2, value: 30 } },
+  "void-pulse": { target: "all", cost: 45 },
+  "thorn-volley": { target: "all", cost: 40 },
+  "falcon-eye": { cost: 45, penBonus: 30 },
+  "snare-shot": { cost: 30 },
+  moonstep: { cost: 35, selfApplies: { kind: "evade", turns: 2, value: 25 } },
   // Knight
   strike: { name: "Heavy Strike", desc: "Strong single-target physical blow. Builds Rage.", cost: 0, gain: 20 },
   cleave: { target: "all", mult: 1.15, cost: 25, desc: "Sweeps every enemy in front of you." },
@@ -108,7 +120,7 @@ export function buildKit(cls: HeroClass | undefined, skills?: Skill[], chosen?: 
   const kit: TSkill[] = base.map((s) => ({
     id: s.id, name: s.name, desc: `${Math.round(s.mult * (s.hits ?? 1) * 100)}% damage.`, icon: s.icon,
     mult: s.mult, hits: s.hits, cd: s.cd, cost: s.cd > 0 ? 25 : 0, target: "enemy" as TargetMode,
-    crit: s.crit, heal: s.heal, stun: s.stun, gain: s.cd === 0 ? 20 : 0,
+    crit: s.crit, heal: s.heal, teamHeal: s.teamHeal, stun: s.stun, gain: s.cd === 0 ? 20 : 0,
     ...(ADAPT[s.id] ?? {}),
   }));
   if (cls) for (const e of EXTRA[cls]) if (!kit.some((k) => k.id === e.id)) kit.push(e);
@@ -309,6 +321,7 @@ export function playerAct(s: BattleState, skillId: string, targets: string[]): A
   else if (sk.applies) for (const t of tg) addStatus(unit(s, t), sk.applies, ev);
   if (sk.selfApplies) addStatus(u, sk.selfApplies, ev);
   if (sk.heal) healUnit(u, sk.target === "self" ? u.maxHp * sk.heal : u.maxHp * sk.heal, ev);
+  if (sk.teamHeal) for (const ally of s.units.filter(x => x.side === u.side && alive(x))) healUnit(ally, ally.maxHp * sk.teamHeal, ev);
   if (sk.id === "taunt") for (const t of tg) { const e = unit(s, t); if (e.telegraph) { e.telegraph.turns += 1; ev.push({ kind: "info", tgt: e.id, text: tr("DELAYED") }); } }
   endTurn(s, u);
   logEv(s, ev, dealt

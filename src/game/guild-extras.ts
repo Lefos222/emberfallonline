@@ -60,7 +60,9 @@ async function rpc(name: string, args: Record<string, unknown>) {
 async function withSave(name: string, args: Record<string, unknown>) {
   return withServerHero(async (heroId) => {
     const data = await rpc(name, { _hero: heroId, ...args });
-    adoptServerSave(heroId, returnedSave(data));
+    const refreshed = await supabase.rpc("refresh_reward_save", { _hero: heroId });
+    if(refreshed.error) throw new Error(refreshed.error.message);
+    adoptServerSave(heroId, returnedSave(refreshed.data));
     return object(data);
   });
 }

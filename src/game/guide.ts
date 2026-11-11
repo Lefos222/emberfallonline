@@ -604,7 +604,7 @@ function materialsChapter(): GuideChapter {
     get tab() { return t("Materials"); },
     get title() { return t("Every material and where it drops"); },
     get blurb() { return t("Each crystal, ore and trophy in the game, what it is for and how to obtain it."); },
-    get tip() { return t("Every Spire dungeon has its own crafting drop: a cleared floor has a 35% chance to pay it."); },
+    get tip() { return t("70% materials · 30% equipment"); },
     steps,
   };
 }

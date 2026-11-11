@@ -267,6 +267,41 @@
       "when": 1794410000002,
       "tag": "0037_verified_social_rewards",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1794410000003,
+      "tag": "0038_friendship_roses_reward_enrichment",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1794410000004,
+      "tag": "0039_atomic_reward_enrichment",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1794410000005,
+      "tag": "0040_worldtree_guild_pursuits",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1794410000006,
+      "tag": "0041_spire_material_equipment_split",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1794410000007,
+      "tag": "0042_rose_purchase_contract",
+      "breakpoints": true
     }
   ]
 }
