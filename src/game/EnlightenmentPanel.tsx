@@ -1,5 +1,7 @@
+import essenceIcon from "@/assets/currency-essence.png";
+import shardIcon from "@/assets/currency-soul-shard.png";
 import { t } from "./i18n";
-import { Sparkles, Ghost, Lock } from "lucide-react";
+import { Sparkles, Lock } from "lucide-react";
 import type { Hero } from "./data";
 import { update } from "./store";
 import { fmt, Gold } from "./ui";
@@ -13,7 +15,7 @@ import {
 export function EssenceBadge({ n }: { n: number }) {
   return (
     <span className="inline-flex items-center gap-1 font-bold text-[#a78bfa]" title={t("Battle Essence — earned from battles after level 20")}>
-      <Sparkles className="h-4 w-4" />
+      <img src={essenceIcon} alt="" width={128} height={128} className="h-5 w-5 object-contain" />
       {fmt(n)}
     </span>
   );
@@ -23,7 +25,7 @@ export function EssenceBadge({ n }: { n: number }) {
 export function ShardBadge({ n }: { n: number }) {
   return (
     <span className="inline-flex items-center gap-1 font-bold text-[#67e8f9]" title={t("Soul Shards — chance drops from battles, spent on permanent infusions")}>
-      <Ghost className="h-4 w-4" />
+      <img src={shardIcon} alt="" width={128} height={128} className="h-5 w-5 object-contain" />
       {fmt(n)}
     </span>
   );

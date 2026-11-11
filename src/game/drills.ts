@@ -173,10 +173,10 @@ export interface AdvancedDrill {
 }
 
 export const ADVANCED_DRILLS: AdvancedDrill[] = [
-  { id: "str", name: "Strength", per: 5, base: 3, barracks: 15, desc: "Iron discipline: every rank banks five points of Strength." },
-  { id: "int", name: "Intelligence", per: 5, base: 3, barracks: 18, desc: "Void-sigil study: every rank banks five points of Intelligence." },
-  { id: "agi", name: "Agility", per: 5, base: 3, barracks: 21, desc: "Shadowfoot drills: every rank banks five points of Agility." },
-  { id: "vit", name: "Vitality", per: 5, base: 3, barracks: 24, desc: "Deep-void conditioning: every rank banks five points of Vitality." },
+  { id: "str", name: "Strength", per: 5, base: 3, barracks: 5, desc: "Iron discipline: every rank banks five points of Strength." },
+  { id: "int", name: "Intelligence", per: 5, base: 3, barracks: 8, desc: "Void-sigil study: every rank banks five points of Intelligence." },
+  { id: "agi", name: "Agility", per: 5, base: 3, barracks: 11, desc: "Shadowfoot drills: every rank banks five points of Agility." },
+  { id: "vit", name: "Vitality", per: 5, base: 3, barracks: 14, desc: "Deep-void conditioning: every rank banks five points of Vitality." },
 ];
 
 /** What advanced training needs to begin. */

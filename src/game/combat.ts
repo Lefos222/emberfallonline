@@ -386,25 +386,16 @@ export function unitRating(u: Unit): number {
 }
 
 /**
- * War Gate pacing (presentation of the same fight, not its rewards): a hero who out-rates the
- * monsters finishes them with the first blow; otherwise the monsters' health is capped so the
- * hero needs about 3-5 blows, which keeps a gate fight around 10-15 seconds.
+ * War Gate pacing (presentation of the same fight, not its rewards): the monsters' health is
+ * capped so the hero needs about 3-5 blows — fewer the stronger the hero is against them —
+ * which keeps a gate fight around 10-15 seconds.
  */
-export function paceGateBattle(s: BattleState): { oneShot: boolean } {
+export function paceGateBattle(s: BattleState) {
   const hero = heroUnit(s);
   const foes = s.units.filter((u) => u.side === "foe");
   const foeR = foes.reduce((n, u) => n + unitRating(u), 0);
-  const heroR = unitRating(hero);
-  if (heroR > foeR) return { oneShot: true };
-  const ratio = Math.max(0, Math.min(1, heroR / Math.max(1, foeR)));
+  const ratio = Math.max(0, Math.min(1, unitRating(hero) / Math.max(1, foeR)));
   const hits = 3 + (1 - ratio) * 2;
   const cap = Math.max(1, Math.round((hero.atk * hits) / Math.max(1, foes.length)));
   for (const u of foes) if (u.maxHp > cap) { u.maxHp = cap; u.hp = Math.min(u.hp, cap); }
-  return { oneShot: false };
-}
-
-/** The out-rated monsters fall to the hero's blow. */
-export function finishOneShot(s: BattleState) {
-  for (const u of livingFoes(s)) u.hp = 0;
-  s.over = "won";
 }

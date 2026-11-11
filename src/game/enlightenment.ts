@@ -54,9 +54,9 @@ export function buyEnlightenment(h: Hero): string | null {
   return null;
 }
 
-/** Battle Essence earned from a won battle: 1 base + 1 per 10 levels, +2 for bosses. */
+/** Battle Essence earned from a won battle: 2 base + 1 per 5 levels, +4 for bosses. */
 export function battleEssenceGain(level: number, boss: boolean): number {
-  return 1 + Math.floor(level / 10) + (boss ? 2 : 0);
+  return 2 + Math.floor(level / 5) + (boss ? 4 : 0);
 }
 
 // ============= Soul Shards: chance-based battle drops for permanent infusions =============
@@ -119,8 +119,8 @@ export function buySoulInfusion(h: Hero, id: string): string | null {
 }
 
 /** Chance a won battle drops Soul Shards. Bosses drop far more often and in larger stacks. */
-export const SOUL_SHARD_CHANCE = 0.08;
-export const SOUL_SHARD_BOSS_CHANCE = 0.25;
+export const SOUL_SHARD_CHANCE = 0.2;
+export const SOUL_SHARD_BOSS_CHANCE = 0.5;
 
 /** Roll soul shards from a won battle. Returns the count (0 = no drop). */
 export function rollSoulShards(boss: boolean, rand: () => number = Math.random): number {

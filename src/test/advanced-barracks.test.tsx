@@ -25,12 +25,12 @@ describe("advanced barracks training", () => {
 
   it("locks the wing until the barracks is deep enough", () => {
     const hero = newHero("Recruit", "warrior");
-    hero.buildings = { barracks: 5 };
+    hero.buildings = { barracks: 4 };
     hero.voidCrystals = 40;
     setHero(hero);
     render(<AdvancedTraining hero={hero} />);
 
-    expect(screen.getByText("Barracks level 15")).toBeInTheDocument();
+    expect(screen.getByText("Barracks level 5")).toBeInTheDocument();
     expect(screen.queryAllByText("Train rank 1")).toHaveLength(0);
   });
 

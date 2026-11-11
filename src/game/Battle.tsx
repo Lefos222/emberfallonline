@@ -16,7 +16,7 @@ import { SCROLLS } from "./scrolls";
 import { saveFastFights, readFastFights } from "./battle-prefs";
 import { Button } from "@/components/ui/button";
 import {
-  current, drinkPotion, finishOneShot, livingFoes, paceGateBattle, enemyAct, formation, heroUnit, initBattle, playerAct, resourceName, skillReady, STATUS_LABEL, upcoming, validTargets,
+  current, drinkPotion, paceGateBattle, enemyAct, formation, heroUnit, initBattle, playerAct, resourceName, skillReady, STATUS_LABEL, upcoming, validTargets,
   type BattleState, type CEvent, type FighterInput, type TSkill, type Unit,
 } from "./combat";
 
@@ -53,14 +53,13 @@ export function arenaFor(title: string | undefined, boss?: boolean) {
 
 export function Battle({ left, right, auto = false, onEnd, title, gate = false }: {
   left: Fighter; right: Fighter; auto?: boolean; onEnd: (won: boolean) => void; title?: string;
-  /** A War Gate monster fight: 10-15 s, or a single blow when the hero out-rates the monsters. */
+  /** A War Gate monster fight: paced to about 10-15 s. */
   gate?: boolean;
 }) {
   const state = useRef<BattleState>(null as unknown as BattleState);
-  const oneShot = useRef(false);
   if (!state.current) {
     state.current = initBattle(left, formation(right));
-    if (gate) oneShot.current = paceGateBattle(state.current).oneShot;
+    if (gate) paceGateBattle(state.current);
   }
   const [, force] = useState(0);
   const rerender = () => force((n) => n + 1);
@@ -168,7 +167,6 @@ export function Battle({ left, right, auto = false, onEnd, title, gate = false }
       if (!r.ok) { setErr(r.error); return; }
       setSelSkill(null); setSelTargets([]);
       await play(r.events, hero.id, skId);
-      if (oneShot.current && !s.over && livingFoes(s).length) { finishOneShot(s); rerender(); }
       if (s.over) return finish();
       await runEnemies();
     } finally { busy.current = false; rerender(); }

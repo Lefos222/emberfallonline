@@ -1,3 +1,4 @@
+import voidCrystalIcon from "@/assets/currency-void-crystal.png";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Gem, Diamond } from "lucide-react";
@@ -96,7 +97,7 @@ export function VoidCrystals({ n, className = "" }: { n: number; className?: str
   const t = useT();
   return (
     <span className={"inline-flex items-center gap-1 font-bold text-void " + className} title={t("Void Crystals")}>
-      <Diamond className="h-4 w-4" />
+      <img src={voidCrystalIcon} alt="" width={128} height={128} className="h-5 w-5 object-contain" />
       {fmt(n)}
     </span>
   );
