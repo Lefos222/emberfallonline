@@ -96,6 +96,7 @@ export function Game() {
     left: Fighter;
     auto?: boolean;
     title: string;
+    gate?: boolean;
     dungeon?: boolean;
     onResult: Parameters<StartBattle>[0]["onResult"];
   }>(null);
@@ -271,6 +272,7 @@ export function Game() {
         fightOpen.current = true;
         setBattle({
           ...o,
+          gate: !o.arena && ["portal", "spire", "dungeon"].includes(open ?? ""),
           left: scrollFighter(
             {
               ...heroFighter(current.hero, heroStats(current.hero), current.gender),
@@ -692,6 +694,7 @@ export function Game() {
           right={battle.right}
           auto={battle.auto}
           title={battle.title}
+          gate={battle.gate}
           onEnd={onEnd}
         />
       )}
