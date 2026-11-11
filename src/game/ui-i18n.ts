@@ -2087,5 +2087,16 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Guide chapters": ["Κεφάλαια του οδηγού", "Rozdziały poradnika"],
   "Worth knowing:": ["Αξίζει να ξέρεις:", "Warto wiedzieć:"],
   "Every number in this guide comes from the game itself, so it stays true as the game grows.": ["Κάθε νούμερο σε αυτόν τον οδηγό βγαίνει από το ίδιο το παιχνίδι, οπότε μένει σωστό όσο μεγαλώνει.", "Każda liczba w tym poradniku pochodzi z samej gry, więc pozostaje aktualna, gdy gra rośnie."],
+  "Your hero": ["Ο ήρωάς σου", "Twój bohater"],
+  "Icons and materials": ["Εικονίδια και υλικά", "Ikony i materiały"],
+  "Energy": ["Ενέργεια", "Energia"],
+  "Mana": ["Μάνα", "Mana"],
+  "Focus": ["Συγκέντρωση", "Skupienie"],
+  "Gold Chest": ["Χρυσό Σεντούκι", "Złota Skrzynia"],
+  "Sword and shield, the toughest of the three. Energy builds as you attack.": ["Σπαθί και ασπίδα, ο πιο ανθεκτικός από τους τρεις. Η ενέργεια γεμίζει καθώς επιτίθεσαι.", "Miecz i tarcza, najtwardszy z trzech. Energia rośnie, gdy atakujesz."],
+  "Fire and ice spells, paid for from a Mana pool.": ["Ξόρκια φωτιάς και πάγου, με κόστος από τη δεξαμενή Μάνα.", "Czary ognia i lodu, opłacane z puli Many."],
+  "Bows, high crit and dodge, paid for with Focus.": ["Τόξα, υψηλό κριτ και αποφυγή, με κόστος Συγκέντρωση.", "Łuki, wysoki kryt i unik, opłacane Skupieniem."],
+  "Read the handbook before you play — every chapter matches a real screen in the game.": ["Διάβασε τον οδηγό πριν παίξεις — κάθε κεφάλαιο αντιστοιχεί σε πραγματική οθόνη του παιχνιδιού.", "Przeczytaj poradnik przed grą — każdy rozdział odpowiada prawdziwemu ekranowi w grze."],
+  "How to play": ["Πώς να παίξεις", "Jak grać"],
   // @@ROWS@@
 };

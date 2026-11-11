@@ -51,20 +51,21 @@ export function Panel({ title, subtitle, art, onClose, children, wide }: {
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-background/85 p-3" onClick={onClose}>
       <div
-        className={`game-panel anim-pop relative flex max-h-[92vh] w-full flex-col ${wide ? "max-w-6xl" : "max-w-3xl"}`}
+        className={`game-panel anim-pop relative flex max-h-[calc(100dvh-1.5rem)] w-full flex-col sm:max-h-[92dvh] ${wide ? "max-w-6xl" : "max-w-3xl"}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-border px-4 py-3 md:px-6">
+        <div className="flex items-center gap-2 border-b border-border px-3 py-2 sm:gap-3 sm:px-4 sm:py-3 md:px-6">
           {art && <span className="panel-crest shrink-0"><ArtIcon name={art} size={26} /></span>}
+          {/* Long chapter and building names wrap on a phone instead of being cut off. */}
           <div className="min-w-0 flex-1">
-            <h2 className="panel-title truncate text-xl font-bold md:text-3xl">{t(title)}</h2>
-            {subtitle && <p className="truncate text-xs text-muted-foreground md:text-sm">{t(subtitle)}</p>}
+            <h2 className="panel-title line-clamp-2 text-lg font-bold sm:text-xl md:text-3xl">{t(title)}</h2>
+            {subtitle && <p className="line-clamp-2 text-[11px] text-muted-foreground sm:truncate sm:text-xs md:text-sm">{t(subtitle)}</p>}
           </div>
           <button onClick={onClose} className="btn-blood flex h-9 w-9 shrink-0 items-center justify-center" aria-label={t("Close")}>
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="overflow-y-auto p-4 md:p-6">{children}</div>
+        <div className="overscroll-contain overflow-y-auto p-3 sm:p-4 md:p-6">{children}</div>
       </div>
     </div>
   );
@@ -106,10 +107,12 @@ export function GameTabs<T extends string>({ label, tabs, value, onChange }: {
   label: string; tabs: { id: T; name: string; badge?: number }[]; value: T; onChange: (id: T) => void;
 }) {
   return (
-    <div role="tablist" aria-label={label} className="mb-3 flex flex-wrap gap-1">
+    // A phone gets one swipeable row of tabs; a wider screen wraps them all into view.
+    <div role="tablist" aria-label={label}
+      className="mb-3 flex gap-1 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible sm:pb-0">
       {tabs.map((t) => (
         <button key={t.id} role="tab" aria-selected={t.id === value} onClick={() => onChange(t.id)}
-          className={`${t.id === value ? "btn-gold" : "btn-ghost"} relative px-2.5 py-1 text-xs`}>
+          className={`${t.id === value ? "btn-gold" : "btn-ghost"} relative shrink-0 px-2.5 py-1 text-xs`}>
           {t.name}
           {!!t.badge && <span className="ml-1 rounded-full bg-blood px-1.5 text-[10px]">{t.badge}</span>}
         </button>

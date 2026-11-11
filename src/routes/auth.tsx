@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import castle from "@/assets/castle.jpg.asset.json";
@@ -119,6 +119,7 @@ function AuthPage() {
           {mode === "in" ? <button className="text-muted-foreground hover:text-gold" onClick={() => setMode("forgot")}>{t("Forgot password?")}</button>
             : mode === "forgot" ? <button className="text-muted-foreground hover:text-gold" onClick={() => setMode("in")}>{t("Back to sign in")}</button> : null}
         </div>
+        <Link to="/guide" className="mt-4 block text-center text-xs text-gold hover:underline">{t("How to play")}</Link>
       </div>
     </div>
   );
