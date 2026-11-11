@@ -79,11 +79,18 @@ export const claimQuest = (kind: GuildQuestKind) => withSave("guild_quest_claim"
 export const donateGold = (gold: number) => withSave("guild_quest_donate", { _gold: gold });
 export const claimTournament = () => withSave("guild_tournament_claim", {});
 
-/** Count a won battle toward the guild's weekly quest. Silent when the hero has no guild. */
+/**
+ * Count a won battle toward the guild's weekly quest. Silent when the hero has no guild.
+ *
+ * The server only bumps a shared guild counter here — it reads and writes no hero save — so the
+ * report stays outside `withServerHero`. That serialised runner holds the store's mutation lock
+ * and flushes the save, and the fight's own counters (record, slain, drops) are written right
+ * after this call; locking them out would leave every win quest stuck at zero.
+ */
 export function reportGuildBattle() {
   const id = getState().heroId;
   if (!id) return;
-  void withServerHero((heroId) => rpc("guild_quest_battle", { _hero: heroId })).catch(() => {});
+  void rpc("guild_quest_battle", { _hero: id }).catch(() => {});
 }
 
 export const rewardText = (reward: unknown) => {
