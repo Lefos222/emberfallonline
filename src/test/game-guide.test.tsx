@@ -22,7 +22,8 @@ describe("the game guide", () => {
 
     expect(screen.getByText("Game Guide")).toBeInTheDocument();
     expect(screen.getByText(GUIDE_CHAPTERS[0].title)).toBeInTheDocument();
-    for (const step of GUIDE_CHAPTERS[0].steps) expect(screen.getByText(step.title)).toBeInTheDocument();
+    for (const step of GUIDE_CHAPTERS[0].steps)
+      expect(screen.getByText(step.title)).toBeInTheDocument();
     expect(screen.getAllByRole("tab")).toHaveLength(GUIDE_CHAPTERS.length);
   });
 
@@ -50,6 +51,26 @@ describe("the game guide", () => {
     view.rerender(<GameGuide onClose={() => {}} />);
     expect(screen.getByText(`2/${GUIDE_GOALS.length}`)).toBeInTheDocument();
     expect(goalsDone(hero)).toBe(2);
+  });
+
+  it("pictures every chapter and every step with the game's own art", () => {
+    setHero(newHero("Tester", "warrior"));
+    const view = render(<GameGuide onClose={() => {}} />);
+
+    // The banner plus one glyph per step, then the class models and the icon legend.
+    const images = view.container.querySelectorAll("img");
+    expect(images.length).toBeGreaterThan(GUIDE_CHAPTERS[0].steps.length + 2);
+    expect(screen.getByText("Warrior")).toBeInTheDocument();
+    expect(screen.getByText("Mage")).toBeInTheDocument();
+    expect(screen.getByText("Archer")).toBeInTheDocument();
+    expect(screen.getByText("Icons and materials")).toBeInTheDocument();
+    expect(screen.getByText("Enchantment Stone")).toBeInTheDocument();
+
+    // A chapter with a picture on its first step keeps it after switching.
+    fireEvent.click(
+      screen.getByRole("tab", { name: GUIDE_CHAPTERS.find((c) => c.id === "forge")!.tab }),
+    );
+    expect(view.container.querySelectorAll("img").length).toBeGreaterThan(2);
   });
 
   it("speaks Greek and Polish", () => {
