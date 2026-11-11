@@ -1,4 +1,5 @@
 import { Announcements } from "./Announcements";
+import { SecurityNotice } from "./SecurityNotice";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { MountsPanel, RunesPanel, WheelPanel } from "./Emporium";
 import mountIcon from "@/assets/mounts/griffin.webp";
@@ -449,6 +450,7 @@ export function Game() {
   return (
     <div className="fixed inset-0 overflow-hidden bg-background">
       <audio key={sound.track} ref={audio} src={soundtrackUrl(sound.track)} loop preload="auto" />
+      <SecurityNotice />
       {!authReady || !userId ? (
         <div className="flex h-full items-center justify-center gap-2 font-display text-lg">
           <Loader2 className="h-5 w-5 animate-spin" />

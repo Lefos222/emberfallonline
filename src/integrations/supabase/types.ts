@@ -1990,6 +1990,8 @@ export type Database = {
         Args: { _accept: boolean; _application: string; _hero: string }
         Returns: undefined
       }
+      ack_anti_cheat_notices: { Args: { _ids: number[] }; Returns: number }
+      my_anti_cheat_notices: { Args: never; Returns: Json }
       my_guild_ids: { Args: never; Returns: string[] }
       my_hero_ids: { Args: never; Returns: string[] }
       player_castle_raid: {

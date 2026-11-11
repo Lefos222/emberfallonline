@@ -302,6 +302,13 @@
       "when": 1794410000007,
       "tag": "0042_rose_purchase_contract",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1794410000008,
+      "tag": "0043_anti_cheat",
+      "breakpoints": true
     }
   ]
 }

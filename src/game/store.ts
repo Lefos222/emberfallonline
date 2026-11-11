@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { heroStats, normalizeHero, type Hero, type HeroClass } from "./data";
 import { isPreResetSave, resetHero } from "./world-reset";
+import { refreshAntiCheatNotices } from "./anticheat";
 
 export type Gender = "male" | "female";
 export interface CharacterRow {
@@ -55,12 +56,39 @@ async function performSave(): Promise<boolean> {
   set({ cloud: "saving" });
   const s = heroStats(h);
   const now = new Date().toISOString();
-  const { error } = await supabase.from("heroes").update({
+  // The server checks every save for values the game cannot produce and rolls those back
+  // (see drizzle/migrations/0043_anti_cheat.sql). Ask for the stored row so the client adopts
+  // whatever actually landed instead of replaying a rejected value on the next autosave.
+  const { data, error } = await supabase.from("heroes").update({
     level: h.level, power: s.power, stats: { ...s, paragon: h.paragon } as never, save: h as never,
     updated_at: now, last_played: now,
-  }).eq("id", id);
+  }).eq("id", id).select("save,level,power");
   lastSavedAt = now;
   if (state.heroId === id) set({ cloud: error ? "error" : "saved" });
+  if (!error) {
+    const row = (Array.isArray(data) ? data[0] : undefined) as { save?: Hero; level?: number; power?: number } | undefined;
+    if (!row) {
+      // No row came back: the anti-cheat removed this character. Drop it and let the notice explain.
+      if (state.heroId === id) {
+        set({ hero: null, heroId: null });
+        localStorage.removeItem(LAST);
+        void loadCharacters();
+      }
+      void refreshAntiCheatNotices();
+    } else if (
+      row.save &&
+      (row.level !== h.level || row.power !== s.power ||
+        (row.save.gold ?? 0) !== h.gold ||
+        (row.save.srv?.premium?.balance ?? 0) !== (h.srv?.premium?.balance ?? 0))
+    ) {
+      try {
+        adoptServerSave(id, row.save);
+      } catch {
+        /* the next load reads the stored row anyway */
+      }
+      void refreshAntiCheatNotices();
+    }
+  }
   return !error;
 }
 
