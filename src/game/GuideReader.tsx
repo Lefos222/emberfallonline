@@ -17,6 +17,7 @@ import { ArtIcon } from "./ArtIcon";
 
 /**
  * The guide's reader: one painted chapter at a time, with a picture on every step.
+ * Steps are interactive — click to expand/collapse the full description.
  *
  * It is shared by the in-game window (`GameGuide`) and the public handbook at `/guide`, so a
  * player can read the whole game before making a hero and everything stays in one place.
@@ -35,9 +36,11 @@ export function GuideReader({
   onChapter?: (id: string) => void;
 }) {
   const [own, setOwn] = useState(GUIDE_CHAPTERS[0].id);
+  const [expanded, setExpanded] = useState<Set<number>>(new Set([0]));
   const current = chapterId ?? own;
   const setChapter = (id: string) => {
     setOwn(id);
+    setExpanded(new Set([0]));
     onChapter?.(id);
   };
   const index = Math.max(
@@ -47,14 +50,30 @@ export function GuideReader({
   const chapter = GUIDE_CHAPTERS[index];
   const art = CHAPTER_ART[chapter.id] ?? CHAPTER_ART["start"];
 
+  const toggle = (i: number) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  };
+
+  const expandAll = () => setExpanded(new Set(chapter.steps.map((_, i) => i)));
+  const collapseAll = () => setExpanded(new Set());
+
   return (
     <section className="min-w-0">
-      <GameTabs
-        label={tr("Guide chapters")}
-        value={chapter.id}
-        onChange={setChapter}
-        tabs={GUIDE_CHAPTERS.map((c) => ({ id: c.id, name: c.tab }))}
-      />
+      {/* The internal tab bar only renders for the public handbook route (/guide);
+          GameGuide passes chapterId/onChapter and renders its own tabs above. */}
+      {!chapterId && (
+        <GameTabs
+          label={tr("Guide chapters")}
+          value={chapter.id}
+          onChange={setChapter}
+          tabs={GUIDE_CHAPTERS.map((c) => ({ id: c.id, name: c.tab }))}
+        />
+      )}
 
       <article className="slot overflow-hidden">
         {/* The chapter's painted scene, so every topic looks like the place it is about. */}
@@ -82,27 +101,62 @@ export function GuideReader({
           </div>
         </div>
 
+        {/* Interactive expand/collapse controls */}
+        <div className="flex items-center justify-between gap-2 px-2 pt-2 sm:px-3">
+          <span className="text-[11px] text-muted-foreground">
+            {tr("Tap a step to expand or collapse")}
+          </span>
+          <div className="flex gap-2">
+            <button onClick={expandAll} className="text-[11px] font-display text-gold/70 hover:text-gold">
+              {tr("Expand all")}
+            </button>
+            <span className="text-muted-foreground/40">·</span>
+            <button onClick={collapseAll} className="text-[11px] font-display text-gold/70 hover:text-gold">
+              {tr("Collapse all")}
+            </button>
+          </div>
+        </div>
+
         <ol className="grid gap-2 p-2 sm:p-3 md:grid-cols-2">
           {chapter.steps.map((s, i) => {
             const glyph = stepGlyph(chapter, i);
+            const isOpen = expanded.has(i);
             return (
               <li
                 key={s.title}
-                className="flex gap-2.5 rounded-md border border-border/40 bg-background/50 p-2.5"
+                className={`flex flex-col rounded-md border bg-background/50 transition-all cursor-pointer ${
+                  isOpen
+                    ? "border-gold/40 bg-gold/5"
+                    : "border-border/40 hover:border-gold/20 hover:bg-secondary/20"
+                }`}
+                onClick={() => toggle(i)}
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-gold/40 bg-gradient-to-b from-secondary/60 to-background/80">
-                  {glyph ? (
-                    <GuideGlyphIcon glyph={glyph} size={26} />
-                  ) : (
-                    <span className="font-display text-base text-gold">{i + 1}</span>
-                  )}
-                </span>
-                <div className="min-w-0">
-                  <h4 className="font-display text-sm leading-tight text-foreground">
-                    <span className="mr-1.5 text-gold/70">{i + 1}.</span>
-                    {s.title}
-                  </h4>
-                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{s.body}</p>
+                <div className="flex gap-2.5 p-2.5">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-gold/40 bg-gradient-to-b from-secondary/60 to-background/80">
+                    {glyph ? (
+                      <GuideGlyphIcon glyph={glyph} size={26} />
+                    ) : (
+                      <span className="font-display text-base text-gold">{i + 1}</span>
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-display text-sm leading-tight text-foreground">
+                      <span className="mr-1.5 text-gold/70">{i + 1}.</span>
+                      {s.title}
+                    </h4>
+                    <div
+                      className={`grid transition-all duration-200 ${
+                        isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                      }`}
+                    >
+                      <p className="overflow-hidden text-xs leading-relaxed text-muted-foreground">
+                        {s.body}
+                      </p>
+                    </div>
+                    {!isOpen && (
+                      <span className="mt-0.5 inline-block text-[10px] text-gold/50">▾ {tr("click to read")}</span>
+                    )}
+                  </div>
                 </div>
               </li>
             );
