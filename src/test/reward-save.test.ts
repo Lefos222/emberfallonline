@@ -4,7 +4,11 @@ import { newHero } from "@/game/data";
 const fake = vi.hoisted(() => ({ writes: [] as string[], failed: false, save: {} as unknown }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: { from: () => ({
-    update: () => ({ eq: async () => { fake.writes.push("save"); return { error: fake.failed ? { message: "offline" } : null }; } }),
+    update: () => ({ eq: () => {
+      fake.writes.push("save");
+      const result = Promise.resolve(fake.failed ? { data: null, error: { message: "offline" } } : { data: [{ id: "hero" }], error: null });
+      return { select: () => result, then: result.then.bind(result) };
+    } }),
     select: (cols: string) => ({
       eq: () => ({
         order: async () => ({ data: [], error: null }),

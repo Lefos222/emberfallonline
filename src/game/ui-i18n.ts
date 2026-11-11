@@ -2098,5 +2098,9 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Bows, high crit and dodge, paid for with Focus.": ["Τόξα, υψηλό κριτ και αποφυγή, με κόστος Συγκέντρωση.", "Łuki, wysoki kryt i unik, opłacane Skupieniem."],
   "Read the handbook before you play — every chapter matches a real screen in the game.": ["Διάβασε τον οδηγό πριν παίξεις — κάθε κεφάλαιο αντιστοιχεί σε πραγματική οθόνη του παιχνιδιού.", "Przeczytaj poradnik przed grą — każdy rozdział odpowiada prawdziwemu ekranowi w grze."],
   "How to play": ["Πώς να παίξεις", "Jak grać"],
+  "Cheating detected": ["Εντοπίστηκε απάτη", "Wykryto oszustwo"],
+  "{name} was removed because the game received a save that is not possible in normal play.": ["Ο {name} αφαιρέθηκε επειδή το παιχνίδι έλαβε αποθήκευση που δεν είναι δυνατή στο κανονικό παιχνίδι.", "{name} został usunięty, ponieważ gra otrzymała zapis niemożliwy w normalnej rozgrywce."],
+  "The last clean save of this character was kept. If you believe this was a mistake, contact the game team and it can be restored.": ["Η τελευταία καθαρή αποθήκευση του χαρακτήρα κρατήθηκε. Αν πιστεύεις ότι έγινε λάθος, επικοινώνησε με την ομάδα του παιχνιδιού για να επαναφερθεί.", "Ostatni czysty zapis tej postaci został zachowany. Jeśli uważasz, że to pomyłka, skontaktuj się z zespołem gry, a postać zostanie przywrócona."],
+  "I understand": ["Κατάλαβα", "Rozumiem"],
   // @@ROWS@@
 };

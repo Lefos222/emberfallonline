@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { heroStats, normalizeHero, type Hero, type HeroClass } from "./data";
 import { isPreResetSave, resetHero } from "./world-reset";
+import { loadCheatWarnings } from "./anticheat";
 
 export type Gender = "male" | "female";
 export interface CharacterRow {
@@ -55,13 +56,23 @@ async function performSave(): Promise<boolean> {
   set({ cloud: "saving" });
   const s = heroStats(h);
   const now = new Date().toISOString();
-  const { error } = await supabase.from("heroes").update({
+  const { data, error } = await supabase.from("heroes").update({
     level: h.level, power: s.power, stats: { ...s, paragon: h.paragon } as never, save: h as never,
     updated_at: now, last_played: now,
-  }).eq("id", id);
+  }).eq("id", id).select("id");
   lastSavedAt = now;
+  // No row back means the server refused the save and removed the character (anticheat).
+  if (!error && (data?.length ?? 0) === 0) { await characterRemoved(id); return false; }
   if (state.heroId === id) set({ cloud: error ? "error" : "saved" });
   return !error;
+}
+
+/** The server no longer has this character: drop the local copy and show the reason. */
+async function characterRemoved(id: string) {
+  clearTimeout(saveTimer);
+  if (localStorage.getItem(LAST) === id) localStorage.removeItem(LAST);
+  if (state.heroId === id) set({ hero: null, heroId: null, cloud: "off" });
+  await Promise.all([loadCharacters(), loadCheatWarnings()]);
 }
 
 async function pushCloud(): Promise<boolean> {
@@ -119,6 +130,7 @@ export async function loadCharacters() {
   const rows = (data ?? []) as unknown as CharacterRow[];
   if (rows.length === 0) clearCharacterCache();
   set({ chars: rows });
+  void loadCheatWarnings();
 }
 
 let authEventSeen = false;
@@ -186,6 +198,8 @@ export async function createCharacter(name: string, cls: HeroClass, gender: Gend
     if (error.code === "23505") return "That name is already taken";
     if (error.code === "42501") return "You can have at most 4 characters";
     if (error.code === "23514") return "Name must be 3–18 letters, numbers, spaces, - or _";
+    // PGRST116: the server refused a character that was not fresh (anticheat).
+    if (error.code === "PGRST116") { await loadCheatWarnings(); return "This character was refused by the server."; }
     return error.message;
   }
   await loadCharacters();
