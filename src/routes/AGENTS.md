@@ -1,0 +1,1 @@
+- Admin pages read moderation data only through admin-checked SECURITY DEFINER RPCs (`admin_moderation`, `has_role` on `user_roles`); never gate admin data in the client. Why: roles must be server-verified.
