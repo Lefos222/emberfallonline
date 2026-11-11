@@ -42,7 +42,6 @@ import {
   type Bounty,
   type BountyKind,
 } from "./worldtree";
-import { RealmPursuits } from "./RealmPursuits";
 import {
   castleRaidNode,
   castleRaidsLeft,
@@ -815,7 +814,6 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
           )}
         </div>
 
-        <RealmPursuits scope="world" />
         <p className="border-t border-border px-3 py-2 text-[11px] text-muted-foreground md:px-6">
           {WORLD_SITES.length}  {t("places of interest stand on one bounded realm — mines, ore dungeons, world bosses, rival castles, ruins, sealed vaults and painted wonders. Drag to travel, scroll or pinch the buttons to zoom, take the day's bounties, and plant your own castle anywhere on it. Banners are shared: every hero the realm holds can raise one.")} </p>
       </div>

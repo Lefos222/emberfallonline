@@ -1,4 +1,5 @@
 # Roadmap (current request)
+- [x] Nov 11, 08:23: Restore the pre-quest-update World Tree screen; preserve map, raid systems and saved progress.
 - [x] Nov 11, 01:28: Health/resource values inside combat balls; remove duplicate bottom Guide shortcut.
 - [x] Nov 11, 01:28: Four active and four passive additions per class; rank-scaled mage party healing.
 - [x] Nov 11, 01:28: Harder Relic Trials; War Gates random rewards split 70% materials / 30% gear; guaranteed relic pieces preserved.
