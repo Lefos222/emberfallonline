@@ -1,3 +1,4 @@
+import { battleEssenceGain, enlightenmentUnlocked, rollSoulShards } from "./enlightenment";
 import { mountBlitzPct } from "./mounts";
 import type { Hero } from "./data";
 import { grant } from "./logic";
@@ -94,6 +95,9 @@ export interface BlitzReceipt {
   xp: number;
   gold: number;
   tokens: number;
+  /** Battle Essence (Enlightenment) and Soul Shards (Soul Forge) the run's fights left behind. */
+  essence: number;
+  shards: number;
 }
 
 /** Pay a run onto the save and take it off the hero, whether or not its clock has run out. */
@@ -106,8 +110,15 @@ export function finishBlitzRun(h: Hero): BlitzReceipt | null {
   const tokens = run.tokens ?? 0;
   if (tokens)
     h.conquest = { ...(h.conquest ?? {}), tokens: Math.max(0, (h.conquest?.tokens ?? 0) + tokens) };
+  // The run's fights feed the same post-20 tracks a won battle does (see enlightenment.ts).
+  const fights = Math.max(1, Math.min(10, Math.ceil(run.target / 10)));
+  const essence = enlightenmentUnlocked(h) ? battleEssenceGain(h.level + (h.paragon ?? 0), false) * fights : 0;
+  let shards = 0;
+  for (let i = 0; i < fights; i++) shards += rollSoulShards(false);
+  if (essence) h.battleEssence = Math.max(0, Math.floor(h.battleEssence ?? 0)) + essence;
+  if (shards) h.soulShards = Math.max(0, Math.floor(h.soulShards ?? 0)) + shards;
   delete h.blitzRun;
-  return { gate: run.gate, target: run.target, xp, gold: run.gold, tokens };
+  return { gate: run.gate, target: run.target, xp, gold: run.gold, tokens, essence, shards };
 }
 
 /** Pay the run once its clock is up. Returns the receipt, or null while it still runs. */

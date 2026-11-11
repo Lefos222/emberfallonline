@@ -24,7 +24,7 @@ function skipError(e: unknown): string {
 }
 
 const receiptLine = (r: BlitzReceipt) =>
-  `Blitz finished — +${fmt(r.xp)} XP, +${fmt(r.gold)} gold${r.tokens ? `, +${fmt(r.tokens)} tokens` : ""}`;
+  `Blitz finished — +${fmt(r.xp)} XP, +${fmt(r.gold)} gold${r.tokens ? `, +${fmt(r.tokens)} tokens` : ""}${r.essence ? `, +${fmt(r.essence)} Battle Essence` : ""}${r.shards ? `, +${fmt(r.shards)} Soul Shards` : ""}`;
 
 /** Pay the run onto the live save and hand back what it paid. */
 function settleNow(): BlitzReceipt | null {
