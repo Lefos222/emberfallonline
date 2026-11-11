@@ -591,7 +591,7 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                     ? `${cluster.items.length} player castles`
                     : `${lead.name} · level ${lead.level}`
                 }
-                className="absolute z-[15] flex h-16 w-16 -translate-x-1/2 -translate-y-3/4 flex-col items-center justify-end drop-shadow-[0_0_6px_hsl(var(--background))] transition hover:z-30 hover:scale-125"
+                className="absolute z-[15] flex h-20 w-20 -translate-x-1/2 -translate-y-3/4 flex-col items-center justify-end drop-shadow-[0_0_6px_hsl(var(--background))] transition hover:z-30 hover:scale-125"
                 style={{ left: p.left, top: p.top }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -604,8 +604,9 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                   setPicked(lead);
                 }}
               >
-                <img src={icPlayer} alt="" width={192} height={192} loading="lazy" className="absolute inset-0 h-full w-full object-contain" />
-                <span className="relative -mb-4 max-w-28 truncate rounded border border-gold/50 bg-background/90 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-gold">
+                <span aria-hidden className="absolute bottom-0 left-1/2 h-6 w-16 -translate-x-1/2 animate-pulse rounded-[50%] bg-gold/40 blur-sm" />
+                <img src={icPlayer} alt="" width={192} height={192} loading="lazy" className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_0_6px_hsl(var(--gold))]" />
+                <span className="relative -mb-4 max-w-32 truncate rounded border-2 border-gold bg-background px-2 py-0.5 text-[11px] shadow-lg font-semibold leading-none text-gold">
                   {cluster.items.length > 1 ? `${cluster.items.length} ${t("castles")}` : `${lead.name} · ${lead.level}`}
                 </span>
               </button>

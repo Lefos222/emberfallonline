@@ -23,7 +23,7 @@ import { ConquestTokens } from "./ConquestGate";
 import { CampaignBlitz } from "./CampaignBlitz";
 import { LevelProgress } from "./LevelCurve";
 import { update, useGame } from "./store";
-import { GameTabs, Gold, ItemCard, ItemSlot, Panel, fmt } from "./ui";
+import { GameTabs, Gold, InfoTip, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { ConquestCoin } from "./CoinIcon";
 import { DangerPill, StageStepper, StaminaMeter } from "./GateUI";
 import { GemIcon, MatIcon, StoneIcon } from "./MatIcon";
@@ -189,9 +189,11 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               const n = matCount(hero, m); if (n <= 0) return [];
               return Array.from({ length: Math.ceil(n / MAT_STACK) }, (_, k) => {
                 const here = Math.min(MAT_STACK, n - k * MAT_STACK);
-                return <div key={m + k} className={"slot bag-mat rarity-" + Math.min(MATS[m].rarity + 1, 5)} style={{ width: 44, height: 44 }} title={`${MATS[m].name} ×${fmt(here)} — ${MATS[m].src}`}>
-                  <MatIcon mat={m} size={34} /><span className="bag-mat-count">{here >= 1000 ? `${Math.floor(here / 1000)}k` : here}</span>
-                </div>;
+                return <InfoTip key={m + k} title={`${MATS[m].name} ×${fmt(here)}`} lines={[MATS[m].desc, `${t("Found:")} ${MATS[m].src}`]}>
+                  <button type="button" aria-label={`${MATS[m].name}, ${here}`} className={"slot bag-mat rarity-" + Math.min(MATS[m].rarity + 1, 5)} style={{ width: 44, height: 44 }}>
+                    <MatIcon mat={m} size={34} /><span className="bag-mat-count">{here >= 1000 ? `${Math.floor(here / 1000)}k` : here}</span>
+                  </button>
+                </InfoTip>;
               });
             })])}
           </div>

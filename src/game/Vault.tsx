@@ -5,6 +5,7 @@ import { CHESTS, chestCount, openChest, ownedChests, type ChestKind } from "./ch
 import { GEMS, GEM_STAT_LABEL, GEM_TIER_NAMES, gemName, gemValue, parseGem } from "./crafting";
 import { GemIcon } from "./MatIcon";
 import { update, useGame } from "./store";
+import { InfoTip } from "./ui";
 
 export type VaultPick = { type: "chest"; kind: ChestKind } | { type: "gem"; key: string };
 
@@ -16,18 +17,22 @@ export type VaultPick = { type: "chest"; kind: ChestKind } | { type: "gem"; key:
 /** Chest and gem stacks as square bag tiles, so they sit in the bag grid beside gear and materials. */
 export function vaultTiles(hero: { gems?: Record<string, number>; chests?: Partial<Record<ChestKind, number>> }, pick: VaultPick | null, onPick: (p: VaultPick) => void) {
   const chests = ownedChests(hero).filter((c) => c.count > 0).map((c) => (
+    <InfoTip key={"chest-" + c.id} title={`${c.name} ×${c.count}`} lines={[CHESTS[c.id].desc, t("Select it, then open it below the bag.")]}>
     <button key={"chest-" + c.id} className={`slot bag-mat ${pick?.type === "chest" && pick.kind === c.id ? "ring-2 ring-gold" : ""}`} style={{ width: 44, height: 44 }}
       onClick={() => onPick({ type: "chest", kind: c.id })} aria-label={`${c.name}, ${c.count}`} title={c.name}>
       {c.id === "gold" ? <GoldChestIcon size={34} /> : <GemChestIcon size={34} />}<span className="bag-mat-count">{c.count}</span>
     </button>
+    </InfoTip>
   ));
   const gems = Object.entries(hero.gems ?? {}).filter(([, n]) => n > 0).sort(([a], [b]) => a.localeCompare(b)).map(([key, n]) => {
     const g = parseGem(key);
     return (
-      <button key={"gem-" + key} className={`slot bag-mat ${pick?.type === "gem" && pick.key === key ? "ring-2 ring-gold" : ""}`} style={{ width: 44, height: 44 }}
+      <InfoTip key={"gem-" + key} title={`${gemName(key)} ×${n}`} lines={g ? [`+${gemValue(key)} ${GEM_STAT_LABEL[GEMS[g.type].stat]} · ${GEMS[g.type].classes}`, t("Socket it into gear at the Gem Workshop, or fuse three into the next tier.")] : []}>
+      <button className={`slot bag-mat ${pick?.type === "gem" && pick.key === key ? "ring-2 ring-gold" : ""}`} style={{ width: 44, height: 44 }}
         onClick={() => onPick({ type: "gem", key })} aria-label={`${gemName(key)}, ${n}`} title={gemName(key)}>
         {g && <GemIcon type={g.type} size={30} />}<span className="bag-mat-count">{n}</span>
       </button>
+      </InfoTip>
     );
   });
   return [...chests, ...gems];

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Gem, Diamond } from "lucide-react";
 import { X } from "./PaintedIcons";
@@ -123,6 +123,23 @@ export function fmt(n: number) {
   if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
   if (n >= 1e4) return (n / 1e3).toFixed(1) + "K";
   return Math.round(n).toLocaleString();
+}
+
+/**
+ * Hover (desktop) or tap (phone) a bag tile to read what it is and what it's for.
+ * Taps toggle the card because touch screens never fire hover.
+ */
+export function InfoTip({ title, lines, children }: { title: ReactNode; lines: ReactNode[]; children: React.ReactElement }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <HoverCard open={open} onOpenChange={setOpen} openDelay={120} closeDelay={60}>
+      <HoverCardTrigger asChild onClickCapture={() => setOpen((o) => !o)}>{children}</HoverCardTrigger>
+      <HoverCardContent side="top" className="game-panel w-60 p-3 text-xs" onPointerDownOutside={() => setOpen(false)}>
+        <p className="font-display text-sm font-bold text-gold">{title}</p>
+        {lines.filter(Boolean).map((l, i) => <p key={i} className="mt-1 text-foreground/85">{l}</p>)}
+      </HoverCardContent>
+    </HoverCard>
+  );
 }
 
 export function ItemSlot({ item, size = 56, onClick, selected, empty, noHover }: { item?: Item; size?: number; onClick?: () => void; selected?: boolean; empty?: ReactNode; noHover?: boolean }) {
