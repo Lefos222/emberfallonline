@@ -2,10 +2,13 @@ import { MATS, gemKey, type GemType } from "./crafting";
 import type { Hero } from "./data";
 import {
   CHEST_OFFERS,
+  DIAMOND_PACKS,
   DIAMOND_SHOP,
   GEM_TIER_PRICES,
   GOLD_PACKS,
   MATERIAL_PRICES,
+  VIP_PLANS,
+  diamondPackTotal,
   materialBaseCost,
   vipPlanFor,
   type DiamondMat,
@@ -87,6 +90,72 @@ export function applyCardPurchase(save: Hero, grant: CardGrant, now = Date.now()
     });
   }
   return next;
+}
+
+/** The parts of a Stripe Checkout Session that decide what a payment buys. */
+export interface PaidSession {
+  id: string;
+  status?: string | null;
+  payment_status?: string | null;
+  amount_total?: number | null;
+  currency?: string | null;
+  client_reference_id?: string | null;
+  metadata?: Record<string, string | null | undefined> | null;
+}
+
+export interface VerifiedCardPurchase {
+  userId: string;
+  heroId: string;
+  itemId: string;
+  /** What Stripe says was actually charged, in cents. */
+  amountTotal: number;
+  grant: CardGrant;
+}
+
+/** Turn a Checkout Session into the wallet credit it bought.
+ *
+ *  The price always comes from the catalogue the shop displays, never from the session or the
+ *  client, so an unpaid, unknown or underpaid session is refused instead of granting goods. */
+export function verifiedCardPurchase(session: PaidSession): VerifiedCardPurchase {
+  if (session.payment_status !== "paid" || (session.status ?? "complete") !== "complete")
+    throw new Error("The payment has not completed yet. Finish it and try again.");
+  if (session.currency && session.currency !== "usd")
+    throw new Error("This payment was not made in the shop's currency.");
+  const meta = session.metadata ?? {};
+  const userId = meta["userId"] ?? session.client_reference_id ?? "";
+  if (!userId) throw new Error("This payment is missing its account.");
+  const heroId = meta["heroId"] ?? "";
+  if (!heroId) throw new Error("This payment is missing its character.");
+  const amountTotal = Number(session.amount_total ?? 0);
+  if (!Number.isFinite(amountTotal) || amountTotal <= 0)
+    throw new Error("This payment did not charge anything.");
+  const itemId = meta["itemId"] ?? "";
+
+  if (meta["kind"] === "diamonds") {
+    const pack = DIAMOND_PACKS.find((p) => p.id === itemId);
+    if (!pack) throw new Error("Unknown Diamond pack in this payment.");
+    if (amountTotal < pack.priceCents) throw new Error("This payment does not cover the pack.");
+    return {
+      userId,
+      heroId,
+      itemId,
+      amountTotal,
+      grant: { ref: session.id, kind: "diamonds", diamonds: diamondPackTotal(pack) },
+    };
+  }
+  if (meta["kind"] === "vip") {
+    const plan = VIP_PLANS.find((p) => String(p.level) === itemId);
+    if (!plan) throw new Error("Unknown VIP membership in this payment.");
+    if (amountTotal < plan.priceCents) throw new Error("This payment does not cover the membership.");
+    return {
+      userId,
+      heroId,
+      itemId,
+      amountTotal,
+      grant: { ref: session.id, kind: "vip", vipLevel: plan.level, days: plan.days },
+    };
+  }
+  throw new Error("Unknown purchase in this payment.");
 }
 
 export type SpendKind = "material" | "gem" | "chest" | "gold" | "vip" | "item";

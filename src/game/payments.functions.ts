@@ -4,10 +4,12 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Hero } from "./data";
 import { DIAMOND_PACKS, VIP_PLANS, diamondPackTotal } from "./economy";
-import { applyCardPurchase, applyDiamondSpend, cardPurchaseApplied } from "./premium-ledger";
+import { applyDiamondSpend } from "./premium-ledger";
+import { fulfilCheckoutSession } from "./premium-fulfil.server";
 import {
   createCheckoutSession,
   forgetRequest,
+  listRecentCheckoutSessions,
   paymentsConfigured,
   readCheckoutSession,
   readHeroSave,
@@ -77,8 +79,8 @@ export const startCheckout = createServerFn({ method: "POST" })
     const session = await createCheckoutSession({
       mode: "payment",
       "payment_method_types[0]": "card",
-      success_url: `${origin()}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin()}/?checkout=cancelled`,
+      success_url: `${origin()}/play?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin()}/play?checkout=cancelled`,
       client_reference_id: context.userId,
       "line_items[0][quantity]": 1,
       "line_items[0][price_data][currency]": "usd",
@@ -99,51 +101,50 @@ export const confirmCheckout = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ sessionId: z.string().min(4).max(200) }).parse(input))
   .handler(async ({ data, context }) => {
     const session = await readCheckoutSession(data.sessionId);
-    const meta = session.metadata ?? {};
-    if (meta["userId"] !== context.userId)
-      throw new Error("This payment belongs to another account.");
-    if (session.payment_status !== "paid" || session.status !== "complete") {
-      throw new Error("The payment has not completed yet. Finish it and try again.");
-    }
-    const heroId = meta["heroId"];
-    if (!heroId) throw new Error("This payment is missing its character.");
+    const owner = session.metadata?.["userId"] ?? session.client_reference_id;
+    if (owner !== context.userId) throw new Error("This payment belongs to another account.");
+    // Crediting is idempotent per session id, so a webhook that already paid this out is reused.
+    const result = await fulfilCheckoutSession(session);
+    return { save: result.save, already: result.already };
+  });
 
-    const row = await readHeroSave(heroId);
-    if (!row) throw new Error("That character no longer exists.");
-    if (row.userId !== context.userId) throw new Error("This payment belongs to another account.");
+/** Credit every paid Checkout Session this account has not received yet.
+ *
+ *  Covers the payments a webhook may not have reached and the ones finished on another device:
+ *  the sessions are read back from Stripe, not trusted from the browser. */
+export const reclaimPurchases = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ heroId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: hero, error } = await context.supabase
+      .from("heroes")
+      .select("id")
+      .eq("id", data.heroId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!hero) throw new Error("Select a character before buying anything.");
 
-    if (cardPurchaseApplied(row.save, session.id)) return { save: row.save, already: true };
-
-    let next: Hero;
-    if (meta["kind"] === "vip") {
-      const plan = VIP_PLANS.find((p) => String(p.level) === meta["itemId"]);
-      if (!plan) throw new Error("Unknown VIP membership in this payment.");
-      if (session.amount_total !== null && session.amount_total < plan.priceCents) {
-        throw new Error("This payment does not cover the membership.");
+    const sessions = await listRecentCheckoutSessions(context.userId);
+    let credited = 0;
+    let settled = 0;
+    let failure: unknown = null;
+    let save: Hero | null = null;
+    for (const session of sessions) {
+      try {
+        const result = await fulfilCheckoutSession(session);
+        settled += 1;
+        if (!result.credited) continue;
+        credited += 1;
+        if (result.heroId === data.heroId) save = result.save;
+      } catch (sessionError) {
+        // Not paid yet, already credited elsewhere or not this account's: the next check retries.
+        failure ??= sessionError;
       }
-      next = applyCardPurchase(row.save, {
-        ref: session.id,
-        kind: "vip",
-        vipLevel: plan.level,
-        days: plan.days,
-      });
-    } else if (meta["kind"] === "diamonds") {
-      const pack = DIAMOND_PACKS.find((p) => p.id === meta["itemId"]);
-      if (!pack) throw new Error("Unknown Diamond pack in this payment.");
-      if (session.amount_total !== null && session.amount_total < pack.priceCents) {
-        throw new Error("This payment does not cover the pack.");
-      }
-      next = applyCardPurchase(row.save, {
-        ref: session.id,
-        kind: "diamonds",
-        diamonds: diamondPackTotal(pack),
-      });
-    } else {
-      throw new Error("Unknown purchase in this payment.");
     }
-
-    await writeHeroSave(heroId, next);
-    return { save: next, already: false };
+    if (settled === 0 && failure) {
+      throw failure instanceof Error ? failure : new Error("Your purchases could not be checked.");
+    }
+    return { credited, save };
   });
 
 export const spendDiamonds = createServerFn({ method: "POST" })

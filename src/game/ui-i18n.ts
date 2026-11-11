@@ -1603,6 +1603,8 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Thinking…": ["Σκέψη…", "Myślenie…"],
   "Time zone": ["Ζώνη ώρας", "Strefa czasowa"],
   "Try again": ["Δοκίμασε ξανά", "Spróbuj ponownie"],
+  "Restore purchases": ["Επαναφορά αγορών", "Przywróć zakupy"],
+  "Checking…": ["Έλεγχος…", "Sprawdzanie…"],
   "Upgrade ·": ["Αναβάθμιση ·", "Ulepszenie ·"],
   "Upgrade ×": ["Αναβάθμιση ×", "Ulepszenie ×"],
   "War score": ["Σκορ πολέμου", "Wynik wojny"],

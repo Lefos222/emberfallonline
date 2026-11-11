@@ -13,6 +13,7 @@ vi.mock("@/game/premium-shop", () => ({
   buyGem: vi.fn(async () => null),
   buyChest: vi.fn(async () => null),
   buyDiamondItem: vi.fn(async () => null),
+  restorePurchases: vi.fn(async () => ({ credited: 0, message: "No uncredited payments found." })),
 }));
 
 afterEach(() => act(() => setHero(null)));

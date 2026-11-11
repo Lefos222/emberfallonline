@@ -82,6 +82,18 @@ export async function readCheckoutSession(id: string): Promise<StripeSession> {
   })) as unknown as StripeSession;
 }
 
+/** Recent Checkout Sessions created for one account, newest first. Lets the shop credit a payment
+ *  the player finished on another device, or before the webhook endpoint was reachable. */
+export async function listRecentCheckoutSessions(userId: string): Promise<StripeSession[]> {
+  const since = Math.floor(Date.now() / 1000) - 30 * 86_400;
+  const body = (await stripe(`/checkout/sessions?limit=100&created[gte]=${since}`, {
+    method: "GET",
+  })) as unknown as { data?: StripeSession[] };
+  return (body.data ?? []).filter(
+    (session) => (session.metadata?.["userId"] ?? session.client_reference_id) === userId,
+  );
+}
+
 export function adminClient(): SupabaseClient {
   requirePayments();
   return createClient(process.env["SUPABASE_URL"]!, process.env["SUPABASE_SERVICE_ROLE_KEY"]!, {

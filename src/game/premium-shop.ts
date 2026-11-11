@@ -1,7 +1,12 @@
 import type { ChestKind } from "./chests";
 import type { GemType } from "./crafting";
 import type { DiamondMat } from "./economy";
-import { confirmCheckout, spendDiamonds, startCheckout } from "./payments.functions";
+import {
+  confirmCheckout,
+  reclaimPurchases,
+  spendDiamonds,
+  startCheckout,
+} from "./payments.functions";
 import { requestKey, returnedSave } from "./services-contract";
 import { adoptServerSave, getState, withServerHero } from "./store";
 
@@ -79,6 +84,23 @@ export async function confirmCardPurchase(sessionId: string) {
   });
   forgetSession(sessionId);
   return result;
+}
+
+/** Credit every paid session the server has not paid out yet, then adopt the credited wallet.
+ *  This is the cross-device recovery path: the shop asks Stripe what this account paid for. */
+export async function restorePurchases(): Promise<{ credited: number; message: string }> {
+  const id = heroId();
+  const result = await withServerHero(async () => {
+    const value = await reclaimPurchases({ data: { heroId: id } });
+    if (value.save) adoptServerSave(id, returnedSave(value));
+    return value;
+  });
+  return {
+    credited: result.credited,
+    message: result.credited
+      ? `${result.credited} purchase${result.credited === 1 ? "" : "s"} restored.`
+      : "No uncredited payments found.",
+  };
 }
 
 /** Re-check every pending session (the player may have closed the tab before returning). */

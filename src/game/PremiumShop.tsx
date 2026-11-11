@@ -38,6 +38,7 @@ import {
   buyMaterial,
   buyVip,
   buyVipWithCard,
+  restorePurchases,
 } from "./premium-shop";
 
 const TABS = [
@@ -110,6 +111,23 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
       });
   };
 
+  /** Ask the server to credit any paid Stripe session the wallet has not received yet. */
+  const restore = async () => {
+    setBusy("restore");
+    setNotice(null);
+    try {
+      const result = await restorePurchases();
+      setNotice({ ok: true, text: result.message });
+    } catch (error) {
+      setNotice({
+        ok: false,
+        text: error instanceof Error ? error.message : "Your purchases could not be checked.",
+      });
+    } finally {
+      setBusy(null);
+    }
+  };
+
   return (
     <Panel
       title={tr("Premium Shop")}
@@ -134,6 +152,14 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
               {new Date(p.vip.until).toLocaleDateString()}
             </span>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy !== null}
+            onClick={() => void restore()}
+          >
+            {busy === "restore" ? tr("Checking…") : tr("Restore purchases")}
+          </Button>
           <div className="slot flex items-center gap-1.5 px-3 py-1.5 font-display text-lg text-r4">
             <ArtIcon name="diamond" size={20} />
             {fmt(p.balance)}  {tr("Diamonds")} </div>
