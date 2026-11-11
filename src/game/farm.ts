@@ -240,7 +240,7 @@ export interface FarmState {
   /** Active feast: id and expiry epoch ms. */
   feast?: { id: string; until: number } | null;
   /** The seed planted most recently, offered by "Sow empty plots". */
-  last?: { kind: SeedKind; tier: number };
+  last: { kind: SeedKind; tier: number } | null;
 }
 
 /** A brand-new farm: level 1, no XP, sixteen plots of which one is tilled. */
@@ -253,12 +253,13 @@ export function newFarm(): Required<FarmState> {
     treeChargedAt: 0,
     produce: {},
     feast: null,
+    last: null,
   };
 }
 
 /** The hero's farm, creating or repairing it in place when the save predates the fields. */
 export function ensureFarm(h: Hero): Required<FarmState> {
-  const current = h.farm ?? {};
+  const current: Partial<FarmState> = h.farm ?? {};
   const slots = Array.from({ length: FARM_TOTAL_SLOTS }, (_, i) => current.slots?.[i] ?? null);
   const farm: Required<FarmState> = {
     level: farmLevel(h),
@@ -268,6 +269,7 @@ export function ensureFarm(h: Hero): Required<FarmState> {
     treeChargedAt: Math.max(0, safeWhole(current.treeChargedAt, 0)),
     produce: { ...(current.produce ?? {}) },
     feast: current.feast ?? null,
+    last: current.last ?? null,
   };
   h.farm = farm;
   return farm;

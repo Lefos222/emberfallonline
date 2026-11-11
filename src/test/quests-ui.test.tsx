@@ -11,14 +11,14 @@ import { recordBattle } from "@/game/progress";
 describe("quests screen", () => {
   afterEach(() => setHero(null));
 
-  it("lists the current level's three quests with their rewards", () => {
+  it("lists the board's eight quests with their rewards", () => {
     const hero = newHero("Quester", "warrior");
     hero.level = 4;
     resetLevelQuests(hero);
     setHero(hero);
     render(<QuestsPanel onClose={() => {}} />);
 
-    expect(screen.getByText("Level 4 Quests")).toBeInTheDocument();
+    expect(screen.getByText("Quests")).toBeInTheDocument();
     for (const name of ["Tyrant Hunter", "Master of the Forge", "Arena Glory"]) {
       expect(screen.getByText(name)).toBeInTheDocument();
     }

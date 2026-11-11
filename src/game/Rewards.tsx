@@ -99,7 +99,8 @@ export function LuckyShots({ onClose }: { onClose: () => void }) {
   </Panel>;
 }
 
-const KIND_LABEL: Record<string, string> = { kill: "Enemies defeated", dungeon: "Dungeons cleared", boss: "Bosses defeated", craft: "Items crafted", gem: "Gem actions", astral: "Astral actions", arena: "Arena battles" };
+// One 'kill' counts one won battle (see track_activity), so the label says battles, not monsters.
+const KIND_LABEL: Record<string, string> = { kill: "Battles won", dungeon: "Dungeons cleared", boss: "Bosses defeated", craft: "Items crafted", gem: "Gem actions", astral: "Astral actions", arena: "Arena battles" };
 export function ActivityBoard({ onClose }: { onClose: () => void }) {
   const { heroId } = useGame();
   const request = useRequest();

@@ -175,13 +175,14 @@ export function Game() {
     return () => clearTimeout(timer);
   }, [checkoutNotice]);
 
-  // Every level opens its own quest board: snapshot its counters the moment the level starts.
+  // The quest board opens the first time the hero's castle loads; `rollLevelQuests` is idempotent,
+  // so a later level-up re-checks it without resetting any progress.
   useEffect(() => {
     if (!hero) return;
     update((h) => {
-      if (!h.levelQuests || h.levelQuests.level !== h.level) rollLevelQuests(h);
+      rollLevelQuests(h);
     });
-  }, [hero?.level]);
+  }, [heroId, hero?.level]);
 
   // World chat announces each world event as it opens, so everyone sees the window go live.
   useEffect(() => {

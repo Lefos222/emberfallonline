@@ -3,9 +3,10 @@ import { levelShareScale, xpToNext, type Hero } from "./data";
 import { grant } from "./logic";
 
 /**
- * Level quests — the login progression track. Every character level opens a fresh set of
- * eight quests measured against a counter snapshot taken when that level began, so progress
- * is real play (battles, bosses, craft, training) rather than a second reward engine.
+ * The hero's quest board — the one quest track of the game, opened from the right edge of the
+ * castle. A board is eight quests measured against a counter snapshot taken when it opened, so
+ * progress is real play (battles, bosses, craft, training) rather than a second reward engine.
+ * Clearing the board opens a fresh one; levelling up never wipes the work already done.
  */
 
 export type QuestKind =
@@ -18,28 +19,40 @@ interface QuestDef {
   growth: number;
 }
 
-const DEFS: Record<QuestKind, QuestDef> = locAll({
-  wins: { name: "Blood on the Blade", desc: "Win {n} battles", base: 3, growth: 0.5 },
-  stages: { name: "Push the Frontier", desc: "Clear {n} campaign stages", base: 2, growth: 0.25 },
-  kills: { name: "Cull the Horde", desc: "Slay {n} monsters", base: 10, growth: 3 },
-  enhances: { name: "Temper the Steel", desc: "Succeed at {n} enhancements", base: 2, growth: 0.2 },
-  bosses: { name: "Tyrant Hunter", desc: "Defeat {n} bosses", base: 1, growth: 0.15 },
-  crafts: { name: "Master of the Forge", desc: "Craft {n} items", base: 1, growth: 0.1 },
-  arena: { name: "Arena Glory", desc: "Win {n} arena duels", base: 1, growth: 0.15 },
-  floors: { name: "Climb the Spire", desc: "Clear {n} Conquest floors", base: 1, growth: 0.15 },
-}, ["name"], ["desc"]);
+const DEFS: Record<QuestKind, QuestDef> = locAll(
+  {
+    wins: { name: "Blood on the Blade", desc: "Win {n} battles", base: 3, growth: 0.5 },
+    stages: { name: "Push the Frontier", desc: "Clear {n} campaign stages", base: 2, growth: 0.25 },
+    kills: { name: "Cull the Horde", desc: "Slay {n} monsters", base: 10, growth: 3 },
+    enhances: {
+      name: "Temper the Steel",
+      desc: "Succeed at {n} enhancements",
+      base: 2,
+      growth: 0.2,
+    },
+    bosses: { name: "Tyrant Hunter", desc: "Defeat {n} bosses", base: 1, growth: 0.15 },
+    crafts: { name: "Master of the Forge", desc: "Craft {n} items", base: 1, growth: 0.1 },
+    arena: { name: "Arena Glory", desc: "Win {n} arena duels", base: 1, growth: 0.15 },
+    floors: { name: "Climb the Spire", desc: "Clear {n} Conquest floors", base: 1, growth: 0.15 },
+  },
+  ["name"],
+  ["desc"],
+);
 
-/** The order quests rotate through, so consecutive levels never hand out the same order. */
+/** The order the eight quests appear in. One board carries all eight kinds, so nothing is ever a duplicate. */
 const ORDER: QuestKind[] = [
   "wins",
-  "stages",
   "kills",
-  "enhances",
+  "stages",
   "bosses",
   "crafts",
+  "enhances",
   "arena",
   "floors",
 ];
+
+/** The Conquest Gate opens at this level; its quest stays on the board, locked, until then. */
+export const QUESTS_FLOORS_LEVEL = 10;
 
 export interface LevelQuest {
   id: string;
@@ -50,19 +63,18 @@ export interface LevelQuest {
   target: number;
   gold: number;
   xp: number;
+  /** Not reachable yet (the Conquest Gate is closed), so it can never be claimed. */
+  locked: boolean;
 }
 
-/** Eight quests per level; legacy ids retain their claimed state. Deterministic, so a refresh never rerolls the board. */
+/** The board's eight quests with targets and rewards scaled to the hero's level. */
 export function questsForLevel(level: number): LevelQuest[] {
   const lv = Math.max(1, Math.floor(level));
-  return Array.from({ length: 8 }, (_, i) => {
-    const rolled = ORDER[(lv * 3 + i) % ORDER.length];
-    // Conquest floors open at level 10: before that the slot asks for monsters instead.
-    const kind: QuestKind = rolled === "floors" && lv < 10 ? "kills" : rolled;
+  return ORDER.map((kind) => {
     const d = DEFS[kind];
     const target = Math.max(1, Math.round(d.base + d.growth * lv));
     return {
-      id: rolled === kind ? `${kind}@${lv}` : `${kind}-alt@${lv}`,
+      id: kind,
       level: lv,
       kind,
       name: d.name,
@@ -70,6 +82,7 @@ export function questsForLevel(level: number): LevelQuest[] {
       target,
       gold: Math.round(50 + 12 * lv + 0.4 * lv * lv),
       xp: Math.round(xpToNext({ level: lv, paragon: 0 }) * 0.05 * levelShareScale(lv)),
+      locked: kind === "floors" && lv < QUESTS_FLOORS_LEVEL,
     };
   });
 }
@@ -97,24 +110,26 @@ export function questCounter(h: Hero, kind: QuestKind): number {
 }
 
 export interface LevelQuestState {
-  level: number;
   base: Record<string, number>;
   claimed: string[];
 }
 
 const snapshot = (h: Hero) => Object.fromEntries(ORDER.map((k) => [k, questCounter(h, k)]));
 
-/** Start the board of the hero's current level, snapshotting its counters. */
+/** True for a save written by the old per-level board, which is replaced on its first read. */
+const legacy = (state: LevelQuestState | undefined) => !!state && "level" in (state as object);
+
+/** Open a fresh board: snapshot every counter now, with nothing claimed. */
 export function resetLevelQuests(h: Hero): LevelQuestState {
-  const state: LevelQuestState = { level: h.level, base: snapshot(h), claimed: [] };
+  const state: LevelQuestState = { base: snapshot(h), claimed: [] };
   h.levelQuests = state;
   return state;
 }
 
-/** The board of the current level, created (and saved) on first read after a level-up. */
+/** The hero's board, opened (and saved) the first time it is read. A level-up never resets it. */
 export function rollLevelQuests(h: Hero): LevelQuestState {
-  const cur = h.levelQuests;
-  return cur && cur.level === h.level ? cur : resetLevelQuests(h);
+  if (!h.levelQuests || legacy(h.levelQuests)) return resetLevelQuests(h);
+  return h.levelQuests;
 }
 
 export interface LevelQuestRow {
@@ -122,24 +137,24 @@ export interface LevelQuestRow {
   progress: number;
   claimed: boolean;
   done: boolean;
+  locked: boolean;
 }
 
-/** The current level's board without writing: an unstarted level counts from right now. */
+/** The board without writing: an unopened board counts from right now. */
 const readState = (h: Hero): LevelQuestState =>
-  h.levelQuests && h.levelQuests.level === h.level
-    ? h.levelQuests
-    : { level: h.level, base: snapshot(h), claimed: [] };
+  h.levelQuests && !legacy(h.levelQuests) ? h.levelQuests : { base: snapshot(h), claimed: [] };
 
-/** The current level's quests with progress counted from the level's snapshot. */
+/** The board's quests with progress counted from the snapshot its session began with. */
 export function levelQuestRows(h: Hero): LevelQuestRow[] {
   const state = readState(h);
   return questsForLevel(h.level).map((quest) => {
-    const progress = Math.max(0, questCounter(h, quest.kind) - (state.base[quest.kind] ?? 0));
+    const gained = Math.max(0, questCounter(h, quest.kind) - (state.base[quest.kind] ?? 0));
     return {
       quest,
-      progress: Math.min(progress, quest.target),
+      progress: Math.min(gained, quest.target),
       claimed: state.claimed.includes(quest.id),
-      done: progress >= quest.target,
+      done: !quest.locked && gained >= quest.target,
+      locked: quest.locked,
     };
   });
 }
@@ -152,11 +167,13 @@ export const claimableLevelQuests = (h: Hero | null) =>
 export function claimLevelQuest(h: Hero, id: string): string | null {
   const state = rollLevelQuests(h);
   const row = levelQuestRows(h).find((r) => r.quest.id === id);
-  if (!row) return "That quest is not on this level's board.";
+  if (!row) return "That quest is not on this board.";
+  if (row.locked) return `This quest opens at level ${QUESTS_FLOORS_LEVEL}.`;
   if (row.claimed) return "Already claimed.";
   if (!row.done) return "Not finished yet.";
   state.claimed.push(id);
-  // grant() clears the board when the payout levels the hero up: the next level brings its own quests.
   grant(h, row.quest.xp, row.quest.gold);
+  // A finished board is replaced at once, so the hero always has quests to chase.
+  if (levelQuestRows(h).every((r) => r.locked || r.claimed)) resetLevelQuests(h);
   return null;
 }

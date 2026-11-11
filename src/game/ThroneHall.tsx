@@ -6,12 +6,14 @@ import { CLASSES, heroSkills, heroStats, powerBreakdown, xpToNext } from "./data
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
 import { LevelProgress } from "./LevelCurve";
-import { QUEST_POINT_CHANCE } from "./quest-board";
 import { TREES } from "./talents";
 import { RenownTraining } from "./RenownPanel";
 import { SkillLoadout } from "./SkillLoadout";
 import { SkillTreeContent } from "./SkillTree";
 import { PassiveTreeContent } from "./PassiveTree";
+
+/** Chance an achievement also hands over a bonus skill point. */
+const BONUS_POINT_CHANCE = 0.25;
 
 export function ThroneHall({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
@@ -28,7 +30,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
     h.achClaimed = [...(h.achClaimed ?? []), a.id];
     h.gold += achGold(a);
     // Achievements occasionally pay a bonus skill point alongside their Insight reward.
-    if (Math.random() < QUEST_POINT_CHANCE) h.bonusPts = (h.bonusPts ?? 0) + 1;
+    if (Math.random() < BONUS_POINT_CHANCE) h.bonusPts = (h.bonusPts ?? 0) + 1;
   });
 
   return (

@@ -38,7 +38,6 @@ import { FATE_SUCCESS_BONUS, enhanceFateChance, fateStoneCost, fateStoneCount, s
 import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
-import { QuestBoard } from "./QuestBoard";
 import { AdvancedTraining, BarracksUpgrade, DrillTracks, StatTrainings } from "./Barracks";
 import { EnlightenmentTraining, SoulForge } from "./EnlightenmentPanel";
 import { barracksCost, barracksLevel, batchSizes } from "./barracks";
@@ -868,12 +867,6 @@ export function Temple({ onClose }: { onClose: () => void }) {
       {tab === "upgrade" && <BarracksUpgrade hero={hero} />}
     </Panel>
   );
-}
-
-// ---------------- Quest Board (daily commissions) ----------------
-/** The old AI oracle is gone: the board is six fixed daily commissions that reset at Greek midnight. */
-export function Oracle(props: { onClose: () => void; start?: StartBattle }) {
-  return <QuestBoard onClose={props.onClose} />;
 }
 
 /** The top-left HUD's XP readout: the exact numbers, the bar, and what the next level really asks. */
