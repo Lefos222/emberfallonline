@@ -114,3 +114,23 @@ export async function activateScroll(kind: ScrollKind) {
     adoptServerSave(id, returnedSave(data));
   });
 }
+/** Arena party event (every 6 hours): every call is a server RPC; gold is paid only by the claim. */
+export type ArenaFn = "arena_event_state" | "arena_event_form" | "arena_event_leave" | "arena_event_queue";
+export async function arenaEvent(fn: ArenaFn | "arena_event_join", code?: string): Promise<Record<string, unknown>> {
+  const id = getState().heroId;
+  if (!id) throw new Error("Select a character first.");
+  const { data, error } = fn === "arena_event_join"
+    ? await supabase.rpc("arena_event_join", { _hero: id, _code: code ?? "" })
+    : await supabase.rpc(fn, { _hero: id });
+  if (error) throw new Error(error.message);
+  return object(data) as Record<string, unknown>;
+}
+export async function claimArenaEvent(): Promise<{ gold: number; won: boolean }> {
+  return withServerHero(async (heroId) => {
+    const { data, error } = await supabase.rpc("arena_event_claim", { _hero: heroId });
+    if (error) throw new Error(error.message);
+    adoptServerSave(heroId, returnedSave(data));
+    const o = object(data) as Record<string, unknown>;
+    return { gold: Number(o['gold'] ?? 0), won: !!o['won'] };
+  });
+}

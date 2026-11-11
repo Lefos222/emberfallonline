@@ -4,7 +4,7 @@ import { RoseItem } from "./Roses";
 import { roseCount } from "./friendship";
 import { xpScrollValue } from "./xp-scrolls";
 import { itemName, tName , t} from "./i18n";
-import { useState, type ReactNode } from "react";
+import { useState, type ReactNode, type DragEvent } from "react";
 import { Button } from '@/components/ui/button';
 import { trainingCost, trainAttribute } from './building-content';
 import { Link } from "@tanstack/react-router";
@@ -87,6 +87,20 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
     const it = sel && !sel.equipped ? hero.inventory.find((i) => i.id === sel.id) : undefined;
     if (it && wearOf(it.slot).includes(sl)) { equip(it, sl); setSel({ id: it.id, equipped: true }); }
   };
+  /** PC drag and drop: drag a bag item onto a worn slot to wear it, a worn item onto the bag to take it off. */
+  const dropOnWear = (e: DragEvent, sl: WearSlot) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData("text/ef-bag");
+    const it = id ? hero.inventory.find((i) => i.id === id) : undefined;
+    if (it && wearOf(it.slot).includes(sl)) { equip(it, sl); setSel({ id: it.id, equipped: true }); }
+  };
+  const dropOnBag = (e: DragEvent) => {
+    const id = e.dataTransfer.getData("text/ef-worn");
+    if (!id) return;
+    e.preventDefault();
+    const it = Object.values(hero.equipment).find((i) => i?.id === id);
+    if (it) { unequip(it); setSel(null); }
+  };
   const sell = (it: Item) => update((h) => { h.inventory = h.inventory.filter((i) => i.id !== it.id); h.gold += sellValue(it); });
 
   return (
@@ -96,8 +110,11 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
           <div className="relative mx-auto grid max-w-xl grid-cols-[auto_minmax(0,1fr)_auto] items-stretch gap-2">
             <div className="flex flex-col gap-2">
               {LEFT_DOLL.map((sl) => (
-                <ItemSlot key={sl} item={hero.equipment[sl]} empty={WEAR_LABEL[sl]} selected={sel?.id === hero.equipment[sl]?.id}
-                  onClick={() => wearClick(sl)} />
+                <div key={sl} draggable={!!hero.equipment[sl]} onDragStart={(e) => { const w = hero.equipment[sl]; if (w) e.dataTransfer.setData("text/ef-worn", w.id); }}
+                  onDragOver={(e) => e.preventDefault()} onDrop={(e) => dropOnWear(e, sl)}>
+                  <ItemSlot item={hero.equipment[sl]} empty={WEAR_LABEL[sl]} selected={sel?.id === hero.equipment[sl]?.id}
+                    onClick={() => wearClick(sl)} />
+                </div>
               ))}
             </div>
             <div className="relative mx-auto h-[320px] w-full max-w-[320px] self-center">
@@ -105,8 +122,11 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             </div>
             <div className="flex flex-col gap-2">
               {RIGHT_DOLL.map((sl) => (
-                <ItemSlot key={sl} item={hero.equipment[sl]} empty={WEAR_LABEL[sl]} selected={sel?.id === hero.equipment[sl]?.id}
-                  onClick={() => wearClick(sl)} />
+                <div key={sl} draggable={!!hero.equipment[sl]} onDragStart={(e) => { const w = hero.equipment[sl]; if (w) e.dataTransfer.setData("text/ef-worn", w.id); }}
+                  onDragOver={(e) => e.preventDefault()} onDrop={(e) => dropOnWear(e, sl)}>
+                  <ItemSlot item={hero.equipment[sl]} empty={WEAR_LABEL[sl]} selected={sel?.id === hero.equipment[sl]?.id}
+                    onClick={() => wearClick(sl)} />
+                </div>
               ))}
             </div>
           </div>
@@ -178,7 +198,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               <option value="new">{t("Newest")}</option><option value="rarity">{t("Rarity")}</option><option value="level">{t("Item level")}</option>
             </select>
           </div>
-          <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
+          <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8" onDragOver={(e) => { if (e.dataTransfer.types.includes("text/ef-worn")) e.preventDefault(); }} onDrop={dropOnBag}>
             {(() => {
               const view = hero.inventory.filter((it) => (filter === "all" || it.slot === filter) && (!q || it.name.toLowerCase().includes(q.toLowerCase())));
               if (sort === "rarity") view.sort((a, b) => b.rarity - a.rarity || b.ilvl - a.ilvl);
@@ -186,7 +206,10 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               const filtered = filter !== "all" || !!q;
               return Array.from({ length: filtered ? Math.max(view.length, 8) : invCap(hero) }).map((_, i) => [view[i], i] as const);
             })().reduce<ReactNode[]>((cells, [it, i]) => {
-              cells.push(<ItemSlot key={it?.id ?? "e" + i} item={it} size={44} selected={!!it && sel?.id === it.id} onClick={() => it && setSel({ id: it.id, equipped: false })} />);
+              cells.push(<div key={it?.id ?? "e" + i} draggable={!!it} title={it ? t("Drag onto your hero to equip · right-click to equip") : undefined}
+                onDragStart={(e) => { if (it) e.dataTransfer.setData("text/ef-bag", it.id); }}
+                onContextMenu={(e) => { if (!it) return; e.preventDefault(); equip(it); setSel(null); }}>
+                <ItemSlot item={it} size={44} selected={!!it && sel?.id === it.id} onClick={() => it && setSel({ id: it.id, equipped: false })} /></div>);
               return cells;
             }, filter !== "all" || q ? [] : [...(roseCount(hero)>0?[<RoseItem key="roses" compact />]:[]), ...vaultTiles(hero, vpick, (p) => { setVpick(p); setSel(null); }), ...(Object.keys(MATS) as Mat[]).flatMap((m) => {
               const n = matCount(hero, m); if (n <= 0) return [];

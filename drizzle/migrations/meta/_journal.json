@@ -316,6 +316,13 @@
       "when": 1794410161490,
       "tag": "0044_apply_0043_anticheat",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1794410509370,
+      "tag": "0045_arena_party_event",
+      "breakpoints": true
     }
   ]
 }

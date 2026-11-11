@@ -33,3 +33,4 @@
 - [x] Wheel of Fortune: full RNG, 5% chance of something good
 - [x] Fishing event with minigame (non-battle); more guild events
 - [ ] Quality-of-life changes; art for anything missing
+- [x] Nov 11, 15:18: Softer XP after level 30; inventory drag and drop; Arena Clash every 6h (parties 1-4); Minigame Hall with fishing + 3 new games.

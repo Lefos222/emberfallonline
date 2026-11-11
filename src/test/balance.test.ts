@@ -132,7 +132,7 @@ describe("ten fights a level, then a smooth climb", () => {
       // Every level asks for more than the one before it, and none of them doubles the last.
       expect(fightsToLevel(lv + 1)).toBeGreaterThan(fightsToLevel(lv));
       expect(fightsToLevel(lv + 1)).toBeLessThanOrEqual(fightsToLevel(lv) * 1.3);
-      expect(xpToNext({ level: lv, paragon: 0 })).toBe(fightsToLevel(lv) * stageRewards(lv).xp);
+      expect(xpToNext({ level: lv, paragon: 0 })).toBe(Math.round(fightsToLevel(lv) * stageRewards(lv).xp * (lv > 30 ? 0.96 : 1)));
     }
   });
   it("keeps every level a session's work, with no multi-million bill", () => {
@@ -224,7 +224,7 @@ describe("campaign balance", () => {
     }
     // From level 20 that count climbs by fifty-two every level.
     for (const stage of [40, 50, 60, 80]) {
-      expect(xpToNext({ level: stage, paragon: 0 }) / stageRewards(stage).xp).toBe(fightsToLevel(stage));
+      expect(xpToNext({ level: stage, paragon: 0 })).toBe(Math.round(fightsToLevel(stage) * stageRewards(stage).xp * 0.96));
     }
     expect(stageRewards(51).xp).toBeGreaterThan(stageRewards(50).xp);
     expect(stageRewards(51).gold).toBeGreaterThan(stageRewards(50).gold);
@@ -270,5 +270,12 @@ describe("health training options", () => {
     expect(trainDrill(h, "vitality")).toBeNull();
     expect(drillFx(h).hpPct).toBeGreaterThan(0);
     expect(heroStats(h).hp).toBeGreaterThan(before);
+  });
+});
+
+describe("softer levelling after level 30", () => {
+  it("charges 4% less XP for levels above 30 and leaves level 30 untouched", () => {
+    expect(xpToNext({ level: 30, paragon: 0 })).toBe(fightsToLevel(30) * stageRewards(30).xp);
+    expect(xpToNext({ level: 31, paragon: 0 })).toBe(Math.round(fightsToLevel(31) * stageRewards(31).xp * 0.96));
   });
 });

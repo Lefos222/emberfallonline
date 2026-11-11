@@ -189,6 +189,129 @@ export type Database = {
         }
         Relationships: []
       }
+      arena_event_claims: {
+        Row: {
+          created_at: string
+          gold: number
+          hero_id: string
+          match_id: string
+          won: boolean
+        }
+        Insert: {
+          created_at?: string
+          gold: number
+          hero_id: string
+          match_id: string
+          won: boolean
+        }
+        Update: {
+          created_at?: string
+          gold?: number
+          hero_id?: string
+          match_id?: string
+          won?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arena_event_claims_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arena_event_claims_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "arena_event_matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arena_event_matches: {
+        Row: {
+          created_at: string
+          id: string
+          seed: number
+          starts_at: string
+          team_a: string
+          team_b: string
+          window_start: string
+          winner: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          seed: number
+          starts_at: string
+          team_a: string
+          team_b: string
+          window_start: string
+          winner: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          seed?: number
+          starts_at?: string
+          team_a?: string
+          team_b?: string
+          window_start?: string
+          winner?: string
+        }
+        Relationships: []
+      }
+      arena_event_teams: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          leader: string
+          match_id: string | null
+          members: string[]
+          power: number
+          status: string
+          window_start: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          leader: string
+          match_id?: string | null
+          members: string[]
+          power?: number
+          status?: string
+          window_start: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          leader?: string
+          match_id?: string | null
+          members?: string[]
+          power?: number
+          status?: string
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arena_event_teams_leader_fkey"
+            columns: ["leader"]
+            isOneToOne: false
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arena_event_teams_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "arena_event_matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       arena_matches: {
         Row: {
           attacker_id: string
@@ -1738,6 +1861,8 @@ export type Database = {
         Returns: string
       }
       _apply_reward: { Args: { rw: Json; s: Json }; Returns: Json }
+      _arena_team_json: { Args: { _team: string }; Returns: Json }
+      _arena_window: { Args: never; Returns: string }
       _bag_room: { Args: { _save: Json }; Returns: number }
       _buff_cost: { Args: { _kind: string }; Returns: number }
       _contrib_add: {
@@ -1829,6 +1954,15 @@ export type Database = {
         Args: { _guild: string; _hero: string; _message: string }
         Returns: undefined
       }
+      arena_event_claim: { Args: { _hero: string }; Returns: Json }
+      arena_event_form: { Args: { _hero: string }; Returns: Json }
+      arena_event_join: {
+        Args: { _code: string; _hero: string }
+        Returns: Json
+      }
+      arena_event_leave: { Args: { _hero: string }; Returns: Json }
+      arena_event_queue: { Args: { _hero: string }; Returns: Json }
+      arena_event_state: { Args: { _hero: string }; Returns: Json }
       auction_buy: {
         Args: { _hero: string; _listing: string; _req: string }
         Returns: Json

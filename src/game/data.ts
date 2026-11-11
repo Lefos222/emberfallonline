@@ -650,6 +650,8 @@ export interface Hero {
   relicAttune?: Record<string, number>;
   /** Fishing Pier: casts spent today and fish caught in total. */
   fishing?: { day: string; casts: number; caught: number };
+  /** Minigame Hall plays per UTC day, keyed by game id. */
+  minigames?: { day: string; plays: Record<string, number> };
   /** Guild ledger: gold given to the guild and coins spent in the hall (see guild-tower.ts). */
   guildLedger?: { donated?: number; spent?: number };
   /** Synthesis armour: forged pieces ("<tier>:<slot>") and the set worn in each slot (see synthesis.ts). */
@@ -775,11 +777,16 @@ export function fightsToNextLevel(h: Pick<Hero, "level" | "paragon" | "xp">) {
   return Math.max(1, Math.ceil(left / Math.max(1, xpPerFight(h.level))));
 }
 
+/** Levels above this one cost XP_EASE of their old bill. */
+export const XP_EASE_LEVEL = 30;
+export const XP_EASE = 0.96;
+
 export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
   const lv = Math.min(MAX_LEVEL, h.level);
   // One level is worth exactly `fightsToLevel` fights at the hero's own stage, so the campaign
   // pays the same XP per fight at every level and only the fight count moves.
-  const base = fightsToLevel(lv) * xpPerFight(lv);
+  // Past level 30 every level costs a little less (4%), easing the long grind softly.
+  const base = Math.round(fightsToLevel(lv) * xpPerFight(lv) * (lv > XP_EASE_LEVEL ? XP_EASE : 1));
   return h.level < MAX_LEVEL ? base : Math.round(base * Math.pow(1.1, h.paragon));
 }
 
