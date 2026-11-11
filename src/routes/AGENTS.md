@@ -1,1 +1,2 @@
 - Admin pages read moderation data only through admin-checked SECURITY DEFINER RPCs (`admin_moderation`, `has_role` on `user_roles`); never gate admin data in the client. Why: roles must be server-verified.
+- `/` is the public official site (showcase + sign-in/Play); the game itself lives at `/play`, and sign-in returns there. Why: visitors see the game before entering the castle.

@@ -31,7 +31,7 @@ function AuthCallbackPage() {
       if (done || !user) return;
       done = true;
       await setUser(user.id, user.email ?? null, "event");
-      void nav({ to: "/" });
+      void nav({ to: "/play" });
     };
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => { void enter(session?.user); });

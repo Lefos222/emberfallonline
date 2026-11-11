@@ -37,7 +37,7 @@ function AuthPage() {
   const enterGame = async (user: { id: string; email?: string | null } | null | undefined) => {
     if (!user) return;
     await setUser(user.id, user.email ?? null);
-    nav({ to: "/" });
+    nav({ to: "/play" });
   };
 
   // A social sign-in that already handed us a session must go straight into the game, not show the form.

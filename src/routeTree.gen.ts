@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthCallbackRouteImport } from './routes/auth-callback'
 import { Route as GuideRouteImport } from './routes/guide'
+import { Route as PlayRouteImport } from './routes/play'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 
 const IndexRoute = IndexRouteImport.update({
@@ -41,6 +42,11 @@ const GuideRoute = GuideRouteImport.update({
   path: '/guide',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayRoute = PlayRouteImport.update({
+  id: '/play',
+  path: '/play',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/auth-callback': typeof AuthCallbackRoute
   '/guide': typeof GuideRoute
+  '/play': typeof PlayRoute
   '/reset-password': typeof ResetPasswordRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/auth-callback': typeof AuthCallbackRoute
   '/guide': typeof GuideRoute
+  '/play': typeof PlayRoute
   '/reset-password': typeof ResetPasswordRoute
 }
 export interface FileRoutesById {
@@ -70,14 +78,28 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/auth-callback': typeof AuthCallbackRoute
   '/guide': typeof GuideRoute
+  '/play': typeof PlayRoute
   '/reset-password': typeof ResetPasswordRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/admin' | '/auth' | '/auth-callback' | '/guide' | '/reset-password'
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/auth-callback'
+    | '/guide'
+    | '/play'
+    | '/reset-password'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/auth' | '/auth-callback' | '/guide' | '/reset-password'
+  to:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/auth-callback'
+    | '/guide'
+    | '/play'
+    | '/reset-password'
   id:
     | '__root__'
     | '/'
@@ -85,6 +107,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/auth-callback'
     | '/guide'
+    | '/play'
     | '/reset-password'
   fileRoutesById: FileRoutesById
 }
@@ -94,6 +117,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   GuideRoute: typeof GuideRoute
+  PlayRoute: typeof PlayRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
@@ -134,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuideRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play': {
+      id: '/play'
+      path: '/play'
+      fullPath: '/play'
+      preLoaderRoute: typeof PlayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -150,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   GuideRoute: GuideRoute,
+  PlayRoute: PlayRoute,
   ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
