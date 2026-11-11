@@ -1,5 +1,12 @@
 [
   {
+    "id": "3e9b71a",
+    "date": "2026-11-11T01:25:16Z",
+    "title": "Overhaul combat hotbar, level quests, announcements, relic trials and activity board",
+    "details": "Painted health and class-resource frames; phone skill rail keeps both meters visible. Guide and Quests now have separate castle shortcuts. Eight detailed quests per level retain existing claim ids. Announcements archive all recorded updates, fixes and merges and refresh from Git during builds. Relic ranks gain stronger HP, attack and defence with new sanctuary art. Beastwood, Ashroot and Arcane expeditions pay Beast Hide, Emberbloom and Arcane Crystal without new rare sources. Daily, weekly and login rewards have separate views, ready filters and stage-aware claims. Existing cloud payouts and player saves remain unchanged.",
+    "kind": "update"
+  },
+  {
     "id": "c76803f",
     "date": "2026-11-11T01:05:23Z",
     "title": "Hide War Gates tabs during fights, renovate Magic Tower and add verified social reward safeguards",
