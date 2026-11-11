@@ -323,6 +323,13 @@
       "when": 1794410509370,
       "tag": "0045_arena_party_event",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1794411164346,
+      "tag": "0046_restrict_guild_rosters_probe_rls",
+      "breakpoints": true
     }
   ]
 }
