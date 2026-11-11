@@ -330,6 +330,13 @@
       "when": 1794411164346,
       "tag": "0046_restrict_guild_rosters_probe_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1794411284926,
+      "tag": "0047_admin_roles_moderation",
+      "breakpoints": true
     }
   ]
 }

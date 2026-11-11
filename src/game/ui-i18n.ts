@@ -2149,5 +2149,9 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Hit the moving targets before time runs out.": ["Χτύπα τους κινούμενους στόχους πριν τελειώσει ο χρόνος.", "Trafiaj ruchome cele, zanim skończy się czas."],
   "Tavern Dice": ["Ζάρια Ταβέρνας", "Kości w Karczmie"],
   "Hold or reroll five dice to chase a high hand.": ["Κράτα ή ξαναρίξε πέντε ζάρια για υψηλό συνδυασμό.", "Zatrzymaj lub przerzuć pięć kości, by zdobyć wysoki układ."],
+  "Events": ["Εκδηλώσεις", "Wydarzenia"],
+  "Every event in one place": ["Όλες οι εκδηλώσεις σε ένα μέρος", "Wszystkie wydarzenia w jednym miejscu"],
+  "Event Calendar": ["Ημερολόγιο Εκδηλώσεων", "Kalendarz Wydarzeń"],
+  "World event calendar & reminders": ["Ημερολόγιο παγκόσμιων εκδηλώσεων και υπενθυμίσεις", "Kalendarz wydarzeń świata i przypomnienia"],
   // @@ROWS@@
 };

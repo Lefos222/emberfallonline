@@ -1810,6 +1810,24 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       world_raid_claims: {
         Row: {
           claimed_at: string
@@ -1948,6 +1966,7 @@ export type Database = {
         Returns: Json
       }
       add_friend: { Args: { _hero: string; _name: string }; Returns: string }
+      admin_moderation: { Args: never; Returns: Json }
       anticheat_acknowledge: { Args: { _id: string }; Returns: undefined }
       anticheat_restore: { Args: { _id: string }; Returns: string }
       apply_guild: {
@@ -2192,6 +2211,13 @@ export type Database = {
         Returns: string
       }
       guild_war_state: { Args: { _hero: string }; Returns: Json }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       inspect_hero: {
         Args: { _hero: string; _target: string }
         Returns: {
@@ -2343,7 +2369,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2470,6 +2496,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

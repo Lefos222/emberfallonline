@@ -1,8 +1,7 @@
 import { Announcements } from "./Announcements";
 import { MinigamesPanel } from "./Minigames";
 import { ArenaEventPanel } from "./ArenaEvent";
-import minigameIcon from "@/assets/minigame-hall.png";
-import arenaEventIcon from "@/assets/arena-event.png";
+import { EventsHub } from "./EventsHub";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { MountsPanel, RunesPanel, WheelPanel } from "./Emporium";
 import mountIcon from "@/assets/mounts/griffin.webp";
@@ -526,14 +525,21 @@ export function Game() {
             >
               <ArtIcon name="auction" size={24} />
             </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("Events")}
+              title={t("Events")}
+              onClick={() => setOpen("events")}
+            >
+              <ArtIcon name="calendar" size={24} />
+            </Button>
           </nav>
           <WorldChat heroId={heroId} />
           <nav aria-label={tr("Help and quests")} className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-2">
             <Button variant="ghost" aria-label={tr("Game Guide")} title={tr("Game Guide")} className="game-panel h-auto min-h-16 w-20 flex-col gap-1 rounded-md px-2 py-2 font-display text-xs text-gold" onClick={() => setOpen("guide")}><ArtIcon name="spellbook" size={32} />{tr("Guide")}</Button>
             <QuestsButton count={claimableLevelQuests(hero)} onClick={() => { playGuideSound(); setOpen("quests"); }} />
             <Button variant="ghost" aria-label={tr("Announcements")} title={tr("Announcements")} className="game-panel h-auto min-h-16 w-20 flex-col gap-1 whitespace-normal rounded-md px-1 py-2 font-display text-[10px] text-gold" onClick={() => { playGuideSound(); setOpen("notes"); }}><ArtIcon name="notes" size={30} />{tr("Announcements")}</Button>
-            <Button variant="ghost" aria-label={tr("Minigame Hall")} title={tr("Minigame Hall")} className="game-panel h-auto min-h-16 w-20 flex-col gap-1 whitespace-normal rounded-md px-1 py-2 font-display text-[10px] text-gold" onClick={() => setOpen("minigames")}><img src={minigameIcon} alt="" width={256} height={256} className="h-8 w-8 object-contain" />{tr("Minigames")}</Button>
-            <Button variant="ghost" aria-label={tr("Arena Clash")} title={tr("Party battles every six hours")} className="game-panel h-auto min-h-16 w-20 flex-col gap-1 whitespace-normal rounded-md px-1 py-2 font-display text-[10px] text-gold" onClick={() => setOpen("arenaEvent")}><img src={arenaEventIcon} alt="" width={256} height={256} className="h-8 w-8 object-contain" />{tr("Arena Clash")}{new Date().getUTCHours() % 6 === 0 && <span className="text-[9px] text-blood">{tr("OPEN")}</span>}</Button>
           </nav>
           <Hud
             muted={sound.muted}
@@ -594,6 +600,7 @@ export function Game() {
             <SettingsPanel settings={sound} onChange={changeSound} onClose={() => setOpen(null)} />
           )}
           {open === "quests" && <QuestsPanel onClose={() => setOpen(null)} />}
+          {open === "events" && <EventsHub onClose={() => setOpen(null)} onOpen={(id) => setOpen(id)} />}
           {open === "minigames" && <MinigamesPanel onClose={() => setOpen(null)} />}
           {open === "arenaEvent" && <ArenaEventPanel onClose={() => setOpen(null)} />}
           {open === "mailbox" && <Mailbox onClose={() => setOpen(null)} />}
@@ -975,6 +982,7 @@ type ShortcutTarget =
   | "guide"
   | "settings"
   | "minigames"
+  | "events"
   | "arenaEvent";
 const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIconName; img?: string }[] = [
   { id: "armory", label: "Inventory", tip: "Bag & equipment", icon: "bag" },
