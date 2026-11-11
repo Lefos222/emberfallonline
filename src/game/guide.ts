@@ -321,7 +321,7 @@ const chapters: GuideChapter[] = [
       ),
       step(
         "Wheel of Fortune",
-        "Each spin costs 100 Diamonds. The wheel has sixteen slices, but only the six gold ones are big prizes — together they hit about 5% of spins. See the Diamonds & Luck chapter for the full odds.",
+        "Each spin costs 100 Diamonds. The wheel has sixteen slices: ten normal prizes that land 95% of spins, and six ★ big prizes that land only 5% of spins together. See the Diamonds & Luck chapter for the full odds.",
       ),
       step(
         "VIP Black Market",
@@ -457,16 +457,16 @@ const chapters: GuideChapter[] = [
         "Diamonds are the premium currency. They pay for Wheel spins, VIP, mounts, name and gender cards, shop refreshes, extra arena duels and Black Market restocks. Gold can never buy them.",
       ),
       step(
-        "The Wheel is mostly small prizes",
-        "95% of spins land on a common slice: gold, XP, ore, essence, Frost Crystals or a few Armor Fragments. Every common prize is rolled between half and one and a half of its usual size, so two spins on the same slice rarely pay the same.",
+        "Normal prizes (95% together)",
+        "Gold 27% (3,000 + 400 per level, two slices), XP 23% (200 + 120 per level, two slices), 40 Ember Ore and 10 Soul Essence 10%, 30 Beast Hide and 20 Emberbloom 9%, 2 Enchantment Stones 7%, 10 Armor Fragments 7%, 4 Frost Crystals 6% and 3 Starshards 6%.",
       ),
       step(
-        "The six gold slices (5% together)",
-        "Void Crystals 1.6%, Sun Crystals 1.2%, 100–300 Diamonds back 0.8%, Fate Stones 0.8%, the gold Jackpot 0.5%, and the Mega Jackpot 0.1% — 1,000 Diamonds, 3 Sun Crystals and a mountain of gold.",
+        "The six ★ slices (5% together)",
+        "3 Void Crystals 1.4%, a Fragment Cache of 30 Armor Fragments 1.2%, 3 Fate Stones 0.8%, 1 Sun Crystal 0.8%, the gold Jackpot 0.6% (25,000 + 2,500 per level), and the Mega Jackpot 0.2% — 1,000 Diamonds and a mountain of gold.",
       ),
       step(
-        "The Dust slice",
-        "One slice in twenty is Dust: a handful of coins and nothing else. It is the wheel's way of reminding you it is a gamble.",
+        "So close!",
+        "The ★ slices sit between normal ones, so the pointer often crawls to a stop right beside a big prize. That near miss is only for show — the server picks the prize before the wheel even starts turning.",
       ),
       step(
         "Luck has no memory",
@@ -477,7 +477,7 @@ const chapters: GuideChapter[] = [
         "Each Black Market roll — the free one every six hours or a 50-Diamond restock — has a 5% chance of Lucky Stock: one weapon or trinket turns Epic and a Sun Crystal is added to the shelf. Crystal and fragment quantities also change every roll.",
       ),
     ],
-    tip: "Spin for fun, not for a plan: on average you need about 20 spins (2,000 Diamonds) to see one gold slice.",
+    tip: "Spin for fun, not for a plan: on average you need about 20 spins (2,000 Diamonds) to see one ★ slice.",
   },
   {
     id: "premium",
