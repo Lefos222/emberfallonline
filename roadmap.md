@@ -7,3 +7,12 @@
 - [ ] Guild Hall: timed guild boss raids, weekly guild quests with shared rewards, guild-vs-guild tournaments; comfier layout
 - [ ] Epic armours next to Synthesis + more collectable materials
 - [ ] Art for everything new
+
+# Request (Nov 11, 00:27)
+- [x] Spire: more dungeons with dungeon-specific crafting drops; real party invite button
+- [ ] War Gates UI polish
+- [x] Game guide: every material/crystal and how to get it
+- [x] World Tree less crowded
+- [x] Wheel of Fortune: full RNG, 5% chance of something good
+- [x] Fishing event with minigame (non-battle); more guild events
+- [ ] Quality-of-life changes; art for anything missing

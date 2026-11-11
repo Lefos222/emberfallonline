@@ -1913,6 +1913,10 @@ export type Database = {
       }
       spire_begin: { Args: { _hero: string }; Returns: Json }
       spire_clear: { Args: { _floor: number; _hero: string }; Returns: Json }
+      spire_clear_in: {
+        Args: { _dungeon: string; _floor: number; _hero: string }
+        Returns: Json
+      }
       spire_end: { Args: { _hero: string }; Returns: undefined }
       spire_open_chest: { Args: { _hero: string }; Returns: Json }
       spire_state: { Args: { _hero: string }; Returns: Json }

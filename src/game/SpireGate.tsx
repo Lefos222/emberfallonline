@@ -1,3 +1,6 @@
+import artCatacomb from "@/assets/spire-catacomb.jpg";
+import artObservatory from "@/assets/spire-observatory.jpg";
+import { listFriends, sendDirectMessage, type FriendProfile } from "./social";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { tr } from "./i18n";
@@ -47,6 +50,8 @@ const DUNGEON_ART: Record<string, string> = {
   ember: arenaLair,
   frost: arenaField,
   obsidian: arenaRift,
+  catacomb: artCatacomb,
+  observatory: artObservatory,
   spire: spireChest,
 };
 
@@ -147,7 +152,10 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
       const best = h.spireFloors ?? {};
       h.spireFloors = { ...best, [which]: Math.max(best[which] ?? 0, floor) };
     });
-    void reportClear(floor).then((paid) => {
+    void reportClear(floor, which, (mats) => {
+      const text = Object.entries(mats).map(([k, n]) => `+${n} ${MATS[k as Mat]?.name ?? k}`).join(", ");
+      setNote(tr("Dungeon drop — floor {floor}: {text}", { floor, text }));
+    }).then((paid) => {
       if (!paid) return;
       setSt((s) => (s ? { ...s, chests: s.chests + 1, best: Math.max(s.best, floor) } : s));
     });
@@ -487,6 +495,7 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
                     <span className="block h-full bg-gold" style={{ width: `${Math.min(100, Math.round((best / d.floors) * 100))}%` }} />
                   </span>
                   <span className="mt-1 block text-[10px] text-muted-foreground">
+                    {tr("Drops")}: <b className="text-gold">{MATS[d.mat].name}</b> ·{" "}
                     {tr("Best")} {best}/{d.floors}
                     {best >= d.floors ? ` · ${tr("Conquered")}` : ""}
                   </span>
@@ -528,6 +537,8 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
               </li>
             ))}
           </ul>
+
+          {leader && heroId && <InviteFriends heroId={heroId} code={code} />}
 
           {leader && (
             <form className="mt-2 flex flex-wrap items-center gap-2" onSubmit={join}>
@@ -736,4 +747,41 @@ function rewardLine(reward: SpireReward): string {
     parts.push(`${v} × ${name}`);
   }
   return parts.length ? parts.join(" · ") : tr("nothing at all");
+}
+
+
+/** Invite a friend: sends them a direct message carrying the party code. */
+function InviteFriends({ heroId, code }: { heroId: string; code: string }) {
+  const [friends, setFriends] = useState<FriendProfile[] | null>(null);
+  const [sent, setSent] = useState<Record<string, boolean>>({});
+  const [err, setErr] = useState("");
+  useEffect(() => {
+    let on = true;
+    listFriends(heroId).then((f) => on && setFriends(f)).catch(() => on && setFriends([]));
+    return () => { on = false; };
+  }, [heroId]);
+  if (!friends) return null;
+  if (!friends.length) return <p className="mt-2 text-xs text-muted-foreground">{tr("Add friends to invite them to your party.")}</p>;
+  return (
+    <div className="mt-2">
+      <p className="mb-1 text-xs font-bold text-gold">{tr("Invite friends")}</p>
+      <ul className="grid gap-1 sm:grid-cols-2">
+        {friends.map((f) => (
+          <li key={f.id} className="slot flex items-center justify-between gap-2 p-1.5 text-xs">
+            <span className="truncate">{f.name}</span>
+            <Button size="sm" variant="ghost" className="btn-gold h-7 px-2 text-xs" disabled={sent[f.id]}
+              onClick={() => {
+                setErr("");
+                sendDirectMessage(heroId, f.id, tr("Join my Spire party! Code: {code}", { code }))
+                  .then(() => setSent((s) => ({ ...s, [f.id]: true })))
+                  .catch((e) => setErr(e instanceof Error ? e.message : tr("Invite failed")));
+              }}>
+              {sent[f.id] ? tr("Invited") : tr("Invite")}
+            </Button>
+          </li>
+        ))}
+      </ul>
+      {err && <p role="alert" className="mt-1 text-xs text-blood">{err}</p>}
+    </div>
+  );
 }

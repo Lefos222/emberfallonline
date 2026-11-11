@@ -253,6 +253,13 @@
       "when": 1794410000000,
       "tag": "0035_wheel_classic_rng",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1794410000001,
+      "tag": "0036_spire_dungeon_drops",
+      "breakpoints": true
     }
   ]
 }

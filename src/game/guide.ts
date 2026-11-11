@@ -1,4 +1,7 @@
-import { locText } from "./i18n";
+import { locText, t } from "./i18n";
+import { MATS, type Mat } from "./crafting";
+import { SPIRE_DUNGEONS } from "./spire-party";
+import { CATCHES } from "./fishing";
 import type { Hero } from "./data";
 
 /**
@@ -575,7 +578,34 @@ const chapters: GuideChapter[] = [
 export const GUIDE_CHAPTERS: GuideChapter[] = chapters.map((c) => {
   c.steps.forEach((s) => locText(s, ["title", "body"]));
   return locText(c, ["tab", "title", "blurb", "tip"]);
-});
+}).concat(materialsChapter());
+
+/**
+ * Every material and crystal, read straight from the MATS table (name, use and source), plus the
+ * Spire dungeons' own drops and the fishing catches, so the guide can never fall out of date.
+ */
+function materialsChapter(): GuideChapter {
+  const steps: GuideStep[] = (Object.keys(MATS) as Mat[]).map((k) => ({
+    get title() { return MATS[k].name; },
+    get body() {
+      const spire = SPIRE_DUNGEONS.filter((d) => d.mat === k).map((d) => t(d.name));
+      const fish = CATCHES.filter((c) => c.mats && k in c.mats).map((c) => t(c.name));
+      const extra = [
+        spire.length ? `${t("Spire dungeon drop")}: ${spire.join(", ")}` : "",
+        fish.length ? `${t("Fishing Pier catch")}: ${fish.join(", ")}` : "",
+      ].filter(Boolean).join(" · ");
+      return `${MATS[k].desc} ${t("Where to get it")}: ${MATS[k].src}.${extra ? ` ${extra}.` : ""}`;
+    },
+  }));
+  return {
+    id: "materials",
+    get tab() { return t("Materials"); },
+    get title() { return t("Every material and where it drops"); },
+    get blurb() { return t("Each crystal, ore and trophy in the game, what it is for and how to obtain it."); },
+    get tip() { return t("Every Spire dungeon has its own crafting drop: a cleared floor has a 35% chance to pay it."); },
+    steps,
+  };
+}
 
 export const guideChapter = (id: string): GuideChapter =>
   GUIDE_CHAPTERS.find((c) => c.id === id) ?? GUIDE_CHAPTERS[0];

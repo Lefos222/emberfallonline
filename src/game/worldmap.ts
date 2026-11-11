@@ -334,16 +334,16 @@ function makeLord(rand: () => number, level: number): CastleLord {
 
 /** Sites each painted region carries: raid targets, rival keeps, claiming ruins and sealed vaults. */
 const REGION_CONTENT = [
-  { gold: 5, ore: 5, boss: 2, keep: 6, ruin: 13, cache: 2 },
-  { gold: 5, ore: 6, boss: 3, keep: 6, ruin: 11, cache: 2 },
-  { gold: 3, ore: 3, boss: 2, keep: 5, ruin: 10, cache: 2 },
-  { gold: 6, ore: 5, boss: 2, keep: 5, ruin: 13, cache: 2 },
-  { gold: 6, ore: 6, boss: 3, keep: 8, ruin: 14, cache: 2 },
-  { gold: 5, ore: 5, boss: 2, keep: 6, ruin: 11, cache: 2 },
-  { gold: 3, ore: 3, boss: 2, keep: 5, ruin: 8, cache: 2 },
-  { gold: 5, ore: 3, boss: 2, keep: 5, ruin: 14, cache: 2 },
-  { gold: 3, ore: 3, boss: 2, keep: 5, ruin: 11, cache: 2 },
-  { gold: 6, ore: 5, boss: 3, keep: 8, ruin: 14, cache: 2 },
+  { gold: 3, ore: 3, boss: 2, keep: 3, ruin: 6, cache: 2 },
+  { gold: 3, ore: 4, boss: 3, keep: 3, ruin: 5, cache: 2 },
+  { gold: 2, ore: 2, boss: 2, keep: 3, ruin: 4, cache: 2 },
+  { gold: 4, ore: 3, boss: 2, keep: 3, ruin: 6, cache: 2 },
+  { gold: 4, ore: 4, boss: 3, keep: 4, ruin: 6, cache: 2 },
+  { gold: 3, ore: 3, boss: 2, keep: 3, ruin: 5, cache: 2 },
+  { gold: 2, ore: 2, boss: 2, keep: 3, ruin: 4, cache: 2 },
+  { gold: 3, ore: 2, boss: 2, keep: 3, ruin: 6, cache: 2 },
+  { gold: 2, ore: 2, boss: 2, keep: 3, ruin: 5, cache: 2 },
+  { gold: 4, ore: 3, boss: 3, keep: 4, ruin: 6, cache: 2 },
 ];
 
 function buildRealm(): WorldSite[] {

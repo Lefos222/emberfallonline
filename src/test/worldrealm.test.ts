@@ -36,9 +36,10 @@ describe("the bounded realm", () => {
     }
   });
 
-  it("fills the map with far more than a handful of places", () => {
+  it("keeps a spacious but full map", () => {
     const kinds = new Set(WORLD_SITES.map((s) => s.kind));
-    expect(WORLD_SITES.length).toBeGreaterThan(300);
+    expect(WORLD_SITES.length).toBeGreaterThan(150);
+    expect(WORLD_SITES.length).toBeLessThan(260);
     const expected: SiteKind[] = ["gold", "ore", "boss", "keep", "ruin", "landmark", "cache"];
     for (const kind of expected) expect(kinds.has(kind)).toBe(true);
     expect(WORLD_SITES.filter((s) => s.id.startsWith("landmark:"))).toHaveLength(22);

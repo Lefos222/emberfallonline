@@ -18,9 +18,11 @@ import sceneGuildHall from "@/assets/scene-guild-hall.jpg";
 import sceneWorldMap from "@/assets/scene-world-map.jpg";
 import spireChest from "@/assets/spire-chest.webp";
 import worldCastle from "@/assets/world-castle.png";
+import artObservatory from "@/assets/spire-observatory.jpg";
 
 /** One painted picture per chapter, so a new player can see what a gate or a building looks like. */
 const CHAPTER_ART: Record<string, { src: string; fit: string }> = {
+  materials: { src: artObservatory, fit: "object-cover" },
   start: { src: gateCampaign, fit: "object-cover" },
   classes: { src: cardGender, fit: "object-contain" },
   fight: { src: arenaField, fit: "object-cover" },

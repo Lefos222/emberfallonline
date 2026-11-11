@@ -646,6 +646,8 @@ export interface Hero {
   guildSkills?: Record<string, number>;
   /** Reliquary attunement level per woken guild relic (0-5). */
   relicAttune?: Record<string, number>;
+  /** Fishing Pier: casts spent today and fish caught in total. */
+  fishing?: { day: string; casts: number; caught: number };
   /** Guild ledger: gold given to the guild and coins spent in the hall (see guild-tower.ts). */
   guildLedger?: { donated?: number; spent?: number };
   /** Synthesis armour: forged pieces ("<tier>:<slot>") and the set worn in each slot (see synthesis.ts). */

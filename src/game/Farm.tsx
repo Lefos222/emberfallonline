@@ -1,3 +1,5 @@
+import { FishingPanel } from "./Fishing";
+import fishingRod from "@/assets/fishing-rod.png";
 import farmBed from "@/assets/farm-bed.webp";
 import { tr } from "./i18n";
 import goldSprout from "@/assets/farm-gold-0.webp";
@@ -258,6 +260,7 @@ function SeedOption({
 
 /** The Farm: opened from the tree beside the Campaign Gate. */
 export function FarmPanel({ onClose }: { onClose: () => void }) {
+  const [fishing, setFishing] = useState(false);
   const { hero } = useGame();
   const [pickSlot, setPickSlot] = useState<number | null>(null);
   const [toast, setToast] = useState<{ text: string; bad?: boolean } | null>(null);
@@ -379,8 +382,13 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
           <Tractor className="mr-1 inline h-4 w-4" />
            {tr("Harvest All")}{ripe > 0 ? ` (${ripe})` : ""}
         </Button>
+        <Button variant="ghost" className="btn-ghost px-3 py-1.5 text-sm" onClick={() => setFishing(true)}>
+          <img src={fishingRod} alt="" width={816} height={816} className="mr-1 inline h-5 w-5 object-contain" />
+          {tr("Fishing Pier")}
+        </Button>
       </div>
 
+      {fishing && <FishingPanel onClose={() => setFishing(false)} />}
       {toast && (
         <p
           role="status"

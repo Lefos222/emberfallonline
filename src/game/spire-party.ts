@@ -4,6 +4,7 @@ import { object, returnedSave } from "./services-contract";
 import { heroSkills, heroStats, stageFoe, type EnemyType, type Hero, type HeroClass, type Skill } from "./data";
 import { heroAppearance } from "./appearance";
 import { buildKit, type TSkill } from "./combat";
+import type { Mat } from "./crafting";
 
 /** The Party Spire: 1-4 heroes fight one live battle that never leaves the arena. */
 export const SPIRE_FLOORS = 240;
@@ -33,14 +34,18 @@ export interface SpireDungeon {
   level: number;
   /** A boss every this many floors (the last floor is always one). */
   bossEvery: number;
+  /** The crafting material only this dungeon's floors drop (35% per cleared floor, server-rolled). */
+  mat: Mat;
 }
 
 export const SPIRE_DUNGEONS: SpireDungeon[] = [
-  { id: "cinder", name: "Cinder Crypt", blurb: "Twenty short floors — the first gate, and the kindest.", floors: 20, depth: 24, level: 1, bossEvery: 5 },
-  { id: "ember", name: "Ember Reach", blurb: "Forty floors of burning halls. Bring a friend.", floors: 40, depth: 70, level: 8, bossEvery: 10 },
-  { id: "frost", name: "Frostwind Vault", blurb: "Sixty floors sealed inside a frozen vault.", floors: 60, depth: 120, level: 18, bossEvery: 10 },
-  { id: "obsidian", name: "Obsidian Deep", blurb: "One hundred and twenty floors under black stone.", floors: 120, depth: 180, level: 30, bossEvery: 10 },
-  { id: "spire", name: "The Endless Spire", blurb: "The great climb: two hundred and forty floors.", floors: 240, depth: 240, level: 45, bossEvery: 10 },
+  { id: "cinder", name: "Cinder Crypt", blurb: "Twenty short floors — the first gate, and the kindest.", floors: 20, depth: 24, level: 1, bossEvery: 5, mat: "fragment" },
+  { id: "ember", name: "Ember Reach", blurb: "Forty floors of burning halls. Bring a friend.", floors: 40, depth: 70, level: 8, bossEvery: 10, mat: "crystal" },
+  { id: "frost", name: "Frostwind Vault", blurb: "Sixty floors sealed inside a frozen vault.", floors: 60, depth: 120, level: 18, bossEvery: 10, mat: "frostCrystal" },
+  { id: "catacomb", name: "Bonewyrm Catacombs", blurb: "Eighty floors beneath the bones of a wyrm.", floors: 80, depth: 150, level: 25, bossEvery: 10, mat: "sigil" },
+  { id: "obsidian", name: "Obsidian Deep", blurb: "One hundred and twenty floors under black stone.", floors: 120, depth: 180, level: 30, bossEvery: 10, mat: "voidCrystal" },
+  { id: "observatory", name: "Starfall Observatory", blurb: "One hundred and sixty floors up a ruined star tower.", floors: 160, depth: 210, level: 38, bossEvery: 10, mat: "starshard" },
+  { id: "spire", name: "The Endless Spire", blurb: "The great climb: two hundred and forty floors.", floors: 240, depth: 240, level: 45, bossEvery: 10, mat: "sunCrystal" },
 ];
 
 /** The dungeon a saved or shared id means; an unknown id is the first, shallowest climb. */
@@ -366,14 +371,19 @@ let lastClear = 0;
  * Reports are spaced for the server's own throttle and a rejected clear is retried; the queue
  * never rejects, because a failed report must not stop the rest of the run.
  */
-export function reportClear(floor: number): Promise<boolean> {
+export function reportClear(floor: number, dungeon?: string, onDrop?: (mats: Record<string, number>) => void): Promise<boolean> {
   return queue(async () => {
     for (let attempt = 0; attempt < 5; attempt += 1) {
       const wait = lastClear + CLEAR_GAP_MS - Date.now();
       if (wait > 0) await sleep(wait);
       lastClear = Date.now();
       try {
-        await withSave("spire_clear", { _floor: floor });
+        if (dungeon) {
+          const o = await withSave("spire_clear_in", { _floor: floor, _dungeon: dungeon });
+          const mats: Record<string, number> = {};
+          for (const [k, v] of Object.entries(object(o["drop"]))) if (whole(v) > 0) mats[k] = whole(v);
+          if (Object.keys(mats).length) onDrop?.(mats);
+        } else await withSave("spire_clear", { _floor: floor });
         return true;
       } catch {
         // A clear whose answer was lost may still have been paid. The ledger is the truth, so
