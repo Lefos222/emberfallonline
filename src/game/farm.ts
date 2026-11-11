@@ -239,6 +239,8 @@ export interface FarmState {
   produce?: Partial<Record<SeedKind, number>>;
   /** Active feast: id and expiry epoch ms. */
   feast?: { id: string; until: number } | null;
+  /** The seed planted most recently, offered by "Sow empty plots". */
+  last?: { kind: SeedKind; tier: number };
 }
 
 /** A brand-new farm: level 1, no XP, sixteen plots of which one is tilled. */
@@ -350,7 +352,35 @@ export function plantSeed(
   }
   const grow = Math.round(seedDurationMs(kind, t) * farmGrowthMult(farm.level));
   farm.slots[index] = { kind, tier: t, plantedAt: now, readyAt: now + grow };
+  h.farm = { ...farm, last: { kind, tier: t } };
   return null;
+}
+
+/** Plant one seed of the given kind in every empty unlocked plot; stops at the first refusal. */
+export function sowAll(h: Hero, kind: SeedKind, tier: number, now = Date.now()): { planted: number; err: string | null } {
+  const farm = ensureFarm(h);
+  let planted = 0;
+  for (let i = 0; i < slotsForLevel(farm.level); i++) {
+    if (ensureFarm(h).slots[i]) continue;
+    const err = plantSeed(h, i, kind, tier, now);
+    if (err) return { planted, err };
+    planted++;
+  }
+  return { planted, err: null };
+}
+
+/** Plots that are empty, growing and ripe, plus when the next crop ripens. */
+export function farmSummary(h: Hero, now = Date.now()) {
+  const farm = ensureFarm(h);
+  const open = slotsForLevel(farm.level);
+  let empty = 0, growing = 0, ripe = 0, next = Infinity;
+  for (let i = 0; i < open; i++) {
+    const c = farm.slots[i];
+    if (!c) empty++;
+    else if (now >= c.readyAt) ripe++;
+    else { growing++; next = Math.min(next, c.readyAt - now); }
+  }
+  return { empty, growing, ripe, nextMs: Number.isFinite(next) ? next : null };
 }
 
 export interface HarvestResult {

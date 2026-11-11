@@ -1,3 +1,4 @@
+import { trackActivity } from "./services";
 import towerObservatory from "@/assets/magic-tower-observatory.jpg";
 import { itemName , tr} from "./i18n";
 import { AstralIcon, MatIcon, GemIcon } from "./MatIcon";
@@ -284,6 +285,7 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
                         onClick={() =>
                           act((h) => {
                             const e = fuseGem(h, k);
+                            if (!e) trackActivity("gem");
                             say(!e, e ?? "Fusion complete!");
                           })
                         }
@@ -547,6 +549,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
             onClick={() =>
               update((h) => {
                 const r = summonAstralRandom(h);
+                if (typeof r !== "string") trackActivity("astral");
                 say(
                   typeof r !== "string",
                   typeof r === "string" ? r : `Summoned ${astralLabel(r)}!`,
@@ -608,6 +611,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
                 onClick={() =>
                   update((h) => {
                     const r = summonAstralByRarity(h, rarity);
+                    if (typeof r !== "string") trackActivity("astral");
                     say(
                       typeof r !== "string",
                       typeof r === "string" ? r : `Summoned ${astralLabel(r)}!`,
@@ -885,6 +889,7 @@ export function Crafting({ onClose }: { onClose: () => void }) {
       if (typeof out === "string") say(false, out);
       else {
         setLast(out);
+        trackActivity("craft");
         say(true, `Forged ${itemName(out.name)}!`);
       }
     });

@@ -56,11 +56,13 @@ export interface LevelQuest {
 export function questsForLevel(level: number): LevelQuest[] {
   const lv = Math.max(1, Math.floor(level));
   return Array.from({ length: 8 }, (_, i) => {
-    const kind = ORDER[(lv * 3 + i) % ORDER.length];
+    const rolled = ORDER[(lv * 3 + i) % ORDER.length];
+    // Conquest floors open at level 10: before that the slot asks for monsters instead.
+    const kind: QuestKind = rolled === "floors" && lv < 10 ? "kills" : rolled;
     const d = DEFS[kind];
     const target = Math.max(1, Math.round(d.base + d.growth * lv));
     return {
-      id: `${kind}@${lv}`,
+      id: rolled === kind ? `${kind}@${lv}` : `${kind}-alt@${lv}`,
       level: lv,
       kind,
       name: d.name,
@@ -86,7 +88,7 @@ export function questCounter(h: Hero, kind: QuestKind): number {
     case "crafts":
       return h.crafts ?? 0;
     case "kills":
-      return Object.values(h.kills ?? {}).reduce((a, n) => a + n, 0);
+      return Object.values(h.kills ?? {}).reduce((a, n) => a + n, 0) + (h.slain ?? 0);
     case "stages":
       return Math.max(0, h.stage - 1);
     case "floors":

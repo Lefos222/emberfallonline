@@ -2189,5 +2189,16 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "A wall of fire": ["Ένα τείχος φωτιάς", "Ściana ognia"],
   "Glass cannon of starlight": ["Γυάλινο κανόνι αστρόφωτος", "Szklane działo gwiezdnego światła"],
   "Server leaderboard · strongest heroes by Battle Rating": ["Κατάταξη διακομιστή · οι ισχυρότεροι ήρωες κατά Βαθμολογία μάχης", "Ranking serwera · najsilniejsi bohaterowie wg Oceny bojowej"],
+  "Today": ["Σήμερα", "Dziś"],
+  "wardens left": ["φύλακες απομένουν", "strażników zostało"],
+  "rift rooms left": ["αίθουσες ρήγματος απομένουν", "komnat szczeliny zostało"],
+  "1. Pick a dungeon · 2. Share the code or invite friends · 3. Start the climb": ["1. Διάλεξε μπουντρούμι · 2. Μοιράσου τον κωδικό ή κάλεσε φίλους · 3. Ξεκίνα την ανάβαση", "1. Wybierz loch · 2. Udostępnij kod lub zaproś przyjaciół · 3. Rozpocznij wspinaczkę"],
+  "Plant your last seed in every empty plot": ["Φύτεψε τον τελευταίο σπόρο σε κάθε άδειο χωράφι", "Posadź ostatnie nasiono na każdym pustym polu"],
+  "Harvest & replant": ["Συγκομιδή και ξαναφύτεμα", "Zbierz i posadź ponownie"],
+  "Sow empty plots": ["Σπείρε τα άδεια χωράφια", "Obsiej puste pola"],
+  "Ripe": ["Ώριμα", "Dojrzałe"],
+  "Growing": ["Μεγαλώνουν", "Rosną"],
+  "Empty plots": ["Άδεια χωράφια", "Puste pola"],
+  "Next harvest": ["Επόμενη συγκομιδή", "Następne zbiory"],
   // @@ROWS@@
 };

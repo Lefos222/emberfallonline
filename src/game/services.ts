@@ -134,3 +134,11 @@ export async function claimArenaEvent(): Promise<{ gold: number; won: boolean }>
     return { gold: Number(o['gold'] ?? 0), won: !!o['won'] };
   });
 }
+
+/** Counts one action toward the daily and weekly challenges (server-side; 1.5 s throttle per kind). */
+export type ActivityKind = "kill" | "dungeon" | "boss" | "craft" | "gem" | "astral" | "arena";
+export function trackActivity(kind: ActivityKind) {
+  const heroId = getState().heroId;
+  if (!heroId) return;
+  void supabase.rpc("track_activity", { _hero: heroId, _kind: kind }).then(() => {}, () => {});
+}

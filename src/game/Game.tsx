@@ -26,7 +26,7 @@ import { Expeditions } from "./Expeditions";
 import { PremiumShop } from "./PremiumShop";
 import { AuctionHousePanel } from "./Marketplace";
 import { WorldMap } from "./WorldMap";
-import { beginScrollBattle } from "./services";
+import { beginScrollBattle, trackActivity } from "./services";
 import { battleLockedByBlitz, settleBlitzRun } from "./blitz-run";
 import { scrollFighter } from "./scrolls";
 import castle from "@/assets/castle.jpg.asset.json";
@@ -61,7 +61,7 @@ import { addXpScrolls, rollXpScroll } from "./xp-scrolls";
 import { CharacterSelect } from "./CharacterSelect";
 import { ProfilePanel } from "./ProfilePanel";
 import { Battle, type Fighter } from "./Battle";
-import { Campaign, Forge, HeroHall, Oracle, Temple, heroFighter, type StartBattle } from "./panels";
+import { Campaign, Forge, HeroHall, Temple, heroFighter, type StartBattle } from "./panels";
 import { Arena } from "./Arena";
 import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
@@ -388,6 +388,14 @@ export function Game() {
         rewards: [...r.lines, ...(r.loot ? [r.loot.name] : [])],
       }),
     );
+    // Daily & weekly challenges and level quests count every won fight.
+    if (won) {
+      update((h) => { h.slain = (h.slain ?? 0) + 1; });
+      trackActivity("kill");
+      if (battle.right.boss) trackActivity("boss");
+      if (battle.dungeon) trackActivity("dungeon");
+      if (/arena/i.test(battle.title)) trackActivity("arena");
+    }
     // Boss victories are the second source of Void Crystals beside level-ups (see logic.grant).
     if (won && battle.right.boss) {
       update((h) => {
@@ -684,7 +692,6 @@ export function Game() {
           {open === "market" && <AuctionHousePanel onClose={() => setOpen(null)} />}
           {open === "arena" && <Arena onClose={() => setOpen(null)} start={start} />}
           {open === "worldmap" && <WorldMap onClose={() => setOpen(null)} start={start} />}
-          {open === "oracle" && <Oracle onClose={() => setOpen(null)} start={start} />}
         </>
       )}
       {battle && (
@@ -990,7 +997,6 @@ const SHORTCUTS: { id: ShortcutTarget; label: string; tip: string; icon: ArtIcon
   { id: "events", label: "Events", tip: "Every event in one place", icon: "calendar" },
   { id: "friends", label: "Friends", tip: "Friends & messages", icon: "friends" },
   { id: "profile", label: "Profile", tip: "Your hero profile", icon: "profile" },
-  { id: "oracle", label: "Quest Board", tip: "AI-generated quests", icon: "quest" },
 ];
 
 function ShortcutBar({

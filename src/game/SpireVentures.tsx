@@ -22,6 +22,7 @@ const ROOM_LABEL: Record<RoomKind, string> = { ambush: "Ambush", treasure: "Trea
 export function SpireVentures({ onClose, start, header }: { onClose: () => void; start: StartBattle; header: ReactNode }) {
   const { hero } = useGame();
   const [tab, setTab] = useState<"wardens" | "rift">("wardens");
+  const [note, setNote] = useState("");
   if (!hero) return null;
   const lvl = hero.level + hero.paragon;
   const v = ventureOf(hero.spireVentures);
@@ -69,6 +70,7 @@ export function SpireVentures({ onClose, start, header }: { onClose: () => void;
         addMats(h, riftTreasure);
         h.spireVentures = { ...s, room: room + 1 };
       });
+      setNote(`${t("Treasure vault")}: +${fmt(riftGold(lvl, room, kind, fortune))} ${t("gold")} · ${matLines(riftTreasure).join(", ")}`);
       return;
     }
     if (kind === "shrine") return;
@@ -145,6 +147,7 @@ export function SpireVentures({ onClose, start, header }: { onClose: () => void;
               </div>
             ))}
           </div>
+          {note && <p role="status" className="slot mb-2 p-2 text-xs text-r1">{note}</p>}
           {v.shrine && <p className="mb-2 text-xs text-gold">{might ? t("Shrine of Might: rift foes are 15% weaker.") : t("Shrine of Fortune: rift gold +25%.")}</p>}
           {v.failed ? (
             <p className="py-6 text-center text-hp">{t("The rift closed. A new path opens tomorrow.")}</p>
@@ -174,7 +177,10 @@ export function SpireVentures({ onClose, start, header }: { onClose: () => void;
 
 /** The Spire's three ways to play: party dungeons with floors, warden hunts and the rift path. */
 export function SpireHub({ onClose, start, onBattleVisible }: { onClose: () => void; start: StartBattle; onBattleVisible: (v: boolean) => void }) {
+  const { hero } = useGame();
   const [mode, setMode] = useState<"party" | "ventures">("party");
+  const v = ventureOf(hero?.spireVentures);
+  const riftLeft = v.failed ? 0 : RIFT_ROOMS - v.room;
   const header = (
     <div className="mb-3 grid gap-2 sm:grid-cols-2">
       {([
@@ -186,6 +192,11 @@ export function SpireHub({ onClose, start, onBattleVisible }: { onClose: () => v
           <div className="text-xs text-muted-foreground">{t(note)}</div>
         </button>
       ))}
+      <div className="sm:col-span-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+        <span className="slot px-2 py-1">{t("Today")}: <b className="text-gold">{3 - v.wardens.length}</b> {t("wardens left")}</span>
+        <span className="slot px-2 py-1"><b className="text-gold">{riftLeft}</b> {t("rift rooms left")}</span>
+        {mode === "party" && <span className="slot px-2 py-1">{t("1. Pick a dungeon · 2. Share the code or invite friends · 3. Start the climb")}</span>}
+      </div>
     </div>
   );
   return mode === "party"

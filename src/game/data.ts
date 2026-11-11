@@ -642,6 +642,8 @@ export interface Hero {
   blackMarket?: { window: number; items: Item[]; mats: { mat: import("./crafting").Mat; qty: number; gold: number }[]; sold: string[]; lucky?: boolean };
   /** Bestiary entries the character has defeated, by bestiary id. */
   kills?: Record<string, number>;
+  /** Every monster defeated in a won battle (level quests count it beside the bestiary). */
+  slain?: number;
   weekly?: { week: number; kills: number; claimed: boolean };
   /** Guild coins earned by contributing gold; spent in the guild shop and skill tower. */
   guildCoins?: number;

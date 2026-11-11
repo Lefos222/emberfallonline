@@ -41,6 +41,8 @@ import {
   farmXp,
   farmXpToNext,
   harvestAll,
+  sowAll,
+  farmSummary,
   harvestSlot,
   heldSeeds,
   plantSeed,
@@ -343,6 +345,17 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
     else say(`Bought ${qty} × ${seedName(kind, tier)}`);
   };
 
+  const sum = farmSummary(hero, now);
+  const last = hero.farm?.last;
+  const sowEmpty = () => {
+    if (!last) return;
+    let res = { planted: 0, err: null as string | null };
+    update((h) => { res = sowAll(h, last.kind, last.tier); });
+    if (res.planted > 0) say(`Sowed ${res.planted} × ${seedName(last.kind, last.tier)}${res.err ? ` — ${res.err}` : ""}`, false);
+    else say(res.err ?? "No empty plots.", true);
+  };
+  const harvestAndSow = () => { harvestRipe(); sowEmpty(); };
+
   const chargeTree = () => {
     const out: { got: ReturnType<typeof chargeBloodoak> } = { got: null };
     update((h) => {
@@ -379,6 +392,19 @@ export function FarmPanel({ onClose }: { onClose: () => void }) {
           <Tractor className="mr-1 inline h-4 w-4" />
            {tr("Harvest All")}{ripe > 0 ? ` (${ripe})` : ""}
         </Button>
+        {last && (
+          <Button variant="ghost" className="btn-ghost px-3 py-1.5 text-sm" disabled={sum.empty === 0 && ripe === 0}
+            onClick={ripe > 0 ? harvestAndSow : sowEmpty}
+            title={tr("Plant your last seed in every empty plot")}>
+            {ripe > 0 ? tr("Harvest & replant") : tr("Sow empty plots")} · {seedName(last.kind, last.tier)}
+          </Button>
+        )}
+      </div>
+      <div className="mb-3 grid grid-cols-2 gap-2 text-center text-xs sm:grid-cols-4">
+        <div className="slot p-2"><b className="block font-display text-lg text-r1">{sum.ripe}</b>{tr("Ripe")}</div>
+        <div className="slot p-2"><b className="block font-display text-lg text-gold">{sum.growing}</b>{tr("Growing")}</div>
+        <div className="slot p-2"><b className="block font-display text-lg">{sum.empty}</b>{tr("Empty plots")}</div>
+        <div className="slot p-2"><b className="block font-display text-lg">{sum.nextMs === null ? "—" : waitLabel(sum.nextMs)}</b>{tr("Next harvest")}</div>
       </div>
 
       {toast && (
