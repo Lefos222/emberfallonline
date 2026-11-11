@@ -309,6 +309,13 @@
       "when": 1794410000008,
       "tag": "0043_anticheat",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1794410161490,
+      "tag": "0044_apply_0043_anticheat",
+      "breakpoints": true
     }
   ]
 }

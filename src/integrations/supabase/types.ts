@@ -71,6 +71,124 @@ export type Database = {
         }
         Relationships: []
       }
+      anticheat_quarantine: {
+        Row: {
+          backup: Json | null
+          created_at: string
+          evidence: Json | null
+          hero_id: string | null
+          hero_name: string
+          id: string
+          reason: string
+          restored_at: string | null
+          restored_hero_id: string | null
+          source: string
+          user_id: string
+          warning_id: string | null
+        }
+        Insert: {
+          backup?: Json | null
+          created_at?: string
+          evidence?: Json | null
+          hero_id?: string | null
+          hero_name?: string
+          id?: string
+          reason: string
+          restored_at?: string | null
+          restored_hero_id?: string | null
+          source: string
+          user_id: string
+          warning_id?: string | null
+        }
+        Update: {
+          backup?: Json | null
+          created_at?: string
+          evidence?: Json | null
+          hero_id?: string | null
+          hero_name?: string
+          id?: string
+          reason?: string
+          restored_at?: string | null
+          restored_hero_id?: string | null
+          source?: string
+          user_id?: string
+          warning_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anticheat_quarantine_warning_id_fkey"
+            columns: ["warning_id"]
+            isOneToOne: false
+            referencedRelation: "anticheat_warnings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      anticheat_state: {
+        Row: {
+          hero_id: string
+          peak_gold: number
+          peak_level: number
+          peak_paragon: number
+          window_gain: number
+          window_start: string
+        }
+        Insert: {
+          hero_id: string
+          peak_gold?: number
+          peak_level?: number
+          peak_paragon?: number
+          window_gain?: number
+          window_start?: string
+        }
+        Update: {
+          hero_id?: string
+          peak_gold?: number
+          peak_level?: number
+          peak_paragon?: number
+          window_gain?: number
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anticheat_state_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: true
+            referencedRelation: "heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      anticheat_warnings: {
+        Row: {
+          acknowledged_at: string | null
+          created_at: string
+          hero_id: string | null
+          hero_name: string
+          id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          created_at?: string
+          hero_id?: string | null
+          hero_name?: string
+          id?: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          created_at?: string
+          hero_id?: string | null
+          hero_name?: string
+          id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       arena_matches: {
         Row: {
           attacker_id: string
@@ -1606,6 +1724,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _ac_caller_role: { Args: never; Returns: string }
+      _ac_gold_cap: {
+        Args: { _level: number; _paragon: number }
+        Returns: number
+      }
+      _ac_power_cap: {
+        Args: { _level: number; _paragon: number }
+        Returns: number
+      }
+      _ac_static_reason: {
+        Args: { _level: number; _paragon: number; _power: number; _save: Json }
+        Returns: string
+      }
       _apply_reward: { Args: { rw: Json; s: Json }; Returns: Json }
       _bag_room: { Args: { _save: Json }; Returns: number }
       _buff_cost: { Args: { _kind: string }; Returns: number }
@@ -1692,6 +1823,8 @@ export type Database = {
         Returns: Json
       }
       add_friend: { Args: { _hero: string; _name: string }; Returns: string }
+      anticheat_acknowledge: { Args: { _id: string }; Returns: undefined }
+      anticheat_restore: { Args: { _id: string }; Returns: string }
       apply_guild: {
         Args: { _guild: string; _hero: string; _message: string }
         Returns: undefined

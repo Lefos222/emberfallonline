@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS anticheat_warnings_user_idx ON public.anticheat_warnings (user_id, created_at DESC);
