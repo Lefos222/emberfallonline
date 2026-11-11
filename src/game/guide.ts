@@ -599,6 +599,7 @@ function materialsChapter(): GuideChapter {
       return `${MATS[k].desc} ${t("Where to get it")}: ${MATS[k].src}.${extra ? ` ${extra}.` : ""}`;
     },
   }));
+  steps.push({get title(){return t("Roses");},get body(){return `${t("Send a rose to a friend. Both heroes earn one friendship point, adding permanent health and BR without a cap.")} ${t("20% chance from claimed login, activities, World Tree raids and guild dice.")}`;}});
   return {
     id: "materials",
     get tab() { return t("Materials"); },

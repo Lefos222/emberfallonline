@@ -19,6 +19,15 @@ export async function reward<K extends RewardRpc>(name: K, args: Omit<Rpc[K]["Ar
     }
     if (name === "lucky_shot") returnedAstral(data);
     adoptServerSave(id, save);
+    if(name === "claim_activity" || name === "claim_login") {
+      const base = returnedSave(data);
+      const r = object(data); const rw = object(r['reward']); const mats = { ...object(rw['mats']) };
+      for(const k of ["hide","bloom","crystal"] as const) {
+        const extra = (save.mats?.[k] ?? 0)-(base.mats?.[k] ?? 0);
+        if(extra>0) mats[k]=Number(mats[k] ?? 0)+extra;
+      }
+      return { ...r, save, reward: { ...rw, mats, gold: Number(rw['gold'] ?? 0)+Math.max(0,save.gold-base.gold), roses: Math.max(0,(save.srv?.friendship?.roses ?? 0)-(base.srv?.friendship?.roses ?? 0)) } };
+    }
     return data;
   });
 }

@@ -4,6 +4,7 @@ import { TREES,talentSkills } from "@/game/talents";
 import { warDropKind,WAR_MATERIAL_CHANCE } from "@/game/war-drops";
 import { friendshipHealthPct } from "@/game/friendship";
 import { memberOf,newBattle,tick } from "@/game/spire-party";
+import { readFileSync } from "node:fs";
 describe("November 11 requested rules",()=>{
  for(const cls of ["warrior","mage","archer"] as const){
   it(`${cls} gains exactly four active skills`,()=>expect(TREES[cls].flatMap(s=>s.talents).filter(t=>t.id.includes("new_active"))).toHaveLength(4));
@@ -14,4 +15,6 @@ describe("November 11 requested rules",()=>{
  it("renewal heals living party members and reports only actual healing",()=>{const h=newHero("Healer","mage");h.talents={mage_new_active_0:4};const a=memberOf(h,"female","a"),b=memberOf(newHero("Friend","warrior"),"male","b");const s=newBattle([a,b]);s.heroes.forEach(x=>{x.hp=x.max-10;x.swing=99999;});s.foes.forEach(x=>x.swing=99999);const r=tick(s,[a,b],[{hero:"a",skill:"renewal-wave"}],()=>.9);expect(r.battle.heroes.every(x=>x.hp===x.max)).toBe(true);expect(r.battle.fx.filter(x=>x.kind==="heal").map(x=>x.value)).toEqual([10,10]);});
  it("friendship keeps increasing stats and BR beyond high point totals",()=>{const h=newHero("Friend","warrior");h.srv={friendship:{points:100000}};const a=heroStats(h);h.srv.friendship={points:100100};expect(friendshipHealthPct(h)).toBeCloseTo(10010);expect(heroStats(h).hp).toBeGreaterThan(a.hp);expect(heroStats(h).power).toBeGreaterThan(a.power);});
  it("rose stacks occupy inventory slots",()=>{const h=newHero("Rose","mage");h.srv={friendship:{roses:10000}};expect(matSlots(h)).toBe(2);});
+ it("online Spire item roll mirrors the 70% material chance",()=>{const sql=readFileSync('drizzle/migrations/0041_spire_material_equipment_split.sql','utf8');expect(sql).toMatch(/random\(\)<0\.7/);expect(sql).toContain("public._bag_room(s)>0");expect(sql).toContain("'{overflow}'");});
+ it("online rose sends require reciprocal accepted friends and retain retry identity",()=>{const sql=readFileSync('drizzle/migrations/0038_friendship_roses_reward_enrichment.sql','utf8');expect(sql).toContain('owner_hero=_hero AND friend_hero=_friend');expect(sql).toContain('owner_hero=_friend AND friend_hero=_hero');expect(sql).toContain('prior.hero_id<>_hero OR prior.friend_id IS DISTINCT FROM _friend');});
 });
