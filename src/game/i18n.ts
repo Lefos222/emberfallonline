@@ -662,6 +662,40 @@ const TRANSLATIONS: Record<string, [el: string, pl: string]> = {
     "Twój bohater, tytuły, osiągnięcia i wygląd",
   ],
 
+  // ---------- Anti-cheat ----------
+  "Anti-cheat warning": ["Προειδοποίηση κατά της απάτης", "Ostrzeżenie o oszustwie"],
+  "Your save was blocked": ["Η αποθήκευσή σου μπλοκαρίστηκε", "Twój zapis został zablokowany"],
+  "A backup of the character is kept": [
+    "Κρατείται αντίγραφο του χαρακτήρα",
+    "Kopia bohatera jest zachowana",
+  ],
+  "Character deleted": ["Ο χαρακτήρας διαγράφηκε", "Bohater usunięty"],
+  "Your character {name} was deleted after repeated blocked saves.": [
+    "Ο χαρακτήρας σου {name} διαγράφηκε μετά από επανειλημμένες μπλοκαρισμένες αποθηκεύσεις.",
+    "Twój bohater {name} został usunięty po powtarzających się zablokowanych zapisach.",
+  ],
+  "A full copy is kept on the server, so support can restore the character if this was a mistake. Contact them with your account email.":
+    [
+      "Ένα πλήρες αντίγραφο φυλάσσεται στον διακομιστή, ώστε η υποστήριξη να μπορεί να επαναφέρει τον χαρακτήρα αν έγινε λάθος. Επικοινώνησε μαζί τους με το email του λογαριασμού σου.",
+      "Pełna kopia jest przechowywana na serwerze, więc pomoc techniczna może przywrócić bohatera, jeśli to była pomyłka. Skontaktuj się z nią, podając e-mail konta.",
+    ],
+  "A save from this account carried a value the game cannot produce. It was rolled back, so nothing was gained.":
+    [
+      "Μια αποθήκευση από αυτόν τον λογαριασμό περιείχε τιμή που το παιχνίδι δεν μπορεί να παράγει. Ακυρώθηκε, οπότε δεν κερδήθηκε τίποτα.",
+      "Zapis z tego konta zawierał wartość, której gra nie może wytworzyć. Został cofnięty, więc nic nie zyskano.",
+    ],
+  "Blocked: {list}": ["Μπλοκαρίστηκε: {list}", "Zablokowano: {list}"],
+  "If it happens again the character is deleted.": [
+    "Αν ξαναγίνει, ο χαρακτήρας διαγράφεται.",
+    "Jeśli to się powtórzy, bohater zostanie usunięty.",
+  ],
+  "I understand": ["Καταλαβαίνω", "Rozumiem"],
+  "battle rating": ["βαθμολογία μάχης", "ocena walki"],
+  gold: ["χρυσός", "złoto"],
+  level: ["επίπεδο", "poziom"],
+  "arena rating": ["βαθμολογία αρένας", "ocena areny"],
+  "server-owned rewards": ["ανταμοιβές διακομιστή", "nagrody serwera"],
+
   // ---------- Shared controls ----------
   Close: ["Κλείσιμο", "Zamknij"],
 };

@@ -4,7 +4,18 @@ import { newHero } from "@/game/data";
 const fake = vi.hoisted(() => ({ writes: [] as string[], failed: false, save: {} as unknown }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: { from: () => ({
-    update: () => ({ eq: async () => { fake.writes.push("save"); return { error: fake.failed ? { message: "offline" } : null }; } }),
+    // An update now reads the stored row back (the anti-cheat may roll a forged value back), so the
+    // chain ends in `.select()` and answers with what the server actually kept.
+    update: (payload: Record<string, unknown>) => ({
+      eq: () => {
+        fake.writes.push("save");
+        const result = {
+          data: fake.failed ? [] : [{ save: payload["save"], level: payload["level"], power: payload["power"] }],
+          error: fake.failed ? { message: "offline" } : null,
+        };
+        return { select: async () => result, then: (ok: (v: unknown) => unknown, fail?: (e: unknown) => unknown) => Promise.resolve(result).then(ok, fail) };
+      },
+    }),
     select: (cols: string) => ({
       eq: () => ({
         order: async () => ({ data: [], error: null }),
