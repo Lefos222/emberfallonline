@@ -1,4 +1,10 @@
 # Roadmap (current request)
+- [x] Nov 11, 01:13: Rebuild battle hotbar with health, rage and legible ability icons on desktop/phone.
+- [x] Nov 11, 01:13: Guide above Quests on castle edge; eight detailed quests per level preserving progress.
+- [x] Nov 11, 01:13: Announcements panel and maintained update/hotfix/merge history.
+- [x] Nov 11, 01:13: Harder Relic Trial bosses and clearer trial screen.
+- [x] Nov 11, 01:13: Broaden material expeditions with non-rare existing materials only.
+- [x] Nov 11, 01:13: Rebuild daily/weekly board with existing server rewards and painted assets.
 - [x] Nov 11: Hide War Gates navigation during ordinary and party fights.
 - [x] Nov 11: Renovate Magic Tower with painted art and clearer mobile controls.
 - [ ] Nov 11: Verified social rewards ledger and Discord verification implemented; activation blocked by bot server access. Instagram blocked by professional-account messaging connection and webhook setup.

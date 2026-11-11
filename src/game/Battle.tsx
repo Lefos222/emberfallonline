@@ -1,3 +1,4 @@
+import { CombatOrb } from "./CombatOrb";
 import { tName , tr} from "./i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -296,11 +297,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
             {skill && <Button variant="ghost" className="text-muted-foreground underline" onClick={() => { setSelSkill(null); setSelTargets([]); }}>{tr("Cancel")}</Button>}
           </div>
           <div className="orb-bar w-full max-w-5xl">
-            <div className="orb orb-hp" title={tr("Health")}>
-              <div className="orb-fill" style={{ height: `${Math.max(0, (hero.hp / hero.maxHp) * 100)}%` }} />
-              <div className="orb-gloss" />
-              <div className="orb-label">{hero.hp.toLocaleString()}<small>{tr("Health")}</small></div>
-            </div>
+            <CombatOrb kind="hp" value={hero.hp} max={hero.maxHp} label={tr("Health")} />
           <div className="orb-slots">
             {hero.kit.map((sk, ki) => {
               const cd = hero.cds[sk.id] ?? 0;
@@ -308,11 +305,11 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
               const disabled = !myTurn || !!why || autoOn;
               return (
                 <Button variant="ghost" key={sk.id} onClick={() => pickSkill(sk)} disabled={disabled}
-                  title={`${sk.name} — ${sk.desc}${sk.cost ? ` Cost ${sk.cost} ${resourceName(hero.cls)}.` : ""}${sk.cd ? ` Cooldown ${sk.cd}.` : ""}${why ? ` (${why})` : ""}`}
-                  className={`slot relative flex h-16 w-16 flex-col items-center justify-center gap-0.5 transition hover:scale-105 disabled:opacity-50 md:h-20 md:w-20 ${selSkill === sk.id ? "rarity-5 ring-2 ring-gold" : "rarity-4"}`}>
-                  <SkillIcon icon={sk.icon} className="h-8 w-8 md:h-10 md:w-10" />
-                  <span className="px-0.5 text-center text-[9px] font-bold uppercase leading-tight">{sk.name}</span>
-                  {sk.cost > 0 && <span className="absolute right-0.5 top-0.5 rounded bg-background/80 px-1 text-[9px] text-r3">{sk.cost}</span>}
+                  aria-label={sk.name} title={`${sk.name} — ${sk.desc}${sk.cost ? ` Cost ${sk.cost} ${resourceName(hero.cls)}.` : ""}${sk.cd ? ` Cooldown ${sk.cd}.` : ""}${why ? ` (${why})` : ""}`}
+                  className={`battle-skill slot relative flex h-16 w-16 flex-col items-center justify-center gap-0.5 transition disabled:opacity-50 md:h-20 md:w-20 ${selSkill === sk.id ? "rarity-5 ring-2 ring-gold" : "rarity-4"}`}>
+                  <SkillIcon icon={sk.icon} className="h-10 w-10 md:h-12 md:w-12" />
+                  <span className="battle-skill-name">{sk.name}</span>
+                  {sk.cost > 0 && <span className="absolute right-0.5 top-0.5 rounded bg-background/80 px-1 text-[9px] text-gold">{sk.cost}</span>}
                   <span className="orb-key">{ki + 1}</span>
                   {cd > 0 && <span className="absolute inset-0 flex flex-col items-center justify-center rounded-md bg-background/75"><span className="font-display text-2xl">{cd}</span><span className="text-[9px]">{tr("turn")}{cd > 1 ? "s" : ""}</span></span>}
                 </Button>
@@ -328,11 +325,7 @@ export function Battle({ left, right, auto = false, onEnd, title }: {
               <FastForward className="h-5 w-5" />
             </Button>
           </div>
-            <div className="orb orb-rage" title={resourceName(hero.cls)}>
-              <div className="orb-fill" style={{ height: `${Math.max(0, (hero.mana / hero.maxMana) * 100)}%` }} />
-              <div className="orb-gloss" />
-              <div className="orb-label">{hero.mana}<small>{resourceName(hero.cls)}</small></div>
-            </div>
+            <CombatOrb kind="rage" value={hero.mana} max={hero.maxMana} label={tr(resourceName(hero.cls))} />
           </div>
         </div>
       </div>
@@ -381,7 +374,7 @@ function UnitView({ u, anim, effect, move, victory, floats, active, targetable, 
         <div key={anim ?? "idle"} className={`h-full w-full ${anim?.split("#")[0] ?? ""}`}>
           {u.cls ? <div className={`h-full w-full ${victory ? "battle-victory" : "anim-idle"}`}><BattleCharacter u={u} /></div> : u.sprite ? <div className="flex h-full w-full items-end anim-idle"><Sprite rect={u.sprite} className="battle-sprite w-full" /></div> : <div className="battle-sprite h-full w-full anim-idle"><BattleCharacter u={u} /></div>}
           {move && <WeaponArc key={"arc" + move} move={move} />}
-          {effect && (effect.startsWith("sk:") ? <SkillImpact key={effect} fx={skillFx(effect.slice(3).split("#")[0])!} /> : <CombatEffect key={effect} kind={effect.split("#")[0]} />)}
+          {effect && (effect.startsWith("sk:") ? <SkillImpact key={effect} fx={skillFx(effect.slice(3).split("#")[0]) ?? { shape: "blade", motion: "burst", hue: "var(--gold)" }} /> : <CombatEffect key={effect} kind={effect.split("#")[0]} />)}
         </div>
         {floats.filter((f) => f.tgt === u.id).map((f, i) => (
           <div key={f.id} className={`pointer-events-none absolute left-1/2 anim-float whitespace-nowrap font-display font-black drop-shadow-[0_2px_2px_black] ${

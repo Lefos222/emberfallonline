@@ -1,3 +1,5 @@
+import activityArt from "@/assets/activity-command-desk.jpg";
+import { ArtIcon } from "./ArtIcon";
 import { t } from "./i18n";
 import { useEffect, useRef, useState } from "react";
 import { Check, Gift, Loader2, Mail, Sparkles } from "lucide-react";
@@ -102,25 +104,41 @@ export function ActivityBoard({ onClose }: { onClose: () => void }) {
   const { heroId } = useGame();
   const request = useRequest();
   const [board, setBoard] = useState<Activities | null>(null);
-  const [tab, setTab] = useState<"daily" | "weekly">("daily");
+  const [tab, setTab] = useState<"daily" | "weekly" | "login">("daily");
   const [receipt, setReceipt] = useState<string[]>([]);
+  const [onlyReady, setOnlyReady] = useState(false);
   const load = async () => { if (heroId) setBoard(await activities(heroId)); };
   useEffect(() => { void request.run(load); }, [heroId]);
   const claim = async (id: string) => { const result = await reward("claim_activity", { _objective: id }); setReceipt(rewardLines(result)); await load(); };
-  const row = (o: Objective) => <div key={o.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-4">
-    <div><h3 className="font-display text-lg">{KIND_LABEL[o.kind] ?? o.kind}{o.stage ? ` · Stage ${o.stage}` : ""}</h3><p className="text-sm text-muted-foreground">{Math.min(o.progress, o.target)} / {o.target}</p><progress className="mt-1 h-2 w-44 accent-primary" max={o.target} value={Math.min(o.progress, o.target)} /></div>
-    <Button variant={o.claimed ? "ghost" : "default"} disabled={request.busy || o.claimed || o.progress < o.target} onClick={() => void request.run(() => claim(o.id))}>{o.claimed ? <Check /> : <Gift />}{o.claimed ? t("Claimed") : t("Claim")}</Button>
-  </div>;
+  const list = board && tab !== "login" ? board[tab] : [];
+  const ready = (o: Objective) => !o.claimed && o.progress >= o.target && (!o.stage || o.stage === 1 || !!board?.weekly.find(p => p.kind === o.kind && p.stage === (o.stage ?? 1) - 1)?.claimed);
+  const shown = list.filter(o => !onlyReady || ready(o)).slice().sort((a,b) => Number(a.claimed)-Number(b.claimed) || Number(ready(b))-Number(ready(a)));
   return <Panel title={t("Daily & Weekly Activities")} subtitle={t("Fresh tasks every reset")} art="gift" onClose={onClose} wide>
-    <DailyRewardsBoard />
-    <div className="flex justify-end"><Button variant="outline" size="icon" aria-label={t("Refresh activities")} disabled={request.busy} onClick={() => void request.run(load)}><RefreshCw /></Button></div>
+    <img src={activityArt} alt="" width={1536} height={1024} loading="lazy" className="mb-4 h-36 w-full rounded-md object-cover" />
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <GameTabs label={t("Activity period")} value={tab} onChange={setTab} tabs={[{ id: "daily", name: "Daily" }, { id: "weekly", name: "Weekly" }, { id: "login", name: t("Login reward") }]} />
+      <Button variant="outline" size="icon" aria-label={t("Refresh activities")} title={t("Refresh activities")} disabled={request.busy} onClick={() => void request.run(load)}><RefreshCw /></Button>
+    </div>
     <RequestStatus {...request} />
-    {board && <>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-4"><div><h3 className="font-display text-xl text-gold">{t("Login reward")}</h3><p className="text-sm text-muted-foreground">{t("Streak:")} {board.login.streak}  {t("days · Total:")} {board.login.total}</p></div><Button disabled={request.busy || board.login.claimedToday} onClick={() => void request.run(async () => { const r = await reward("claim_login", {}); setReceipt(rewardLines(r)); await load(); })}><Gift />{board.login.claimedToday ? t("Claimed today") : t("Claim login reward")}</Button></div>
-      <GameTabs label={t("Activity period")} value={tab} onChange={setTab} tabs={[{ id: "daily", name: "Daily" }, { id: "weekly", name: "Weekly" }]} />
-      <p className="text-xs text-muted-foreground">{t("Resets")} {new Date(tab === "daily" ? board.dailyReset : board.weeklyReset).toLocaleString()}</p>
-      {board[tab].map(row)}
-      {tab === "daily" && <div className="flex flex-wrap items-center justify-between gap-3 py-4"><span className="font-display text-lg">{t("Complete all daily objectives")}</span><Button disabled={request.busy || board.dailyBonusClaimed || !board.daily.length || !board.daily.every((o) => o.claimed)} onClick={() => void request.run(() => claim("all"))}><Gift />{board.dailyBonusClaimed ? t("Claimed") : t("Claim bonus")}</Button></div>}
+    {board && tab !== "login" && <>
+      <div className="my-4 flex flex-wrap items-center justify-between gap-3 border-y border-border py-3">
+        <div><b className="font-display text-lg text-gold">{list.filter(o => o.claimed).length}/{list.length} {t("Claimed")}</b><p className="text-xs text-muted-foreground">{t("Resets")} {new Date(tab === "daily" ? board.dailyReset : board.weeklyReset).toLocaleString()}</p></div>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={onlyReady} onChange={e => setOnlyReady(e.target.checked)} />{t("Ready to claim")}</label>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">{shown.map(o => <article key={o.id} className="flex gap-3 rounded-md border border-border bg-card p-4">
+        <ArtIcon name={o.kind === "craft" ? "hammer" : o.kind === "gem" ? "gem" : o.kind === "astral" ? "astral" : "swords"} size={40} />
+        <div className="min-w-0 flex-1"><h3 className="font-display text-base">{t(KIND_LABEL[o.kind] ?? o.kind)}{o.stage ? ` · ${t("Stage")} ${o.stage}` : ""}</h3>
+        <div className="my-2 flex justify-between text-xs text-muted-foreground"><span>{t("Progress")}</span><span>{Math.min(o.progress,o.target)}/{o.target}</span></div>
+        <progress className="mb-3 h-2 w-full accent-primary" max={o.target} value={Math.min(o.progress,o.target)} />
+        {o.stage && o.stage > 1 && !ready(o) && !o.claimed && <p className="mb-2 text-xs text-muted-foreground">{t("Claim the previous stage first.")}</p>}
+        <Button className="w-full" variant={o.claimed ? "outline" : "default"} disabled={request.busy || !ready(o)} onClick={() => void request.run(() => claim(o.id))}>{o.claimed ? <Check /> : <Gift />}{o.claimed ? t("Claimed") : t("Claim")}</Button></div>
+      </article>)}</div>
+      {shown.length === 0 && <p className="py-8 text-center text-muted-foreground">{t("No activities ready to claim.")}</p>}
+      {tab === "daily" && <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border py-4"><span className="font-display text-lg text-gold">{t("Complete all daily objectives")}</span><Button disabled={request.busy || board.dailyBonusClaimed || !board.daily.length || !board.daily.every(o => o.claimed)} onClick={() => void request.run(() => claim("all"))}><Gift />{board.dailyBonusClaimed ? t("Claimed") : t("Claim bonus")}</Button></div>}
+    </>}
+    {board && tab === "login" && <>
+      <div className="my-4 flex flex-wrap items-center justify-between gap-3 border-y border-border py-4"><div><h3 className="font-display text-xl text-gold">{t("Login reward")}</h3><p className="text-sm text-muted-foreground">{t("Streak:")} {board.login.streak} {t("days · Total:")} {board.login.total}</p></div><Button disabled={request.busy || board.login.claimedToday} onClick={() => void request.run(async () => { const r = await reward("claim_login", {}); setReceipt(rewardLines(r)); await load(); })}><Gift />{board.login.claimedToday ? t("Claimed today") : t("Claim login reward")}</Button></div>
+      <DailyRewardsBoard />
     </>}
     {receipt.length > 0 && <p role="status" className="mt-4 break-words text-sm text-r1">{t("Received:")} {receipt.join(" · ")}</p>}
   </Panel>;

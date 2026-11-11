@@ -3,6 +3,7 @@ import { BATTLE_BOSSES, ENEMY_ROSTER } from './bestiary';
 import { SKILLS, stageFoe } from './data';
 import { trainingDiscount } from './barracks';
 import { scaledGold } from './gold';
+import { locAll } from './i18n';
 
 
 export function trainingCost(h: Pick<Hero, 'attrs' | 'level'> & { buildings?: Record<string, number> }, attr: Attr, count: number) {
@@ -18,22 +19,26 @@ export function trainAttribute(h: Hero, attr: Attr, count: number) {
   return null;
 }
 
-export const EXPEDITIONS = [
+export const EXPEDITIONS = locAll([
   { id: 'quarry', name: 'Ember Quarry', level: 1, material: 'ore' as const, quantity: 6, desc: 'Clear the quarry for gem-cutting ore.' },
   { id: 'crypt', name: 'Soul Crypt', level: 10, material: 'essence' as const, quantity: 3, desc: 'Hunt restless souls for forge and fusion essence.' },
   { id: 'observatory', name: 'Fallen Observatory', level: 20, material: 'starshard' as const, quantity: 3, desc: 'Recover shards for Astral summoning and upgrades.' },
   { id: 'bastion', name: 'Shattered Bastion', level: 25, material: 'fragment' as const, quantity: 4, desc: 'Salvage fragments for crafted armor.' },
   { id: 'citadel', name: 'Elite Citadel', level: 35, material: 'sigil' as const, quantity: 2, desc: 'Challenge a commander for elite crafting trophies.' },
+  { id: 'hunting', name: 'Beastwood Hunting Grounds', level: 5, material: 'hide' as const, quantity: 8, desc: 'Recover Beast Hides to refine into Armor Fragments.' },
+  { id: 'garden', name: 'Ashroot Gardens', level: 12, material: 'bloom' as const, quantity: 6, desc: 'Gather Emberbloom to refine into Soul Essence.' },
+  { id: 'arcane', name: 'Arcane Reservoir', level: 22, material: 'crystal' as const, quantity: 4, desc: 'Recover Arcane Crystals to refine into Starshards.' },
   { id: 'heart', name: 'Tyrant’s Heart', level: 50, material: 'bossCore' as const, quantity: 2, desc: 'Slay a rotating tyrant for high-rarity forge cores.' },
-];
+], ["name"], ["desc"]);
+export const EXPEDITION_COMMON_ADDITIONS = ["hide", "bloom", "crystal"] as const;
 export function expeditionFoe(h: Hero, index: number) {
   const expedition = EXPEDITIONS[index];
   if (!expedition) throw new Error('Unknown expedition');
   const cursor = h.wins ?? 0;
-  const roster = index >= 4 ? BATTLE_BOSSES : ENEMY_ROSTER;
+  const roster = ["citadel", "heart"].includes(expedition.id) ? BATTLE_BOSSES : ENEMY_ROSTER;
   const entry = roster[(cursor + index * 7) % roster.length];
   if (!entry) throw new Error('Encounter unavailable');
   const level = Math.max(expedition.level, h.level + h.paragon);
-  return { ...stageFoe(level, index >= 4 ? 1.2 : 1), name: entry.name, sprite: entry.sprite,
-    boss: index >= 4, rosterId: entry.id, skills: Object.values(SKILLS).flat().filter(s=>s.id===entry.signatureAbilityId) };
+  return { ...stageFoe(level, ["citadel", "heart"].includes(expedition.id) ? 1.2 : 1), name: entry.name, sprite: entry.sprite,
+    boss: ["citadel", "heart"].includes(expedition.id), rosterId: entry.id, skills: Object.values(SKILLS).flat().filter(s=>s.id===entry.signatureAbilityId) };
 }

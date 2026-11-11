@@ -10,8 +10,9 @@ import {
 import { recordBattle } from "@/game/progress";
 
 describe("level quests", () => {
-  it("gives every level its own three quests", () => {
-    for (let lv = 1; lv <= 80; lv++) expect(questsForLevel(lv)).toHaveLength(3);
+  it("gives every level its own eight quests", () => {
+    for (let lv = 1; lv <= 80; lv++) expect(questsForLevel(lv)).toHaveLength(8);
+    expect(new Set(questsForLevel(5).map((q) => q.kind)).size).toBe(8);
     expect(questsForLevel(5).map((q) => q.id)).not.toEqual(questsForLevel(6).map((q) => q.id));
   });
 

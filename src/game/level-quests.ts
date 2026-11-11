@@ -4,7 +4,7 @@ import { grant } from "./logic";
 
 /**
  * Level quests — the login progression track. Every character level opens a fresh set of
- * three quests measured against a counter snapshot taken when that level began, so progress
+ * eight quests measured against a counter snapshot taken when that level began, so progress
  * is real play (battles, bosses, craft, training) rather than a second reward engine.
  */
 
@@ -29,7 +29,7 @@ const DEFS: Record<QuestKind, QuestDef> = locAll({
   floors: { name: "Climb the Spire", desc: "Clear {n} Conquest floors", base: 1, growth: 0.15 },
 }, ["name"], ["desc"]);
 
-/** The order quests rotate through, so consecutive levels never hand out the same three. */
+/** The order quests rotate through, so consecutive levels never hand out the same order. */
 const ORDER: QuestKind[] = [
   "wins",
   "stages",
@@ -52,10 +52,10 @@ export interface LevelQuest {
   xp: number;
 }
 
-/** The three quests a level owns. Deterministic, so a refresh never rerolls the board. */
+/** Eight quests per level; legacy ids retain their claimed state. Deterministic, so a refresh never rerolls the board. */
 export function questsForLevel(level: number): LevelQuest[] {
   const lv = Math.max(1, Math.floor(level));
-  return [0, 1, 2].map((i) => {
+  return Array.from({ length: 8 }, (_, i) => {
     const kind = ORDER[(lv * 3 + i) % ORDER.length];
     const d = DEFS[kind];
     const target = Math.max(1, Math.round(d.base + d.growth * lv));

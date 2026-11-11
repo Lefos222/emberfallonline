@@ -1,0 +1,3572 @@
+[
+  {
+    "id": "c76803f",
+    "date": "2026-11-11T01:05:23Z",
+    "title": "Hide War Gates tabs during fights, renovate Magic Tower and add verified social reward safeguards",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "a641b1f",
+    "date": "2026-11-11T00:48:43Z",
+    "title": "Updated WarGate and Magic Tower",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "02cba4b",
+    "date": "2026-11-11T00:40:14Z",
+    "title": "Glowing player castles; hover/tap info for materials, gems and chests",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "58419dd",
+    "date": "2026-11-11T00:36:47Z",
+    "title": "World Tree: painted map icons and clearer player castles with name plates",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "a093ce7",
+    "date": "2026-11-11T00:32:37Z",
+    "title": "Spire dungeon drops, two new dungeons, friend invites, fishing pier minigame, materials guide, calmer World Tree",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "7de5c9c",
+    "date": "2026-11-11T00:22:39Z",
+    "title": "World Tree region paintings and Reliquary relic attunement",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "521db03",
+    "date": "2026-11-11T02:14:04+02:00",
+    "title": "Merge pull request #123 from Lefos222/game-update",
+    "details": "Implement wheel of fortune game logic and UI",
+    "kind": "merge"
+  },
+  {
+    "id": "79fa761",
+    "date": "2026-11-11T00:10:05Z",
+    "title": "Implement wheel of fortune game logic and UI",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "5381733",
+    "date": "2026-11-11T01:50:30+02:00",
+    "title": "Merge pull request #122 from Lefos222/quality-life-updates",
+    "details": "Add quality-of-life improvements for window management, fight speed, …",
+    "kind": "merge"
+  },
+  {
+    "id": "61ed3b6",
+    "date": "2026-11-10T23:47:10Z",
+    "title": "Add quality-of-life improvements for window management, fight speed, and battle replays",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "9d3e820",
+    "date": "2026-11-11T01:44:36+02:00",
+    "title": "Merge pull request #121 from Lefos222/ember-nov-10",
+    "details": "Implement Wheel of Fortune rework and Black Market lucky stock feature",
+    "kind": "merge"
+  },
+  {
+    "id": "fc02b9c",
+    "date": "2026-11-10T23:41:12Z",
+    "title": "Implement Wheel of Fortune rework and Black Market lucky stock feature",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "c3461d0",
+    "date": "2026-11-10T21:13:54+02:00",
+    "title": "Merge pull request #120 from Lefos222/feature/expanded-game-guide",
+    "details": "feat(guide): expand game guide to 16 detailed chapters covering all game systems",
+    "kind": "merge"
+  },
+  {
+    "id": "e2b4b42",
+    "date": "2026-11-10T21:11:00+02:00",
+    "title": "feat(guide): expand game guide to 16 detailed chapters covering all game systems",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "c737307",
+    "date": "2026-11-10T20:54:51+02:00",
+    "title": "Merge pull request #119 from Lefos222/quality-life",
+    "details": "Fix auto-battle loop, expand Spire dungeons, and add game guide",
+    "kind": "merge"
+  },
+  {
+    "id": "cebea43",
+    "date": "2026-11-10T18:51:57Z",
+    "title": "Fix auto-battle loop, expand Spire dungeons, and add game guide",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "hotfix"
+  },
+  {
+    "id": "8d26fd8",
+    "date": "2026-11-10T19:27:54+02:00",
+    "title": "Merge pull request #118 from Lefos222/fix-spire-sync",
+    "details": "Update SpireGate party synchronization logic",
+    "kind": "merge"
+  },
+  {
+    "id": "239935a",
+    "date": "2026-11-10T17:25:13Z",
+    "title": "Update SpireGate party synchronization logic",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "d9cbd1d",
+    "date": "2026-11-10T19:12:22+02:00",
+    "title": "Merge pull request #117 from Lefos222/fix-spire-combat",
+    "details": "Fix Spire battle rendering, skill sets, and party synchronization logic",
+    "kind": "merge"
+  },
+  {
+    "id": "81c55bb",
+    "date": "2026-11-10T17:10:01Z",
+    "title": "Fix Spire battle rendering, skill sets, and party synchronization logic",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "hotfix"
+  },
+  {
+    "id": "b8e51e2",
+    "date": "2026-11-10T18:55:38+02:00",
+    "title": "Merge pull request #116 from Lefos222/spire-system-fix",
+    "details": "fix(spire): finish the party Spire — server runs, shared fight, chests and the War Gates tab",
+    "kind": "merge"
+  },
+  {
+    "id": "8b2ffb5",
+    "date": "2026-11-10T16:55:19Z",
+    "title": "fix(spire): finish the party Spire — server runs, shared fight, chests and the War Gates tab",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "hotfix"
+  },
+  {
+    "id": "c000d2d",
+    "date": "2026-11-10T16:40:19Z",
+    "title": "Built live party battle scene",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "824710b",
+    "date": "2026-11-10T16:34:06Z",
+    "title": "Guild bank, buffs, shop, dice and ranks; darker armour outfits for every hero",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "75f5e9c",
+    "date": "2026-11-10T16:33:23Z",
+    "title": "Suspension checkpoint: agent work auto-saved during platform maintenance; keep it, do not revert or squash",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "31dd737",
+    "date": "2026-11-10T16:13:52Z",
+    "title": "Fix epic armour test precision",
+    "details": "",
+    "kind": "hotfix"
+  },
+  {
+    "id": "f559316",
+    "date": "2026-11-10T16:13:31Z",
+    "title": "Guild events room, Epic Armours with new materials, War Gates, orb skill bar, per-skill effects",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "ff8808f",
+    "date": "2026-11-10T16:11:12Z",
+    "title": "Suspension checkpoint: agent work auto-saved during platform maintenance; keep it, do not revert or squash",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "7d4c8aa",
+    "date": "2026-11-10T15:49:21Z",
+    "title": "Farm expansion (new scene, 20 plots, 30 levels, 4 new seeds, perks, rare harvests, Hearth feasts) and player castle raids with walls and raid log",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "f58f676",
+    "date": "2026-11-10T15:30:54Z",
+    "title": "MMO-style player card; gems, chests and materials in bag slots; all stacks storable in guild vault",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "640d97c",
+    "date": "2026-11-10T15:21:18Z",
+    "title": "Materials in bag slots, shared 3x256 guild vault, Black Market browsable by all (VIP buys)",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "cebb5cf",
+    "date": "2026-11-10T15:13:20Z",
+    "title": "Compact detailed hero card, remove battle adviser, class wind-up attack effects",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "a488abb",
+    "date": "2026-11-10T15:06:21Z",
+    "title": "Crafting guide tab, three top Forge armours, class attack projectiles, opaque windows",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "de4759d",
+    "date": "2026-11-10T15:00:38Z",
+    "title": "Add Synthesis Sets X-XII with new outfits and dungeon-only Dragon Scale, Abyssal Shard, Titan Heart",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "7b60e8d",
+    "date": "2026-11-10T14:47:42Z",
+    "title": "Paint icons for materials, auction, buttons and menus",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "c7d18fd",
+    "date": "2026-11-10T14:40:19Z",
+    "title": "Move mounts note into game folder notes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "79f6613",
+    "date": "2026-11-10T14:40:02Z",
+    "title": "Add mounts, runes, Wheel of Fortune, VIP Black Market and new armour crystals",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "2554112",
+    "date": "2026-11-10T14:29:56Z",
+    "title": "Record remaining Diamond feature work",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "68885eb",
+    "date": "2026-11-10T14:29:49Z",
+    "title": "Add Diamond gender/name cards, catalogue restock and extra arena duels",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "1d01778",
+    "date": "2026-11-10T15:19:15+02:00",
+    "title": "Merge pull request #115 from Lefos222/multi-language-support",
+    "details": "Localize complete game interface to Greek and Polish",
+    "kind": "merge"
+  },
+  {
+    "id": "254b84a",
+    "date": "2026-11-10T13:15:43Z",
+    "title": "Localize complete game interface to Greek and Polish",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "45f9982",
+    "date": "2026-11-10T15:10:59+02:00",
+    "title": "Merge pull request #114 from Lefos222/balance-conquest-loot",
+    "details": "Adjust conquest gear drop rates and increase floor XP",
+    "kind": "merge"
+  },
+  {
+    "id": "69aa4e2",
+    "date": "2026-11-10T13:07:03Z",
+    "title": "Adjust conquest gear drop rates and increase floor XP",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "872f099",
+    "date": "2026-11-10T14:59:15+02:00",
+    "title": "Merge pull request #113 from Lefos222/vip-diamond-rework-2",
+    "details": "Rework premium and VIP system features",
+    "kind": "merge"
+  },
+  {
+    "id": "1004ccc",
+    "date": "2026-11-10T12:54:55Z",
+    "title": "Rework premium and VIP system features",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "b410928",
+    "date": "2026-11-10T13:38:11+02:00",
+    "title": "Revert colourful tabs and palette change",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "7af38c5",
+    "date": "2026-11-10T13:38:09+02:00",
+    "title": "Revert colourful tabs and palette change",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "1ccb987",
+    "date": "2026-11-10T13:36:14+02:00",
+    "title": "Colourful tabs, brighter palette and livelier windows",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "463494a",
+    "date": "2026-11-10T13:36:12+02:00",
+    "title": "Colourful tabs, brighter palette and livelier windows",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "03c3549",
+    "date": "2026-11-10T12:33:24+02:00",
+    "title": "Merge pull request #112 from Lefos222/guild-hall-integration",
+    "details": "Refactor Guild Hall UI and implement Guild Wars backend logic",
+    "kind": "merge"
+  },
+  {
+    "id": "e79e9ee",
+    "date": "2026-11-10T09:51:06Z",
+    "title": "Refactor Guild Hall UI and implement Guild Wars backend logic",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "2b4646f",
+    "date": "2026-11-10T00:20:19Z",
+    "title": "Renovated Guild Hall system",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "136142b",
+    "date": "2026-11-10T00:16:36Z",
+    "title": "Work in progress",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "b92b048",
+    "date": "2026-11-09T20:16:08+02:00",
+    "title": "Merge pull request #111 from Lefos222/optimize-ui-rewards",
+    "details": "feat(game): compact gate screens and a Conquest Key option at the blitz",
+    "kind": "merge"
+  },
+  {
+    "id": "466c31e",
+    "date": "2026-11-09T18:00:45Z",
+    "title": "feat(game): compact gate screens and a Conquest Key option at the blitz",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "4303637",
+    "date": "2026-11-09T19:34:04+02:00",
+    "title": "Merge pull request #110 from Lefos222/conquest-blitz-guild",
+    "details": "feat(game): conquest key, longer blitzes, friendlier guild hall and c…",
+    "kind": "merge"
+  },
+  {
+    "id": "6040c5a",
+    "date": "2026-11-09T17:31:32Z",
+    "title": "feat(game): conquest key, longer blitzes, friendlier guild hall and challenged guild wars",
+    "details": "- Conquest Key in the Auction House shop doubles conquest floor and blitz rewards until Greek midnight\n- Blitz runs now take 20 minutes, rising to 50 at 100 floors/stages\n- Guild wars become challenges the other guild accepts or declines, in 5v5-100v100 brackets,\n  with a frozen roster, two attacks per hero for the whole war and spoils scaled by bracket\n- Guild hall courtyard rooms stay visible with a friendlier wars panel and reward table\n- Adds drizzle/migrations/0027_guild_wars_v2.sql and tests for all four changes\n\nCo-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "0183a31",
+    "date": "2026-11-09T18:40:03+02:00",
+    "title": "Merge pull request #109 from Lefos222/i18n-localization",
+    "details": "Add multi-language support for English, Greek, and Polish",
+    "kind": "merge"
+  },
+  {
+    "id": "a861f10",
+    "date": "2026-11-09T16:34:07Z",
+    "title": "Add multi-language support for English, Greek, and Polish",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "a7a652d",
+    "date": "2026-11-09T18:10:54+02:00",
+    "title": "Merge pull request #108 from Lefos222/sword-style-language",
+    "details": "Sword style language",
+    "kind": "merge"
+  },
+  {
+    "id": "d1686ca",
+    "date": "2026-11-09T16:06:48Z",
+    "title": "Complete missing language dictionary entries",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "41c6669",
+    "date": "2026-11-09T16:02:40Z",
+    "title": "Remove weapons, add multi-language support, and improve building label positioning",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "c4c76d9",
+    "date": "2026-11-09T17:44:13+02:00",
+    "title": "Merge pull request #107 from Lefos222/improve-gate-ui",
+    "details": "Refactor gate screens into shared mobile-responsive UI components",
+    "kind": "merge"
+  },
+  {
+    "id": "a382f0f",
+    "date": "2026-11-09T15:39:44Z",
+    "title": "Refactor gate screens into shared mobile-responsive UI components",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "71347e9",
+    "date": "2026-11-09T17:24:19+02:00",
+    "title": "Merge pull request #106 from Lefos222/game-feature-updates",
+    "details": "Implement farm mastery, gold mine, guild wars, and gate UI updates",
+    "kind": "merge"
+  },
+  {
+    "id": "09c6c8d",
+    "date": "2026-11-09T15:22:05Z",
+    "title": "Implement farm mastery, gold mine, guild wars, and gate UI updates",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "b568cee",
+    "date": "2026-11-09T15:20:02+02:00",
+    "title": "Merge pull request #105 from Lefos222/weapon-styles",
+    "details": "Weapon styles for swords, staffs and bows",
+    "kind": "merge"
+  },
+  {
+    "id": "06d2ff9",
+    "date": "2026-11-09T15:17:50+02:00",
+    "title": "Weapon styles follow the worn sword, staff or bow; armour changes only the outfit",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "615cac3",
+    "date": "2026-11-09T04:34:19+02:00",
+    "title": "Merge pull request #104 from Lefos222/merge-external-assets-2",
+    "details": "Merge external assets 2",
+    "kind": "merge"
+  },
+  {
+    "id": "7847005",
+    "date": "2026-11-09T02:30:18Z",
+    "title": "chore: apply template documentation improvements from asset-forge",
+    "details": "Add helpful inline comments from the Lovable template to vite.config.ts,\nrouter.tsx, server.ts, and start.ts. No functional changes.",
+    "kind": "update"
+  },
+  {
+    "id": "679e7c0",
+    "date": "2026-11-09T02:30:11Z",
+    "title": "Merge emberfall-asset-forge template history into emberfallonline",
+    "details": "Connects the asset-forge repo's history. All conflicts resolved in favor\nof the existing game code. The asset-forge repo contains only the base\nLovable template scaffold with no game assets or game-specific code.",
+    "kind": "merge"
+  },
+  {
+    "id": "4723461",
+    "date": "2026-11-09T02:23:16Z",
+    "title": "Add project README",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "7b0856c",
+    "date": "2026-11-09T04:19:19+02:00",
+    "title": "Merge pull request #103 from Lefos222/move-farm-button",
+    "details": "fix(castle): move the Farm hotspot from the tower onto the red tree",
+    "kind": "merge"
+  },
+  {
+    "id": "ce70e80",
+    "date": "2026-11-09T02:16:53Z",
+    "title": "fix(castle): move the Farm hotspot from the tower onto the red tree",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "hotfix"
+  },
+  {
+    "id": "e285843",
+    "date": "2026-11-09T04:08:13+02:00",
+    "title": "Merge pull request #102 from Lefos222/merge-emberfall-repository",
+    "details": "Add new Emberbloom and Moonroot seeds and update farm UI",
+    "kind": "merge"
+  },
+  {
+    "id": "c11876a",
+    "date": "2026-11-09T02:04:24Z",
+    "title": "Add new Emberbloom and Moonroot seeds and update farm UI",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "c603fb5",
+    "date": "2026-11-09T03:36:45+02:00",
+    "title": "Merge pull request #101 from Lefos222/rework-farm-mechanics",
+    "details": "feat(farm): sixteen XP-gated plots, the Bloodoak charge and the painted farm scene",
+    "kind": "merge"
+  },
+  {
+    "id": "29c1641",
+    "date": "2026-11-09T01:36:33Z",
+    "title": "feat(farm): sixteen XP-gated plots, the Bloodoak charge and the painted farm scene",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "540391f",
+    "date": "2026-11-09T01:11:23Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "f6c38ce",
+    "date": "2026-11-09T01:09:59Z",
+    "title": "Add original painted farm crops across growth stages",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "f58d2fd",
+    "date": "2026-11-09T01:07:31Z",
+    "title": "Fix farm planting validation, feedback and accessible controls",
+    "details": "",
+    "kind": "hotfix"
+  },
+  {
+    "id": "580ccc6",
+    "date": "2026-11-08T20:43:19+02:00",
+    "title": "Merge pull request #100 from Lefos222/revert-barracks-changes",
+    "details": "Revert barracks and Soul Forge stat training caps",
+    "kind": "merge"
+  },
+  {
+    "id": "c735eab",
+    "date": "2026-11-08T18:29:26Z",
+    "title": "Revert barracks and Soul Forge stat training caps",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "cfdad4b",
+    "date": "2026-11-08T20:19:29+02:00",
+    "title": "Merge pull request #99 from Lefos222/implement-farm-system",
+    "details": "Implement farm system",
+    "kind": "merge"
+  },
+  {
+    "id": "bdb28d7",
+    "date": "2026-11-08T18:15:48Z",
+    "title": "Complete farm system and update test suite",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "91ae702",
+    "date": "2026-11-08T18:07:31Z",
+    "title": "Refactor game systems and UI components",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8839364",
+    "date": "2026-11-08T19:40:47+02:00",
+    "title": "Merge pull request #98 from Lefos222/world-tree-balance",
+    "details": "Expand World Tree map and add bounty and vault systems",
+    "kind": "merge"
+  },
+  {
+    "id": "ed07e4e",
+    "date": "2026-11-08T17:37:56Z",
+    "title": "Expand World Tree map and add bounty and vault systems",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "70346cf",
+    "date": "2026-11-08T19:22:12+02:00",
+    "title": "Merge pull request #97 from Lefos222/fix-battle-rating",
+    "details": "Implement endless scaling, profile rework, and event system overhaul",
+    "kind": "merge"
+  },
+  {
+    "id": "416bc2f",
+    "date": "2026-11-08T17:18:35Z",
+    "title": "Implement endless scaling, profile rework, and event system overhaul",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "1c86d19",
+    "date": "2026-11-08T18:52:06+02:00",
+    "title": "Merge pull request #96 from Lefos222/rework-barracks-attributes",
+    "details": "feat(barracks): rework attribute trainings into 13 individual stat tracks + profile menu fix",
+    "kind": "merge"
+  },
+  {
+    "id": "e28bb08",
+    "date": "2026-11-08T16:51:58Z",
+    "title": "feat(barracks): rework attribute trainings into 13 individual stat tracks + profile menu fix",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "hotfix"
+  },
+  {
+    "id": "7f4fa7f",
+    "date": "2026-11-08T18:39:21+02:00",
+    "title": "Merge pull request #95 from Lefos222/game-feature-update",
+    "details": "feat: titles, general chat, player inspect, astral rework, daily chest, balance changes",
+    "kind": "merge"
+  },
+  {
+    "id": "9fa83f2",
+    "date": "2026-11-08T16:39:08Z",
+    "title": "feat: add titles, general chat, player inspect, astral rework, daily chest, gold/stamina buffs",
+    "details": "- Stamina buffed to 500/day (from 200)\n- Stamina potion price reduced to 21k gold (from 85k)\n- Gold gains raised to 21% + 0.2%/level scaling (from flat 13%)\n- General chat channel added alongside World and Guild\n- Click player names in chat to inspect their gear, rating, guild and title\n- Titles system: 6 tiers (Silver→Red), each granting permanent buffs, earned by milestones\n- Non-campaign (Conquest) fights now give 30% XP, capped at not leveling up\n- Magic Tower reworked: Astrals renamed (White→Grey), gold-based summoning with\n  tier costs (500/1500/3000/5000/8000/13000), RNG gates (200 summons for Red/Gold)\n- Daily bonus chest icon next to player card (every 30 min till level 30, mostly gold)\n- One-time 1000 gold grant per player after this patch\n- Inspect panel now shows guild name and equipped title buffs\n\nCo-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8cf9807",
+    "date": "2026-11-08T17:47:48+02:00",
+    "title": "Merge pull request #93 from Lefos222/arena-limit",
+    "details": "Implement daily arena duel limits and refill logic",
+    "kind": "merge"
+  },
+  {
+    "id": "c885e33",
+    "date": "2026-11-08T15:45:32Z",
+    "title": "Implement daily arena duel limits and refill logic",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "b55f342",
+    "date": "2026-11-08T17:37:40+02:00",
+    "title": "Merge pull request #92 from Lefos222/second-song",
+    "details": "Add Sibling Showdown soundtrack to game audio options",
+    "kind": "merge"
+  },
+  {
+    "id": "95e5c8e",
+    "date": "2026-11-08T15:35:24Z",
+    "title": "Add Sibling Showdown soundtrack to game audio options",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "2aebeff",
+    "date": "2026-11-08T17:15:05+02:00",
+    "title": "Merge pull request #91 from Lefos222/game-settings-auth",
+    "details": "Add game settings, update login, and adjust auction and gold balance",
+    "kind": "merge"
+  },
+  {
+    "id": "83d1282",
+    "date": "2026-11-08T15:13:08Z",
+    "title": "Add game settings, update login, and adjust auction and gold balance",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "34d49fb",
+    "date": "2026-11-08T16:59:55+02:00",
+    "title": "Merge pull request #90 from Lefos222/redesign-barracks-ui",
+    "details": "Refactor barracks into a tabbed interface",
+    "kind": "merge"
+  },
+  {
+    "id": "9fd144b",
+    "date": "2026-11-08T14:53:56Z",
+    "title": "Refactor barracks into a tabbed interface",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "37821b4",
+    "date": "2026-11-08T16:46:44+02:00",
+    "title": "Merge pull request #89 from Lefos222/xp-progression-balance",
+    "details": "Smooth out level progression curve and remove XP from Conquest Gate",
+    "kind": "merge"
+  },
+  {
+    "id": "427f129",
+    "date": "2026-11-08T14:44:07Z",
+    "title": "Smooth out level progression curve and remove XP from Conquest Gate",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "c099a3d",
+    "date": "2026-11-08T16:31:51+02:00",
+    "title": "Merge pull request #88 from Lefos222/equipment-forge-updates",
+    "details": "Equipment forge updates",
+    "kind": "merge"
+  },
+  {
+    "id": "f26f9ef",
+    "date": "2026-11-08T14:27:56Z",
+    "title": "Update level progression curve and player card UI",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "9a2fbb5",
+    "date": "2026-11-08T14:19:30Z",
+    "title": "Redesign Forge UI and display socketed gems on gear cards",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "0f34279",
+    "date": "2026-11-08T16:08:57+02:00",
+    "title": "Merge pull request #87 from Lefos222/gem-auction-updates",
+    "details": "Gem auction updates",
+    "kind": "merge"
+  },
+  {
+    "id": "2e26f28",
+    "date": "2026-11-08T14:05:44Z",
+    "title": "Add Fate Stones for gear refinement",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "d244f63",
+    "date": "2026-11-08T13:57:02Z",
+    "title": "Enhance forge mechanics, update gem socket location, adjust drop rates, and add new consumables",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "f796569",
+    "date": "2026-11-08T15:25:35+02:00",
+    "title": "Merge pull request #86 from Lefos222/shop-gem-system",
+    "details": "feat(shop): scrolls and nine stone grades in the Auction House, forge-cut gem sockets",
+    "kind": "merge"
+  },
+  {
+    "id": "76a7a19",
+    "date": "2026-11-08T13:25:28Z",
+    "title": "feat(shop): scrolls and nine stone grades in the Auction House, forge-cut gem sockets",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "0c79c31",
+    "date": "2026-11-08T12:56:35Z",
+    "title": "Make leveling twice as demanding while preserving rewards",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "89e22a7",
+    "date": "2026-11-08T14:53:39+02:00",
+    "title": "Merge pull request #85 from Lefos222/restore-legacy-systems",
+    "details": "feat(battle): restore tactical skill combat, Throne Hall trees and ba…",
+    "kind": "merge"
+  },
+  {
+    "id": "341b18e",
+    "date": "2026-11-08T12:51:47Z",
+    "title": "feat(battle): restore tactical skill combat, Throne Hall trees and barracks",
+    "details": "- Restore the pre-auto-battle combat engine and battle screen: skill kits,\n  cooldowns, rage/mana/focus, battle potions and player-chosen skills/targets,\n  with AUTO mode selecting the strongest ready skill (arena still auto-plays).\n- Restore the Skill Tree and Passives tabs in the Throne Hall (loadout, skill\n  grid, passive canvas) and the Abilities list on the Progression tab.\n- Revert the barracks to the pre-v1.00 layout: upgrade card, training batches,\n  attribute drills, void-crystal advanced training, drill yard, Enlightenment\n  and Soul tracks back inside the barracks panel.\n- Restore bestiary signature abilities and the skill/barracks test suites.\n\nCo-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "dc1441e",
+    "date": "2026-11-08T14:27:24+02:00",
+    "title": "Merge pull request #84 from Lefos222/game-update-v1",
+    "details": "feat(v1.00): stamina rework, potions, astral vault, barracks and auct…",
+    "kind": "merge"
+  },
+  {
+    "id": "b895488",
+    "date": "2026-11-08T12:23:49Z",
+    "title": "feat(v1.00): stamina rework, potions, astral vault, barracks and auction house",
+    "details": "- Stamina: 200/day, 20 per Campaign Gate battle and 10 per dungeon run, win or lose\n- Stamina Potions: +50, max 5/day, rare dungeon drop, 85k gold at the Auction House\n- New Elixir of Strength battle potion and a HUD potion pouch\n- Magic Tower: 23 unique Astrals in three families, endless gold upgrades, vault UI\n- Barracks: exactly the four attribute cards, endless gold levels\n- Royal Treasury replaced by the Auction House (Catalogue / Shop / Auction)\n- Inventory items open a compare-equip-sell popup instead of scrolling\n- Harder levelling, blitzes pay 70% less XP\n- Version 1.00 chip with patch notes\n\nCo-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "c3322b1",
+    "date": "2026-11-08T13:41:24+02:00",
+    "title": "Merge pull request #83 from Lefos222/stamina-progression-system",
+    "details": "Stamina progression system",
+    "kind": "merge"
+  },
+  {
+    "id": "743e7a4",
+    "date": "2026-11-08T11:38:48Z",
+    "title": "Implement Renown-based hero upgrade system",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "1d4b77e",
+    "date": "2026-11-08T11:33:41Z",
+    "title": "Implement stamina system for expeditions and game activities",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "f297baa",
+    "date": "2026-11-08T13:19:20+02:00",
+    "title": "Merge pull request #82 from Lefos222/progression-mechanics",
+    "details": "feat(progression): add Enlightenment, Soul Shards, and harder post-20…",
+    "kind": "merge"
+  },
+  {
+    "id": "772e421",
+    "date": "2026-11-08T11:15:36Z",
+    "title": "feat(progression): add Enlightenment, Soul Shards, and harder post-20 leveling",
+    "details": "- Level curve: LATE_LEVEL 30→20, GRIND_FIGHTS 10→15 (each level past 20\n  costs 15 more fights; level 30 = 167 fights — a real daily grind)\n- Enlightenment (level 20+): Battle Essence from every won battle feeds\n  permanent +1% atk/def/hp per level, up to 50 levels, exponential cost\n- Soul Shards: 8% normal / 25% boss chance-based drops, spent on 6\n  permanent stat infusion tracks (atk, def, hp, crit, dodge, pen)\n- Both systems flow through the existing computeStats pipeline\n- UI added to the Barracks (Temple) panel\n- Battle rewards in Game.tsx onEnd now grant essence and roll shards\n\nCo-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "c66fcf4",
+    "date": "2026-11-08T13:02:37+02:00",
+    "title": "Merge pull request #81 from Lefos222/class-attack-animations",
+    "details": "Refactor combat system to auto-battle and remove skills",
+    "kind": "merge"
+  },
+  {
+    "id": "5a7a9e8",
+    "date": "2026-11-08T10:58:02Z",
+    "title": "Refactor combat system to auto-battle and remove skills",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "63164ec",
+    "date": "2026-11-08T10:44:01Z",
+    "title": "Add project north star",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "d8cc5ce",
+    "date": "2026-11-08T10:43:44Z",
+    "title": "Start new characters at level zero after requested world wipe",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "b7546c1",
+    "date": "2026-11-08T10:42:25Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "4dfd50f",
+    "date": "2026-11-07T13:57:42+02:00",
+    "title": "Merge pull request #80 from Lefos222/fix-character-reset",
+    "details": "fix: disable character reset-on-login",
+    "kind": "merge"
+  },
+  {
+    "id": "a16fea5",
+    "date": "2026-11-07T11:55:41Z",
+    "title": "Disable character level reset logic",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "b6583cb",
+    "date": "2026-11-07T10:58:18Z",
+    "title": "template: tanstack_start_ts_current-4cb3a1f3bfa5",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "a9e362a",
+    "date": "2026-11-07T12:42:26+02:00",
+    "title": "Merge pull request #79 from Lefos222/game-reset-patch",
+    "details": "World reset in the app, harder late game, full gear and boss art fixes",
+    "kind": "merge"
+  },
+  {
+    "id": "3a7753c",
+    "date": "2026-11-07T10:42:18Z",
+    "title": "World reset in the app, harder late game, full gear and boss art fixes",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "hotfix"
+  },
+  {
+    "id": "6edd8ae",
+    "date": "2026-11-07T10:38:20Z",
+    "title": "Implement world reset, adjust endgame scaling, and add legacy gear codex",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "9bf1b25",
+    "date": "2026-11-07T09:18:22+02:00",
+    "title": "Merge pull request #78 from Lefos222/integrate-all-assets",
+    "details": "Merge gear and relic assets into a single atlas",
+    "kind": "merge"
+  },
+  {
+    "id": "7ca7ccb",
+    "date": "2026-11-07T07:15:20Z",
+    "title": "Merge gear and relic assets into a single atlas",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "merge"
+  },
+  {
+    "id": "b313d15",
+    "date": "2026-11-07T09:03:15+02:00",
+    "title": "Merge pull request #77 from Lefos222/merge-77",
+    "details": "Keep the original class gear art alongside the relic sheets",
+    "kind": "merge"
+  },
+  {
+    "id": "0f35918",
+    "date": "2026-11-07T07:00:02Z",
+    "title": "Keep the original class gear art alongside the relic sheets",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8664a70",
+    "date": "2026-11-07T08:46:10+02:00",
+    "title": "Merge pull request #76 from Lefos222/expand-class-gear",
+    "details": "Add Relic Trials activity and gear sets",
+    "kind": "merge"
+  },
+  {
+    "id": "c29d8b9",
+    "date": "2026-11-07T06:42:43Z",
+    "title": "Add Relic Trials activity and gear sets",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "b1d6c00",
+    "date": "2026-11-07T06:27:55Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "a84a1c4",
+    "date": "2026-11-07T06:20:52Z",
+    "title": "Work in progress",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "3e74635",
+    "date": "2026-11-07T08:18:54+02:00",
+    "title": "Merge pull request #75 from Lefos222/random-armour-outfits",
+    "details": "Refine outfit sprite matting to remove background halos",
+    "kind": "merge"
+  },
+  {
+    "id": "fef5b58",
+    "date": "2026-11-06T18:08:26Z",
+    "title": "Refine outfit sprite matting to remove background halos",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "66b607c",
+    "date": "2026-11-06T16:53:06+02:00",
+    "title": "Merge pull request #74 from Lefos222/random-armour-outfits",
+    "details": "Random armour outfits",
+    "kind": "merge"
+  },
+  {
+    "id": "6ab6cca",
+    "date": "2026-11-06T14:45:04Z",
+    "title": "Add six new female mage outfits to loot pool",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "3692b52",
+    "date": "2026-11-06T14:35:56Z",
+    "title": "Add 30 random armour outfits to hero appearance rolls",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "28749cb",
+    "date": "2026-11-06T15:30:02+02:00",
+    "title": "Merge pull request #73 from Lefos222/new-scene-art",
+    "details": "Add new scene art: auction house, guild hall, world map, mailbox",
+    "kind": "merge"
+  },
+  {
+    "id": "bf142d0",
+    "date": "2026-11-06T15:27:04+02:00",
+    "title": "Add mailbox scene art",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "602e226",
+    "date": "2026-11-06T15:27:01+02:00",
+    "title": "Add world-map scene art",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "11153ee",
+    "date": "2026-11-06T15:26:59+02:00",
+    "title": "Add guild-hall scene art",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "b5b3bc3",
+    "date": "2026-11-06T15:26:57+02:00",
+    "title": "Add auction-house scene art",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "1a96817",
+    "date": "2026-11-06T12:27:28+02:00",
+    "title": "Merge pull request #72 from Lefos222/vip-daily-rewards",
+    "details": "Add VIP daily rewards and 10-minute blitz timer",
+    "kind": "merge"
+  },
+  {
+    "id": "490826c",
+    "date": "2026-11-06T10:25:22Z",
+    "title": "Add VIP daily rewards and 10-minute blitz timer",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "4b1ee28",
+    "date": "2026-11-06T12:13:41+02:00",
+    "title": "Merge pull request #71 from Lefos222/disable-diamond-purchases",
+    "details": "fix(premium): close the diamond shop and remove test-mode diamond grants",
+    "kind": "merge"
+  },
+  {
+    "id": "aa2b715",
+    "date": "2026-11-06T10:13:30Z",
+    "title": "fix(premium): close the diamond shop and remove test-mode diamond grants",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "hotfix"
+  },
+  {
+    "id": "5ee8c20",
+    "date": "2026-11-06T12:01:02+02:00",
+    "title": "Merge pull request #70 from Lefos222/premium-shop-system",
+    "details": "Implement premium shop with test mode support",
+    "kind": "merge"
+  },
+  {
+    "id": "3a05699",
+    "date": "2026-11-06T09:58:52Z",
+    "title": "Implement premium shop with test mode support",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "3cb85e1",
+    "date": "2026-11-06T11:42:53+02:00",
+    "title": "Merge pull request #69 from Lefos222/instant-building-entry",
+    "details": "Remove intermediate building card and enable direct tap-to-open funct…",
+    "kind": "merge"
+  },
+  {
+    "id": "6db04ef",
+    "date": "2026-11-06T09:37:59Z",
+    "title": "Remove intermediate building card and enable direct tap-to-open functionality",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "7266a3f",
+    "date": "2026-11-06T11:33:05+02:00",
+    "title": "Merge pull request #68 from Lefos222/balance-level-progression",
+    "details": "Rebalance level progression and update castle UI styling",
+    "kind": "merge"
+  },
+  {
+    "id": "9854927",
+    "date": "2026-11-06T09:29:37Z",
+    "title": "Rebalance level progression and update castle UI styling",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "bfb7a5a",
+    "date": "2026-11-06T11:13:25+02:00",
+    "title": "Merge pull request #67 from Lefos222/daily-login-rewards",
+    "details": "Update daily rewards UI with game assets and increase gem chest drop …",
+    "kind": "merge"
+  },
+  {
+    "id": "d67983c",
+    "date": "2026-11-06T09:11:20Z",
+    "title": "Update daily rewards UI with game assets and increase gem chest drop rate",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "71f228c",
+    "date": "2026-11-06T11:02:48+02:00",
+    "title": "Merge pull request #66 from Lefos222/adjust-leveling-curve",
+    "details": "Adjust level XP scaling and progression curve",
+    "kind": "merge"
+  },
+  {
+    "id": "b49c091",
+    "date": "2026-11-06T08:59:25Z",
+    "title": "Adjust level XP scaling and progression curve",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "1ae25d7",
+    "date": "2026-11-06T10:53:30+02:00",
+    "title": "Merge pull request #65 from Lefos222/slow-leveling-progression",
+    "details": "Slow leveling progression",
+    "kind": "merge"
+  },
+  {
+    "id": "c6f822e",
+    "date": "2026-11-06T08:49:31Z",
+    "title": "Increase max level to 140",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "ef9f036",
+    "date": "2026-11-06T08:48:51Z",
+    "title": "Rebalance XP requirements and battle rewards",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8d73073",
+    "date": "2026-11-06T08:47:37Z",
+    "title": "Steepen XP curve and reduce battle rewards",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "de3eba0",
+    "date": "2026-11-06T08:43:47Z",
+    "title": "Added live friend requests",
+    "details": "X-Lovable-Edit-ID: edt-74fd57d9-88a1-4507-83ea-e6a25f62ef47\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "9d6dd6e",
+    "date": "2026-11-06T08:43:33Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "61673a2",
+    "date": "2026-11-06T08:43:24Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "f91407b",
+    "date": "2026-11-06T08:41:16Z",
+    "title": "Scaled game for all resolutions",
+    "details": "X-Lovable-Edit-ID: edt-095d6a7e-ec78-4d85-b20f-7945b4b33144\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "6f739ae",
+    "date": "2026-11-06T08:40:34Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "f2064df",
+    "date": "2026-11-05T16:04:23+02:00",
+    "title": "Merge pull request #64 from Lefos222/fix-friend-request",
+    "details": "Migrate friend request system from local storage to database",
+    "kind": "merge"
+  },
+  {
+    "id": "1529ca0",
+    "date": "2026-11-05T13:59:43Z",
+    "title": "Migrate friend request system from local storage to database",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "b97c69b",
+    "date": "2026-11-05T15:51:28+02:00",
+    "title": "Merge pull request #63 from Lefos222/rare-drops",
+    "details": "Revert player card layout and adjust drop rarity rates",
+    "kind": "merge"
+  },
+  {
+    "id": "43af4d8",
+    "date": "2026-11-05T13:50:51Z",
+    "title": "Revert player card layout and adjust drop rarity rates",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "7a1daeb",
+    "date": "2026-11-05T15:41:53+02:00",
+    "title": "Merge pull request #62 from Lefos222/balance-grind-mechanics",
+    "details": "feat: harder XP grind after lvl 20, fix Guild Hall, local friend requ…",
+    "kind": "merge"
+  },
+  {
+    "id": "8e5b18b",
+    "date": "2026-11-05T13:40:07Z",
+    "title": "Steepen post-level 20 XP curve to 15% compounding",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8d33ae1",
+    "date": "2026-11-05T13:36:05Z",
+    "title": "feat: harder XP grind after lvl 20, fix Guild Hall, local friend requests",
+    "details": "- XP curve: grind wall starts at level 20 (was 27) with 12% compounding\n  per level (was 8.5%), making levels 20-80 require significantly more XP\n- Stage rewards taper after stage 30 so XP curve outpaces them\n- Level quest XP reduced from 8% to 5% of next-level XP\n- Guild Hall: load() now resilient to Supabase errors — sets loaded=true\n  and shows \"no guild\" view instead of a blank panel when queries fail\n- Friend system: replaced all Supabase RPCs with localStorage-based storage;\n  search/inspect use the heroes table directly (not RPCs); send/accept/deny\n  friend requests works entirely client-side without Supabase functions\n- Fix: HeroHud.tsx imported frame images from wrong path (./assets/ -> ../assets/)\n\nCo-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "hotfix"
+  },
+  {
+    "id": "088d9a3",
+    "date": "2026-11-05T12:56:45Z",
+    "title": "Rebuilt card to compact plate",
+    "details": "X-Lovable-Edit-ID: edt-1922bdcd-f3ea-4e55-b1f1-d8d609158598\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "ff7af2b",
+    "date": "2026-11-05T12:56:42Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "5d6d526",
+    "date": "2026-11-05T12:56:03Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "933dc71",
+    "date": "2026-11-05T12:54:32Z",
+    "title": "Rebuilt top-left preview card",
+    "details": "X-Lovable-Edit-ID: edt-e24ebc83-19ce-4c19-a3dc-8bc16ec122ff\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "d28640c",
+    "date": "2026-11-05T12:54:24Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "2a688eb",
+    "date": "2026-11-05T12:53:08Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8af4f3d",
+    "date": "2026-11-05T12:51:52Z",
+    "title": "Work in progress",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "2852f23",
+    "date": "2026-11-05T14:48:14+02:00",
+    "title": "Merge pull request #60 from Lefos222/guild-chest",
+    "details": "feat(guild): gem chest drops, painted hero plate and building courtyard",
+    "kind": "merge"
+  },
+  {
+    "id": "8e902f3",
+    "date": "2026-11-05T12:48:05Z",
+    "title": "feat(guild): gem chest drops, painted hero plate and building courtyard",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "289b003",
+    "date": "2026-11-05T13:06:12+02:00",
+    "title": "Merge pull request #59 from Lefos222/guild-hall-expansion",
+    "details": "Expand guild hall with five rooms and remove skill tower level cap",
+    "kind": "merge"
+  },
+  {
+    "id": "331492f",
+    "date": "2026-11-05T10:59:00Z",
+    "title": "Expand guild hall with five rooms and remove skill tower level cap",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "41d62c8",
+    "date": "2026-11-05T03:31:39+02:00",
+    "title": "Merge pull request #58 from Lefos222/remove-armoury-coins",
+    "details": "Remove Arena Armory and Marks currency",
+    "kind": "merge"
+  },
+  {
+    "id": "ba5c738",
+    "date": "2026-11-05T01:28:54Z",
+    "title": "Remove Arena Armory and Marks currency",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "ce38400",
+    "date": "2026-11-05T03:21:22+02:00",
+    "title": "Merge pull request #57 from Lefos222/arena-economy",
+    "details": "Open the Blood Arena to every hero, add Arena Marks and the armory, raise forge and synthesis costs",
+    "kind": "merge"
+  },
+  {
+    "id": "5519740",
+    "date": "2026-11-05T01:21:06Z",
+    "title": "Open the Blood Arena to every hero with marks, ladder and armory; raise forge and synthesis costs",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "3627a96",
+    "date": "2026-11-05T02:57:26+02:00",
+    "title": "Merge pull request #56 from Lefos222/guild-chat-updates",
+    "details": "Revamp guild hall, implement tabbed chat, and balance early-game prog…",
+    "kind": "merge"
+  },
+  {
+    "id": "8471b37",
+    "date": "2026-11-05T00:55:14Z",
+    "title": "Revamp guild hall, implement tabbed chat, and balance early-game progression",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "a5b288f",
+    "date": "2026-11-05T02:18:18+02:00",
+    "title": "Merge pull request #55 from Lefos222/balance-game-economy",
+    "details": "Implement comprehensive economy balance and progression overhaul",
+    "kind": "merge"
+  },
+  {
+    "id": "5e1cf21",
+    "date": "2026-11-05T00:13:44Z",
+    "title": "Implement comprehensive economy balance and progression overhaul",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "a3436dc",
+    "date": "2026-11-05T01:51:43+02:00",
+    "title": "Merge pull request #54 from Lefos222/astral-system-recreation",
+    "details": "Astral rarity rebuild, synthesis set levels and a much larger achievement list",
+    "kind": "merge"
+  },
+  {
+    "id": "7913315",
+    "date": "2026-11-04T23:51:26Z",
+    "title": "Rebuild the Astral rarity ladder, move synthesis sets to level 40-120 and expand achievements",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "b9c5d7b",
+    "date": "2026-11-05T01:26:27+02:00",
+    "title": "Merge pull request #53 from Lefos222/profile-picture-fullscreen",
+    "details": "Update portrait cropping and scaling for edge-to-edge display",
+    "kind": "merge"
+  },
+  {
+    "id": "b0bbb5f",
+    "date": "2026-11-04T23:23:04Z",
+    "title": "Update portrait cropping and scaling for edge-to-edge display",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8cff6ec",
+    "date": "2026-11-05T01:10:20+02:00",
+    "title": "Merge pull request #52 from Lefos222/asset-inventory-social",
+    "details": "Coin art, vault chests, periodic rewards and friend message badges",
+    "kind": "merge"
+  },
+  {
+    "id": "3d0f315",
+    "date": "2026-11-04T23:10:01Z",
+    "title": "Coin redesign, vault chests, periodic reward chest and friend message badges",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "9908ec8",
+    "date": "2026-11-05T00:43:23+02:00",
+    "title": "Merge pull request #51 from Lefos222/fix-missing-function",
+    "details": "Add fallback to legacy friend request RPC for missing database migrat…",
+    "kind": "merge"
+  },
+  {
+    "id": "7ea94a6",
+    "date": "2026-11-04T22:38:51Z",
+    "title": "Add fallback to legacy friend request RPC for missing database migrations",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "9994c78",
+    "date": "2026-11-05T00:33:38+02:00",
+    "title": "Merge pull request #50 from Lefos222/friend-system-reset",
+    "details": "Friend system renovation: hero search, withdrawable requests and a clean world reset",
+    "kind": "merge"
+  },
+  {
+    "id": "a4942e1",
+    "date": "2026-11-04T22:29:50Z",
+    "title": "Friend system renovation: hero search, withdrawable requests and a clean world reset",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "ce3ebaf",
+    "date": "2026-11-04T23:28:27+02:00",
+    "title": "Merge pull request #49 from Lefos222/friend-requests",
+    "details": "feat(castle): remove the Sanctuary placeholder from the castle",
+    "kind": "merge"
+  },
+  {
+    "id": "fe5f15f",
+    "date": "2026-11-04T17:24:56Z",
+    "title": "Update game data and agent configuration",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "9f8fe49",
+    "date": "2026-11-04T19:05:31+02:00",
+    "title": "Merge pull request #48 from Lefos222/git-pull-push",
+    "details": "feat(game): barracks attribute upgrades, Sanctuary replacing the Lodge, stamina on losses",
+    "kind": "merge"
+  },
+  {
+    "id": "1b6c8b7",
+    "date": "2026-11-04T17:05:21Z",
+    "title": "feat(game): barracks attribute upgrades, Sanctuary replacing the Lodge, stamina on losses",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "cb4744a",
+    "date": "2026-11-04T18:38:05+02:00",
+    "title": "Merge pull request #47 from Lefos222/live-castle-visibility",
+    "details": "Simplify soundtrack and fix world map banner loading",
+    "kind": "merge"
+  },
+  {
+    "id": "289abdd",
+    "date": "2026-11-04T16:33:19Z",
+    "title": "Simplify soundtrack and fix world map banner loading",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "hotfix"
+  },
+  {
+    "id": "7065413",
+    "date": "2026-11-04T18:18:33+02:00",
+    "title": "Merge pull request #46 from Lefos222/supabase-migration",
+    "details": "Fix map music transition during combat initiation",
+    "kind": "merge"
+  },
+  {
+    "id": "b1192bf",
+    "date": "2026-11-04T16:08:57Z",
+    "title": "Fix map music transition during combat initiation",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "hotfix"
+  },
+  {
+    "id": "0e477c2",
+    "date": "2026-11-04T17:52:48+02:00",
+    "title": "Merge pull request #45 from Lefos222/world-tree-update",
+    "details": "Bounded World Tree realm on the new map, shared castle registry, loop…",
+    "kind": "merge"
+  },
+  {
+    "id": "dbe1259",
+    "date": "2026-11-04T15:39:29Z",
+    "title": "Bounded World Tree realm on the new map, shared castle registry, looping theme and a rebuilt Gatherer'\"'\"'s Lodge",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "a47a297",
+    "date": "2026-11-04T17:08:51+02:00",
+    "title": "Merge pull request #44 from Lefos222/merge-pull-cmion",
+    "details": "Triple world raid allowances, repaint the world map and add its theme",
+    "kind": "merge"
+  },
+  {
+    "id": "2fd9b91",
+    "date": "2026-11-04T15:08:35Z",
+    "title": "Triple daily raid allowances and add the new world map art with its theme",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "68d30f4",
+    "date": "2026-11-04T16:56:04+02:00",
+    "title": "Merge pull request #43 from Lefos222/merge-pull-42",
+    "details": "feat(worldmap): endless World Tree map drawn on the game's own painted map",
+    "kind": "merge"
+  },
+  {
+    "id": "a860167",
+    "date": "2026-11-04T14:53:49Z",
+    "title": "Rebuild and integrate infinite scrolling World Map screen",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "98d303d",
+    "date": "2026-11-04T16:48:49+02:00",
+    "title": "Merge pull request #42 from Lefos222/merge-pull-42",
+    "details": "Implement World Tree map system and mirror character armor artwork",
+    "kind": "merge"
+  },
+  {
+    "id": "3088f40",
+    "date": "2026-11-04T14:46:11Z",
+    "title": "Implement World Tree map system and mirror character armor artwork",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "32372be",
+    "date": "2026-11-04T16:15:19+02:00",
+    "title": "Merge pull request #41 from Lefos222/merge-pull-41",
+    "details": "feat(events,rewards): five-kill boss reward gate, 30-day reward board and auction icon",
+    "kind": "merge"
+  },
+  {
+    "id": "51d7c8e",
+    "date": "2026-11-04T14:14:56Z",
+    "title": "feat(events,rewards): five-kill boss event gate, 30-day reward board and auction icon",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "90d3a8c",
+    "date": "2026-11-04T15:56:53+02:00",
+    "title": "Merge pull request #40 from Lefos222/random-armor-looks",
+    "details": "feat(character): painted armour looks per class and gender",
+    "kind": "merge"
+  },
+  {
+    "id": "60300f0",
+    "date": "2026-11-04T13:56:41Z",
+    "title": "feat(character): painted armour looks per class and gender",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "31a9354",
+    "date": "2026-11-04T15:32:49+02:00",
+    "title": "Merge pull request #39 from Lefos222/fix-merge-preview-2",
+    "details": "Restore missing appearance module and implement fallback logic",
+    "kind": "merge"
+  },
+  {
+    "id": "c250042",
+    "date": "2026-11-04T13:28:17Z",
+    "title": "Restore missing appearance module and implement fallback logic",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "48badec",
+    "date": "2026-11-04T15:16:57+02:00",
+    "title": "Merge pull request #38 from Lefos222/random-armour-appearance",
+    "details": "feat(character): random armour appearance per looted chest piece",
+    "kind": "merge"
+  },
+  {
+    "id": "57a8de7",
+    "date": "2026-11-04T13:16:36Z",
+    "title": "feat(character): random armour appearance per looted chest piece",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "1f4281c",
+    "date": "2026-11-04T14:22:43+02:00",
+    "title": "Merge pull request #37 from Lefos222/gameplay-progression-update",
+    "details": "feat(progression): pricier conquest gems, level-30 difficulty wall, campaign stamina and level quests",
+    "kind": "merge"
+  },
+  {
+    "id": "86bde69",
+    "date": "2026-11-04T12:22:33Z",
+    "title": "feat(progression): pricier conquest gems, level-30 difficulty wall, campaign stamina and level quests",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "3bcc4da",
+    "date": "2026-11-04T13:59:50+02:00",
+    "title": "Merge pull request #36 from Lefos222/remove-ancestral-content",
+    "details": "feat(campaign): remove ancestral content, add Campaign Gate blitz, slow XP curve",
+    "kind": "merge"
+  },
+  {
+    "id": "c8792a7",
+    "date": "2026-11-04T11:59:38Z",
+    "title": "feat(campaign): remove ancestral content, add Campaign Gate blitz, slow XP curve",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "cf1747b",
+    "date": "2026-11-04T11:54:43Z",
+    "title": "Remove ancestral content and associated systems",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "00a371e",
+    "date": "2026-11-04T13:45:06+02:00",
+    "title": "Merge pull request #35 from Lefos222/remove-synthesis-cloak",
+    "details": "Synthesis: remove the Cloak piece slot",
+    "kind": "merge"
+  },
+  {
+    "id": "4c76a8c",
+    "date": "2026-11-04T11:44:25Z",
+    "title": "Remove Cloak and update synthesis set to eight pieces",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "bb45c28",
+    "date": "2026-11-04T13:36:02+02:00",
+    "title": "Merge pull request #34 from Lefos222/synthesis-system",
+    "details": "feat(forge): Synthesis armour progression system",
+    "kind": "merge"
+  },
+  {
+    "id": "fa42914",
+    "date": "2026-11-04T11:35:37Z",
+    "title": "chore(forge): drop the temporary Synthesis sandbox preview route",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "891d680",
+    "date": "2026-11-04T11:28:55Z",
+    "title": "Implement full Synthesis system in the Forge",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "9ebd4ca",
+    "date": "2026-11-04T12:25:30+02:00",
+    "title": "Merge pull request #33 from Lefos222/gem-system-renovation",
+    "details": "Rebuild gem system with new families and workshop functionality",
+    "kind": "merge"
+  },
+  {
+    "id": "97c850a",
+    "date": "2026-11-04T10:19:57Z",
+    "title": "Rebuild gem system with new families and workshop functionality",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "b9578fe",
+    "date": "2026-11-04T12:09:23+02:00",
+    "title": "Merge pull request #32 from Lefos222/update-game-icons-2",
+    "details": "feat(ui): painted icon set for the shortcut and reward bars",
+    "kind": "merge"
+  },
+  {
+    "id": "a814851",
+    "date": "2026-11-04T10:06:56Z",
+    "title": "feat(ui): painted icon set for the shortcut and reward bars",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "416b5c7",
+    "date": "2026-11-04T09:31:24+02:00",
+    "title": "Merge pull request #31 from Lefos222/more-achievements",
+    "details": "feat(achievements): add bestiary, exploration, guild and training achievements",
+    "kind": "merge"
+  },
+  {
+    "id": "0ea2793",
+    "date": "2026-11-04T07:31:14Z",
+    "title": "feat(achievements): add bestiary, exploration, guild and training achievements",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "b3dbdec",
+    "date": "2026-11-04T09:25:58+02:00",
+    "title": "Merge pull request #30 from Lefos222/update-game-icons",
+    "details": "feat(social): profile portraits, friend requests with accept, and private chat",
+    "kind": "merge"
+  },
+  {
+    "id": "99983fe",
+    "date": "2026-11-04T07:25:47Z",
+    "title": "feat(social): profile portraits, friend requests with accept, and private chat",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "38492c3",
+    "date": "2026-11-04T07:19:46Z",
+    "title": "Add gold crown icon to premium shop and VIP card",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "4febc34",
+    "date": "2026-11-04T09:09:04+02:00",
+    "title": "Merge pull request #29 from Lefos222/fix-image-cropping",
+    "details": "fix(character): trim the neighbouring pose from the hero idle crops",
+    "kind": "merge"
+  },
+  {
+    "id": "7b42d31",
+    "date": "2026-11-04T07:06:25Z",
+    "title": "fix(character): trim the neighbouring pose from the hero idle crops",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "hotfix"
+  },
+  {
+    "id": "6c7a099",
+    "date": "2026-11-04T09:00:22+02:00",
+    "title": "Merge pull request #28 from Lefos222/merge-pull-28",
+    "details": "chore(character): scrap the superseded hero art",
+    "kind": "merge"
+  },
+  {
+    "id": "7e59d6f",
+    "date": "2026-11-04T07:00:09Z",
+    "title": "chore(character): scrap the superseded hero art",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "fa8b388",
+    "date": "2026-11-04T06:48:17Z",
+    "title": "Updated agent_id and project",
+    "details": "X-Lovable-Edit-ID: edt-8b56af13-4d85-4925-a0e0-7e9b49355c93\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "b4c2204",
+    "date": "2026-11-04T06:47:58Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8d279a9",
+    "date": "2026-11-04T06:47:25Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "3206707",
+    "date": "2026-11-04T06:46:40Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "688f9e3",
+    "date": "2026-11-04T06:46:24Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8839cc4",
+    "date": "2026-11-04T06:45:57Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "f4b1f35",
+    "date": "2026-11-04T06:45:23Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "69a2f56",
+    "date": "2026-11-04T06:37:53Z",
+    "title": "Reverted to commit d0c835b8e0f8342d157e4774badb36815e75845e",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "b9c6147",
+    "date": "2026-11-01T08:14:45+02:00",
+    "title": "Merge pull request #27 from Lefos222/character-visual-update-2",
+    "details": "feat(character): four chestplate and weapon textures per class, new stances, blood-moon selection",
+    "kind": "merge"
+  },
+  {
+    "id": "557195b",
+    "date": "2026-11-01T06:14:33Z",
+    "title": "feat(character): four chestplate and weapon textures per class, new stances, blood-moon selection",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "fca4ed2",
+    "date": "2026-11-01T06:11:50Z",
+    "title": "Overhaul hero art, character models, and selection screen UI",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "866327e",
+    "date": "2026-11-01T03:06:34+02:00",
+    "title": "Merge pull request #26 from Lefos222/character-visual-update",
+    "details": "feat(character): layered hero art with four chestplate and weapon looks per class",
+    "kind": "merge"
+  },
+  {
+    "id": "d7ef246",
+    "date": "2026-11-01T01:06:24Z",
+    "title": "feat(character): layered hero art with four chestplate and weapon looks per class",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "9919498",
+    "date": "2026-11-01T00:48:26Z",
+    "title": "Added worker log entry",
+    "details": "X-Lovable-Edit-ID: edt-fb35198a-51bf-4e2a-a161-72fc8cab2ace\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "6cd5740",
+    "date": "2026-11-01T00:48:24Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "7b85013",
+    "date": "2026-11-01T00:47:38Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "2698fc9",
+    "date": "2026-11-01T00:46:12Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "d859c4e",
+    "date": "2026-11-01T00:44:09Z",
+    "title": "Reverted to commit d0c835b8e0f8342d157e4774badb36815e75845e",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "5fde6e2",
+    "date": "2026-10-30T02:37:13+02:00",
+    "title": "Merge pull request #25 from Lefos222/cloud-city-map",
+    "details": "feat(cloudcity): add Wartune-style Cloud City region with click-to-walk, NPCs, dailies and Aether Ascension",
+    "kind": "merge"
+  },
+  {
+    "id": "e11faa6",
+    "date": "2026-10-30T00:35:33Z",
+    "title": "Add Cloud City region with click-to-walk, NPCs, daily missions, and Aether Ascension upgrades",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8c3d2ad",
+    "date": "2026-10-29T03:45:38+02:00",
+    "title": "Merge pull request #24 from Lefos222/equipable-gear-visuals",
+    "details": "feat(character): equipable gear visuals with four rarity looks",
+    "kind": "merge"
+  },
+  {
+    "id": "1a7f9a4",
+    "date": "2026-10-29T01:42:08Z",
+    "title": "Implement dynamic gear-based character appearance rendering",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "d0c835b",
+    "date": "2026-10-29T03:28:46+02:00",
+    "title": "Merge pull request #23 from Lefos222/remove-skill-restrictions",
+    "details": "Remove skill & passive upgrade restrictions — points-only gating",
+    "kind": "merge"
+  },
+  {
+    "id": "cc60da7",
+    "date": "2026-10-29T01:28:08Z",
+    "title": "Remove skill and passive tree gating requirements",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "bcc5837",
+    "date": "2026-10-29T03:24:26+02:00",
+    "title": "Merge pull request #22 from Lefos222/skill-tree-design",
+    "details": "Redesign Skill Tree UI to match passive tree canvas style",
+    "kind": "merge"
+  },
+  {
+    "id": "73b97b5",
+    "date": "2026-10-29T01:23:25Z",
+    "title": "Redesign Skill Tree UI to match passive tree canvas style",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "0e1a6f4",
+    "date": "2026-10-29T03:19:40+02:00",
+    "title": "Merge pull request #21 from Lefos222/remove-specific-structures",
+    "details": "chore: remove Stable, Sky Altar and Rune Forge structures",
+    "kind": "merge"
+  },
+  {
+    "id": "95e79ac",
+    "date": "2026-10-28T20:01:37Z",
+    "title": "Remove Stable, Sky Altar, and Rune Forge buildings and logic",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "dbb4f7f",
+    "date": "2026-10-28T21:53:13+02:00",
+    "title": "Merge pull request #20 from Lefos222/passive-skill-tree",
+    "details": "feat: add passive skill tree and Wartune-style progression systems",
+    "kind": "merge"
+  },
+  {
+    "id": "9bb42d9",
+    "date": "2026-10-28T19:52:08Z",
+    "title": "Implement visual passive tree and new progression systems for mounts, wings, and runes",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "b4ba055",
+    "date": "2026-10-28T19:42:08Z",
+    "title": "Added Wartune elements",
+    "details": "X-Lovable-Edit-ID: edt-30dd5f22-b647-4c06-8348-197e0d91e61e\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8da8ff0",
+    "date": "2026-10-28T19:42:06Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "dec972e",
+    "date": "2026-10-28T19:41:31Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "e8b5f1d",
+    "date": "2026-10-28T19:38:47Z",
+    "title": "Work in progress",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "9892d57",
+    "date": "2026-10-27T01:49:58+02:00",
+    "title": "Merge pull request #19 from Lefos222/enchantment-stones",
+    "details": "feat: enchantment stones, conquest gold chests, ancestral tower, guild renovation & more achievements",
+    "kind": "merge"
+  },
+  {
+    "id": "00c1950",
+    "date": "2026-10-26T23:49:49Z",
+    "title": "feat: enchantment stones, conquest gold chests, ancestral tower, guild renovation & more achievements",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "2bb5ab2",
+    "date": "2026-10-27T01:43:41+02:00",
+    "title": "Merge pull request #18 from Lefos222/guild-system-renovation",
+    "details": "feat(guild): guild applications system & ancestral level 80 unlock",
+    "kind": "merge"
+  },
+  {
+    "id": "9ddca84",
+    "date": "2026-10-26T23:41:17Z",
+    "title": "Implement guild applications system and increase ancestral level requirements",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "a3a2ba4",
+    "date": "2026-10-26T22:04:43+02:00",
+    "title": "Merge pull request #17: Level-ups grant skill and passive points",
+    "details": "Level-ups grant skill and passive points",
+    "kind": "merge"
+  },
+  {
+    "id": "3d8fe60",
+    "date": "2026-10-26T20:06:00Z",
+    "title": "Grant skill and passive points on level-ups",
+    "details": "- Every level-up (including Ascension levels) now also grants 1 Insight alongside the per-level skill point\n- Applies to every XP source: battles, quests, the Long Road and Conquest\n- UI texts updated; new test coverage",
+    "kind": "update"
+  },
+  {
+    "id": "4be6264",
+    "date": "2026-10-26T21:58:39+02:00",
+    "title": "Merge pull request #16: Skill & passive trees - 4 upgrades per node, quest-earned points",
+    "details": "Skill & passive trees: 4 upgrades per node, quest-earned points",
+    "kind": "merge"
+  },
+  {
+    "id": "4c678c1",
+    "date": "2026-10-26T20:05:00Z",
+    "title": "Skill & passive trees: four upgrades per node, quest-earned points",
+    "details": "- Every skill tree node and passive node now has exactly 4 upgrade ranks; abilities unlock at rank 1 and upgrades add +10% damage each\n- Quest upgrades cost fewer points than the unlock rank\n- Daily quest claims and achievement claims can award bonus skill points and Insight\n- Tests updated and new coverage added",
+    "kind": "update"
+  },
+  {
+    "id": "fbd6c44",
+    "date": "2026-10-26T21:35:27+02:00",
+    "title": "Throne Hall: merge the passive tree into the skill tree as a Passives tab",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "23725c2",
+    "date": "2026-10-26T21:11:45+02:00",
+    "title": "Castle layout: separate World Tree, Barracks, Quest Board and Armory tap targets",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "136afba",
+    "date": "2026-10-26T21:11:44+02:00",
+    "title": "Throne Hall: show how skill points are earned",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "2dc266e",
+    "date": "2026-10-26T21:11:43+02:00",
+    "title": "Skill points: bonus point every 5 levels",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "ae5686b",
+    "date": "2026-10-26T21:08:28+02:00",
+    "title": "Test: castle building hotspots never overlap",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "5d6a66b",
+    "date": "2026-10-26T21:08:04+02:00",
+    "title": "Skill points: bonus point every 5 levels + castle tap targets no longer overlap",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "9fcf60f",
+    "date": "2026-10-26T20:48:14+02:00",
+    "title": "Rebalance: slower XP curve at all levels",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "f85ef6b",
+    "date": "2026-10-26T20:48:13+02:00",
+    "title": "Rebalance: slower XP curve at all levels",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "b5ba125",
+    "date": "2026-10-26T19:49:57+02:00",
+    "title": "Rebalance: slower leveling past Lv40, tougher monsters, less gold",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "e1afacc",
+    "date": "2026-10-26T19:49:56+02:00",
+    "title": "Rebalance: slower leveling past Lv40, tougher monsters, less gold",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "3b7978c",
+    "date": "2026-10-26T18:55:15+02:00",
+    "title": "Merge pull request #15 from Lefos222/balance-stat-scaling",
+    "details": "Rebalance game progression and add new health-focused barracks drills",
+    "kind": "merge"
+  },
+  {
+    "id": "934ced2",
+    "date": "2026-10-26T16:50:17Z",
+    "title": "Rebalance game progression and add new health-focused barracks drills",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8be134a",
+    "date": "2026-10-26T07:06:11+02:00",
+    "title": "Merge pull request #14 from Lefos222/merge-pull-request",
+    "details": "Merge PR #13: conquest blitz cap, barracks drills, ancestral forge and level-scaled gold",
+    "kind": "merge"
+  },
+  {
+    "id": "10637d3",
+    "date": "2026-10-26T05:05:54Z",
+    "title": "Merge pull request #13 from Lefos222/forge-overhaul",
+    "details": "",
+    "kind": "merge"
+  },
+  {
+    "id": "b9a0af4",
+    "date": "2026-10-26T04:52:57Z",
+    "title": "Implement balance updates for Conquest, Barracks, Forge, and global gold scaling",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "9952964",
+    "date": "2026-10-26T06:29:48+02:00",
+    "title": "Merge pull request #12 from Lefos222/world-tree-updates",
+    "details": "feat: bigger world tree raids, conquest floors with tokens, and an anything-goes auction",
+    "kind": "merge"
+  },
+  {
+    "id": "eabae5a",
+    "date": "2026-10-26T04:27:33Z",
+    "title": "feat: bigger world tree raids, conquest floors with tokens, and an anything-goes auction",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "c552052",
+    "date": "2026-10-26T06:04:40+02:00",
+    "title": "Merge pull request #11 from Lefos222/world-map-integration",
+    "details": "feat: wire world map into castle with World Tree hotspot",
+    "kind": "merge"
+  },
+  {
+    "id": "959884e",
+    "date": "2026-10-26T04:03:24Z",
+    "title": "Integrate World Map into game interface",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "ffac932",
+    "date": "2026-10-26T03:58:06Z",
+    "title": "Added world map & daily limits",
+    "details": "X-Lovable-Edit-ID: edt-dc71ddb6-e99d-4b70-bac8-19876cf8591c\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8678844",
+    "date": "2026-10-26T03:57:56Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "32c497e",
+    "date": "2026-10-26T03:57:43Z",
+    "title": "Added world map hotspot UI",
+    "details": "X-Lovable-Edit-ID: edt-9caf3063-dcd8-46d4-897e-9f1528cecc10\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "a93a1bd",
+    "date": "2026-10-26T03:57:41Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "9726050",
+    "date": "2026-10-26T03:57:01Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "6fc2723",
+    "date": "2026-10-26T03:56:21Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "4944e3f",
+    "date": "2026-10-26T03:54:13Z",
+    "title": "Reverted to commit c599cd8fe5ba1c36b9fcb8637814ac8a1228c828",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "ee39823",
+    "date": "2026-10-26T03:51:07Z",
+    "title": "Fixed build blockage",
+    "details": "X-Lovable-Edit-ID: edt-8e542f43-35a6-43ba-add5-614fb4f68946\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "hotfix"
+  },
+  {
+    "id": "04d267d",
+    "date": "2026-10-26T03:50:54Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "67dd20a",
+    "date": "2026-10-26T05:34:52+02:00",
+    "title": "Merge pull request #10 from Lefos222/castle-relocation-logic",
+    "details": "feat(world): persistent World Map, 2.5D field, PvE encounters & PvP castle raids",
+    "kind": "merge"
+  },
+  {
+    "id": "bdfdf80",
+    "date": "2026-10-26T03:33:31Z",
+    "title": "Implement persistent World Map, movement, and PvE/PvP systems",
+    "details": "Co-authored-by: base44-builder[bot] <245833847+base44-builder[bot]@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "c599cd8",
+    "date": "2026-10-26T03:02:51+02:00",
+    "title": "Battle & character polish: hero framing, smaller fighters, gem workshop shortcut",
+    "details": "Battle and character polish: hero framing, smaller fighters, gem workshop shortcut",
+    "kind": "update"
+  },
+  {
+    "id": "ca22e65",
+    "date": "2026-10-26T03:02:41+02:00",
+    "title": "Battle and character polish: shared hero framing, smaller fighters, gem workshop shortcut",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "4901f0a",
+    "date": "2026-10-26T02:19:03+02:00",
+    "title": "Magic Tower: hero at the centre, 8 astral slots in a ring around him",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "4cc11c5",
+    "date": "2026-10-26T02:19:02+02:00",
+    "title": "Gem cutting: show gem pictures instead of colour circles",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "6cf5440",
+    "date": "2026-10-26T02:19:01+02:00",
+    "title": "Gem art: painted icons for every gem type; painted Astral portraits",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "7e24b39",
+    "date": "2026-10-26T02:19:00+02:00",
+    "title": "Magic Tower: 8 astral slots, level-gated unlocks, unique astral powers",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "d617fe6",
+    "date": "2026-10-26T02:18:59+02:00",
+    "title": "chore: add astral sprite sheet asset",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "5f1f7e7",
+    "date": "2026-10-26T02:18:58+02:00",
+    "title": "chore: add painted gem sprite sheet asset",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "0cc826c",
+    "date": "2026-10-26T01:29:27+02:00",
+    "title": "Daily quest board, barracks upgrades, gem workshop rework, arena fix (#5)",
+    "details": "- Quest Board: six fixed daily commissions (level, astrals, gems, training, wins, enhancements) that reset at Greek midnight and pay gold, XP and materials. The AI quest generator and its server function are gone.\n- Barracks: upgrades to level 30 with an unlock list - batch sizes at 3/6/10/15 and instructor grades at 20/25/30, plus 2% cheaper training per level.\n- Gem Workshop: empty sockets open a gem picker; with no gems it points at a cutting window that previews each gem's stats, effects and cost before you spend anything.\n- Arena recent fights: fixed the win/loss flip by comparing the attacker against the hero id instead of the user id.",
+    "kind": "hotfix"
+  },
+  {
+    "id": "617de05",
+    "date": "2026-10-26T01:23:10+02:00",
+    "title": "Greek-hour events and dailies, full inventory lists, clearer Forge salvaging (#4)",
+    "details": "- World events are pinned to the Europe/Athens clock, so openings land on the same round Greek hours all year instead of drifting with summer time. The event calendar defaults to Greek time and the server-side entry check uses the same schedule.\n- Daily commissions reset at Greek midnight and pay 2 scrolls, 750 gold and 2 forge essence (migration 0010).\n- Armory lists every forge material type and every gathered supply with exact counts, including the ones you have none of.\n- Forge separates equipped gear from bag gear and requires a warning popup before salvaging worn gear.",
+    "kind": "update"
+  },
+  {
+    "id": "ce853fd",
+    "date": "2026-10-26T00:14:48+02:00",
+    "title": "Phone playability pass (#3)",
+    "details": "The castle screen was built for a wide window: the map is roughly 1500px wide\non a phone, most buildings sat off-screen with no way to reach them, and the two\nbottom button strips overlapped each other and ran off the edge.\n\n- The castle can now be dragged (mouse, touch or pen) and is clamped to its own\n  edges, so every building is reachable on any screen. A tap still opens a\n  building (only a real drag pans) and keyboard activation is unaffected.\n- The two bottom strips become swipeable full-width rows on narrow screens,\n  stacked above each other, so no button is clipped or unreachable. Desktop is\n  unchanged.\n- The HUD is compact on phones and wraps instead of overflowing: nothing is\n  hidden, buttons stay >= 36px.\n- The world chat moves above the two rows so it stops sitting on top of them.\n- Notch and home-bar insets (safe-area) on the HUD, both strips, the chat and the\n  battle top/bottom bars; viewport-fit=cover on the page.\n- Panel headers and titles no longer overflow on a narrow panel, and the Forge\n  gear grid shows 3 across on phones instead of overflowing at 6.\n- Touch behaviour: no double-tap zoom delay, no pull-to-refresh overscroll, no\n  tap highlight, no text selection while dragging the map, no hover cards on a\n  swipe row, and a 40px minimum building tap target.\n- A short \"drag the castle\" hint shows once on narrow screens and fades out.",
+    "kind": "update"
+  },
+  {
+    "id": "cc19892",
+    "date": "2026-10-26T00:08:03+02:00",
+    "title": "Remove the boutique + carry resources as bag items (#2)",
+    "details": "- The Cosmetic Boutique is gone: its panel, its map marker and its entry in the\n  game shell are removed.\n- Three new resources drop from fights: Beast Hide (every win), Emberbloom\n  (common drop, more from elites) and Arcane Crystal (elites and bosses).\n- The Forge now shows a \"Refine spare materials\" card: 3 Beast Hide -> 1 Armor\n  Fragment, 3 Emberbloom -> 1 Soul Essence, 3 Arcane Crystal -> 1 Starshard.\n- Every material you carry is listed as an item stack in your bag, with its icon,\n  rarity and count, above your gathering supplies.\n- Battle reward lines now name the new materials as they drop.",
+    "kind": "update"
+  },
+  {
+    "id": "4717500",
+    "date": "2026-10-26T00:00:38+02:00",
+    "title": "Forge salvaging + Diamonds in the HUD (#1)",
+    "details": "Blacksmith Forge can salvage bagged gear into materials (gems returned to the pouch), and Diamonds show next to Gold in the HUD on all screen sizes.",
+    "kind": "update"
+  },
+  {
+    "id": "034cd1b",
+    "date": "2026-10-25T14:40:37Z",
+    "title": "Completed agent task update",
+    "details": "X-Lovable-Edit-ID: edt-4be416c9-a737-436d-8b8d-a673ea896c90\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "1c414bc",
+    "date": "2026-10-25T14:40:17Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "dd68a16",
+    "date": "2026-10-25T14:37:13Z",
+    "title": "Optimized for mobile",
+    "details": "X-Lovable-Edit-ID: edt-ff991776-9c3d-4907-8cc1-f99a73f3c135\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8089123",
+    "date": "2026-10-25T14:36:44Z",
+    "title": "Work in progress",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "0d1bd2e",
+    "date": "2026-10-24T15:23:41Z",
+    "title": "Reverted to commit d7c041a6b604a0bc739fc34da0ce57504853cfae",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "591bdee",
+    "date": "2026-10-24T14:49:09Z",
+    "title": "Reverted to commit 4c3d95c9afae057fd4ef99e1cd5c6e5746ee816a",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "61ebf94",
+    "date": "2026-10-24T14:47:23Z",
+    "title": "Reverted to commit d7c041a6b604a0bc739fc34da0ce57504853cfae",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "0bf4608",
+    "date": "2026-10-24T14:45:29Z",
+    "title": "Protected auction impact",
+    "details": "X-Lovable-Edit-ID: edt-2f9e786a-f490-44e5-b2a7-af0e3b0249df\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "b61fa7a",
+    "date": "2026-10-24T14:45:26Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "e3735d5",
+    "date": "2026-10-24T14:45:02Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "77a9585",
+    "date": "2026-10-24T14:44:45Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "519381f",
+    "date": "2026-10-24T14:42:20Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "d7c041a",
+    "date": "2026-10-23T11:51:00Z",
+    "title": "Completed background task",
+    "details": "X-Lovable-Edit-ID: edt-4a2f7f7d-6666-4312-b5e0-b2cff11f8fd0\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "0c75120",
+    "date": "2026-10-23T11:50:56Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "d72f42b",
+    "date": "2026-10-23T11:50:20Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "802d70d",
+    "date": "2026-10-23T11:49:09Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "4c3d95c",
+    "date": "2026-10-23T11:44:25Z",
+    "title": "Lovable update",
+    "details": "failed to sign in with vendor\n\nX-Lovable-Edit-ID: edt-73eac608-116c-4386-b6b3-bc23c2f209d4\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "a2f9aee",
+    "date": "2026-10-23T11:43:48Z",
+    "title": "Work in progress",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "0e63f9b",
+    "date": "2026-10-22T22:52:29Z",
+    "title": "Reverted to commit 7e75460d3d5560f687cc8cc4333b9e0aa1968bd1",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "b4de552",
+    "date": "2026-10-22T22:50:58Z",
+    "title": "Reverted to commit 2ae0387d699914dd424f436c059591e0a791528e",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "5238a43",
+    "date": "2026-10-23T01:44:58+03:00",
+    "title": "Revert login page to previous version (undo Google sign-in change)",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "5413bb9",
+    "date": "2026-10-23T01:38:02+03:00",
+    "title": "Restore Google sign-in on every host (Netlify included); remove Lovable sign-in button",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "860cf1c",
+    "date": "2026-10-23T01:25:05+03:00",
+    "title": "Update auth.tsx",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "da58004",
+    "date": "2026-10-23T01:03:01+03:00",
+    "title": "Accept VITE_SUPABASE_ANONYMOUS_KEY from Netlify",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "e28ebab",
+    "date": "2026-10-23T01:02:59+03:00",
+    "title": "Build for Netlify when deploying on Netlify (fixes 404s)",
+    "details": "",
+    "kind": "hotfix"
+  },
+  {
+    "id": "5c40791",
+    "date": "2026-10-22T21:26:58+03:00",
+    "title": "Refactor netlify.toml to simplify configuration",
+    "details": "Removed unnecessary redirects section and cleaned up formatting.",
+    "kind": "update"
+  },
+  {
+    "id": "b38e9b4",
+    "date": "2026-10-22T21:24:10+03:00",
+    "title": "Update _redirects",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "8af8f56",
+    "date": "2026-10-22T21:14:02+03:00",
+    "title": "Add redirect rule for index.html",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "10a4972",
+    "date": "2026-10-22T19:05:46+03:00",
+    "title": "Update redirect path in netlify.toml",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "8fd7f5e",
+    "date": "2026-10-22T19:01:39+03:00",
+    "title": "Update Supabase URLs and add redirects",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "2ae0387",
+    "date": "2026-10-22T18:39:29+03:00",
+    "title": "Create netlify.toml for build settings",
+    "details": "Add build configuration and Supabase environment variables",
+    "kind": "update"
+  },
+  {
+    "id": "b7760f5",
+    "date": "2026-10-22T14:25:33Z",
+    "title": "Prevented item overwrites",
+    "details": "X-Lovable-Edit-ID: edt-d1d1e0fe-d464-425e-b894-94f6cdf860e1\nCo-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "0ea90ae",
+    "date": "2026-10-22T14:24:58Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "cdfb559",
+    "date": "2026-10-22T14:24:34Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "8e9c9ad",
+    "date": "2026-10-22T14:23:14Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "058d521",
+    "date": "2026-10-22T14:22:35Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "366d73a",
+    "date": "2026-10-22T14:22:09Z",
+    "title": "Changes",
+    "details": "Co-authored-by: Lefos222 <344225904+Lefos222@users.noreply.github.com>",
+    "kind": "update"
+  },
+  {
+    "id": "efe1a38",
+    "date": "2026-10-22T14:21:27Z",
+    "title": "Work in progress",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "7e75460",
+    "date": "2026-10-21T07:24:12Z",
+    "title": "Fixed inventory, guild chats",
+    "details": "X-Lovable-Edit-ID: edt-14d62330-ba73-4b24-b974-e0fd16435368",
+    "kind": "hotfix"
+  },
+  {
+    "id": "b069fb5",
+    "date": "2026-10-21T07:24:01Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "ed5028d",
+    "date": "2026-10-21T07:22:41Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "b524abb",
+    "date": "2026-10-21T07:22:23Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "d8d666c",
+    "date": "2026-10-21T07:22:02Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "f916014",
+    "date": "2026-10-21T07:21:45Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "6ebb594",
+    "date": "2026-10-21T07:20:38Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "fd26fda",
+    "date": "2026-10-18T21:50:50Z",
+    "title": "Made doll height fill slots",
+    "details": "X-Lovable-Edit-ID: edt-c279967a-bbac-4c67-8a66-7ae826cf7385",
+    "kind": "update"
+  },
+  {
+    "id": "b958517",
+    "date": "2026-10-18T21:50:31Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "944bd57",
+    "date": "2026-10-18T21:48:09Z",
+    "title": "Added profession quests & recipes",
+    "details": "X-Lovable-Edit-ID: edt-1ef255d2-3c3c-4fdb-b035-9e56cc06aaea",
+    "kind": "update"
+  },
+  {
+    "id": "4dc3052",
+    "date": "2026-10-18T21:47:54Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "1a55408",
+    "date": "2026-10-18T21:44:24Z",
+    "title": "Fixed doll container size",
+    "details": "X-Lovable-Edit-ID: edt-9b992e21-e590-45fa-93bc-9bfb11fb31f0",
+    "kind": "hotfix"
+  },
+  {
+    "id": "cddb7b7",
+    "date": "2026-10-18T21:40:49Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "94ab704",
+    "date": "2026-10-18T21:35:47Z",
+    "title": "Built Auction House system",
+    "details": "X-Lovable-Edit-ID: edt-3d8f9680-e432-4bb2-b9cc-f84f48663b1a",
+    "kind": "update"
+  },
+  {
+    "id": "78b5362",
+    "date": "2026-10-18T21:35:41Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "02a1881",
+    "date": "2026-10-18T21:35:00Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "873ccc6",
+    "date": "2026-10-18T21:34:48Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "e30807f",
+    "date": "2026-10-18T21:34:41Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "d399b3c",
+    "date": "2026-10-18T21:34:19Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "4e84927",
+    "date": "2026-10-18T13:18:08Z",
+    "title": "Added shop backend and UI",
+    "details": "X-Lovable-Edit-ID: edt-3b804db9-1461-42de-b6d9-842c9fd7d920",
+    "kind": "update"
+  },
+  {
+    "id": "6395325",
+    "date": "2026-10-18T13:18:03Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "52420f0",
+    "date": "2026-10-18T13:17:19Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "ee48c6e",
+    "date": "2026-10-18T13:17:10Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "6111456",
+    "date": "2026-10-18T13:17:04Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "324017c",
+    "date": "2026-10-18T13:16:49Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "90fd5a3",
+    "date": "2026-10-18T13:16:21Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "978f78c",
+    "date": "2026-10-18T13:15:56Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "0a86896",
+    "date": "2026-10-18T13:14:58Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "c411dfd",
+    "date": "2026-10-18T13:14:49Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "c336bce",
+    "date": "2026-10-18T13:11:22Z",
+    "title": "Added ores/crystals to inv.",
+    "details": "X-Lovable-Edit-ID: edt-be51de64-880e-4236-a2fb-e8638f5455b4",
+    "kind": "update"
+  },
+  {
+    "id": "29ac6c4",
+    "date": "2026-10-18T13:11:18Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "801820c",
+    "date": "2026-10-18T13:10:44Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "cdcbdd0",
+    "date": "2026-10-18T13:10:26Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "828f373",
+    "date": "2026-10-18T13:09:43Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "a9794ee",
+    "date": "2026-10-18T13:09:10Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "178f79c",
+    "date": "2026-10-18T13:08:36Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "3c01a01",
+    "date": "2026-10-18T13:08:17Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "7c489b1",
+    "date": "2026-10-18T13:08:01Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "5debbaf",
+    "date": "2026-10-18T13:07:53Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "49c3f48",
+    "date": "2026-10-18T13:07:45Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "ce2c36d",
+    "date": "2026-10-18T13:07:09Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "620943c",
+    "date": "2026-10-18T13:07:00Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "f8aeb05",
+    "date": "2026-10-18T13:06:11Z",
+    "title": "Fixed monster rendering style",
+    "details": "X-Lovable-Edit-ID: edt-3c4ea558-d0e9-40a5-b596-7132cc73c017",
+    "kind": "hotfix"
+  },
+  {
+    "id": "32dfc20",
+    "date": "2026-10-18T13:05:09Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "8c6c604",
+    "date": "2026-10-18T12:11:54Z",
+    "title": "Added battle skill system",
+    "details": "X-Lovable-Edit-ID: edt-5c549690-a953-49e2-bf41-9551e6c9af49",
+    "kind": "update"
+  },
+  {
+    "id": "fc62643",
+    "date": "2026-10-18T12:11:47Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "31abde5",
+    "date": "2026-10-18T12:10:00Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "28f3225",
+    "date": "2026-10-18T12:09:26Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "605ecda",
+    "date": "2026-10-18T12:08:37Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "7246569",
+    "date": "2026-10-18T12:07:55Z",
+    "title": "Work in progress",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "4b0c6de",
+    "date": "2026-10-18T11:55:53Z",
+    "title": "Added matching idle/action",
+    "details": "X-Lovable-Edit-ID: edt-b49717c6-10a9-4cc3-8140-b1819073ffa3",
+    "kind": "update"
+  },
+  {
+    "id": "8c1230b",
+    "date": "2026-10-18T11:55:39Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "9d42e63",
+    "date": "2026-10-18T11:54:48Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "0179a21",
+    "date": "2026-10-18T11:54:28Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "9c06e86",
+    "date": "2026-10-18T11:53:46Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "9e19fb8",
+    "date": "2026-10-18T11:53:34Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "f45519f",
+    "date": "2026-10-18T11:53:12Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "c58d8c5",
+    "date": "2026-10-18T11:53:02Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "3999908",
+    "date": "2026-10-18T11:52:44Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "8fba25a",
+    "date": "2026-10-18T11:52:36Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "463b772",
+    "date": "2026-10-18T11:51:58Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "5b2c3ce",
+    "date": "2026-10-18T11:51:37Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "b8cdd9c",
+    "date": "2026-10-18T11:51:08Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "dd91cd2",
+    "date": "2026-10-18T11:50:33Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "195f833",
+    "date": "2026-10-18T11:49:38Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "da8c484",
+    "date": "2026-10-18T11:49:17Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "f005d7f",
+    "date": "2026-10-18T11:49:10Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "55a4406",
+    "date": "2026-10-18T11:48:42Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "110d800",
+    "date": "2026-10-18T11:47:41Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "eb53031",
+    "date": "2026-10-18T11:47:10Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "2c653fb",
+    "date": "2026-10-18T11:46:59Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "83f671a",
+    "date": "2026-10-18T11:46:22Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "a116619",
+    "date": "2026-10-18T11:46:11Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "63b3b8a",
+    "date": "2026-10-18T11:45:44Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "133af62",
+    "date": "2026-10-18T11:44:14Z",
+    "title": "Added guild shop with tokens",
+    "details": "X-Lovable-Edit-ID: edt-59ef2961-3532-44b1-b8f2-5f2206092548",
+    "kind": "update"
+  },
+  {
+    "id": "a387ee9",
+    "date": "2026-10-18T11:43:53Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "40d25bb",
+    "date": "2026-10-18T11:43:48Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "91e9025",
+    "date": "2026-10-18T11:43:39Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "402b81a",
+    "date": "2026-10-18T11:43:28Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "78d6026",
+    "date": "2026-10-18T11:42:48Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "efe7a28",
+    "date": "2026-10-18T11:42:44Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "ebd8e67",
+    "date": "2026-10-18T11:42:39Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "fb11202",
+    "date": "2026-10-18T11:40:58Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "30d528c",
+    "date": "2026-10-18T11:40:45Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "b530256",
+    "date": "2026-10-18T11:40:36Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "42ae1b8",
+    "date": "2026-10-18T11:40:30Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "51a1726",
+    "date": "2026-10-18T11:40:18Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "beca85d",
+    "date": "2026-10-18T11:39:22Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "1137843",
+    "date": "2026-10-18T11:39:15Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "25b0b65",
+    "date": "2026-10-18T11:38:29Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "2fdb6b9",
+    "date": "2026-10-18T11:36:59Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "0389ab4",
+    "date": "2026-10-18T11:36:52Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "514f87c",
+    "date": "2026-10-18T11:36:43Z",
+    "title": "Work in progress",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "2d6d753",
+    "date": "2026-10-18T11:23:06Z",
+    "title": "Enabled cloud auth & sign-in",
+    "details": "X-Lovable-Edit-ID: edt-ea210b8e-0ea2-4a77-b0ad-84f315d38021",
+    "kind": "update"
+  },
+  {
+    "id": "a3ba5a8",
+    "date": "2026-10-18T11:22:57Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "0ddca74",
+    "date": "2026-10-18T11:19:34Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "af97102",
+    "date": "2026-10-18T11:16:57Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "63eca76",
+    "date": "2026-10-18T11:15:19Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "7fefbcc",
+    "date": "2026-10-18T11:14:24Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "184c224",
+    "date": "2026-10-18T11:09:40Z",
+    "title": "Fixed auth and added loading",
+    "details": "X-Lovable-Edit-ID: edt-eb11e004-2b44-412c-b249-b343cf6fca57",
+    "kind": "hotfix"
+  },
+  {
+    "id": "dab2312",
+    "date": "2026-10-18T11:09:23Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "048e245",
+    "date": "2026-10-18T10:45:18Z",
+    "title": "Added scroll bonuses",
+    "details": "X-Lovable-Edit-ID: edt-5512ffb2-9f58-431b-8843-893c265942c6",
+    "kind": "update"
+  },
+  {
+    "id": "aaf1ba4",
+    "date": "2026-10-18T10:45:10Z",
+    "title": "Work in progress",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "7705c1d",
+    "date": "2026-10-18T10:38:16Z",
+    "title": "Added background task agent log",
+    "details": "X-Lovable-Edit-ID: edt-809d0fea-16e2-4d40-b4b4-70d369d5402a",
+    "kind": "update"
+  },
+  {
+    "id": "fcadbe8",
+    "date": "2026-10-18T10:37:55Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "2ce0476",
+    "date": "2026-10-18T10:36:20Z",
+    "title": "Added reward screens & tests",
+    "details": "X-Lovable-Edit-ID: edt-b2944354-0615-4e62-9a6c-04cb508d1f12",
+    "kind": "update"
+  },
+  {
+    "id": "b15d94f",
+    "date": "2026-10-18T10:35:45Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "97f9719",
+    "date": "2026-10-18T10:35:16Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "9df62a1",
+    "date": "2026-10-18T10:34:33Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "bb76c17",
+    "date": "2026-10-18T10:34:07Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "49c6e67",
+    "date": "2026-10-18T10:33:24Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "3623516",
+    "date": "2026-10-18T10:32:33Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "68ee8d3",
+    "date": "2026-10-18T10:31:43Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "63c4caf",
+    "date": "2026-10-18T08:13:43Z",
+    "title": "Added hand-drawn icons",
+    "details": "X-Lovable-Edit-ID: edt-d4429522-95d2-42da-b4bf-18245507eadf",
+    "kind": "update"
+  },
+  {
+    "id": "f2c073f",
+    "date": "2026-10-18T08:13:35Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "bcc7164",
+    "date": "2026-10-18T08:13:25Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "825f1f0",
+    "date": "2026-10-18T08:13:12Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "668d603",
+    "date": "2026-10-18T08:11:20Z",
+    "title": "Added battle screen & overflow",
+    "details": "X-Lovable-Edit-ID: edt-8b3732d0-ad83-4150-88e6-398789479e3b",
+    "kind": "update"
+  },
+  {
+    "id": "ce67434",
+    "date": "2026-10-18T08:11:05Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "d5f4521",
+    "date": "2026-10-18T08:10:51Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "a8f71ff",
+    "date": "2026-10-18T08:10:25Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "069a5e6",
+    "date": "2026-10-18T08:10:16Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "6ae8815",
+    "date": "2026-10-18T08:10:05Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "28c82e2",
+    "date": "2026-10-18T08:09:46Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "62263bf",
+    "date": "2026-10-18T08:08:36Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "67477f4",
+    "date": "2026-10-18T08:06:50Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "4094672",
+    "date": "2026-10-18T08:06:21Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "2c5b1a8",
+    "date": "2026-10-18T08:05:37Z",
+    "title": "Changes",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "3377db4",
+    "date": "2026-10-18T08:05:19Z",
+    "title": "Work in progress",
+    "details": "",
+    "kind": "update"
+  },
+  {
+    "id": "dad00cb",
+    "date": "2026-10-16T12:25:08Z",
+    "title": "template: tanstack_start_ts_current-3341755609d5",
+    "details": "",
+    "kind": "update"
+  }
+]

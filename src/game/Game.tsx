@@ -1,3 +1,4 @@
+import { Announcements } from "./Announcements";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { MountsPanel, RunesPanel, WheelPanel } from "./Emporium";
 import mountIcon from "@/assets/mounts/griffin.webp";
@@ -72,7 +73,7 @@ import { CONQUEST_LEVEL, canEnterConquest } from "./data";
 import { QuestsButton, QuestsPanel } from "./Quests";
 import { claimableLevelQuests, rollLevelQuests } from "./level-quests";
 import { Hud } from "./HeroHud";
-import { VERSION, RELEASE_NOTES } from "./version";
+import { VERSION } from "./version";
 
 const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
 
@@ -521,7 +522,11 @@ export function Game() {
             </Button>
           </nav>
           <WorldChat heroId={heroId} />
-          <QuestsButton count={claimableLevelQuests(hero)} onClick={() => setOpen("quests")} />
+          <nav aria-label={tr("Help and quests")} className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-2">
+            <Button variant="ghost" aria-label={tr("Game Guide")} title={tr("Game Guide")} className="game-panel h-auto min-h-16 w-20 flex-col gap-1 rounded-md px-2 py-2 font-display text-xs text-gold" onClick={() => setOpen("guide")}><ArtIcon name="spellbook" size={32} />{tr("Guide")}</Button>
+            <QuestsButton count={claimableLevelQuests(hero)} onClick={() => setOpen("quests")} />
+            <Button variant="ghost" aria-label={tr("Announcements")} title={tr("Announcements")} className="game-panel h-auto min-h-16 w-20 flex-col gap-1 whitespace-normal rounded-md px-1 py-2 font-display text-[10px] text-gold" onClick={() => setOpen("notes")}><ArtIcon name="notes" size={30} />{tr("Announcements")}</Button>
+          </nav>
           <Hud
             muted={sound.muted}
             setMuted={(m) => changeSound({ muted: m })}
@@ -576,7 +581,7 @@ export function Game() {
           )}
           {open === "guide" && <GameGuide onClose={() => setOpen(null)} />}
           {open === "profile" && <ProfilePanel onClose={() => setOpen(null)} />}
-          {open === "notes" && <UpdateNotes onClose={() => setOpen(null)} />}
+          {open === "notes" && <Announcements onClose={() => setOpen(null)} />}
           {open === "settings" && (
             <SettingsPanel settings={sound} onChange={changeSound} onClose={() => setOpen(null)} />
           )}
@@ -718,31 +723,6 @@ export function Game() {
         </div>
       )}
     </div>
-  );
-}
-
-/** The patch notes behind the version chip: what version 1.00 changed. */
-function UpdateNotes({ onClose }: { onClose: () => void }) {
-  return (
-    <Panel
-      title={`Emberfall ${VERSION}`}
-      subtitle={tr("Version 1.00 patch notes")}
-      art="quest"
-      onClose={onClose}
-    >
-      <div className="space-y-3">
-        {RELEASE_NOTES.map((sec) => (
-          <section key={sec.title}>
-            <h3 className="font-display text-sm text-gold">{sec.title}</h3>
-            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-muted-foreground">
-              {sec.lines.map((l) => (
-                <li key={l}>{l}</li>
-              ))}
-            </ul>
-          </section>
-        ))}
-      </div>
-    </Panel>
   );
 }
 

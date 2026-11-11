@@ -22,7 +22,7 @@ describe('building content preserves existing progression', () => {
   });
   it('each material expedition resolves an actual encounter from saved progress', () => {
     const h = newHero('Test', 'archer');
-    expect(EXPEDITIONS.map(e => e.material)).toEqual(['ore','essence','starshard','fragment','sigil','bossCore']);
+    expect(EXPEDITIONS.map(e => e.material)).toEqual(['ore','essence','starshard','fragment','sigil','hide','bloom','crystal','bossCore']);
     for (let i=0;i<EXPEDITIONS.length;i++) {
       expect(expeditionFoe(h,i)).toEqual(expeditionFoe(h,i));
       expect(expeditionFoe(h,i).hp).toBeGreaterThan(0);

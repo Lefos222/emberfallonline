@@ -2,6 +2,7 @@ import { locText, t } from "./i18n";
 import { MATS, type Mat } from "./crafting";
 import { SPIRE_DUNGEONS } from "./spire-party";
 import { CATCHES } from "./fishing";
+import { EXPEDITIONS } from "./building-content";
 import type { Hero } from "./data";
 
 /**
@@ -591,6 +592,7 @@ function materialsChapter(): GuideChapter {
       const spire = SPIRE_DUNGEONS.filter((d) => d.mat === k).map((d) => t(d.name));
       const fish = CATCHES.filter((c) => c.mats && k in c.mats).map((c) => t(c.name));
       const extra = [
+        EXPEDITIONS.some(e => e.material === k) ? `${t("Dungeon Gate · Expeditions")}: ${EXPEDITIONS.filter(e => e.material === k).map(e => `${e.name} (+${e.quantity})`).join(", ")}` : "",
         spire.length ? `${t("Spire dungeon drop")}: ${spire.join(", ")}` : "",
         fish.length ? `${t("Fishing Pier catch")}: ${fish.join(", ")}` : "",
       ].filter(Boolean).join(" · ");

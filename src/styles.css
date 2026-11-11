@@ -891,3 +891,32 @@ html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
 /* Painted observatory stays behind opaque, readable Astral sockets. */
 .tower-observatory { background: var(--background); }
 .tower-art-shade { background: linear-gradient(180deg, transparent, var(--background)); }
+
+/* Stable painted battle controls, with a scrolling skill rail on phones. */
+.combat-orb-shell { position: relative; width: 112px; height: 132px; flex: none; display: flex; align-items: flex-start; justify-content: center; }
+.combat-orb-shell .orb { position: absolute; width: 78px; top: 18px; border: none; box-shadow: none; }
+.combat-orb-frame { position: absolute; inset: 0; width: 112px; height: 112px; pointer-events: none; }
+.combat-orb-shell .orb-label { font-size: 13px; }
+.combat-orb-shell .orb-label small { font-size: 9px; letter-spacing: 0; }
+.combat-orb-caption { position: absolute; bottom: 4px; font-family: var(--font-display); font-size: 11px; color: var(--gold); }
+.orb-bar { align-items: center; border-radius: 6px; background: var(--background); }
+.orb-slots { flex: 1; min-width: 0; padding: 8px 0; }
+.battle-skill { overflow: hidden; padding: 2px; flex: none; }
+.battle-skill-name { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; line-height: 12px; }
+.battle-skill[aria-disabled="true"] { filter: saturate(.4); }
+@media(max-width: 640px) {
+ .combat-orb-shell { width: 64px; height: 82px; }
+ .combat-orb-frame { width: 64px; height: 64px; }
+ .combat-orb-shell .orb { width: 44px; top: 10px; }
+ .combat-orb-shell .orb-label { font-size: 10px; }
+ .combat-orb-shell .orb-label small { font-size: 7px; }
+ .combat-orb-caption { font-size: 9px; }
+ .orb-bar { padding: 4px; gap: 4px; }
+ .orb-slots { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; }
+ .orb-slots .slot { flex: none; }
+ .battle-actions { padding-top: 8px; }
+}
+@media(prefers-reduced-motion: reduce) { .orb-fill::before { animation: none; } }
+.battle-actions > div { min-width: 0; }
+.battle-actions .orb-bar { width: 100%; max-width: 100%; min-width: 0; }
+@media(max-width: 640px) { .battle-actions > div { width: 100%; } .battle-actions .orb-slots { flex-basis: 0; } }

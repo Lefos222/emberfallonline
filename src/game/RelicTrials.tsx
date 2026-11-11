@@ -1,3 +1,5 @@
+import trialArt from "@/assets/relic-trial-sanctum.jpg";
+import { MatIcon } from "./MatIcon";
 import { tName , t} from "./i18n";
 import { addMats } from "./crafting";
 import { itemName } from "./i18n";
@@ -71,11 +73,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
   return (
     <Panel title={t("Relic Trials")} subtitle={`${set.name} · every win recovers a piece`} art="star" onClose={onClose} wide>
       <div className="relative mb-4 overflow-hidden rounded-lg border border-border">
-        <div
-          aria-hidden="true"
-          className="h-32 w-full md:h-40"
-          style={{ backgroundImage: `url(${gearAtlas})`, backgroundSize: "300% auto", backgroundPosition: set.crop }}
-        />
+        <img src={trialArt} alt="" width={1536} height={1024} loading="lazy" className="h-48 w-full object-cover md:h-56" />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" aria-hidden="true" />
         <div className="absolute inset-0 flex flex-col justify-center gap-0.5 p-4">
           <div className="font-display text-2xl text-gold md:text-3xl">{set.name}</div>
@@ -92,7 +90,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
           const clears = relicClears(hero, rank);
           const pool = set.pieces.filter((p) => p.rank <= rank).length;
           return (
-            <article key={rank} className={`slot flex flex-col gap-2 p-3 ${unlocked ? "" : "opacity-70"}`}>
+            <article key={rank} className={`slot h-auto min-h-24 whitespace-normal flex flex-col gap-2 p-3 ${unlocked ? "" : "opacity-70"}`}>
               <div className="flex items-center gap-2">
                 <Sprite rect={set.boss.sprite} className="h-16 w-16 shrink-0" />
                 <div className="min-w-0">
@@ -105,6 +103,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
               </div>
               <div className="text-xs text-muted-foreground">{t("HP")} {fmt(foe.hp)}  {t("· ATK")} {fmt(foe.atk)}  {t("· DEF")} {fmt(foe.def)}</div>
               <div className="text-xs"><Gold n={rw.gold} /> · {fmt(rw.xp)}  {t("XP ·")} {pool}  {t("possible relics")}</div>
+              <div className="flex items-center gap-2 text-xs text-gold"><MatIcon mat="shadowSilk" size={24} />+{1 + Math.floor(rank / 2)} {t("Shadow Silk")} · {t("One relic per victory")}</div>
               <Button className="mt-auto" disabled={!unlocked} onClick={() => fight(rank)}>
                 {unlocked ? <><Swords />{t("Begin Rank")} {label}</> : <><Lock />{t("Level")} {level}  {t("required")}</>}
               </Button>
@@ -131,19 +130,19 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
         {set.pieces.map((piece) => {
           const owned = relicFound(hero, piece.id);
           return (
-            <button
+            <Button variant="ghost"
               key={piece.id}
               title={piece.blurb}
               onClick={() => setSel(piece)}
-              className={`slot flex flex-col items-center gap-1 p-2 text-center transition hover:scale-[1.03] ${owned ? "" : "opacity-40"}`}
+              className={`slot h-auto min-h-24 whitespace-normal flex flex-col items-center gap-1 p-2 text-center transition hover:scale-[1.03] ${owned ? "" : "opacity-40"}`}
             >
               <GearIcon item={{ slot: piece.slot, cls: hero.cls, icon: piece.icon, name: piece.name }} size={40} />
               <span className="text-[10px] leading-tight">{piece.name.replace(`${set.set} `, "")}</span>
               <span className="text-[10px]" style={{ color: `var(--r${piece.rarity})` }}>
-                {RARITIES[piece.rarity].name} · {RELIC_RANKS[piece.rank - 1]!.label}
+                {RARITIES[piece.rarity].name} · {RELIC_RANKS[piece.rank - 1]?.label}
               </span>
               {!owned && <Lock className="h-3 w-3 text-muted-foreground" aria-label={t("Not recovered yet")} />}
-            </button>
+            </Button>
           );
         })}
       </div>
