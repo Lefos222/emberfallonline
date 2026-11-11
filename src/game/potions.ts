@@ -8,10 +8,12 @@ import { scaledGold } from "./gold";
 import {
   POTION_PER_DAY,
   POTION_STAMINA,
+  STAMINA_PER_DAY,
   addPotions,
   drinkStaminaPotion,
   potionCount,
   potionUsesLeft,
+  staminaLeft,
 } from "./stamina";
 
 /**
@@ -133,8 +135,9 @@ export const potionBuffLeft = (h: Pick<PotionState, "potionBuffs">, id: PotionId
 /** Why a potion can't be used right now, or null when it can. */
 export function potionBlocker(h: PotionState, id: PotionId, now = Date.now()): string | null {
   if (potionHeld(h, id) <= 0) return `No ${POTIONS[id].name}`;
-  if (id === "stamina" && potionUsesLeft(h, now) <= 0) {
-    return `You have already drunk ${POTION_PER_DAY} Stamina Potions today.`;
+  if (id === "stamina") {
+    if (potionUsesLeft(h, now) <= 0) return `You have already drunk ${POTION_PER_DAY} Stamina Potions today.`;
+    if (staminaLeft(h, now) >= STAMINA_PER_DAY) return "Stamina is already full";
   }
   return null;
 }
