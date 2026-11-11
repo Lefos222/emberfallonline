@@ -8,6 +8,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
+import { LootGrid } from "./LootGrid";
 import { ArtIcon, type ArtIconName } from "./ArtIcon";
 import { GuildHall } from "./GuildHall";
 import { WorldChat } from "./WorldChat";
@@ -704,11 +705,7 @@ export function Game() {
             >
               {result.won ? tr("VICTORY") : tr("DEFEAT")}
             </h2>
-            <div className="my-4 space-y-1 font-display text-lg">
-              {result.lines.map((l) => (
-                <div key={l}>{l}</div>
-              ))}
-            </div>
+            <LootGrid lines={result.lines} />
             {result.loot && <ItemCard item={result.loot} />}
             <div className="mt-5 flex flex-col gap-2 sm:flex-row">
               <button className="btn-gold flex-1 py-2.5 text-lg" onClick={closeResult}>
