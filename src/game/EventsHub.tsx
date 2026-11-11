@@ -35,7 +35,7 @@ export function EventsHub({ onClose, onOpen }: { onClose: () => void; onOpen: (t
 function liveEvents(now: number): { key: string; name: string; endsAt: number }[] {
   const out = WORLD_EVENTS.map((ev) => ({ ev, s: statusOf(now, ev) }))
     .filter(({ s }) => s.state === "live")
-    .map(({ ev, s }) => ({ key: `${ev.id}:${s.startedAt}`, name: ev.name, endsAt: (s as { endsAt: number }).endsAt }));
+    .map(({ ev, s }) => ({ key: `${ev.id}:${(s as { startedAt: number }).startedAt}`, name: ev.name, endsAt: (s as { endsAt: number }).endsAt }));
   const d = new Date(now);
   if (d.getUTCHours() % 6 === 0) {
     const start = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours());
