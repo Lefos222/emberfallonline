@@ -1,7 +1,7 @@
 # Roadmap (current request)
-- [ ] Nov 11: Hide War Gates navigation during ordinary and party fights.
-- [ ] Nov 11: Renovate Magic Tower with painted art and clearer mobile controls.
-- [ ] Nov 11: Connected Discord/Instagram rewards, 50 Diamonds each once per account (requires provider verification setup).
+- [x] Nov 11: Hide War Gates navigation during ordinary and party fights.
+- [x] Nov 11: Renovate Magic Tower with painted art and clearer mobile controls.
+- [ ] Nov 11: Verified social rewards ledger and Discord verification implemented; activation blocked by bot server access. Instagram blocked by professional-account messaging connection and webhook setup.
 - [ ] Battle skill bar: health orb (red, left), rage orb (yellow, right), slots in middle (Screenshot_29)
 - [ ] Fights 4-5 seconds longer
 - [ ] Gold Mine sits on the ground, not in the air

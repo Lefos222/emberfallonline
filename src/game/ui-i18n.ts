@@ -9,6 +9,22 @@ import type { ContentRow } from "./content-i18n";
  * here yet simply stays English instead of showing a placeholder.
  */
 export const UI_TEXT: Record<string, ContentRow> = {
+  "Copy": ["Αντιγραφή", "Kopiuj"],
+  "Social rewards": ["Κοινωνικές ανταμοιβές", "Nagrody społecznościowe"],
+  "Social rewards could not be loaded.": ["Οι κοινωνικές ανταμοιβές δεν φορτώθηκαν.", "Nie udało się wczytać nagród społecznościowych."],
+  "Each social reward can be claimed once per account, across all characters.": ["Κάθε κοινωνική ανταμοιβή λαμβάνεται μία φορά ανά λογαριασμό, για όλους τους χαρακτήρες.", "Każdą nagrodę można odebrać raz na konto, niezależnie od postaci."],
+  "Join Discord": ["Μπες στο Discord", "Dołącz do Discorda"],
+  "Follow Instagram": ["Ακολούθησε στο Instagram", "Obserwuj na Instagramie"],
+  "Post this message in the welcome channel to verify your membership.": ["Στείλε αυτό το μήνυμα στο κανάλι υποδοχής για επαλήθευση συμμετοχής.", "Wyślij tę wiadomość na kanale powitalnym, aby potwierdzić członkostwo."],
+  "Copy the message above.": ["Αντέγραψε το παραπάνω μήνυμα.", "Skopiuj powyższą wiadomość."],
+  "Verify and claim": ["Επαλήθευση και παραλαβή", "Zweryfikuj i odbierz"],
+  "Verifying…": ["Επαλήθευση…", "Weryfikacja…"],
+  "50 Diamonds awarded.": ["Απονεμήθηκαν 50 Διαμάντια.", "Przyznano 50 Diamentów."],
+  "Verification unavailable.": ["Η επαλήθευση δεν είναι διαθέσιμη.", "Weryfikacja niedostępna."],
+  "Instagram reward verification is awaiting the official account messaging connection. Following alone cannot yet be checked.": ["Η επαλήθευση Instagram περιμένει σύνδεση μηνυμάτων του επίσημου λογαριασμού. Η ακολούθηση δεν μπορεί ακόμα να ελεγχθεί.", "Weryfikacja Instagramu wymaga połączenia wiadomości oficjalnego konta. Samo obserwowanie nie może jeszcze zostać sprawdzone."],
+  "Summoning": ["Επίκληση", "Przywoływanie"],
+  "Species codex": ["Κώδικας ειδών", "Kodeks gatunków"],
+  "Search Astrals": ["Αναζήτηση Αστρικών", "Szukaj Astrali"],
   "+1 XP Scroll": ["+1 Πάπυρος XP", "+1 Zwój XP"],
   "Buff lit for 24 hours": ["Η ενίσχυση άναψε για 24 ώρες", "Wzmocnienie aktywne na 24 godziny"],
   "Contribution points": ["Πόντοι συνεισφοράς", "Punkty wkładu"],

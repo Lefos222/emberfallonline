@@ -260,6 +260,13 @@
       "when": 1794410000001,
       "tag": "0036_spire_dungeon_drops",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1794410000002,
+      "tag": "0037_verified_social_rewards",
+      "breakpoints": true
     }
   ]
 }

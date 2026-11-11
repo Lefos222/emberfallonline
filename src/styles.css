@@ -887,3 +887,7 @@ html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
 .farm-board .farm-spot-bed { position: absolute; left: 50%; top: 55%; translate: -50% -50%; width: 150% !important; height: auto !important; max-height: none; object-fit: contain; pointer-events: none; filter: drop-shadow(0 6px 6px oklch(0 0 0 / 0.6)); z-index: -1; }
 .farm-spot { isolation: isolate; }
 .item-hover { z-index: 80; }
+
+/* Painted observatory stays behind opaque, readable Astral sockets. */
+.tower-observatory { background: var(--background); }
+.tower-art-shade { background: linear-gradient(180deg, transparent, var(--background)); }

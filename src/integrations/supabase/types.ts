@@ -1412,6 +1412,54 @@ export type Database = {
         }
         Relationships: []
       }
+      social_reward_challenges: {
+        Row: {
+          code: string
+          created_at: string
+          provider: string
+          user_id: string
+        }
+        Insert: {
+          code?: string
+          created_at?: string
+          provider: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          provider?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      social_reward_claims: {
+        Row: {
+          claimed_at: string
+          diamonds: number
+          external_id: string
+          hero_id: string
+          provider: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          diamonds?: number
+          external_id: string
+          hero_id: string
+          provider: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string
+          diamonds?: number
+          external_id?: string
+          hero_id?: string
+          provider?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       spire_runs: {
         Row: {
           best: number
@@ -1610,6 +1658,15 @@ export type Database = {
       }
       auction_list_item: {
         Args: { _hero: string; _item: Json; _price: number; _req: string }
+        Returns: Json
+      }
+      award_verified_social: {
+        Args: {
+          _external: string
+          _hero: string
+          _provider: string
+          _user: string
+        }
         Returns: Json
       }
       begin_battle: { Args: { _hero: string }; Returns: Json }
@@ -1911,6 +1968,7 @@ export type Database = {
         Args: { _body: string; _channel: string; _hero: string; _to: string }
         Returns: string
       }
+      social_reward_code: { Args: { _provider: string }; Returns: string }
       spire_begin: { Args: { _hero: string }; Returns: Json }
       spire_clear: { Args: { _floor: number; _hero: string }; Returns: Json }
       spire_clear_in: {

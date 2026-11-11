@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SocialRewards } from "./SocialRewards";
 import { Button } from "@/components/ui/button";
 import { ArtIcon } from "./ArtIcon";
 import { DiamondService } from "./DiamondService";
@@ -47,6 +48,7 @@ const TABS = [
   { id: "materials", name: "Materials" },
   { id: "chests", name: "Chests" },
   { id: "cards", name: "Cards" },
+  { id: "social", name: "Social rewards" },
   { id: "history", name: "History" },
 ] as const;
 type Tab = (typeof TABS)[number]["id"];
@@ -147,6 +149,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
         </p>
       )}
 
+      {tab === "social" && <SocialRewards />}
       {tab === "diamonds" && (
         <div>
           <p className="mb-3 text-sm text-muted-foreground">

@@ -1,3 +1,4 @@
+import towerObservatory from "@/assets/magic-tower-observatory.jpg";
 import { itemName , tr} from "./i18n";
 import { AstralIcon, MatIcon, GemIcon } from "./MatIcon";
 import { CharacterModel } from "./CharacterModel";
@@ -347,17 +348,14 @@ function AstralRow({
   const name = `${ASTRAL_RARITY[a.rarity]} ${species.name}`;
   return (
     <div
-      className="rounded-md border p-2.5"
-      style={{
-        borderColor: ASTRAL_COLORS[a.rarity] + "88",
-        background: "linear-gradient(180deg,#12131e 0%,#0a0b12 100%)",
-      }}
+      className="rounded-md border border-border bg-card p-3"
+
     >
       <div className="flex items-start gap-2.5">
         <AstralIcon base={a.base} rarity={a.rarity} size={46} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2">
-            <b className="font-display text-sm" style={{ color: ASTRAL_COLORS[a.rarity] }}>
+            <b className={`font-display text-sm text-r${a.rarity}`}>
               {name}
             </b>
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -377,7 +375,7 @@ function AstralRow({
         </div>
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        <button
+        <Button
           className="btn-gold flex items-center gap-1 px-2.5 py-1 text-xs"
           disabled={hero.gold < cost}
           title={`Raise to Lv ${a.lvl + 1} for ${fmt(cost)} gold`}
@@ -385,25 +383,25 @@ function AstralRow({
         >
           <ArrowUp className="h-3 w-3" />
            {tr("Upgrade")} <Gold n={cost} className="text-primary-foreground" />
-        </button>
+        </Button>
         <span className="text-[11px] text-muted-foreground">
            {tr("next:")} {astralStatText({ ...a, lvl: a.lvl + 1 })}
         </span>
         <span className="ml-auto flex gap-1">
           {seated ? (
-            <button className="btn-ghost px-2 py-0.5 text-xs" onClick={onUnseat}>
-               {tr("Unseat")} </button>
+            <Button variant="outline" className="btn-ghost px-2 py-0.5 text-xs" onClick={onUnseat}>
+               {tr("Unseat")} </Button>
           ) : (
-            <button className="btn-ghost px-2 py-0.5 text-xs" onClick={onSeat}>
-               {tr("Seat")} </button>
+            <Button variant="outline" className="btn-ghost px-2 py-0.5 text-xs" onClick={onSeat}>
+               {tr("Seat")} </Button>
           )}
           {canAbsorb && (
-            <button
-              className="btn-ghost px-2 py-0.5 text-xs"
+            <Button
+              variant="outline" className="btn-ghost px-2 py-0.5 text-xs"
               title={tr("Feed a duplicate of this species into it for a free level")}
               onClick={onAbsorb}
             >
-              <Sparkles className="inline h-3 w-3" />  {tr("Absorb")} </button>
+              <Sparkles className="inline h-3 w-3" />  {tr("Absorb")} </Button>
           )}
         </span>
       </div>
@@ -420,6 +418,8 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
   const [toast, say] = useToast();
   const [picking, setPicking] = useState<number | null>(null);
   const [tab, setTab] = useState<"owned" | AstralFamily>("owned");
+  const [view, setView] = useState<"vault" | "summon" | "codex">("vault");
+  const [query, setQuery] = useState("");
   if (!hero) return null;
   const list = hero.astrals ?? [];
   const slots = Array.from({ length: ASTRAL_SLOTS }, (_, i) => hero.astralSlots?.[i] ?? null);
@@ -438,7 +438,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
     }
     seat(id, free);
   };
-  const shown = tab === "owned" ? list : list.filter((a) => ASTRAL_BASES[a.base]?.family === tab);
+  const shown = list.filter((a) => (tab === "owned" || ASTRAL_BASES[a.base]?.family === tab) && astralLabel(a).toLowerCase().includes(query.toLowerCase())).sort((a, b) => Number(slots.includes(b.id)) - Number(slots.includes(a.id)) || b.rarity - a.rarity || b.lvl - a.lvl);
   const speciesList = (Object.keys(ASTRAL_BASES) as string[]).filter(
     (k) => tab === "owned" || ASTRAL_BASES[k].family === tab,
   );
@@ -452,7 +452,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
       wide
     >
       {toast}
-      <div className="rounded-lg border border-[#2a2a32] bg-[#0a0b12] p-3 text-foreground">
+      <div className="text-foreground">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div className="font-display text-lg text-gold">{tr("ASTRAL VAULT")}</div>
           <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -469,7 +469,10 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        <div className="relative mx-auto mb-1 h-[300px] w-[300px] sm:h-[340px] sm:w-[340px]">
+        <div className="tower-observatory relative mb-4 overflow-hidden rounded-md border border-border">
+          <img src={towerObservatory} alt="" width={1536} height={1024} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="tower-art-shade absolute inset-0" />
+          <div className="relative mx-auto h-[300px] w-[300px] sm:h-[340px] sm:w-[340px]">
           <div className="absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2">
             <CharacterModel
               cls={hero.cls}
@@ -491,7 +494,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
                   key={i}
                   style={style}
                   title={`Wakes at level ${lv}`}
-                  className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-[#3d3d44] bg-black/60 text-center"
+                  className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-border bg-background text-center"
                 >
                   <Lock className="h-4 w-4 text-muted-foreground" />
                   <span className="text-[9px] leading-tight text-muted-foreground">{tr("Lv")} {lv}</span>
@@ -499,7 +502,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
               );
             if (a)
               return (
-                <button
+                <Button
                   key={i}
                   style={style}
                   title={`${astralLabel(a)} · ${astralStatText(a)} · click to unseat`}
@@ -508,33 +511,39 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
                       equipAstral(h, null, i);
                     })
                   }
-                  className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-0.5 rounded-full border border-[#3d3d44] bg-black/70 p-1 hover:scale-105"
+                  variant="outline" className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-0.5 rounded-full border border-border bg-background p-1 hover:scale-105"
                 >
                   <AstralIcon base={a.base} rarity={a.rarity} size={34} />
                   <span className="max-w-full truncate text-[8px] leading-none">
                     {ASTRAL_BASES[a.base].name}
                   </span>
-                </button>
+                </Button>
               );
             return (
-              <button
+              <Button
                 key={i}
                 style={style}
                 title={`Astral slot ${i + 1}`}
                 onClick={() => setPicking(i)}
-                className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-dashed border-[#4a4a55] bg-black/40 text-muted-foreground hover:border-gold hover:text-gold"
+                variant="outline" className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-dashed border-border bg-card text-muted-foreground hover:border-gold hover:text-gold"
               >
                 <Plus className="h-5 w-5" />
-              </button>
+              </Button>
             );
           })}
         </div>
-        <p className="mb-3 text-center text-[11px] text-muted-foreground">
-           {tr("Click an open slot to seat an Astral beside your hero. Click a seated Astral to send it back.")} </p>
+        </div>
+        <GameTabs label={tr("Magic Tower")} value={view} onChange={setView} tabs={[
+          { id: "vault" as const, name: tr("ASTRAL VAULT") },
+          { id: "summon" as const, name: tr("Summoning") },
+          { id: "codex" as const, name: tr("Species codex") },
+        ]} />
+        {view === "summon" && <>
+
 
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <button
-            className="btn-gold flex items-center gap-1 px-4 py-2"
+          <Button
+            className="btn-gold flex h-auto min-h-11 flex-wrap items-center gap-2 px-4 py-2"
             disabled={hero.gold < 500}
             onClick={() =>
               update((h) => {
@@ -548,7 +557,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
           >
             <Sparkles className="h-4 w-4" />
              {tr("Random Summon")} <Gold n={500} className="text-primary-foreground" />
-          </button>
+          </Button>
           <span className="text-xs text-muted-foreground">
              {tr("Species found")} {speciesOwned.size}/{Object.keys(ASTRAL_BASES).length}
           </span>
@@ -560,9 +569,9 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
               const key = `astral_${m.n}`;
               const got = (hero.achClaimed ?? []).includes(key);
               return (
-                <button
+                <Button
                   key={key}
-                  className="btn-ghost px-2 py-0.5 text-[11px]"
+                  variant="outline" className="btn-ghost px-2 py-0.5 text-[11px]"
                   disabled={got || speciesOwned.size < m.n}
                   onClick={() =>
                     update((h) => {
@@ -577,7 +586,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
                   }
                 >
                   {got ? `✓ ${m.n}` : `${m.n} species: ${fmt(m.gold)}`}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -588,10 +597,9 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
             const cost = ASTRAL_SUMMON_COSTS[rarity] ?? 500;
             const gated = (hero.astralSummons ?? 0) < (ASTRAL_SUMMON_GATES[rarity] ?? 0);
             return (
-              <button
+              <Button
                 key={rarity}
-                className="flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs font-bold transition hover:scale-105"
-                style={{ borderColor: ASTRAL_COLORS[rarity] + "88", color: ASTRAL_COLORS[rarity] }}
+                variant="outline" className={`h-auto min-h-11 flex flex-wrap items-center gap-2 rounded-md border px-3 py-2 text-xs font-bold text-r${rarity}`}
                 disabled={hero.gold < cost || gated}
                 title={
                   gated
@@ -609,11 +617,13 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
                 }
               >
                 {rarityName} <Gold n={cost} className="text-primary-foreground" />
-              </button>
+              </Button>
             );
           })}
         </div>
 
+        </>}
+        {view !== "summon" && <>
         <GameTabs
           label={tr("Astral families")}
           value={tab}
@@ -629,6 +639,8 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
             : ASTRAL_FAMILIES.find((f) => f.id === tab)?.blurb}
         </p>
 
+        {view === "vault" && <>
+        <input aria-label={tr("Search Astrals")} placeholder={tr("Search Astrals")} value={query} onChange={(e) => setQuery(e.target.value)} className="mb-3 h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
         {shown.length === 0 ? (
           <p className="py-4 text-center text-sm text-muted-foreground">
             {tab === "owned"
@@ -680,7 +692,8 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
           </div>
         )}
 
-        <div className="mt-4">
+        </>}
+        {view === "codex" && <div className="mt-4">
           <div className="mb-2 font-display text-sm text-gold">
              {tr("Species codex ·")} {speciesList.length}  {tr("stones")} </div>
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
@@ -692,7 +705,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
                 <div
                   key={key}
                   className={
-                    "rounded-md border border-[#2a2a32] bg-black/40 p-2 " +
+                    "rounded-md border border-border bg-card p-2 " +
                     (owned ? "" : "opacity-45")
                   }
                   title={sp.power}
@@ -711,7 +724,8 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
               );
             })}
           </div>
-        </div>
+        </div>}
+        </>}
       </div>
 
       {picking !== null && (
@@ -727,13 +741,13 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
               <div className="font-display text-lg text-gold">
                  {tr("Seat an Astral · slot")} {picking + 1}
               </div>
-              <button
-                className="btn-ghost px-2 py-1"
+              <Button
+                variant="outline" className="btn-ghost px-2 py-1"
                 onClick={() => setPicking(null)}
                 aria-label={tr("Close")}
               >
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
             {list.filter((x) => !slots.includes(x.id)).length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">
@@ -743,9 +757,9 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
                 {list
                   .filter((x) => !slots.includes(x.id))
                   .map((x) => (
-                    <button
+                    <Button
                       key={x.id}
-                      className="slot flex w-full items-center gap-3 px-3 py-2 text-left text-sm"
+                      variant="outline" className="slot flex h-auto min-h-14 w-full items-center justify-start gap-3 whitespace-normal px-3 py-2 text-left text-sm"
                       onClick={() => {
                         seat(x.id, picking);
                         setPicking(null);
@@ -758,7 +772,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
                           {astralStatText(x)} · {ASTRAL_BASES[x.base].power}
                         </span>
                       </span>
-                    </button>
+                    </Button>
                   ))}
               </div>
             )}

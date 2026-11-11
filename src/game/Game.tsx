@@ -98,6 +98,7 @@ export function Game() {
     lines: string[];
     loot?: Item | null;
   }>(null);
+  const [partyBattleVisible, setPartyBattleVisible] = useState(false);
   const [crafting, setCrafting] = useState(false);
   const [expeditions, setExpeditions] = useState(false);
   const [relics, setRelics] = useState(false);
@@ -612,7 +613,7 @@ export function Game() {
               </div>
             </div>
           )}
-          {(open === "portal" || open === "dungeon" || open === "spire" || open === "party") && (
+          {!battle && !partyBattleVisible && (open === "portal" || open === "dungeon" || open === "spire" || open === "party") && (
             <GateSwitcher current={open} onPick={(g) => setOpen(g)} level={hero.level} />
           )}
           {open === "portal" && <Campaign onClose={() => setOpen(null)} start={start} />}
@@ -624,7 +625,7 @@ export function Game() {
             ) : (
               <ComingSoon id="spire" locked onClose={() => setOpen(null)} />
             ))}
-          {open === "party" && <SpireGate onClose={() => setOpen(null)} />}
+          {open === "party" && <SpireGate onClose={() => setOpen(null)} onBattleVisible={setPartyBattleVisible} />}
           {open === "forge" && (
             <Forge onClose={() => setOpen(null)} onCraft={() => setCrafting(true)} />
           )}

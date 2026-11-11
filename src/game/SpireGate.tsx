@@ -81,7 +81,7 @@ const message = (e: unknown, fallback: string) => (e instanceof Error && e.messa
  * tick; the others only send their casts back. Runs, floors, chests and their rewards are minted
  * by the `spire_*` RPCs, so nothing here can be forged from the browser.
  */
-export function SpireGate({ onClose }: { onClose: () => void }) {
+export function SpireGate({ onClose, onBattleVisible }: { onClose: () => void; onBattleVisible?: (visible: boolean) => void }) {
   const { hero, heroId, gender } = useGame();
   const [st, setSt] = useState<SpireState | null>(null);
   const [error, setError] = useState("");
@@ -95,6 +95,10 @@ export function SpireGate({ onClose }: { onClose: () => void }) {
   const [mates, setMates] = useState<SpireMember[]>([]);
   const [members, setMembers] = useState<SpireMember[]>([]);
   const [battle, setBattle] = useState<SpireBattle | null>(null);
+  useEffect(() => {
+    onBattleVisible?.(battle !== null);
+    return () => onBattleVisible?.(false);
+  }, [battle !== null, onBattleVisible]);
   const [earned, setEarned] = useState(0);
   const [live, setLive] = useState(false);
 
