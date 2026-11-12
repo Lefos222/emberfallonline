@@ -331,14 +331,15 @@ function queue<T>(job: () => Promise<T>): Promise<T> {
   return next;
 }
 
-/** The server's Spire ledger. A missing field means an older server, never a free run. */
+/** The server's Spire ledger. A missing field means an older server, never a free run. The
+ *  allowance may exceed the free three when Vulcan Cards have minted extra runs today. */
 export function parseSpireState(value: unknown): SpireState {
   const o = object(value);
   const floor = whole(o["floor"]);
   return {
     floor,
     best: whole(o["best"]),
-    runs_left: Math.min(SPIRE_RUNS_PER_DAY, whole(o["runs_left"])),
+    runs_left: whole(o["runs_left"]),
     chests: whole(o["chests"]),
     active: o["active"] === true || floor > 0,
   };
@@ -350,6 +351,17 @@ interface BeginResult { ok: boolean; resumed: boolean; floor: number }
 export const beginSpire = () => withServerHero(async (id) => {
   const o = object(await rpc("spire_begin", { _hero: id }));
   return { ok: o["ok"] === true, resumed: o["resumed"] === true, floor: whole(o["floor"]) } as BeginResult;
+});
+
+/**
+ * Burns one Vulcan Card for one more run today. The server takes the card from the save and mints
+ * the extra run in one transaction (see drizzle/migrations/0049_vulcan_card.sql); it answers with
+ * the runs now left, which is what the gate shows.
+ */
+export const useVulcanCard = () => withServerHero(async (id) => {
+  const data = await rpc("spire_use_vulcan", { _hero: id });
+  adoptServerSave(id, returnedSave(data));
+  return whole(object(data)["runs_left"]);
 });
 
 /** Ending the run waits for the clears still queued, so a chest is never lost to it. */

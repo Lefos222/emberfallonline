@@ -245,11 +245,22 @@ export function insertGem(h: CraftState, itemId: string, socket: number, key: st
   h.gems = { ...h.gems, [key]: h.gems![key] - 1 };
   return null;
 }
+/** Gold the smith charges to prise one socketed gem back out: it rises with the gem's own level, so
+ *  a high gem is worth extracting and a level 1 gem is almost as cheap as a fresh cut. */
+export const gemRemoveCost = (key: string, heroLevel = 1) => {
+  const g = parseGem(key);
+  return scaledGold(300 * Math.pow(Math.max(1, g?.tier ?? 1), 1.6), heroLevel);
+};
+
+/** Take a socketed gem back out for gold; the gem returns to the pouch. */
 export function removeGem(h: CraftState, itemId: string, socket: number): string | null {
   const it = findOwned(h, itemId);
   if (!it) return "Item not found";
   const cur = sockets(it); const key = cur[socket];
   if (!key) return "Socket is empty";
+  const cost = gemRemoveCost(key, h.level);
+  if (h.gold < cost) return `Needs ${cost.toLocaleString()} gold to remove this gem`;
+  h.gold -= cost;
   cur[socket] = null; it.gems = cur;
   h.gems = { ...(h.gems ?? {}), [key]: (h.gems?.[key] ?? 0) + 1 };
   return null;

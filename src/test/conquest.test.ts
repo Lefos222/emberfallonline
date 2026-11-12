@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   BLITZ_PER_DAY, CONQUEST_KEY_MULTIPLIER, CONQUEST_XP_RATE, activateConquestKey, blitz, blitzBlocker,
   blitzDay, blitzesLeft, blitzesUsed, blitzRewards, buyTokenOffer, conquestDropFloor, conquestFloorRewards,
-  conquestKeyActive, conquestRewardMultiplier, conquestTokens, floorTokens, floorsCleared, TOKEN_OFFERS,
+  conquestKeyActive, conquestKeys, conquestRewardMultiplier, conquestTokens, floorTokens, floorsCleared, TOKEN_OFFERS,
 } from "@/game/conquest";
 import { finishBlitzRun } from "@/game/blitz-run";
 import { matCount } from "@/game/crafting";
@@ -118,7 +118,11 @@ describe("endless conquest", () => {
     expect(conquestKeyActive(h, NOW)).toBe(false);
     expect(conquestRewardMultiplier(h, NOW)).toBe(1);
 
+    // No key is lit by buying alone: the pack must hold one, and lighting it spends it.
+    expect(activateConquestKey(h, NOW)).toMatch(/no conquest key/i);
+    h.conquest = { ...(h.conquest ?? {}), keys: 1 };
     expect(activateConquestKey(h, NOW)).toBeNull();
+    expect(conquestKeys(h)).toBe(0);
     expect(conquestKeyActive(h, NOW)).toBe(true);
     expect(conquestRewardMultiplier(h, NOW)).toBe(CONQUEST_KEY_MULTIPLIER);
 

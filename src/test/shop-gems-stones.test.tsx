@@ -9,7 +9,7 @@ import {
   shopPrice,
   stoneShopPrice,
 } from "@/game/Marketplace";
-import { conquestKeyActive } from "@/game/conquest";
+import { activateConquestKey, conquestKeyActive, conquestKeys } from "@/game/conquest";
 import { Forge } from "@/game/panels";
 import { GemWorkshop } from "@/game/Workshop";
 import { makeItem, newHero } from "@/game/data";
@@ -180,17 +180,24 @@ describe("forge panel", () => {
 });
 
 describe("the Conquest Key in the shop", () => {
-  it("sells the key at the house discount and doubles the gate for the day", () => {
+  it("sells the key into the pack, where the gate decides whether to light it", () => {
     const h = hero();
     const gold = h.gold;
     expect(conquestKeyActive(h)).toBe(false);
     expect(buyConquestKey(h)).toBeNull();
-    expect(conquestKeyActive(h)).toBe(true);
+    // Buying never spends the key: the player chooses inside the gate.
+    expect(conquestKeyActive(h)).toBe(false);
+    expect(conquestKeys(h)).toBe(1);
     expect(h.gold).toBe(gold - conquestKeyShopPrice(h.level));
-    // One key a day: buying again is refused and charges nothing.
+    // Lighting it spends the key in the pack and doubles the gate for the day.
+    expect(activateConquestKey(h)).toBeNull();
+    expect(conquestKeyActive(h)).toBe(true);
+    expect(conquestKeys(h)).toBe(0);
+    // A lit key cannot be lit twice, and an empty pack has nothing to spend.
+    expect(activateConquestKey(h)).toMatch(/already lit/i);
     const after = h.gold;
-    expect(buyConquestKey(h)).toMatch(/already in your pack/i);
-    expect(h.gold).toBe(after);
+    expect(buyConquestKey(h)).toBeNull();
+    expect(h.gold).toBe(after - conquestKeyShopPrice(h.level));
   });
 
   it("shows the key in the shop with its price", () => {

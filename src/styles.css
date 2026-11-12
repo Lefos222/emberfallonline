@@ -925,3 +925,39 @@ html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
 .battle-actions > div { min-width: 0; }
 .battle-actions .orb-bar { width: 100%; max-width: 100%; min-width: 0; }
 @media(max-width: 640px) { .battle-actions > div { width: 100%; } .battle-actions .orb-slots { flex-basis: 0; } }
+
+/* ---------- Phone & desktop comfort pass ----------
+   The same screens run on a desktop mouse and on a phone thumb. These rules only make the game's
+   own controls easier to hit and read; no panel changes its contents. */
+
+/* Comfortable tap targets on touch screens: the painted buttons keep their look but never shrink
+   below a thumb-sized row. Scoped to the painted button classes so battle orbs, bag tiles and
+   small icon-only controls keep their measured sizes. */
+@media (pointer: coarse) {
+  .game-panel .btn-gold, .game-panel .btn-ghost, .game-panel .btn-blood { min-height: 2.5rem; padding-block: 0.45rem; }
+  .game-panel button { touch-action: manipulation; }
+}
+
+/* A phone zooms the page when a focused field's text is under 16px; the castle's number and search
+   fields are small on purpose, so only their rendered text grows on narrow screens. */
+@media (max-width: 767px) {
+  .game-panel input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+  .game-panel select, .game-panel textarea { font-size: 16px; line-height: 1.25; }
+  .game-panel { max-width: 100vw; }
+  /* Long item and building names wrap instead of widening the window. */
+  .game-panel { overflow-wrap: anywhere; }
+}
+
+/* The scrolling body of a window clears the phone's home indicator and keeps its own momentum. */
+.game-panel > div:last-child {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Keyboard players on a desktop can see where they are: one gold ring, never a layout shift. */
+.game-panel :is(button, [role="tab"], a, input, select, textarea):focus-visible,
+.game-panel :is(button, [role="tab"], a):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}

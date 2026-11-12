@@ -105,7 +105,8 @@ describe("the reworked gates", () => {
     setHero(hero);
     render(<ConquestTokens hero={hero} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Use Conquest Key/i }));
+    // No key in the pack: the gate's own button buys one and lights it in a single tap.
+    fireEvent.click(screen.getByRole("button", { name: /buy & light a key/i }));
     const after = getState().hero!;
     expect(conquestKeyActive(after)).toBe(true);
     expect(after.gold).toBeLessThan(1e9);
