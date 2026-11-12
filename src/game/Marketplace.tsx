@@ -1,12 +1,15 @@
 import { itemName , t} from "./i18n";
 import { useEffect, useState } from "react";
-import { Gavel, KeyRound, Store, Trash2 } from "lucide-react";
+import { Gavel, Store, Trash2 } from "lucide-react";
+import conquestKeyArt from "@/assets/conquest-key.png";
+import vulcanArt from "@/assets/vulcan-card.jpg";
 import { Clock } from "./PaintedIcons";
 import { AuctionBoard } from "./AuctionHouse";
 import { CATALOGUE_DISCOUNT, buyCatalogueItem, catalogueHour, cataloguePrice, catalogueRefreshAt, catalogueStock, restockCatalogue } from "./catalogue";
 import { DiamondService } from "./DiamondService";
 import { BlackMarketTab } from "./Emporium";
-import { CONQUEST_KEY_GOLD, activateConquestKey, conquestKeyActive } from "./conquest";
+import { CONQUEST_KEY_GOLD, addConquestKey, conquestKeyActive, conquestKeys } from "./conquest";
+import { buyVulcanCard, vulcanCardPrice, vulcanCards } from "./vulcan";
 import { invCap, RARITIES, type Hero } from "./data";
 import { scaledGold } from "./gold";
 import { POTIONS, addPotion, potionHeld, type PotionId } from "./potions";
@@ -51,16 +54,17 @@ export function buyShopGood(h: Hero, id: PotionId): string | null {
   return null;
 }
 
-/** Gold today's Conquest Key costs in the shop, after the house discount. */
+/** Gold one Conquest Key costs in the shop, after the house discount. */
 export const conquestKeyShopPrice = (level = 1) => cutPrice(scaledGold(CONQUEST_KEY_GOLD, level));
 
-/** Buy today's Conquest Key: double every Conquest Gate reward until Greek midnight. */
+/** Buy one Conquest Key into the pack. Buying never spends it: the player chooses inside the
+ *  Conquest Gate whether to light it for the day (see activateConquestKey). */
 export function buyConquestKey(h: Hero): string | null {
-  if (conquestKeyActive(h)) return "Today's Conquest Key is already in your pack — it lasts until Greek midnight.";
   const price = conquestKeyShopPrice(h.level);
   if (h.gold < price) return `Not enough gold — ${fmt(price)} needed`;
   h.gold -= price;
-  return activateConquestKey(h);
+  addConquestKey(h);
+  return null;
 }
 
 /** Gold one Fate Stone costs in the shop, after the house discount. */
@@ -162,38 +166,57 @@ function ShopTab({ hero }: { hero: Hero }) {
       </div>
 
       <div className="mt-5 mb-2 flex flex-wrap items-baseline justify-between gap-1">
-        <span className="font-display text-sm text-gold">{t("Conquest Key")}</span>
-        <span className="text-xs text-muted-foreground">{conquestKeyActive(hero) ? t("Active until Greek midnight") : t("One use · doubled conquest rewards")}</span>
+        <span className="font-display text-sm text-gold">{t("Gate goods · used inside the gate")}</span>
+        <span className="text-xs text-muted-foreground">{t("Buy here · decide at the gate")}</span>
       </div>
-      <p className="mb-2 text-xs text-muted-foreground">
-         {t("A key bought today doubles every reward the Conquest Gate pays until Greek midnight: double gold and double Conquest Tokens from every floor you clear and from every conquest blitz.")} </p>
-      {(() => {
-        const price = conquestKeyShopPrice(hero.level);
-        const active = conquestKeyActive(hero);
-        return (
-          <article className={`slot flex items-center gap-3 p-3 sm:max-w-md ${active ? "border-gold/60" : ""}`}>
-            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border ${active ? "border-gold text-gold" : "border-border text-muted-foreground"}`}>
-              <KeyRound className="h-5 w-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold">{t("Conquest Key")}</div>
-              <div className="text-[11px] text-muted-foreground">
-                {active ? t("In your pack — double gold and tokens at the gate today") : t("Double gold and tokens at the Conquest Gate for the day")}
-              </div>
-            </div>
-            {active ? (
-              <span className="text-xs font-bold text-gold">{t("Active")}</span>
-            ) : (
-              <button className="btn-gold px-3 py-1.5 text-sm" disabled={hero.gold < price}
-                aria-label={t("Buy a Conquest Key")}
-                title={hero.gold < price ? "Not enough gold" : "Buy a Conquest Key"}
-                onClick={() => update((h) => { say(buyConquestKey(h), "today's Conquest Key"); })}>
-                <Gold n={price} className="text-primary-foreground" />
-              </button>
-            )}
-          </article>
-        );
-      })()}
+
+      {/* The Conquest Key: bought here, lit only when the player chooses to inside the gate. */}
+      <article className={`slot flex flex-wrap items-center gap-3 p-3 sm:max-w-md ${conquestKeyActive(hero) ? "border-gold/60" : ""}`}>
+        <img src={conquestKeyArt} alt="" aria-hidden="true" className="h-14 w-14 shrink-0 object-contain" />
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-bold">{t("Conquest Key")}</div>
+          <div className="text-[11px] text-muted-foreground">
+            {conquestKeyActive(hero)
+              ? t("Lit today — double gold and tokens until Greek midnight")
+              : t("Doubles every Conquest Gate reward for a day. Keep it in your pack until the gate asks.")}
+          </div>
+          <div className="text-[11px]">{t("In your pack:")} <b>{fmt(conquestKeys(hero))}</b></div>
+        </div>
+        {(() => {
+          const price = conquestKeyShopPrice(hero.level);
+          return (
+            <button className="btn-gold px-3 py-1.5 text-sm" disabled={hero.gold < price}
+              aria-label={t("Buy a Conquest Key")}
+              title={hero.gold < price ? "Not enough gold" : "Buy a Conquest Key"}
+              onClick={() => update((h) => { say(buyConquestKey(h), "a Conquest Key"); })}>
+              <Gold n={price} className="text-primary-foreground" />
+            </button>
+          );
+        })()}
+      </article>
+
+      {/* The Vulcan Card: 80,000 gold, one extra Spire run on the day it is burned. */}
+      <article className="slot mt-2 flex flex-wrap items-center gap-3 p-3 sm:max-w-md">
+        <img src={vulcanArt} alt="" aria-hidden="true" className="h-16 w-12 shrink-0 rounded object-cover" />
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-bold">{t("Vulcan Card")}</div>
+          <div className="text-[11px] text-muted-foreground">
+            {t("Burns for one more Spire run on the day you spend it.")}
+          </div>
+          <div className="text-[11px]">{t("In your pack:")} <b>{fmt(vulcanCards(hero))}</b></div>
+        </div>
+        {(() => {
+          const price = vulcanCardPrice(hero.level);
+          return (
+            <button className="btn-gold px-3 py-1.5 text-sm" disabled={hero.gold < price}
+              aria-label={t("Buy a Vulcan Card")}
+              title={hero.gold < price ? "Not enough gold" : "Buy a Vulcan Card"}
+              onClick={() => update((h) => { say(buyVulcanCard(h), "a Vulcan Card"); })}>
+              <Gold n={price} className="text-primary-foreground" />
+            </button>
+          );
+        })()}
+      </article>
 
       <div className="mt-5 mb-2 font-display text-sm text-gold">{t("Enchantment Stones · nine grades")}</div>
       <p className="mb-2 text-xs text-muted-foreground">

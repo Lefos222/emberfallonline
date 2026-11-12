@@ -44,23 +44,29 @@ export const CONQUEST_XP_RATE = 0.321;
 /** Blitzes a hero may run each Greek day. The floors themselves are never rationed. */
 export const BLITZ_PER_DAY = 3;
 
-/** A hero's blitz allowance and Conquest Key, saved with the conquest tokens. */
+/** A hero's blitz allowance and Conquest Keys, saved with the conquest tokens. */
 export interface BlitzState {
-  conquest?: { tokens?: number; blitzDay?: string; blitzUsed?: number; keyDay?: string };
+  conquest?: { tokens?: number; blitzDay?: string; blitzUsed?: number; keyDay?: string; keys?: number };
 }
 
 /* ---------------------------------------------------------------- Conquest Key */
 
 /**
  * The Conquest Key doubles every reward the Conquest Gate pays for the rest of the Greek day:
- * the tokens and gold of a cleared floor and of a conquest blitz. It is bought for gold in the
- * Auction House shop, one per day, and expires at Greek midnight with the blitz allowance.
+ * the tokens and gold of a cleared floor and of a conquest blitz. Keys are bought for gold in the
+ * Auction House shop and kept in the hero's pack, so the player decides *inside the gate* whether
+ * to spend one now or keep it for a deeper climb — buying one never spends it. An activated key
+ * expires at Greek midnight with the blitz allowance.
  */
 export const CONQUEST_KEY_MULTIPLIER = 2;
 /** Base gold price of a Conquest Key before the shop's own discount and the hero's level scaling. */
 export const CONQUEST_KEY_GOLD = 45000;
 
-/** True while today's Conquest Key is in the hero's pack. */
+/** Conquest Keys waiting in the hero's pack, unspent. */
+export const conquestKeys = (h: Pick<Hero, "conquest">) =>
+  Math.max(0, Math.floor(h.conquest?.keys ?? 0));
+
+/** True while today's Conquest Key has been lit for the day. */
 export const conquestKeyActive = (h: Pick<Hero, "conquest">, now = Date.now()) =>
   h.conquest?.keyDay === blitzDay(now);
 
@@ -68,10 +74,17 @@ export const conquestKeyActive = (h: Pick<Hero, "conquest">, now = Date.now()) =
 export const conquestRewardMultiplier = (h: Pick<Hero, "conquest">, now = Date.now()) =>
   conquestKeyActive(h, now) ? CONQUEST_KEY_MULTIPLIER : 1;
 
-/** Buy and use today's Conquest Key. Returns an error message, or null on success. */
+/** Put one bought Conquest Key into the pack. */
+export function addConquestKey(h: Hero) {
+  h.conquest = { ...(h.conquest ?? {}), keys: conquestKeys(h) + 1 };
+}
+
+/** Spend one key from the pack: every gate reward pays ×2 until Greek midnight. Choosing not to
+ *  call this is how a player keeps their keys for later. Returns an error message, or null. */
 export function activateConquestKey(h: Hero, now = Date.now()): string | null {
-  if (conquestKeyActive(h, now)) return "Today's Conquest Key is already in your pack — it lasts until Greek midnight.";
-  h.conquest = { ...(h.conquest ?? {}), keyDay: blitzDay(now) };
+  if (conquestKeyActive(h, now)) return "Today's Conquest Key is already lit — it lasts until Greek midnight.";
+  if (conquestKeys(h) < 1) return "No Conquest Key in your pack — buy one in the Auction House shop.";
+  h.conquest = { ...(h.conquest ?? {}), keyDay: blitzDay(now), keys: conquestKeys(h) - 1 };
   return null;
 }
 

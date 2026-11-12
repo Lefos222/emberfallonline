@@ -51,6 +51,7 @@ import {
   fuseCost,
   fuseGem,
   gemName,
+  gemRemoveCost,
   gemValue,
   GEM_STAT_LABEL,
   holeCost,
@@ -154,6 +155,9 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
           {sel ? (
             <>
               <ItemCard item={sel} />
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                {tr("A gem can be prised back out for gold — the smith charges more for a higher gem, and the gem returns to your pouch.")}
+              </p>
               <div className="mt-3 space-y-2">
                 {sockets(sel).map((g, i) => (
                   <div
@@ -170,15 +174,18 @@ export function GemWorkshop({ onClose }: { onClose: () => void }) {
                     )}
                     {g ? (
                       <button
-                        className="btn-ghost px-2 py-0.5 text-xs"
+                        className="btn-ghost flex items-center gap-1 px-2 py-0.5 text-xs"
+                        disabled={hero.gold < gemRemoveCost(g, hero.level)}
+                        title={hero.gold < gemRemoveCost(g, hero.level) ? tr("Not enough gold to prise this gem out") : tr("The smith charges gold to prise a gem back out")}
                         onClick={() =>
                           act((h) => {
                             const e = removeGem(h, sel.id, i);
-                            say(!e, e ?? "Gem removed");
+                            say(!e, e ?? "Gem prised out — the smith took his fee");
                           })
                         }
                       >
-                        <X className="inline h-3 w-3" />  {tr("Remove")} </button>
+                        <X className="inline h-3 w-3" />  {tr("Remove")} <Gold n={gemRemoveCost(g, hero.level)} />
+                      </button>
                     ) : (
                       <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => setPick(i)}>
                         <Gem className="inline h-3 w-3" />  {tr("Insert gem")} </button>

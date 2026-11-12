@@ -17,7 +17,11 @@ describe("gems, astrals, crafting", () => {
     expect(h.gems["ruby:2"]).toBe(0);
     expect(heroStats(h).atk).toBeGreaterThan(before);
     expect(insertGem(h, w.id, 0, "ruby:2")).not.toBeNull(); // no gem left
+    // The smith charges gold to prise a gem back out (see gemRemoveCost).
+    h.gold = 5000;
+    const purse = h.gold;
     expect(removeGem(h, w.id, 0)).toBeNull();
+    expect(h.gold).toBeLessThan(purse);
     expect(h.gems["ruby:2"]).toBe(1);
   });
   it("gem values follow the twelve-level chart", () => {

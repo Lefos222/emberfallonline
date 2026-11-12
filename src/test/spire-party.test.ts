@@ -245,7 +245,9 @@ describe("the Spire's server ledger", () => {
     const st = parseSpireState({});
     expect(st.runs_left).toBe(0);
     expect(st.chests).toBe(0);
-    expect(parseSpireState({ runs_left: 99 }).runs_left).toBe(SPIRE_RUNS_PER_DAY);
+    // The allowance is the server's own number: Vulcan Cards can raise it above the free three,
+    // so the client reports what it was told instead of clamping it.
+    expect(parseSpireState({ runs_left: 99 }).runs_left).toBe(99);
     // An older server answers without `active`; a live floor still means a run is open.
     expect(parseSpireState({ floor: 8 }).active).toBe(true);
   });

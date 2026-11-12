@@ -1,7 +1,7 @@
 import { mountBlitzPct } from "./mounts";
 import { tr } from "./i18n";
 import { useState } from "react";
-import { Gem, KeyRound, Sparkles, Zap } from "lucide-react";
+import { Gem, Sparkles, Zap } from "lucide-react";
 import { Swords } from "./PaintedIcons";
 import { Button } from "@/components/ui/button";
 import { ConquestCoin, GemChestIcon, GoldChestIcon } from "./CoinIcon";
@@ -10,10 +10,11 @@ import { GEMS, GEM_MAX_TIER, GEM_STAT_LABEL, GEM_TYPES, MATS, gemKey, gemValue, 
 import { BlitzRunCard } from "./BlitzRun";
 import { buyConquestKey, conquestKeyShopPrice } from "./Marketplace";
 import {
-  BLITZ_PER_DAY, blitz, blitzBlocker, blitzRewards, blitzesLeft, buyConquestGem, buyTokenOffer,
-  conquestKeyActive, conquestRewardMultiplier, conquestTokens, floorTokens, floorsCleared,
-  gemTokenPrice, TOKEN_OFFERS,
+  BLITZ_PER_DAY, activateConquestKey, blitz, blitzBlocker, blitzRewards, blitzesLeft, buyConquestGem,
+  buyTokenOffer, conquestKeyActive, conquestKeys, conquestRewardMultiplier, conquestTokens, floorTokens,
+  floorsCleared, gemTokenPrice, TOKEN_OFFERS,
 } from "./conquest";
+import conquestKeyArt from "@/assets/conquest-key.png";
 import { blitzDurationMs } from "./blitz-run";
 import { vipLevelOf } from "./vip-perks";
 import type { Hero } from "./data";
@@ -50,6 +51,9 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
         </div>
       </header>
 
+      {/* The key decision belongs to the gate, not to the shop: light a key or keep it for later. */}
+      <ConquestKeyCard hero={hero} />
+
       <GameTabs
         label={tr("Conquest Gate")}
         value={tab}
@@ -68,6 +72,57 @@ export function ConquestTokens({ hero }: { hero: Hero }) {
   );
 }
 
+/**
+ * The gate's own key decision. Keys are bought for gold in the Auction House and kept in the
+ * hero's pack; the player chooses here whether to light one — doubling every reward the gate pays
+ * until Greek midnight — or to leave it in the pack for a deeper climb. Buying from the gate is
+ * the same stall, so an empty pack can be filled in one tap.
+ */
+function ConquestKeyCard({ hero }: { hero: Hero }) {
+  const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
+  const active = conquestKeyActive(hero);
+  const keys = conquestKeys(hero);
+  const price = conquestKeyShopPrice(hero.level);
+  const light = () => update((h) => {
+    if (conquestKeys(h) < 1) {
+      const bought = buyConquestKey(h);
+      if (bought) {
+        setMsg({ ok: false, t: bought });
+        return;
+      }
+    }
+    const err = activateConquestKey(h);
+    setMsg(err
+      ? { ok: false, t: err }
+      : { ok: true, t: "Conquest Key lit — every reward the gate pays is doubled until Greek midnight." });
+  });
+
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-3 rounded-md border border-border bg-card/70 p-2.5">
+      <img src={conquestKeyArt} alt="" aria-hidden="true" className="h-12 w-12 shrink-0 object-contain" />
+      <div className="min-w-0 flex-1">
+        <div className="font-display text-sm text-gold">{tr("Conquest Key · your choice")}</div>
+        <div className="text-[11px] text-muted-foreground">
+          {active
+            ? tr("Lit today: every floor, blitz and payout pays ×2 until Greek midnight.")
+            : tr("Light one for ×2 rewards today, or keep it in your pack — buying a key never spends it.")}
+        </div>
+        <div className="text-[11px]">{tr("In your pack:")} <b>{fmt(keys)}</b></div>
+      </div>
+      {active ? (
+        <span className="btn-ghost px-3 py-1.5 text-xs text-gold">{tr("Lit · ×2")}</span>
+      ) : (
+        <button className="btn-gold px-3 py-1.5 text-sm" disabled={keys < 1 && hero.gold < price}
+          title={keys > 0 ? "Spend one key from your pack" : "Buy a key and light it now"}
+          onClick={light}>
+          {keys > 0 ? tr("Use a key · ×2 today") : <><Gold n={price} className="text-primary-foreground" />{tr(" · buy & light")}</>}
+        </button>
+      )}
+      {msg && <p role="status" className={`w-full text-xs ${msg.ok ? "text-r1" : "text-hp"}`}>{msg.t}</p>}
+    </div>
+  );
+}
+
 /** Blitz floors already beaten: pick a depth, add today's Conquest Key if you like, then send the hero out. */
 function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
   const [target, setTarget] = useState(() => Math.max(1, cap || 1));
@@ -83,13 +138,21 @@ function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
   const runMinutes = Math.round(blitzDurationMs(usable, vipLevelOf(hero), mountBlitzPct(hero)) / 60_000);
   const jump = (n: number) => { setTarget(n); setMsg(null); };
   const perFloor = usable > 0 ? Math.max(1, Math.round((preview?.tokens ?? 0) / usable)) : 0;
-  // The blitz can add today's key itself — the same purchase as the Auction House stall, which
-  // doubles this run and every Conquest Gate reward until Greek midnight.
+  // The blitz can light today's key itself: a key already in the pack is spent, otherwise the same
+  // Auction House stall is paid. Either way the player chooses here whether this run pays ×2.
+  const keys = conquestKeys(hero);
   const useKey = () => update((h) => {
-    const err = buyConquestKey(h);
+    if (conquestKeys(h) < 1) {
+      const bought = buyConquestKey(h);
+      if (bought) {
+        setMsg({ ok: false, t: bought });
+        return;
+      }
+    }
+    const err = activateConquestKey(h);
     setMsg(err
       ? { ok: false, t: err }
-      : { ok: true, t: "Conquest Key in your pack — this run and every gate reward pay ×2 until Greek midnight." });
+      : { ok: true, t: "Conquest Key lit — this run and every gate reward pay ×2 until Greek midnight." });
   });
 
   return (
@@ -123,15 +186,19 @@ function BlitzTab({ hero, cap }: { hero: Hero; cap: number }) {
 
         {keyOn ? (
           <p className="mt-2 flex items-center gap-1.5 rounded border border-gold/60 px-2 py-1 text-xs text-gold">
-            <KeyRound className="h-3.5 w-3.5" />{tr("Conquest Key active — this run pays ×")}{keyMult}
+            <img src={conquestKeyArt} alt="" aria-hidden="true" className="h-4 w-4 object-contain" />
+            {tr("Conquest Key active — this run pays ×")}{keyMult}
           </p>
         ) : (
           <button className="mt-2 flex w-full items-center justify-between gap-2 rounded border border-border bg-background/40 px-2 py-1 text-xs disabled:opacity-60"
-            disabled={hero.gold < keyPrice}
-            title={hero.gold < keyPrice ? "Not enough gold" : "Doubles this blitz and every gate reward until Greek midnight"}
+            disabled={keys < 1 && hero.gold < keyPrice}
+            title={keys > 0 ? "Spend a key from your pack" : "Buy a key and double this blitz and every gate reward until Greek midnight"}
             onClick={useKey}>
-            <span className="flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5 text-gold" />{tr("Use Conquest Key · ×2 rewards")}</span>
-            <Gold n={keyPrice} />
+            <span className="flex items-center gap-1.5">
+              <img src={conquestKeyArt} alt="" aria-hidden="true" className="h-4 w-4 object-contain" />
+              {keys > 0 ? tr("Use a key · ×2 rewards") : tr("Buy & light a key · ×2 rewards")}
+            </span>
+            {keys > 0 ? <span className="font-bold text-gold">×{keys}</span> : <Gold n={keyPrice} />}
           </button>
         )}
 
@@ -283,7 +350,7 @@ function GemTab({ hero }: { hero: Hero }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-6 gap-1 lg:grid-cols-12">
+      <div className="grid grid-cols-4 gap-1 sm:grid-cols-6 lg:grid-cols-12">
         {Array.from({ length: GEM_MAX_TIER }, (_, i) => i + 1).map((n) => {
           const p = gemTokenPrice(n);
           return (

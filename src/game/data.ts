@@ -588,8 +588,9 @@ export interface Hero {
   /** Insight banked for the passive tree; earned from real campaign, elite, boss and activity results. */
   insight?: number;
   /** Endless Conquest: tokens earned from cleared floors and spent in the Conquest Gate, plus the
-   *  blitz allowance and the Greek day today's Conquest Key covers (see conquest.ts). */
-  conquest?: { tokens?: number; blitzDay?: string; blitzUsed?: number; keyDay?: string };
+   *  blitz allowance, the Conquest Keys waiting in the pack and the Greek day a lit key covers
+   *  (see conquest.ts). */
+  conquest?: { tokens?: number; blitzDay?: string; blitzUsed?: number; keyDay?: string; keys?: number };
   /** A blitz that is still out on its ten-minute run, with the rewards it will pay when it lands (see blitz-run.ts). */
   blitzRun?: {
     gate: "campaign" | "conquest";
@@ -608,6 +609,8 @@ export interface Hero {
   arena?: { windowStart?: number; used?: number };
   /** Stamina Potions in the pouch (its own field since the first stamina system). */
   staminaPotions?: number;
+  /** Vulcan Cards in the pack: one is burned at the Spire Gate for an extra run that UTC day (see vulcan.ts). */
+  vulcan?: number;
   /** Unread XP Scrolls (see xp-scrolls.ts). */
   xpScrolls?: number;
   /** Cached expiry (ms) of the guild's active buffs, refreshed from the server (see guild-extras.ts). */

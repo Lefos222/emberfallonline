@@ -33,11 +33,14 @@ import {
   reportClear,
   skillReady,
   tick,
+  useVulcanCard,
   type SpireBattle,
   type SpireMember,
   type SpireReward,
   type SpireState,
 } from "./spire-party";
+import { vulcanCards } from "./vulcan";
+import vulcanArt from "@/assets/vulcan-card.jpg";
 import arenaCrypt from "@/assets/arena-crypt.jpg";
 import arenaLair from "@/assets/arena-lair.jpg";
 import arenaRift from "@/assets/arena-rift.jpg";
@@ -410,6 +413,22 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
     }
   };
 
+  // A Vulcan Card is burned for one more run today; the server takes the card and mints the run.
+  const burnCard = async () => {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const left = await useVulcanCard();
+      setSt((s) => (s ? { ...s, runs_left: left } : s));
+      setNote(tr("The Vulcan Card burns away — one more climb today."));
+    } catch (e) {
+      setError(message(e, tr("The card could not be used.")));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const copyCode = () => {
     if (typeof navigator === "undefined" || !navigator.clipboard) return;
     void navigator.clipboard
@@ -437,6 +456,7 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
   const heroLevel = (hero?.level ?? 1) + (hero?.paragon ?? 0);
   const gateOpen = dungeonUnlocked(picked, heroLevel);
   const ready = !!st && st.runs_left > 0 && gateOpen;
+  const cards = vulcanCards(hero ?? {});
   const bests = hero?.spireFloors ?? {};
   const me = battle?.heroes.find((h) => h.id === heroId);
   /** The hero's own abilities — the same kit the rest of the game fights with. */
@@ -451,13 +471,29 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
           <div className="slot p-3">
             <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">{tr("Runs left today")}</span>
             <b className="font-display text-xl">{st ? st.runs_left : "…"}</b>
-            <span className="text-muted-foreground"> / {SPIRE_RUNS_PER_DAY}</span>
+            <span className="text-muted-foreground"> / {Math.max(SPIRE_RUNS_PER_DAY, st?.runs_left ?? 0)}</span>
             <span className="mt-1 block h-1.5 w-full overflow-hidden rounded bg-background/70">
               <span
                 className="block h-full bg-gold"
-                style={{ width: `${st ? Math.round((st.runs_left / SPIRE_RUNS_PER_DAY) * 100) : 0}%` }}
+                style={{ width: `${st ? Math.round((st.runs_left / Math.max(SPIRE_RUNS_PER_DAY, st.runs_left)) * 100) : 0}%` }}
               />
             </span>
+            {/* The Vulcan Card: burned here, one extra run for the day. */}
+            {cards > 0 && (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <img src={vulcanArt} alt="" aria-hidden="true" className="h-10 w-8 rounded object-cover" />
+                <span className="text-[11px] text-muted-foreground">{tr("Vulcan Card ×")}{cards}</span>
+                <Button
+                  variant="ghost"
+                  className="btn-gold px-2 py-1 text-xs"
+                  disabled={busy}
+                  title={tr("Burn one Vulcan Card for one more run today")}
+                  onClick={() => void burnCard()}
+                >
+                  {tr("Use a card · +1 run")}
+                </Button>
+              </div>
+            )}
           </div>
           <div className="slot p-3">
             <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">{tr("Best floor")}</span>
