@@ -117,19 +117,22 @@ describe("the shared party fight", () => {
     expect(b.foes.every((f) => f.hp > 0)).toBe(true);
   });
 
-  it("gets fallen heroes back up at a quarter health between floors", () => {
+  it("keeps a fallen hero dead for the rest of the climb", () => {
     const party = [member({ id: "h1" }), member({ id: "h2", name: "Bo" })];
     const battle: SpireBattle = {
       floor: 3, t: 0, pause: 0, over: false, fx: [], log: [],
       heroes: [
         { id: "h1", hp: 0, max: 400, cd: {}, swing: 600 },
-        { id: "h2", hp: 400, max: 400, cd: {}, swing: 0 },
+        { id: "h2", hp: 200, max: 400, cd: {}, swing: 0 },
       ],
       foes: [{ uid: "f", name: "Goblin Brute", img: "", hp: 1, max: 1, atk: 1, def: 0, boss: false, swing: 9999 }],
     };
     const r = tick(battle, party, []);
     expect(r.cleared).toBe(3);
-    expect(r.battle.heroes[0].hp).toBe(100);
+    // Nothing brings a dead hero back: no floor clear, no breather, no heal.
+    expect(r.battle.heroes[0].hp).toBe(0);
+    // The survivors still recover a little between floors.
+    expect(r.battle.heroes[1].hp).toBe(200 + Math.round(400 * 0.12));
   });
 
   it("keeps the climb going when only one hero falls", () => {

@@ -18,6 +18,9 @@ export const CRYSTALS_PER_LEVEL = 2;
 /** Void Crystals paid for every boss defeated, so boss hunting keeps feeding advanced training too. */
 export const BOSS_CRYSTALS = 1;
 
+/** Version 1.11: every XP source pays 4% less — one funnel, so no source escapes the cut. */
+export const XP_GAIN_SHARE = 0.96;
+
 /** Grant xp & gold; handles level ups up to 80 then endless Ascension (paragon) levels. */
 export function grant(h: Hero, xp: number, gold: number): { levels: number } {
   const goldMult = 1 + (statTrainFx(h).goldScale ?? 0) / 100;
@@ -25,7 +28,9 @@ export function grant(h: Hero, xp: number, gold: number): { levels: number } {
   // events, activities and the daily boards. Diamonds never pass through here.
   const vipMult = vipGoldMultiplier(vipLevelOf(h));
   h.gold += Math.round(gold * goldMult * vipMult);
-  h.xp += xp;
+  // Every source of XP (battles, blitzes, quests, boards, scrolls, events) is paid through here,
+  // so one share applies the global cut without a second XP path.
+  h.xp += Math.round(xp * XP_GAIN_SHARE);
   let levels = 0;
   while (h.xp >= xpToNext(h)) {
     h.xp -= xpToNext(h);

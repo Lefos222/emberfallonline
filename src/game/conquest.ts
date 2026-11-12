@@ -1,6 +1,6 @@
 import { addGem, addMats, GEM_MAX_TIER, type GemType, type Mat } from "./crafting";
 import { addChests, type ChestKind } from "./chests";
-import { BLITZ_RUNNING, blitzRunning, startBlitzRun } from "./blitz-run";
+import { BLITZ_GOLD_SHARE, BLITZ_RUNNING, blitzRunning, startBlitzRun } from "./blitz-run";
 import { stageRewards, type Hero } from "./data";
 import { greekDayStart } from "./events";
 
@@ -148,7 +148,7 @@ export function blitzRewards(target: number, mult = 1): BlitzResult {
     const r = stageRewards(f, 2);
     gold += r.gold * mult; tokens += floorTokens(f) * mult;
   }
-  return { floors: target, gold: Math.round(gold), tokens };
+  return { floors: target, gold: Math.round(gold * BLITZ_GOLD_SHARE), tokens };
 }
 
 /** What clearing one floor pays right now, key included: its gold and tokens. */

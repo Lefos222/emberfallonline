@@ -1125,16 +1125,21 @@ function computeStats(
  * Battle Rating is the hero's combat score (the same stats every upgrade feeds) amplified by a
  * level curve. That keeps the number climbing into the hundreds of thousands instead of stalling
  * around a hundred thousand at the cap, so every upgrade is worth a visible chunk of rating.
- * Level 1 is unchanged; a level 140 hero sits near 500,000, and Ascension keeps pushing past it.
+ * A level 140 hero sits near 550,000 (the 10% RATING_GAIN bump included), and Ascension keeps
+ * pushing past it.
  */
 export const RATING_CAP = 500_000;
 export const ratingScale = (level: number, paragon = 0) => {
   const lv = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
   return 1 + Math.pow(lv / MAX_LEVEL, 1.7) * 2.4 + Math.max(0, paragon) * 0.03;
 };
+/** Version 1.11: every source of Battle Rating is worth 10% more on the shared curve, so the
+ *  whole score rises evenly instead of one track being singled out. */
+export const RATING_GAIN = 1.1;
+
 /** Apply the rating curve to a raw combat score. */
 export const battleRating = (raw: number, level: number, paragon = 0) =>
-  Math.round(raw * ratingScale(level, paragon));
+  Math.round(raw * ratingScale(level, paragon) * RATING_GAIN);
 
 /** A foe's Battle Rating on the same curve, so "Easy / Fair / Deadly" compares like with like. */
 export const foeRating = (foe: Pick<Foe, "hp" | "atk" | "def" | "level">) =>

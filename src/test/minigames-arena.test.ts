@@ -20,6 +20,22 @@ describe("arena clash", () => {
     expect(arenaEventGold(10, true)).toBe(2100);
     expect(arenaEventGold(10, false)).toBe(840);
   });
+  it("keeps a fallen hero dead for the rest of the clash", () => {
+    const units: ArenaUnit[] = [0, 1].flatMap((i) => [
+      { id: `a${i}`, name: `A${i}`, cls: "warrior", gender: "male", level: 1, power: 1, side: "a" as const },
+      { id: `b${i}`, name: `B${i}`, cls: "mage", gender: "female", level: 1, power: 1, side: "b" as const },
+    ]);
+    const frames = arenaTimeline(units, 7, "a");
+    for (const u of units) {
+      // Once a unit is at zero it never comes back: no frame after its fall lifts it off zero.
+      const dead = frames.findIndex((f) => f.hp[u.id] === 0);
+      if (dead < 0) continue;
+      for (const f of frames.slice(dead)) expect(f.hp[u.id]).toBe(0);
+    }
+    // Someone does fall in a clash, so the rule above is actually exercised.
+    expect(frames.some((f) => units.some((u) => f.hp[u.id] === 0))).toBe(true);
+  });
+
   it("replays the server's winner identically for every client", () => {
     const units: ArenaUnit[] = [0, 1, 2, 3].flatMap((i) => [
       { id: `a${i}`, name: `A${i}`, cls: "warrior", gender: "male", level: 1, power: 1, side: "a" as const },

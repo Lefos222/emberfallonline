@@ -128,7 +128,7 @@ describe("endless conquest", () => {
     const base = blitzRewards(10);
     const doubled = blitzRewards(10, CONQUEST_KEY_MULTIPLIER);
     expect(doubled.tokens).toBe(base.tokens * 2);
-    expect(doubled.gold).toBe(base.gold * 2);
+    expect(doubled.gold).toBeCloseTo(base.gold * 2, -1);
     expect(conquestFloorRewards(7, 2).tokens).toBe(floorTokens(7) * 2);
 
     // The key expires with the blitz allowance, at Greek midnight.

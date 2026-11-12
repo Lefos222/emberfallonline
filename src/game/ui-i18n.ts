@@ -2083,7 +2083,7 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Summit conquered": ["Η κορυφή κατακτήθηκε", "Szczyt zdobyty"],
   "The party fell": ["Η παρέα έπεσε", "Drużyna poległa"],
   "Fallen": ["Έπεσε", "Poległ"],
-  "Your hero has fallen — the climb goes on. You rise again on the next floor.": ["Ο ήρωάς σου έπεσε — η αναρρίχηση συνεχίζεται. Ξανασηκώνεσαι στον επόμενο όροφο.", "Twój bohater poległ — wspinaczka trwa. Wstaniesz ponownie na następnym piętrze."],
+  "Your hero has fallen — the climb goes on without you until the party wins or falls.": ["Ο ήρωάς σου έπεσε — η αναρρίχηση συνεχίζεται χωρίς εσένα μέχρι η παρέα να νικήσει ή να πέσει.", "Twój bohater poległ — wspinaczka trwa bez ciebie, dopóki drużyna nie wygra lub nie upadnie."],
   "The climb goes on until the summit or the whole party falls.": ["Η αναρρίχηση συνεχίζεται ως την κορυφή ή ώσπου να πέσει όλη η παρέα.", "Wspinaczka trwa aż do szczytu albo do upadku całej drużyny."],
   "Selected": ["Επιλεγμένο", "Wybrane"],
   // ---- The Spire Gate's dungeons (SpireGate.tsx) ----
