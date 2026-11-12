@@ -138,10 +138,26 @@ describe("ten fights a level, then a smooth climb", () => {
   it("keeps every level a session's work, with no multi-million bill", () => {
     // Level 30→31 used to demand 2.8 million XP; it is now dozens of fights.
     expect(fightsToLevel(30)).toBe(46);
-    expect(fightsToLevel(80)).toBe(141);
+    // Past level 40 the curve steepens a touch: the same level 80 costs nine fights more.
+    expect(fightsToLevel(40)).toBe(69);
+    expect(fightsToLevel(80)).toBe(149);
     expect(xpToNext({ level: 30, paragon: 0 })).toBeLessThan(300_000);
     for (const lv of [25, 30, 40, 50, 60, 80, 100]) expect(fightsToLevel(lv)).toBeLessThan(200);
   });
+  it("adds a little more work to every level past 40, without ever walling the climb", () => {
+    // Level 40 itself keeps the old bill; past it each level asks for a hair more.
+    expect(fightsToLevel(40)).toBe(EASY_FIGHTS + Math.round(GRIND_FIGHTS * Math.pow(21, 0.75)));
+    const ratio = (lv: number) => fightsToLevel(lv) / (EASY_FIGHTS + Math.round(GRIND_FIGHTS * Math.pow(lv - 20 + 1, 0.75)));
+    expect(ratio(41)).toBeGreaterThanOrEqual(1);
+    for (const lv of [45, 50, 60, 80, 100, 120, 140]) {
+      expect(ratio(lv)).toBeGreaterThan(1);
+      expect(ratio(lv)).toBeLessThan(1.16);
+    }
+    // The steepening never makes one level more than a third longer than the last.
+    for (let lv = 40; lv < MAX_LEVEL; lv++)
+      expect(fightsToLevel(lv + 1)).toBeLessThanOrEqual(fightsToLevel(lv) * 1.05);
+  });
+
   it("still takes thousands of wins to reach level 80 — weeks, not a weekend", () => {
     let total = 0;
     for (let lv = 1; lv < 80; lv++) total += fightsToLevel(lv);

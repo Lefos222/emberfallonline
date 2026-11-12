@@ -279,7 +279,9 @@ export function tick(prev: SpireBattle, members: SpireMember[], casts: { hero: s
     const d = Math.max(1, Math.round(hit(f.atk, 1, m?.def ?? 0, rand) * guard));
     target.hp = Math.max(0, target.hp - d);
     b.fx.push({ src: f.uid, tgt: target.id, kind: "hit", value: d });
-    if (target.hp <= 0) log(`${m?.name ?? "A hero"} has fallen!`);
+    // One hero going down never ends the climb: the rest of the party fights on, and the fallen
+    // hero stands up again between floors (see below).
+    if (target.hp <= 0) log(`${m?.name ?? "A hero"} has fallen — the climb goes on!`);
   }
 
   if (!liveHeroes().length) { b.over = true; b.outcome = "fallen"; log(`The party fell on floor ${b.floor}.`); return { battle: b, cleared }; }
@@ -289,7 +291,20 @@ export function tick(prev: SpireBattle, members: SpireMember[], casts: { hero: s
     if (b.floor >= (b.floors ?? SPIRE_FLOORS)) { b.over = true; b.outcome = "summit"; log("The Spire's summit is conquered!"); return { battle: b, cleared }; }
     b.floor += 1; b.pause = FLOOR_PAUSE_MS;
     // The breather between floors: the fallen rise at a quarter health, the living recover 12%.
-    for (const h of b.heroes) h.hp = h.hp <= 0 ? Math.round(h.max * 0.25) : Math.min(h.max, h.hp + Math.round(h.max * 0.12));
+    // Only the whole party being down ends a run, so a fallen hero always gets this second chance.
+    const risen: string[] = [];
+    for (const h of b.heroes) {
+      if (h.hp > 0) {
+        h.hp = Math.min(h.max, h.hp + Math.round(h.max * 0.12));
+        continue;
+      }
+      h.hp = Math.round(h.max * 0.25);
+      h.guard = 0;
+      h.cd = {};
+      const name = stat(h.id)?.name;
+      if (name) risen.push(name);
+    }
+    if (risen.length) log(`${risen.join(", ")} ${risen.length > 1 ? "rise" : "rises"} again at a quarter health.`);
   }
   return { battle: b, cleared };
 }

@@ -100,7 +100,8 @@ describe("magic tower vault", () => {
     setHero(h);
     render(<MagicTower onClose={() => {}} />);
 
-    expect(screen.getByText("ASTRAL VAULT")).toBeInTheDocument();
+    // The vault's own heading and the tab that switches to it share the label.
+    expect(screen.getAllByText("ASTRAL VAULT").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Dread Core/).length).toBeGreaterThan(0);
     expect(screen.getByText("Lv 1")).toBeInTheDocument();
 
