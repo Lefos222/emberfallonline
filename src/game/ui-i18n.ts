@@ -2224,6 +2224,8 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Vulcan Card": ["Κάρτα του Vulcan", "Karta Wulkana"],
   "Vulcan Card ×": ["Κάρτα του Vulcan ×", "Karta Wulkana ×"],
   "Use a card · +1 run": ["Χρήση κάρτας · +1 προσπάθεια", "Użyj karty · +1 próba"],
+  "Use a Vulcan Card · +1 run": ["Χρήση Κάρτας του Vulcan · +1 προσπάθεια", "Użyj Karty Wulkana · +1 próba"],
+  "Select a Vulcan Card for one more climb today.": ["Διάλεξε μία Κάρτα του Vulcan για άλλη μία ανάβαση σήμερα.", "Wybierz Kartę Wulkana, aby dziś wspiąć się jeszcze raz."],
   "Burn one Vulcan Card for one more run today": ["Κάψε μία Κάρτα του Vulcan για άλλη μία προσπάθεια σήμερα", "Spal jedną Kartę Wulkana, aby zyskać jeszcze jedną próbę dzisiaj"],
   "The Vulcan Card burns away — one more climb today.": ["Η Κάρτα του Vulcan κάηκε — άλλη μία ανάβαση σήμερα.", "Karta Wulkana spłonęła — jeszcze jedna wspinaczka dzisiaj."],
   "The card could not be used.": ["Η κάρτα δεν μπόρεσε να χρησιμοποιηθεί.", "Nie udało się użyć karty."],
