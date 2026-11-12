@@ -8,6 +8,8 @@ import { arenaEvent, claimArenaEvent } from "./services";
 import { ARENA_STEP_MS, arenaEventGold, arenaTimeline, type ArenaUnit } from "./arena-event";
 import type { HeroClass } from "./data";
 import art from "@/assets/arena-event.png";
+import { InviteFriends } from "./PartyInvite";
+import { takeAccepted, useInvites } from "./party-invites";
 
 type Member = { id: string; name: string; cls: string; gender: string; level: number; power: number };
 type Team = { id: string; code: string; leader: string; status: string; members: Member[] };
@@ -34,6 +36,25 @@ export function ArenaEventPanel({ onClose }: { onClose: () => void }) {
     finally { setBusy(false); }
   };
   useEffect(() => { void run("arena_event_state"); }, [heroId]);
+
+  // An invite accepted from the popup: leave a party that has not queued yet, then join the new one.
+  const { accepted } = useInvites();
+  useEffect(() => {
+    if (!accepted.arena || !heroId) return;
+    const invited = takeAccepted("arena");
+    if (!invited) return;
+    void (async () => {
+      setBusy(true); setErr("");
+      try {
+        let s = (await arenaEvent("arena_event_state")) as unknown as State;
+        if (s.team?.code?.toUpperCase() === invited.toUpperCase()) { setSt(s); return; }
+        if (s.team && s.team.status === "forming") s = (await arenaEvent("arena_event_leave")) as unknown as State;
+        s = (await arenaEvent("arena_event_join", invited)) as unknown as State;
+        setSt(s); setSkew(new Date(s.now).getTime() - Date.now());
+      } catch (e) { setErr(e instanceof Error ? e.message : String(e)); }
+      finally { setBusy(false); }
+    })();
+  }, [accepted.arena, heroId]);
   // Poll while forming/queued so party members and the match appear live.
   useEffect(() => { const i = setInterval(() => { setNow(Date.now()); }, 250); return () => clearInterval(i); }, []);
   useEffect(() => {
@@ -101,6 +122,9 @@ export function ArenaEventPanel({ onClose }: { onClose: () => void }) {
           {st.team.status === "queued" ? <p className="text-center text-gold">{tr("Searching for a party of {n}…", { n: st.team.members.length })}</p>
             : isLeader ? <Button className="btn-gold w-full" disabled={busy} onClick={() => void run("arena_event_queue")}>{tr("Find opponents")} ({st.team.members.length}v{st.team.members.length})</Button>
             : <p className="text-center text-sm text-muted-foreground">{tr("Waiting for the leader to start the search")}</p>}
+          {st.team.status === "forming" && heroId && (
+            <InviteFriends heroId={heroId} kind="arena" code={st.team.code} from={{ name: hero.name, level: hero.level }} full={st.team.members.length >= 4} />
+          )}
           <Button variant="ghost" className="btn-ghost w-full" disabled={busy} onClick={() => void run("arena_event_leave")}>{tr("Leave party")}</Button>
         </div>
       ) : st?.open ? (

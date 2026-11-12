@@ -12,7 +12,9 @@ export function playGuideSound() {
     audio.volume = 0.5;
   }
   audio.currentTime = 0;
-  audio.play().catch(() => {
+  // A browser whose media element cannot play (or a test DOM without one) never breaks the guide.
+  const started = audio.play() as Promise<void> | undefined;
+  started?.catch(() => {
     /* Autoplay can be blocked until the user has interacted with the page */
   });
 }

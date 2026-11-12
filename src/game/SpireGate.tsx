@@ -1,6 +1,7 @@
 import artCatacomb from "@/assets/spire-catacomb.jpg";
 import artObservatory from "@/assets/spire-observatory.jpg";
-import { listFriends, sendDirectMessage, type FriendProfile } from "./social";
+import { InviteFriends } from "./PartyInvite";
+import { takeAccepted, useInvites } from "./party-invites";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { tr } from "./i18n";
@@ -359,11 +360,15 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
     else void refresh();
   };
 
-  const join = (e: FormEvent) => {
-    e.preventDefault();
-    const next = cleanPartyCode(joinCode);
+  /** Moves this hero into another party's channel: typed by hand or from an accepted invite. */
+  const joinParty = (raw: string) => {
+    const next = cleanPartyCode(raw);
     if (next.length !== 5) {
       setError(tr("A party code is five letters."));
+      return;
+    }
+    if (battleRef.current) {
+      setError(tr("Finish your climb before joining another party."));
       return;
     }
     setError("");
@@ -376,6 +381,19 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
     setCode(next);
     setNote(tr("Joining party {code}…", { code: next }));
   };
+
+  const join = (e: FormEvent) => {
+    e.preventDefault();
+    joinParty(joinCode);
+  };
+
+  // An invite accepted from the popup lands here: join it exactly as if the code had been typed.
+  const { accepted } = useInvites();
+  useEffect(() => {
+    if (!accepted.spire || !self) return;
+    const invited = takeAccepted("spire");
+    if (invited) joinParty(invited);
+  }, [accepted.spire, self]);
 
   const openChest = async () => {
     if (busy) return;
@@ -428,11 +446,18 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
     <>
       <Panel title="Spire Gate" subtitle="Party dungeons, warden hunts and rift paths" art="swords" onClose={close} wide>
         {!battle && header}
+        {/* The climb at a glance: the runs left, how far this dungeon has been climbed, chests waiting. */}
         <div className="grid gap-2 sm:grid-cols-3">
           <div className="slot p-3">
             <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">{tr("Runs left today")}</span>
             <b className="font-display text-xl">{st ? st.runs_left : "…"}</b>
             <span className="text-muted-foreground"> / {SPIRE_RUNS_PER_DAY}</span>
+            <span className="mt-1 block h-1.5 w-full overflow-hidden rounded bg-background/70">
+              <span
+                className="block h-full bg-gold"
+                style={{ width: `${st ? Math.round((st.runs_left / SPIRE_RUNS_PER_DAY) * 100) : 0}%` }}
+              />
+            </span>
           </div>
           <div className="slot p-3">
             <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">{tr("Best floor")}</span>
@@ -442,15 +467,17 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
           </div>
           <div className="slot flex flex-col gap-1.5 p-3">
             <span className="text-[11px] uppercase tracking-wide text-muted-foreground">{tr("Spire Chests")}</span>
-            <b className="font-display text-xl text-gold">{st ? st.chests : "…"}</b>
-            <Button
-              variant="ghost"
-              className="btn-ghost px-2 py-1 text-xs"
-              onClick={() => void openChest()}
-              disabled={busy || !st || st.chests < 1}
-            >
-              {tr("Open a chest")}
-            </Button>
+            <div className="flex items-center justify-between gap-2">
+              <b className="font-display text-xl text-gold">{st ? st.chests : "…"}</b>
+              <Button
+                variant="ghost"
+                className="btn-ghost px-2 py-1 text-xs"
+                onClick={() => void openChest()}
+                disabled={busy || !st || st.chests < 1}
+              >
+                {tr("Open a chest")}
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -488,21 +515,33 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
                   <img src={DUNGEON_ART[d.id] ?? gateDungeon} alt="" className="absolute inset-0 h-full w-full object-cover opacity-60" />
                   <span className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
                   <span className="absolute left-2 top-1.5 font-display text-sm text-gold">{tr(d.name)}</span>
-                  <span className="absolute right-2 top-1.5 text-[10px] font-bold">
-                    {d.floors} {tr("floors")}
+                  <span className="absolute right-2 top-1.5 rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                    {open ? `${d.floors} ${tr("floors")}` : `Lv ${d.level}`}
                   </span>
+                  {on && (
+                    <span className="absolute bottom-1 left-2 rounded bg-gold/90 px-1.5 py-0.5 text-[10px] font-bold text-background">
+                      {tr("Selected")}
+                    </span>
+                  )}
+                  {best >= d.floors && (
+                    <span className="absolute bottom-1 right-2 text-[10px] font-bold text-gold">{tr("Conquered")}</span>
+                  )}
                 </span>
                 <span className="block px-2 py-1.5">
                   <span className="block text-[11px] text-muted-foreground">
                     {open ? tr(d.blurb) : tr("Unlocks at level {n}", { n: d.level })}
                   </span>
+                  <span className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span>
+                      {tr("Best")} <b className="text-gold">{best}</b>/{d.floors}
+                    </span>
+                    <span>{d.floors ? Math.min(100, Math.round((best / d.floors) * 100)) : 0}%</span>
+                  </span>
                   <span className="mt-1 block h-1.5 w-full overflow-hidden rounded bg-background/70">
                     <span className="block h-full bg-gold" style={{ width: `${Math.min(100, Math.round((best / d.floors) * 100))}%` }} />
                   </span>
                   <span className="mt-1 block text-[10px] text-muted-foreground">
-                    {tr("Drops")}: <b className="text-gold">{MATS[d.mat].name}</b> ·{" "}
-                    {tr("Best")} {best}/{d.floors}
-                    {best >= d.floors ? ` · ${tr("Conquered")}` : ""}
+                    {tr("Drops")}: <b className="text-gold">{MATS[d.mat].name}</b>
                   </span>
                 </span>
               </button>
@@ -510,69 +549,81 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
           })}
         </div>
 
-        <div className="slot mt-3 p-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="font-display text-gold">{tr("Party code")}</span>
-            <b className="font-display text-2xl tracking-[0.3em]">{code}</b>
-            <Button variant="ghost" className="btn-ghost px-2 py-1 text-xs" onClick={copyCode}>
-              {copied ? tr("Copied") : tr("Copy code")}
-            </Button>
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {leader
-              ? tr("Friends join with this code. One fight is shared by up to four heroes.")
-              : tr("You joined this party. The party's leader starts the climb.")}
-            {live ? "" : ` · ${tr("Playing alone — the party channel is closed.")}`}
-          </p>
-
-          <ul aria-label={tr("Party")} className="mt-2 grid gap-1 sm:grid-cols-2">
-            {roster.map((m) => (
-              <li key={m.id} className="slot flex items-center gap-2 p-2 text-xs">
-                <CharacterModel cls={m.cls} gender={m.gender} synth={m.synth} look={m.look} className="h-10 w-10" />
-                <span className="min-w-0 flex-1 truncate">{m.name}</span>
-                <span className="text-muted-foreground">
-                  {tr("Lv")} {m.level}
-                </span>
-                {m.id === self?.id && <span className="text-gold">{tr("You")}</span>}
-              </li>
-            ))}
-            {Array.from({ length: Math.max(0, SPIRE_PARTY_MAX - roster.length) }, (_, i) => (
-              <li key={`seat-${i}`} className="slot flex items-center justify-center p-2 text-xs text-muted-foreground">
-                {tr("Empty seat")}
-              </li>
-            ))}
-          </ul>
-
-          {leader && heroId && <InviteFriends heroId={heroId} code={code} />}
-
-          {leader && (
-            <form className="mt-2 flex flex-wrap items-center gap-2" onSubmit={join}>
-              <input
-                aria-label={tr("Party code to join")}
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 8))}
-                placeholder={tr("Party code")}
-                className="w-28 rounded border border-border bg-background p-2 text-sm tracking-[0.2em]"
-              />
-              <Button type="submit" variant="ghost" className="btn-ghost px-2 py-1 text-xs">
-                {tr("Join party")}
+        <div className="slot mt-3 grid gap-3 p-3 md:grid-cols-2">
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="font-display text-gold">{tr("Party code")}</span>
+              <b className="font-display text-2xl tracking-[0.3em]">{code}</b>
+              <Button variant="ghost" className="btn-ghost px-2 py-1 text-xs" onClick={copyCode}>
+                {copied ? tr("Copied") : tr("Copy code")}
               </Button>
-            </form>
-          )}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {leader
+                ? tr("Friends join with this code. One fight is shared by up to four heroes.")
+                : tr("You joined this party. The party's leader starts the climb.")}
+              {live ? "" : ` · ${tr("Playing alone — the party channel is closed.")}`}
+            </p>
+
+            {leader && heroId && hero && <InviteFriends heroId={heroId} kind="spire" code={code} from={{ name: hero.name, level: hero.level }} full={roster.length >= SPIRE_PARTY_MAX} />}
+
+            {leader && (
+              <form className="mt-2 flex flex-wrap items-center gap-2" onSubmit={join}>
+                <input
+                  aria-label={tr("Party code to join")}
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 8))}
+                  placeholder={tr("Party code")}
+                  className="w-28 rounded border border-border bg-background p-2 text-sm tracking-[0.2em]"
+                />
+                <Button type="submit" variant="ghost" className="btn-ghost px-2 py-1 text-xs">
+                  {tr("Join party")}
+                </Button>
+              </form>
+            )}
+          </div>
+
+          <div>
+            <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">
+              {tr("Party")} · {roster.length}/{SPIRE_PARTY_MAX}
+            </span>
+            <ul aria-label={tr("Party")} className="mt-1 grid gap-1">
+              {roster.map((m) => (
+                <li key={m.id} className="slot flex items-center gap-2 p-2 text-xs">
+                  <CharacterModel cls={m.cls} gender={m.gender} synth={m.synth} look={m.look} className="h-10 w-10" />
+                  <span className="min-w-0 flex-1 truncate">{m.name}</span>
+                  <span className="text-muted-foreground">
+                    {tr("Lv")} {m.level}
+                  </span>
+                  {m.id === self?.id && <span className="text-gold">{tr("You")}</span>}
+                </li>
+              ))}
+              {Array.from({ length: Math.max(0, SPIRE_PARTY_MAX - roster.length) }, (_, i) => (
+                <li key={`seat-${i}`} className="slot flex items-center justify-center p-2 text-xs text-muted-foreground">
+                  {tr("Empty seat")}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         {leader ? (
-          <Button
-            className="btn-gold mt-3 w-full py-2.5 text-lg"
-            onClick={() => void startRun()}
-            disabled={busy || !ready}
-          >
-            {!gateOpen
-              ? tr("Unlocks at level {n}", { n: picked.level })
-              : ready
-                ? tr("Start the climb")
-                : tr("No runs left today")}
-          </Button>
+          <>
+            <Button
+              className="btn-gold mt-3 w-full py-2.5 text-lg"
+              onClick={() => void startRun()}
+              disabled={busy || !ready}
+            >
+              {!gateOpen
+                ? tr("Unlocks at level {n}", { n: picked.level })
+                : ready
+                  ? tr("Start the climb")
+                  : tr("No runs left today")}
+            </Button>
+            <p className="mt-1 text-center text-[11px] text-muted-foreground">
+              {tr(picked.name)} · {tr("The climb goes on until the summit or the whole party falls.")}
+            </p>
+          </>
         ) : (
           <p className="mt-3 text-center text-xs text-muted-foreground">{tr("Waiting for the party leader…")}</p>
         )}
@@ -605,6 +656,18 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
             </div>
           </div>
 
+          {/* How far up the dungeon this climb has got, so the climb never feels endless. */}
+          <div className="relative z-10 px-3 md:px-10" aria-hidden="true">
+            <div className="h-1.5 w-full overflow-hidden rounded bg-background/70">
+              <div
+                className="h-full bg-gold transition-[width] duration-500"
+                style={{
+                  width: `${Math.min(100, Math.round((battle.floor / (battle.floors ?? dungeonOf(battle.dungeon).floors)) * 100))}%`,
+                }}
+              />
+            </div>
+          </div>
+
           <div className="relative z-10 flex flex-1 items-end justify-between gap-2 px-3 pb-3 md:px-10">
             <div className="flex items-end justify-start gap-1 md:gap-3">
               {battle.heroes.map((h) => {
@@ -630,6 +693,7 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
                     <span className="w-full truncate text-center text-[10px] font-bold">{m?.name ?? ""}</span>
                     <Meter value={h.hp} max={h.max} fill="bar-hp" label={`${m?.name ?? ""} ${tr("Health")}`} />
                     {h.guard ? <span className="text-[9px] font-bold text-r2">◈ {tr("Guard")}</span> : null}
+                    {down ? <span className="text-[9px] font-bold text-blood">{tr("Fallen")}</span> : null}
                     {battle.fx
                       .filter((f) => f.tgt === h.id)
                       .map((f, i) => (
@@ -681,6 +745,12 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
           </div>
 
           <div className="relative z-10 flex flex-col items-center gap-2 bg-gradient-to-t from-background via-background/90 to-transparent pb-3">
+            {/* A fallen hero does not end the climb: the rest of the party fights on. */}
+            {me && me.hp <= 0 && !battle.over && (
+              <p role="status" className="slot mx-3 px-2 py-1 text-center text-[11px] text-gold">
+                {tr("Your hero has fallen — the climb goes on. You rise again on the next floor.")}
+              </p>
+            )}
             <div className="flex flex-wrap items-center justify-center gap-2">
               {myKit.map((sk) => {
                 const cd = me?.cd[sk.id] ?? 0;
@@ -752,41 +822,4 @@ function rewardLine(reward: SpireReward): string {
     parts.push(`${v} × ${name}`);
   }
   return parts.length ? parts.join(" · ") : tr("nothing at all");
-}
-
-
-/** Invite a friend: sends them a direct message carrying the party code. */
-function InviteFriends({ heroId, code }: { heroId: string; code: string }) {
-  const [friends, setFriends] = useState<FriendProfile[] | null>(null);
-  const [sent, setSent] = useState<Record<string, boolean>>({});
-  const [err, setErr] = useState("");
-  useEffect(() => {
-    let on = true;
-    listFriends(heroId).then((f) => on && setFriends(f)).catch(() => on && setFriends([]));
-    return () => { on = false; };
-  }, [heroId]);
-  if (!friends) return null;
-  if (!friends.length) return <p className="mt-2 text-xs text-muted-foreground">{tr("Add friends to invite them to your party.")}</p>;
-  return (
-    <div className="mt-2">
-      <p className="mb-1 text-xs font-bold text-gold">{tr("Invite friends")}</p>
-      <ul className="grid gap-1 sm:grid-cols-2">
-        {friends.map((f) => (
-          <li key={f.id} className="slot flex items-center justify-between gap-2 p-1.5 text-xs">
-            <span className="truncate">{f.name}</span>
-            <Button size="sm" variant="ghost" className="btn-gold h-7 px-2 text-xs" disabled={sent[f.id]}
-              onClick={() => {
-                setErr("");
-                sendDirectMessage(heroId, f.id, tr("Join my Spire party! Code: {code}", { code }))
-                  .then(() => setSent((s) => ({ ...s, [f.id]: true })))
-                  .catch((e) => setErr(e instanceof Error ? e.message : tr("Invite failed")));
-              }}>
-              {sent[f.id] ? tr("Invited") : tr("Invite")}
-            </Button>
-          </li>
-        ))}
-      </ul>
-      {err && <p role="alert" className="mt-1 text-xs text-blood">{err}</p>}
-    </div>
-  );
 }

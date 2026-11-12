@@ -70,6 +70,8 @@ export const CHAPTER_ART: Record<string, { src: string; fit: string }> = {
   farm: { src: farmEstate, fit: "object-cover" },
   economy: { src: sceneAuctionHouse, fit: "object-cover" },
   grow: { src: gateConquest, fit: "object-cover" },
+  wardens: { src: arenaCrypt, fit: "object-cover" },
+  rating: { src: magicTower, fit: "object-cover" },
   guild: { src: sceneGuildHall, fit: "object-cover" },
   world: { src: sceneWorldMap, fit: "object-cover" },
   arena: { src: arenaCrypt, fit: "object-cover" },
@@ -133,6 +135,8 @@ export const STEP_GLYPHS: Record<string, GuideGlyph[]> = {
     { kind: "art", name: "swords" },
     { kind: "img", src: spireChest, fit: "contain" },
     { kind: "art", name: "hourglass" },
+    { kind: "art", name: "friends" },
+    { kind: "art", name: "shield" },
   ],
   castle: [
     { kind: "gold" },
@@ -160,6 +164,23 @@ export const STEP_GLYPHS: Record<string, GuideGlyph[]> = {
     { kind: "mat", mat: "essence" },
     { kind: "img", src: stallion, fit: "contain" },
     { kind: "art", name: "quest" },
+    { kind: "art", name: "guild" },
+    { kind: "art", name: "hourglass" },
+  ],
+  wardens: [
+    { kind: "art", name: "swords" },
+    { kind: "art", name: "quest" },
+    { kind: "art", name: "star" },
+    { kind: "art", name: "shield" },
+    { kind: "art", name: "friends" },
+  ],
+  rating: [
+    { kind: "art", name: "star" },
+    { kind: "art", name: "swords" },
+    { kind: "art", name: "astral" },
+    { kind: "art", name: "hammer" },
+    { kind: "art", name: "notes" },
+    { kind: "art", name: "shield" },
   ],
   guild: [
     { kind: "art", name: "guild" },
@@ -212,6 +233,9 @@ export const STEP_GLYPHS: Record<string, GuideGlyph[]> = {
     { kind: "art", name: "settings" },
     { kind: "gem", gem: "emerald" },
     { kind: "art", name: "spellbook" },
+    { kind: "art", name: "spellbook" },
+    { kind: "art", name: "friends" },
+    { kind: "art", name: "crown" },
   ],
 };
 

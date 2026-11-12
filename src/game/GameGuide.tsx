@@ -37,10 +37,12 @@ export function GameGuide({ onClose }: { onClose: () => void }) {
   return (
     <Panel title="Game Guide" subtitle="Everything a new hero needs, step by step" art="spellbook" onClose={onClose} wide>
       {/* Chapter tabs, with the crafting guide appended as a final tab */}
-      <div className="mb-3 flex flex-wrap gap-1">
+      <div role="tablist" aria-label={tr("Guide chapters")} className="mb-3 flex flex-wrap gap-1">
         {GUIDE_CHAPTERS.map((c) => (
           <button
             key={c.id}
+            role="tab"
+            aria-selected={!showCrafting && chapterId === c.id}
             onClick={() => handleChapter(c.id)}
             className={`rounded-md px-2.5 py-1.5 text-xs font-display transition-colors ${
               !showCrafting && chapterId === c.id
@@ -52,6 +54,8 @@ export function GameGuide({ onClose }: { onClose: () => void }) {
           </button>
         ))}
         <button
+          role="tab"
+          aria-selected={showCrafting}
           onClick={handleCraftingTab}
           className={`rounded-md px-2.5 py-1.5 text-xs font-display transition-colors ${
             showCrafting

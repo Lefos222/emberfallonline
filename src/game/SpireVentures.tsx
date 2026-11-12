@@ -18,10 +18,32 @@ import {
 const matLines = (m: Partial<Record<Mat, number>>) => Object.entries(m).map(([k, n]) => `+${n} ${MATS[k as Mat].name}`);
 const ROOM_LABEL: Record<RoomKind, string> = { ambush: "Ambush", treasure: "Treasure vault", shrine: "Shrine", keeper: "Rift Keeper" };
 
+/** The Spire remembers where the player was last time, so it opens where they play. */
+const MODE_KEY = "emberfall.spire.mode";
+const TAB_KEY = "emberfall.spire.tab";
+const readStored = <T extends string>(key: string, fallback: T, allowed: readonly T[]): T => {
+  if (typeof localStorage === "undefined") return fallback;
+  try {
+    const saved = localStorage.getItem(key);
+    return saved && (allowed as readonly string[]).includes(saved) ? (saved as T) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+const storePick = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* Private mode: the pick simply lasts for this visit. */
+  }
+};
+
 /** The Spire's solo ventures: daily Warden Hunts and a five-room Rift Path. */
 export function SpireVentures({ onClose, start, header }: { onClose: () => void; start: StartBattle; header: ReactNode }) {
   const { hero } = useGame();
-  const [tab, setTab] = useState<"wardens" | "rift">("wardens");
+  const [tab, setTab] = useState<"wardens" | "rift">(() =>
+    readStored(TAB_KEY, "wardens", ["wardens", "rift"] as const),
+  );
   const [note, setNote] = useState("");
   if (!hero) return null;
   const lvl = hero.level + hero.paragon;
@@ -110,7 +132,7 @@ export function SpireVentures({ onClose, start, header }: { onClose: () => void;
   return (
     <Panel title={t("Spire Gate")} subtitle={t("Party dungeons, warden hunts and rift paths")} art="swords" onClose={onClose} wide>
       {header}
-      <GameTabs label={t("Spire ventures")} value={tab} onChange={setTab} tabs={[
+      <GameTabs label={t("Spire ventures")} value={tab} onChange={(next) => { setTab(next); storePick(TAB_KEY, next); }} tabs={[
         { id: "wardens", name: t("Warden Hunts") },
         { id: "rift", name: t("Rift Path") },
       ]} />
@@ -178,7 +200,9 @@ export function SpireVentures({ onClose, start, header }: { onClose: () => void;
 /** The Spire's three ways to play: party dungeons with floors, warden hunts and the rift path. */
 export function SpireHub({ onClose, start, onBattleVisible }: { onClose: () => void; start: StartBattle; onBattleVisible: (v: boolean) => void }) {
   const { hero } = useGame();
-  const [mode, setMode] = useState<"party" | "ventures">("party");
+  const [mode, setMode] = useState<"party" | "ventures">(() =>
+    readStored(MODE_KEY, "party", ["party", "ventures"] as const),
+  );
   const v = ventureOf(hero?.spireVentures);
   const riftLeft = v.failed ? 0 : RIFT_ROOMS - v.room;
   const header = (
@@ -187,7 +211,7 @@ export function SpireHub({ onClose, start, onBattleVisible }: { onClose: () => v
         ["party", "Party Dungeons", "Climb floors together with up to three friends"],
         ["ventures", "Solo Ventures", "Warden hunts and a daily rift path"],
       ] as const).map(([id, name, note]) => (
-        <button key={id} onClick={() => setMode(id)} className={`slot p-3 text-left ${mode === id ? "border-gold ring-1 ring-gold" : "opacity-80 hover:opacity-100"}`}>
+        <button key={id} onClick={() => { setMode(id); storePick(MODE_KEY, id); }} className={`slot p-3 text-left ${mode === id ? "border-gold ring-1 ring-gold" : "opacity-80 hover:opacity-100"}`}>
           <b className="font-display text-gold">{t(name)}</b>
           <div className="text-xs text-muted-foreground">{t(note)}</div>
         </button>

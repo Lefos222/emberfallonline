@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   MAX_LEVEL,
   RATING_CAP,
+  UPGRADE_BR_BOOST,
   battleRating,
   foeRating,
   heroStats,
@@ -16,6 +17,8 @@ import {
   type Slot,
 } from "@/game/data";
 import { campaignFoe, regionOf } from "@/game/world";
+import { RUNES } from "@/game/runes";
+import { STAT_TRAININGS } from "@/game/drills";
 
 const SLOTS: Slot[] = ["helmet", "armour", "boots", "belt", "weapon", "ring", "talisman"];
 
@@ -92,5 +95,35 @@ describe("the world levels up with the hero", () => {
       expect(campaignFoe(stage).hp).toBeGreaterThan(0);
       expect(regionOf(stage)).toBeTruthy();
     }
+  });
+});
+
+describe("trained upgrades are worth a percent more", () => {
+  /**
+   * Every track a hero trains by hand is counted at 101% of the percentage its own card prints
+   * (see UPGRADE_BR_BOOST in data.ts). A fresh hero makes the sums clean: no gear, no attributes.
+   */
+  it("counts a Rune at 101% of its printed percentage", () => {
+    const h = newHero("Runed", "warrior");
+    h.level = 60;
+    const plain = heroStats(h).patk;
+    const rune = RUNES.find((r) => r.stat === "atkPct")!;
+    h.runes = { [rune.id]: 10 };
+    const printed = rune.per * 10;
+    const expected = plain * (1 + (printed * UPGRADE_BR_BOOST) / 100);
+    expect(heroStats(h).patk).toBeGreaterThanOrEqual(Math.floor(expected) - 1);
+    expect(heroStats(h).patk).toBeLessThanOrEqual(Math.ceil(expected) + 1);
+  });
+
+  it("counts a Barracks stat training at 101% of its printed percentage", () => {
+    const h = newHero("Trained", "warrior");
+    h.level = 60;
+    const plain = heroStats(h).hp;
+    const train = STAT_TRAININGS.find((d) => d.stat === "hpPct")!;
+    h.statTrains = { [train.id]: 5 };
+    const printed = train.per * 5;
+    const expected = plain * (1 + (printed * UPGRADE_BR_BOOST) / 100);
+    expect(heroStats(h).hp).toBeGreaterThanOrEqual(Math.floor(expected) - 2);
+    expect(heroStats(h).hp).toBeLessThanOrEqual(Math.ceil(expected) + 2);
   });
 });

@@ -24,7 +24,8 @@ describe("the game guide", () => {
     expect(screen.getByText(GUIDE_CHAPTERS[0].title)).toBeInTheDocument();
     for (const step of GUIDE_CHAPTERS[0].steps)
       expect(screen.getByText(step.title)).toBeInTheDocument();
-    expect(screen.getAllByRole("tab")).toHaveLength(GUIDE_CHAPTERS.length);
+    // Every chapter plus the Crafting tab the Forge's guide is merged into.
+    expect(screen.getAllByRole("tab")).toHaveLength(GUIDE_CHAPTERS.length + 1);
   });
 
   it("switches chapters from the strip", () => {

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { tr } from "./i18n";
 import { GameTabs } from "./ui";
-import { GUIDE_CHAPTERS, GUIDE_GOALS, goalsDone, type GuideChapter } from "./guide";
+import { GUIDE_CHAPTERS, GUIDE_GOALS, goalsDone, searchGuide, type GuideChapter } from "./guide";
 import { useGame } from "./store";
 import {
   CHAPTER_ART,
@@ -37,6 +37,7 @@ export function GuideReader({
 }) {
   const [own, setOwn] = useState(GUIDE_CHAPTERS[0].id);
   const [expanded, setExpanded] = useState<Set<number>>(new Set([0]));
+  const [query, setQuery] = useState("");
   const current = chapterId ?? own;
   const setChapter = (id: string) => {
     setOwn(id);
@@ -62,8 +63,43 @@ export function GuideReader({
   const expandAll = () => setExpanded(new Set(chapter.steps.map((_, i) => i)));
   const collapseAll = () => setExpanded(new Set());
 
+  const hits = query.trim().length >= 2 ? searchGuide(query) : [];
+
   return (
     <section className="min-w-0">
+      {/* Search across every chapter and step, so a long book still answers one question fast. */}
+      <div className="mb-2">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={tr("Search the guide")}
+          aria-label={tr("Search the guide")}
+          className="w-full rounded border border-border bg-background px-3 py-2 text-sm"
+        />
+        {query.trim().length >= 2 &&
+          (hits.length ? (
+            <ul className="mt-1 grid gap-1">
+              {hits.map((h, i) => (
+                <li key={`${h.chapterId}-${i}`}>
+                  <button
+                    onClick={() => {
+                      setChapter(h.chapterId);
+                      setQuery("");
+                    }}
+                    className="slot w-full p-2 text-left text-xs"
+                  >
+                    <b className="text-gold">{h.title}</b>
+                    <span className="text-muted-foreground"> · {h.chapterTab}</span>
+                    <span className="mt-0.5 block text-muted-foreground">{h.excerpt}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-1 text-xs text-muted-foreground">{tr("Nothing in the guide matches that word.")}</p>
+          ))}
+      </div>
+
       {/* The internal tab bar only renders for the public handbook route (/guide);
           GameGuide passes chapterId/onChapter and renders its own tabs above. */}
       {!chapterId && (

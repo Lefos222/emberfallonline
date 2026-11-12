@@ -1,6 +1,7 @@
 import { Announcements } from "./Announcements";
 import { MinigamesPanel } from "./Minigames";
 import { ArenaEventPanel } from "./ArenaEvent";
+import { InvitePopup } from "./PartyInvite";
 import { EventsHub, EventPopup } from "./EventsHub";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { MountsPanel, RunesPanel, WheelPanel } from "./Emporium";
@@ -539,6 +540,7 @@ export function Game() {
           </nav>
           <WorldChat heroId={heroId} />
           <EventPopup onOpen={() => setOpen("events")} />
+          <InvitePopup heroId={heroId} blocked={!!battle || partyBattleVisible} onAccept={(kind) => setOpen(kind === "spire" ? "party" : "arenaEvent")} />
           <nav aria-label={tr("Help and quests")} className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-2">
             <Button variant="ghost" aria-label={tr("Game Guide")} title={tr("Game Guide")} className="game-panel h-auto min-h-16 w-20 flex-col gap-1 rounded-md px-2 py-2 font-display text-xs text-gold" onClick={() => setOpen("guide")}><ArtIcon name="spellbook" size={32} />{tr("Guide")}</Button>
             <QuestsButton count={claimableLevelQuests(hero)} onClick={() => { playGuideSound(); setOpen("quests"); }} />

@@ -132,6 +132,24 @@ describe("the shared party fight", () => {
     expect(r.battle.heroes[0].hp).toBe(100);
   });
 
+  it("keeps the climb going when only one hero falls", () => {
+    const party = [member({ id: "h1", atk: 1 }), member({ id: "h2", name: "Bo", atk: 1 })];
+    const battle: SpireBattle = {
+      floor: 9, t: 0, pause: 0, over: false, fx: [], log: [],
+      heroes: [
+        { id: "h1", hp: 1, max: 400, cd: {}, swing: 99999 },
+        { id: "h2", hp: 400, max: 400, cd: {}, swing: 99999 },
+      ],
+      foes: [{ uid: "f", name: "Bone Reaver", img: "", hp: 999999, max: 999999, atk: 500, def: 0, boss: false, swing: 0 }],
+    };
+    // rand() = 0 targets the first living hero, so the party's first hero is the one who falls.
+    const r = tick(battle, party, [], () => 0);
+    expect(r.battle.heroes[0].hp).toBe(0);
+    expect(r.battle.over).toBe(false);
+    expect(r.cleared).toBeNull();
+    expect(r.battle.log.join(" ")).toContain("the climb goes on");
+  });
+
   it("stops the run when the whole party has fallen", () => {
     const party = [member({ atk: 1 })];
     const battle: SpireBattle = {

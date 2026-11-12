@@ -244,8 +244,45 @@ const chapters: GuideChapter[] = [
         "Three climbs a day",
         "Each hero spends one of three daily runs on entry. A climb can be left at any time — the chests you already won are yours.",
       ),
+      step(
+        "Invite a friend in one tap",
+        "Under the party code is the friend list: press Invite and an Accept / Decline window pops up on their screen, wherever they are in the castle. A chat message carrying the code goes with it, so a friend who is offline still finds it later.",
+      ),
+      step(
+        "One hero falls, the climb goes on",
+        "A downed hero never ends a climb: the rest of the party keeps fighting and the fallen hero stands back up at a quarter health as soon as the floor is cleared. Only when every hero is down does the run end, so a fallen friend should keep watching and stay in the party.",
+      ),
     ],
     tip: "Everyone in the party spends their own run and wins their own chest, so a strong friend can pull you up floors you could not clear alone.",
+  },
+  {
+    id: "wardens",
+    tab: "Warden Hunts",
+    title: "The Spire's solo ventures",
+    blurb: "Warden Hunts and the daily Rift Path: three quick fights a day that cost no party.",
+    steps: [
+      step(
+        "Three wardens on watch",
+        "Every UTC day the Spire sets three named wardens to guard the stair: the Iron Bulwark's huge health, the Crimson Reaver's hard blows, the Moon Seer's starlight, and others. Each can be beaten once a day for gold, XP and its own materials.",
+      ),
+      step(
+        "The Rift Path",
+        "A five-room route is drawn anew each day: ambushes, a treasure vault, a shrine and a keeper at the end. Rooms are cleared one after another and the gold grows as you climb deeper.",
+      ),
+      step(
+        "Pick your shrine",
+        "The shrine room offers one blessing: Might makes every later rift foe 15% weaker, Fortune lifts every later rift payout by a quarter. Might is for a hero pushing their limit, Fortune for one farming safely.",
+      ),
+      step(
+        "Lose once and it closes",
+        "A lost rift fight ends that path until tomorrow — the rooms you already cleared keep their gold. Warden hunts have no such rule: a lost hunt simply costs nothing but the walk back.",
+      ),
+      step(
+        "No party, no runs spent",
+        "Solo ventures are free of the party Spire's three daily runs, and they cannot be joined by anyone else. Open the Spire Gate and pick Solo Ventures when none of your friends are around.",
+      ),
+    ],
+    tip: "Hunt the wardens first each day: their materials feed the Forge, and their gold is the steadiest income in the Spire.",
   },
   {
     id: "castle",
@@ -356,8 +393,49 @@ const chapters: GuideChapter[] = [
         "Titles, relics and the Bestiary",
         "Titles are earned from milestones and grant real buffs when worn. Relic trials recover class relic pieces, and the Bestiary keeps your kill counters.",
       ),
+      step(
+        "Guild Hall training and the Magic Tower",
+        "Hero training in the Guild Hall, the Barracks' drills and stat trainings, the Magic Tower's Astrals and the Runes are the four tracks you buy by hand — with gold, guild coins or crystals. Every one of them is permanent.",
+      ),
+      step(
+        "The climb steepens past 40",
+        "A level costs about ten fights up to 19, then a little more each level. Past level 40 every level asks for one fight more than the level before it would have, so the late climb is a longer road — about a seventh longer by the cap. Nothing is walled: keep clearing fights and the levels keep coming.",
+      ),
     ],
     tip: "Barracks drills work in real time even while you are logged out — keep training drills queued around the clock.",
+  },
+  {
+    id: "rating",
+    tab: "Battle Rating",
+    title: "How Battle Rating is built",
+    blurb: "One number for the whole realm, and every upgrade that feeds it.",
+    steps: [
+      step(
+        "One number for the realm",
+        "Battle Rating is the score other players compare you by: the Arena ladder sorts the whole server with it, hero profiles show it, and a fight's Easy / Fair / Deadly pill weighs it against the enemy's own rating.",
+      ),
+      step(
+        "It is your stats, on a level curve",
+        "Rating is attack, defence, health, crit chance, crit damage, penetration, accuracy, dodge, block and healing, added up and then amplified by your level. Nothing is invented for it — it rises because the stats behind it rose.",
+      ),
+      step(
+        "Every track feeds the same number",
+        "Equipment and gems, attributes and talents, guild training, Barracks drills, Magic Tower Astrals, Runes, Renown, Enlightenment, Synthesis armour, titles and friendship all run through one stat pipeline. There is no side-track that grows a hero without moving the rating.",
+      ),
+      step(
+        "Trained upgrades pay 1% more",
+        "The four tracks you train by hand — Guild Hall hero training, the Barracks' drills and stat trainings, the Magic Tower's Astrals and the Runes — are each worth 1% more Battle Rating than their own card says. It is a small bump by design: a trained hero always rates a little above an untrained one in the same gear.",
+      ),
+      step(
+        "Where to read the breakdown",
+        "Open your profile and the Battle Rating sources line splits the total by level, attributes, equipment, Ascension and everything else, so you can always see which lever your next upgrade should pull.",
+      ),
+      step(
+        "The server keeps it honest",
+        "The database refuses a Battle Rating or level that is physically impossible for a hero of your level, and a refused write is rolled back. Play normally and the number is always yours.",
+      ),
+    ],
+    tip: "Compare before and after: the rating shown on your profile is the same number an opponent's profile shows, so a friendly duel is a fair measuring stick.",
   },
   {
     id: "guild",
@@ -571,6 +649,18 @@ const chapters: GuideChapter[] = [
         "Use the guide's checklist",
         "This window's first card tracks the first eight things a new hero should do. Finish them and you will be ready for everything else in here.",
       ),
+      step(
+        "Search the guide",
+        "Type a word in the search box at the top of this window — a material, a building, a rune — and the guide jumps to the chapter that explains it, so you never page through the whole book for one answer.",
+      ),
+      step(
+        "Answer a party invite quickly",
+        "A friend's party invite pops up in the middle of the screen for one minute with the party code in it. Accepting joins their Spire party or Arena Clash party through the same path as typing the code, and a battle already in progress holds the invite until it ends.",
+      ),
+      step(
+        "Keep one hero's window open",
+        "Only the party leader's client runs the Spire fight. If the leader leaves, the party disbands — so agree before the climb who starts it, and let the leader finish the run.",
+      ),
     ],
   },
 ];
@@ -612,6 +702,40 @@ function materialsChapter(): GuideChapter {
 
 export const guideChapter = (id: string): GuideChapter =>
   GUIDE_CHAPTERS.find((c) => c.id === id) ?? GUIDE_CHAPTERS[0];
+
+/** One hit of the guide's search box: a chapter to jump to and the line that matched. */
+export interface GuideHit {
+  chapterId: string;
+  chapterTab: string;
+  title: string;
+  excerpt: string;
+}
+
+/** Free-text search across every chapter, its blurb and its steps, in the player's language. */
+export function searchGuide(query: string, limit = 12): GuideHit[] {
+  const q = query.trim().toLowerCase();
+  if (q.length < 2) return [];
+  const hits: GuideHit[] = [];
+  for (const c of GUIDE_CHAPTERS) {
+    const chapter = { chapterId: c.id, chapterTab: c.tab };
+    if (`${c.tab} ${c.title} ${c.blurb}`.toLowerCase().includes(q))
+      hits.push({ ...chapter, title: c.title, excerpt: c.blurb });
+    for (const s of c.steps) {
+      if (hits.length >= limit) break;
+      const body = s.body;
+      const at = body.toLowerCase().indexOf(q);
+      if (at < 0 && !s.title.toLowerCase().includes(q)) continue;
+      const from = Math.max(0, at - 40);
+      const excerpt =
+        (from > 0 ? "…" : "") +
+        body.slice(from, from + 130).trim() +
+        (from + 130 < body.length ? "…" : "");
+      hits.push({ ...chapter, title: s.title, excerpt });
+    }
+    if (hits.length >= limit) break;
+  }
+  return hits.slice(0, limit);
+}
 
 /** The first things a new hero should do; the guide ticks them off from the hero's own save. */
 export interface GuideGoal {

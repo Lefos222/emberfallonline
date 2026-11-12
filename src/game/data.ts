@@ -756,6 +756,14 @@ export const GRIND_FIGHTS = 6;
 export const GRIND_RAMP = 0.75;
 /** Levels past this point are the deep game, where secondary payouts taper (see levelShareScale). */
 export const DEEP_LEVEL = 30;
+/** Past this level the climb steepens a hair more, level on level (see LATE_CURVE_PER_LEVEL). */
+export const LATE_CURVE_LEVEL = 40;
+/**
+ * Extra bill per level past 40: 0.15% of the level's own fight count, so level 41 asks for a fight
+ * more than level 40 and the cap about a seventh more. Enough that the late climb feels longer,
+ * never enough to become a wall.
+ */
+export const LATE_CURVE_PER_LEVEL = 0.0015;
 
 /** Fights one level costs, counted in cleared fights at the hero's own level.
  *  Levels 1–19 cost ten fights each; from level 20 the bill climbs smoothly (16, 20, 25 … 46 at 30,
@@ -764,7 +772,10 @@ export const DEEP_LEVEL = 30;
 export function fightsToLevel(level: number) {
   const lv = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
   if (lv < LATE_LEVEL) return EASY_FIGHTS;
-  return EASY_FIGHTS + Math.round(GRIND_FIGHTS * Math.pow(lv - LATE_LEVEL + 1, GRIND_RAMP));
+  const base = EASY_FIGHTS + Math.round(GRIND_FIGHTS * Math.pow(lv - LATE_LEVEL + 1, GRIND_RAMP));
+  // Past level 40 every level costs a touch more again, so the deep climb stays a long road.
+  if (lv <= LATE_CURVE_LEVEL) return base;
+  return Math.round(base * (1 + (lv - LATE_CURVE_LEVEL) * LATE_CURVE_PER_LEVEL));
 }
 
 /** XP one fight at this level pays before scrolls and catch-up bonuses (see stageRewards). */
@@ -880,6 +891,21 @@ export function normalizeHero(h: Hero): Hero {
 
 const MAGIC: Record<HeroClass, boolean> = { warrior: false, mage: true, archer: false };
 
+/**
+ * Every permanent training track is worth a hair more than its own card says: Guild Hall hero
+ * training, Barracks drills, attribute drills and stat trainings, the Magic Tower's Astrals and
+ * the Runes. One percent is far too little to distort a build and just enough that Battle Rating
+ * always credits the work a hero has put into them.
+ */
+export const UPGRADE_BR_BOOST = 1.01;
+
+/** The same bonuses, each value a percent larger (see UPGRADE_BR_BOOST). */
+function boosted<T extends object>(fx: T): T {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(fx)) out[k] = typeof v === "number" ? v * UPGRADE_BR_BOOST : v;
+  return out as T;
+}
+
 function computeStats(
   h: Hero,
   opts: { gear: boolean; attrs: boolean; asc: boolean; talents?: boolean },
@@ -890,10 +916,12 @@ function computeStats(
   if (opts.talents) tf.hpPct += friendshipHealthPct(h);
   // Gems add the chart's flat stats; Astrals, drills and guild skills stay percentage based.
   const gm = opts.gear ? gemFx(h.equipment) : zeroGemFx();
-  const xa = opts.talents ? astralFx(h) : null;
+  // Every track a hero trains by hand (Magic Tower Astrals, Barracks drills, Guild Hall hero
+  // training, Runes) pays 1% more than its card, so the rating keeps up with the training.
+  const xa = opts.talents ? boosted(astralFx(h)) : null;
   // Barracks drills are the hero's permanent training track beside the attribute points (see drills.ts).
-  const dr = opts.talents ? drillFx(h) : null;
-  const gf2 = opts.talents ? guildFx(h) : null;
+  const dr = opts.talents ? boosted(drillFx(h)) : null;
+  const gf2 = opts.talents ? boosted(guildFx(h)) : null;
   // Synthesis armour joins the same percentage pipeline as the other long-term tracks.
   const sy = opts.talents ? synthFx(h) : zeroFx();
   // Enlightenment and Soul infusions are the post-20 permanent tracks (see enlightenment.ts).
@@ -901,13 +929,13 @@ function computeStats(
   const so = opts.talents ? soulFx(h) : zeroFx();
   // Renown upgrades are earned by winning fights and belong to the hero alone (see renown.ts).
   // Runes are carved with crystals and join Renown in the same percentage slot (see runes.ts).
-  const rw = opts.talents ? addFx(renownFx(h), runeFx(h)) : zeroFx();
+  const rw = opts.talents ? addFx(renownFx(h), boosted(runeFx(h))) : zeroFx();
   // Potion elixirs are timed battle buffs and join the same pipeline (see potions.ts).
   const pb = opts.talents ? addFx(addFx(potionFx(h), feastFx(h)), guildBuffFx(h)) : zeroFx();
   // Equipped title buffs are permanent and join the same pipeline (see titles.ts).
   const tf2 = opts.talents ? titleFx(h) : zeroFx();
   // Individual stat trainings: permanent percentage bonuses from barracks training (see drills.ts).
-  const st = opts.talents ? statTrainFx(h) : zeroFx();
+  const st = opts.talents ? boosted(statTrainFx(h)) : zeroFx();
   const ex = (k: "matkPct" | "mdefPct" | "acc" | "block" | "mpen" | "heal") =>
     (xa?.[k] ?? 0) +
     (dr?.[k] ?? 0) +
@@ -1005,8 +1033,9 @@ function computeStats(
     },
     { atk: 0, def: 0, hp: 0, crit: 0 },
   );
-  // Barracks attribute drills bank extra points of the four attributes (see drills.ts).
-  const da = opts.talents ? drillAttrs(h) : null;
+  // Barracks attribute drills bank extra points of the four attributes (see drills.ts), a percent
+  // more than the drill card says like every other trained track.
+  const da = opts.talents ? boosted(drillAttrs(h)) : null;
   const at = opts.attrs
     ? {
         str: h.attrs.str + (da?.str ?? 0),
