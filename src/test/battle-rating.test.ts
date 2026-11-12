@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   MAX_LEVEL,
   RATING_CAP,
+  RATING_GAIN,
   UPGRADE_BR_BOOST,
   battleRating,
   foeRating,
@@ -43,8 +44,9 @@ describe("Battle Rating scales with the hero", () => {
     expect(ratingScale(1)).toBeCloseTo(1, 2);
     expect(ratingScale(MAX_LEVEL)).toBeGreaterThan(3.3);
     expect(ratingScale(MAX_LEVEL)).toBeLessThan(3.6);
-    expect(battleRating(1000, 1)).toBeCloseTo(1000, -1);
-    expect(battleRating(1000, MAX_LEVEL)).toBeGreaterThan(3300);
+    // 1.11: every source of rating pays 10% more on the same curve.
+    expect(battleRating(1000, 1)).toBeCloseTo(1000 * RATING_GAIN, -1);
+    expect(battleRating(1000, MAX_LEVEL)).toBeGreaterThan(3600);
   });
 
   it("reaches the hundreds of thousands with a geared level 140 hero", () => {

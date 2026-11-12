@@ -234,7 +234,7 @@ const chapters: GuideChapter[] = [
       ),
       step(
         "Fight without stopping",
-        "A climb is one continuous fight: clear a floor and the next set of enemies walks in after a moment. Fallen heroes stand back up at a quarter health between floors, so a party can go far.",
+        "A climb is one continuous fight: clear a floor and the next set of enemies walks in after a moment. A fallen hero stays dead for the rest of the climb, so a party climbs as far as its survivors can carry it.",
       ),
       step(
         "A chest for every floor",
@@ -250,7 +250,7 @@ const chapters: GuideChapter[] = [
       ),
       step(
         "One hero falls, the climb goes on",
-        "A downed hero never ends a climb: the rest of the party keeps fighting and the fallen hero stands back up at a quarter health as soon as the floor is cleared. Only when every hero is down does the run end, so a fallen friend should keep watching and stay in the party.",
+        "A downed hero never ends a climb: the rest of the party keeps fighting on until the summit or until every hero is down. Nothing brings a dead hero back — no heal, no floor clear — so a fallen friend should keep watching and stay in the party.",
       ),
     ],
     tip: "Everyone in the party spends their own run and wins their own chest, so a strong friend can pull you up floors you could not clear alone.",

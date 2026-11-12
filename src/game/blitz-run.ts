@@ -40,6 +40,9 @@ export function blitzDurationMs(target: number, vipLevel = 0, mountPct = 0): num
  *  clear shortcut rather than the fastest way to level. The Conquest Gate's blitz pays no XP at all. */
 export const BLITZ_XP_SHARE = 0.3;
 
+/** Version 1.11: every blitz pays only 40% of the gold its floors are worth — a 60% cut. */
+export const BLITZ_GOLD_SHARE = 0.4;
+
 /** Diamonds a player pays to end a running blitz immediately. */
 export const BLITZ_SKIP_DIAMONDS = 25;
 

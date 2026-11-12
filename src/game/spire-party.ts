@@ -279,8 +279,8 @@ export function tick(prev: SpireBattle, members: SpireMember[], casts: { hero: s
     const d = Math.max(1, Math.round(hit(f.atk, 1, m?.def ?? 0, rand) * guard));
     target.hp = Math.max(0, target.hp - d);
     b.fx.push({ src: f.uid, tgt: target.id, kind: "hit", value: d });
-    // One hero going down never ends the climb: the rest of the party fights on, and the fallen
-    // hero stands up again between floors (see below).
+    // One hero going down never ends the climb: the rest of the party fights on. The fallen hero
+    // stays down for the rest of the run — nothing here or anywhere else heals a dead hero.
     if (target.hp <= 0) log(`${m?.name ?? "A hero"} has fallen — the climb goes on!`);
   }
 
@@ -290,21 +290,11 @@ export function tick(prev: SpireBattle, members: SpireMember[], casts: { hero: s
     log(`Floor ${b.floor} cleared! +1 Spire Chest each`);
     if (b.floor >= (b.floors ?? SPIRE_FLOORS)) { b.over = true; b.outcome = "summit"; log("The Spire's summit is conquered!"); return { battle: b, cleared }; }
     b.floor += 1; b.pause = FLOOR_PAUSE_MS;
-    // The breather between floors: the fallen rise at a quarter health, the living recover 12%.
-    // Only the whole party being down ends a run, so a fallen hero always gets this second chance.
-    const risen: string[] = [];
+    // The breather between floors: the living recover 12%. A fallen hero stays dead for the rest
+    // of the climb — only the whole party being down ends the run, so the survivors carry it.
     for (const h of b.heroes) {
-      if (h.hp > 0) {
-        h.hp = Math.min(h.max, h.hp + Math.round(h.max * 0.12));
-        continue;
-      }
-      h.hp = Math.round(h.max * 0.25);
-      h.guard = 0;
-      h.cd = {};
-      const name = stat(h.id)?.name;
-      if (name) risen.push(name);
+      if (h.hp > 0) h.hp = Math.min(h.max, h.hp + Math.round(h.max * 0.12));
     }
-    if (risen.length) log(`${risen.join(", ")} ${risen.length > 1 ? "rise" : "rises"} again at a quarter health.`);
   }
   return { battle: b, cleared };
 }

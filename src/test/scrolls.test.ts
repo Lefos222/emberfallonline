@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { SCROLLS, activeScrolls, scrollFighter, scrollState, scrollXp } from '@/game/scrolls';
 import { heroUnit, initBattle, playerAct } from '@/game/combat';
-import { grant } from '@/game/logic';
+import { grant, XP_GAIN_SHARE } from '@/game/logic';
 import { newHero } from '@/game/data';
 
 const f = { name: 'Hero', img: '', hp: 1000, atk: 100, def: 50, crit: 0, dodge: 0, level: 1, cls: 'warrior' as const, acc: 100 };
@@ -22,7 +22,8 @@ describe('confirmed scroll battle rules', () => {
   it('XP scroll grants 20% actual XP with normal level handling', () => {
     const h = newHero('Test', 'warrior'); h.xp = 0;
     grant(h, scrollXp(25, 1.2), 10);
-    expect(h.xp).toBe(30);
+    // 30 x the doc's 20% = 36, paid through grant()'s global 4% cut.
+    expect(h.xp).toBe(Math.round(scrollXp(25, 1.2) * XP_GAIN_SHARE));
     expect(scrollXp(25)).toBe(25);
   });
   it('only positive real server buff counters count as active', () => {

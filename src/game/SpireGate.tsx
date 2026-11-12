@@ -745,10 +745,10 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
           </div>
 
           <div className="relative z-10 flex flex-col items-center gap-2 bg-gradient-to-t from-background via-background/90 to-transparent pb-3">
-            {/* A fallen hero does not end the climb: the rest of the party fights on. */}
+            {/* A fallen hero does not end the climb: the rest of the party fights on without him. */}
             {me && me.hp <= 0 && !battle.over && (
               <p role="status" className="slot mx-3 px-2 py-1 text-center text-[11px] text-gold">
-                {tr("Your hero has fallen — the climb goes on. You rise again on the next floor.")}
+                {tr("Your hero has fallen — the climb goes on without you until the party wins or falls.")}
               </p>
             )}
             <div className="flex flex-wrap items-center justify-center gap-2">
