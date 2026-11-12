@@ -2203,5 +2203,17 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Growing": ["Μεγαλώνουν", "Rosną"],
   "Empty plots": ["Άδεια χωράφια", "Puste pola"],
   "Next harvest": ["Επόμενη συγκομιδή", "Następne zbiory"],
+  "Party invite": ["Πρόσκληση σε παρέα", "Zaproszenie do drużyny"],
+  "Reject": ["Απόρριψη", "Odrzuć"],
+  "The invitation could not be sent. Try again.": ["Η πρόσκληση δεν στάλθηκε. Δοκίμασε ξανά.", "Nie udało się wysłać zaproszenia. Spróbuj ponownie."],
+  "They get a card on their screen to join or reject.": ["Λαμβάνουν μια κάρτα στην οθόνη τους για να μπουν ή να αρνηθούν.", "Otrzymują kartę na ekranie, aby dołączyć lub odrzucić."],
+  "Pick a dungeon, gather up to four heroes, then start the climb. Every hero spends their own run and keeps the chests they win.": ["Διάλεξε ένα μπουντρούμι, μάζεψε έως τέσσερις ήρωες και ξεκίνα την ανάβαση. Κάθε ήρωας ξοδεύει τη δική του προσπάθεια και κρατά τα μπαούλα που κερδίζει.", "Wybierz loch, zbierz do czterech bohaterów i rozpocznij wspinaczkę. Każdy bohater zużywa własne podejście i zachowuje zdobyte skrzynie."],
+  "Choose your dungeon": ["Διάλεξε το μπουντρούμι σου", "Wybierz swój loch"],
+  "Your party": ["Η παρέα σου", "Twoja drużyna"],
+  "Ready to climb": ["Έτοιμοι για ανάβαση", "Gotowi do wspinaczki"],
+  "Joining {name}'s party…": ["Μπαίνεις στην παρέα του {name}…", "Dołączasz do drużyny: {name}…"],
+  "{heroes} heroes · {floors} floors · {runs} runs left": ["{heroes} ήρωες · {floors} όροφοι · {runs} προσπάθειες", "{heroes} bohaterów · {floors} pięter · {runs} podejść"],
+  "{name} invites you to {place}": ["Ο {name} σε καλεί: {place}", "{name} zaprasza cię: {place}"],
+  "The arena is closed right now — you will join {name}'s team when it opens.": ["Η αρένα είναι κλειστή τώρα — θα μπεις στην ομάδα του {name} όταν ανοίξει.", "Arena jest teraz zamknięta — dołączysz do drużyny: {name}, gdy się otworzy."],
   // @@ROWS@@
 };
