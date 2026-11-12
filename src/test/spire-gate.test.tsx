@@ -10,6 +10,7 @@ const bank = vi.hoisted(() => ({
   reward: { gold: 900, mats: { ore: 3 } } as { gold: number; mats: Record<string, number> },
   began: 0,
   opened: 0,
+  burned: 0,
 }));
 
 vi.mock("@/game/store", () => ({
@@ -27,6 +28,12 @@ vi.mock("@/game/spire-party", async (importOriginal) => {
     endSpire: async () => {},
     reportClear: async () => true,
     openSpireChest: async () => { bank.opened += 1; return bank.reward; },
+    // The card itself is burned by the server; here it only mints the extra run it answers with.
+    useVulcanCard: async () => {
+      bank.burned += 1;
+      bank.state = { ...bank.state, runs_left: bank.state.runs_left + 1 };
+      return bank.state.runs_left;
+    },
   };
 });
 
@@ -42,6 +49,7 @@ describe("the Spire tab", () => {
     setLang("en");
     bank.state = { floor: 0, best: 12, runs_left: 2, chests: 1, active: false };
     bank.opened = 0;
+    bank.burned = 0;
   });
 
   it("shows today's runs, the best floor reached and the chests waiting", async () => {
@@ -77,6 +85,24 @@ describe("the Spire tab", () => {
     const start = await screen.findByRole("button", { name: "No runs left today" });
     expect(start).toBeDisabled();
     expect(bank.began).toBe(0);
+  });
+
+  it("offers the Vulcan Card only to a hero who carries one, and burns it for a run", async () => {
+    store.hero = newHero("Climber", "warrior");
+    const empty = open();
+    await screen.findByRole("button", { name: "Start the climb" });
+    // No card in the pack: there is nothing to select.
+    expect(screen.queryByRole("button", { name: "Use a Vulcan Card · +1 run" })).toBeNull();
+    empty.unmount();
+
+    store.hero.vulcan = 1;
+    open();
+
+    fireEvent.click(await screen.findByRole("button", { name: "Use a Vulcan Card · +1 run" }));
+
+    await waitFor(() => expect(bank.burned).toBe(1));
+    const status = await screen.findByRole("status");
+    expect(status.textContent).toContain("one more climb today");
   });
 
   it("starts the climb on floor one and puts the class skills in reach", async () => {

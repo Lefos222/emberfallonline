@@ -478,22 +478,6 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
                 style={{ width: `${st ? Math.round((st.runs_left / Math.max(SPIRE_RUNS_PER_DAY, st.runs_left)) * 100) : 0}%` }}
               />
             </span>
-            {/* The Vulcan Card: burned here, one extra run for the day. */}
-            {cards > 0 && (
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <img src={vulcanArt} alt="" aria-hidden="true" className="h-10 w-8 rounded object-cover" />
-                <span className="text-[11px] text-muted-foreground">{tr("Vulcan Card ×")}{cards}</span>
-                <Button
-                  variant="ghost"
-                  className="btn-gold px-2 py-1 text-xs"
-                  disabled={busy}
-                  title={tr("Burn one Vulcan Card for one more run today")}
-                  onClick={() => void burnCard()}
-                >
-                  {tr("Use a card · +1 run")}
-                </Button>
-              </div>
-            )}
           </div>
           <div className="slot p-3">
             <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">{tr("Best floor")}</span>
@@ -642,6 +626,28 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
             </ul>
           </div>
         </div>
+
+        {/* The Vulcan Card the hero carries: selected here, it burns into one more climb today. */}
+        {cards > 0 && (
+          <div role="group" aria-label={tr("Vulcan Card")} className="slot mt-3 flex flex-wrap items-center gap-3 border-gold p-3">
+            <img src={vulcanArt} alt="" aria-hidden="true" className="h-14 w-11 shrink-0 rounded object-cover" />
+            <div className="min-w-0 flex-1">
+              <b className="block font-display text-gold">
+                {tr("Vulcan Card")} ×{cards}
+              </b>
+              <span className="text-[11px] text-muted-foreground">{tr("Select a Vulcan Card for one more climb today.")}</span>
+            </div>
+            <Button
+              variant="ghost"
+              className="btn-gold px-3 py-1.5 text-xs"
+              disabled={busy || !!battle}
+              title={tr("Burn one Vulcan Card for one more run today")}
+              onClick={() => void burnCard()}
+            >
+              {tr("Use a Vulcan Card · +1 run")}
+            </Button>
+          </div>
+        )}
 
         {leader ? (
           <>
