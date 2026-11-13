@@ -44,7 +44,7 @@ const MAT_SHAPE: Partial<Record<Mat, ReactNode>> = {
 export const MatIcon = ({ mat, size = 20 }: { mat: Mat; size?: number }) => MAT_IMG[mat] ? (
   <img src={MAT_IMG[mat]} alt="" width={size} height={size} loading="lazy" className="inline-block align-middle" style={{ width: size, height: size }} />
 ) : (
-  <svg width={size} height={size} viewBox="0 0 20 20" className="inline-block align-middle" role="img" aria-label={MATS[mat].name}>
+  <svg width={size} height={size} viewBox="0 0 20 20" className="inline-block align-middle" role="img" aria-label={MATS[mat]?.name ?? mat}>
     {MAT_SHAPE[mat] ?? <path d="M5 3h10l4 5-9 10L1 8z" fill="#9aa3b5" stroke="#222" />}
   </svg>
 );
