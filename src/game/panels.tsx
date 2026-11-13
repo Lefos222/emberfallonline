@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import {
   SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, goldEnhanceAllowed, ENHANCE_MAX, heroStats, invCap, bagSize, matSlots, MAT_STACK, bagRowCost, MAX_BAG_ROWS, sellValue,
-  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, campaignFightRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, scaledFoe, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
+  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, campaignFightRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import {
   addConquestTokens, CONQUEST_XP_RATE, conquestDropFloor, conquestKeyActive, conquestRewardMultiplier,
@@ -28,7 +28,9 @@ import { LevelProgress } from "./LevelCurve";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, InfoTip, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { ConquestCoin } from "./CoinIcon";
-import { DangerPill, StageStepper, StaminaMeter } from "./GateUI";
+import { DangerPill, StageStepper, StaminaMeter, VERDICT_STYLE } from "./GateUI";
+import { prepareFoe } from "./foe-scaling";
+import { forecastFight } from "./battle-advice";
 import { GemIcon, MatIcon, StoneIcon } from "./MatIcon";
 import { Vault, vaultTiles, type VaultPick } from "./Vault";
 import { GearCodex } from "./GearCodex";
@@ -266,7 +268,10 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   const max = spire ? hero.spire : hero.stage;
   const mult = spire ? 1.35 : 1;
   // Enemies level up with the hero (see scaledFoe): old stages never become a free tutorial.
-  const foe = scaledFoe(stageFoe(stage, mult), hero.level);
+  // Every fight the gate starts is prepared the same way the battle itself prepares it (see
+  // prepareFoe): the world levels up with the hero, then every monster keeps pace with what the
+  // hero trained. The preview is the fight the player actually gets.
+  const foe = prepareFoe(stageFoe(stage, mult), hero);
   // A cleared campaign stage is a replay: it still pays, but at a reduced share (see campaignFightRewards).
   const rw = spire ? stageRewards(stage, 2) : campaignFightRewards(stage, hero.stage);
   const replay = !spire && "replay" in rw && Boolean(rw.replay);
@@ -275,8 +280,10 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   const keyMult = keyOn ? 2 : 1;
   const s = heroStats(hero);
   const foePower = foeRating(foe);
-  const ratio = s.power / foePower;
-  const danger = ratio > 1.3 ? { t: "Easy", c: "text-r1" } : ratio > 0.95 ? { t: "Fair", c: "text-r4" } : ratio > 0.7 ? { t: "Hard", c: "text-hp" } : { t: "Deadly", c: "text-blood" };
+  // One forecast of the real fight (see battle-advice.ts) drives both the verdict pill and the
+  // recommended rating, so the number and the colour can never disagree.
+  const forecast = forecastFight(s, foe);
+  const danger = VERDICT_STYLE[forecast.verdict];
   const zone = zoneOf(stage);
   // Campaign Gate battles cost 20 stamina, spent on entry win or lose (see stamina.ts).
   const staminaCost = spire ? 0 : CAMPAIGN_STAMINA;
@@ -394,6 +401,11 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
                   </span>
                 ))}
                 <span className="ml-auto flex items-center gap-1 text-muted-foreground"><Trophy className="h-3.5 w-3.5 text-r4" />{t("You")} <b className="text-gold">{fmt(s.power)}</b></span>
+              </div>
+              {/* What this floor asks of a hero: the rating at which the very same fight reads Fair. */}
+              <div className="mt-1 border-t border-border/40 pt-1 text-[11px] text-muted-foreground">
+                {t("Recommended rating")}{" "}
+                <b className={s.power >= forecast.recommended ? "text-r1" : "text-hp"}>{fmt(forecast.recommended)}</b>
               </div>
             </div>
           </div>

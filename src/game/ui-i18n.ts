@@ -1387,6 +1387,7 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "at Farm Level": ["στο Επίπεδο Αγροκτήματος", "na Poziomie Farmy"],
   "Available now": ["Διαθέσιμο τώρα", "Dostępne teraz"],
   "Battle Rating": ["Βαθμολογία μάχης", "Ocena bojowa"],
+  "Recommended rating": ["Προτεινόμενη βαθμολογία", "Zalecana ocena"],
   "Blitzes today": ["Blitz σήμερα", "Blitze dziś"],
   "Buy with card": ["Αγορά με κάρτα", "Kup kartą"],
   "Castle raids:": ["Επιδρομές κάστρων:", "Rajdy na zamki:"],

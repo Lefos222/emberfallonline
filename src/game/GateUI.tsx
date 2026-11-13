@@ -1,5 +1,6 @@
 import { t } from "./i18n";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { Verdict } from "./battle-advice";
 import type { Hero } from "./data";
 import { STAMINA_PER_DAY, potionCount, staminaLeft } from "./stamina";
 import { fmt } from "./ui";
@@ -108,6 +109,14 @@ export function StaminaMeter({
     </div>
   );
 }
+
+/** The colour language every gate shares for a fight's verdict (see forecastFight in battle-advice.ts). */
+export const VERDICT_STYLE: Record<Verdict, { t: string; c: string }> = {
+  Easy: { t: "Easy", c: "text-r1" },
+  Fair: { t: "Fair", c: "text-r4" },
+  Hard: { t: "Hard", c: "text-hp" },
+  Deadly: { t: "Deadly", c: "text-blood" },
+};
 
 /** How the chosen fight compares to the hero, in the game's own colour language. */
 export function DangerPill({

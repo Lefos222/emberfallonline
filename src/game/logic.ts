@@ -18,8 +18,8 @@ export const CRYSTALS_PER_LEVEL = 2;
 /** Void Crystals paid for every boss defeated, so boss hunting keeps feeding advanced training too. */
 export const BOSS_CRYSTALS = 1;
 
-/** Version 1.11: every XP source pays 4% less — one funnel, so no source escapes the cut. */
-export const XP_GAIN_SHARE = 0.96;
+/** Version 1.12: every XP source pays 15% less — one funnel, so no source escapes the cut. */
+export const XP_GAIN_SHARE = 0.85;
 
 /** Grant xp & gold; handles level ups up to 80 then endless Ascension (paragon) levels. */
 export function grant(h: Hero, xp: number, gold: number): { levels: number } {

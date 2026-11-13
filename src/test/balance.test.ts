@@ -19,6 +19,7 @@ import {
   stageFoe,
   stageRewards,
   xpToNext,
+  XP_LEVEL_FLAT,
   type Hero,
   type HeroClass,
   type Slot,
@@ -127,10 +128,10 @@ describe("eleven fights a level, then a smooth climb", () => {
   });
   it("costs exactly eleven fights a level up to level 19", () => {
     expect(EASY_FIGHTS).toBe(10);
-    expect(xpToNext({ level: 0, paragon: 0 })).toBe(11 * stageRewards(1).xp);
+    expect(xpToNext({ level: 0, paragon: 0 })).toBe(11 * stageRewards(1).xp + XP_LEVEL_FLAT);
     for (const lv of [1, 5, 10, 17, 19]) {
       expect(fightsToLevel(lv)).toBe(11);
-      expect(xpToNext({ level: lv, paragon: 0 })).toBe(11 * stageRewards(lv).xp);
+      expect(xpToNext({ level: lv, paragon: 0 })).toBe(11 * stageRewards(lv).xp + XP_LEVEL_FLAT);
     }
   });
   it("climbs gently from level 20 instead of jumping a wall", () => {
@@ -139,7 +140,7 @@ describe("eleven fights a level, then a smooth climb", () => {
       // Every level asks for more than the one before it, and none of them doubles the last.
       expect(fightsToLevel(lv + 1)).toBeGreaterThan(fightsToLevel(lv));
       expect(fightsToLevel(lv + 1)).toBeLessThanOrEqual(fightsToLevel(lv) * 1.3);
-      expect(xpToNext({ level: lv, paragon: 0 })).toBe(Math.round(fightsToLevel(lv) * stageRewards(lv).xp * (lv > 30 ? 0.96 : 1)));
+      expect(xpToNext({ level: lv, paragon: 0 })).toBe(Math.round(fightsToLevel(lv) * stageRewards(lv).xp * (lv > 30 ? 0.96 : 1)) + XP_LEVEL_FLAT);
     }
   });
   it("keeps every level a session's work, with no multi-million bill", () => {
@@ -173,7 +174,9 @@ describe("eleven fights a level, then a smooth climb", () => {
   });
   it("counts the fights left in the current level from saved XP", () => {
     const hero = newHero("Balanced", "warrior");
-    expect(fightsToNextLevel({ level: hero.level, paragon: 0, xp: 0 })).toBe(11);
+    expect(fightsToNextLevel({ level: hero.level, paragon: 0, xp: 0 })).toBe(
+      Math.ceil(xpToNext(hero) / stageRewards(1).xp),
+    );
     expect(fightsToNextLevel({ level: hero.level, paragon: 0, xp: xpToNext(hero) - 1 })).toBe(1);
     expect(fightsToNextLevel({ level: hero.level, paragon: 0, xp: xpToNext(hero) })).toBe(1);
   });
@@ -243,11 +246,11 @@ describe("campaign balance", () => {
   it("pays rewards on the same curve the next level costs", () => {
     // One cleared stage is one fight: the level bill divided by a stage's XP is the fight count.
     for (const stage of [5, 10, 17]) {
-      expect(xpToNext({ level: stage, paragon: 0 }) / stageRewards(stage).xp).toBe(11);
+      expect((xpToNext({ level: stage, paragon: 0 }) - XP_LEVEL_FLAT) / stageRewards(stage).xp).toBe(11);
     }
     // From level 20 that count climbs by fifty-two every level.
     for (const stage of [40, 50, 60, 80]) {
-      expect(xpToNext({ level: stage, paragon: 0 })).toBe(Math.round(fightsToLevel(stage) * stageRewards(stage).xp * 0.96));
+      expect(xpToNext({ level: stage, paragon: 0 })).toBe(Math.round(fightsToLevel(stage) * stageRewards(stage).xp * 0.96) + XP_LEVEL_FLAT);
     }
     expect(stageRewards(51).xp).toBeGreaterThan(stageRewards(50).xp);
     expect(stageRewards(51).gold).toBeGreaterThan(stageRewards(50).gold);
@@ -298,7 +301,7 @@ describe("health training options", () => {
 
 describe("softer levelling after level 30", () => {
   it("charges 4% less XP for levels above 30 and leaves level 30 untouched", () => {
-    expect(xpToNext({ level: 30, paragon: 0 })).toBe(fightsToLevel(30) * stageRewards(30).xp);
-    expect(xpToNext({ level: 31, paragon: 0 })).toBe(Math.round(fightsToLevel(31) * stageRewards(31).xp * 0.96));
+    expect(xpToNext({ level: 30, paragon: 0 })).toBe(fightsToLevel(30) * stageRewards(30).xp + XP_LEVEL_FLAT);
+    expect(xpToNext({ level: 31, paragon: 0 })).toBe(Math.round(fightsToLevel(31) * stageRewards(31).xp * 0.96) + XP_LEVEL_FLAT);
   });
 });

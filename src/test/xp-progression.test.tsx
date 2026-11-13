@@ -29,8 +29,9 @@ describe("the level bill the player sees", () => {
     store.hero = hero;
     render(<LevelProgress hero={hero} rows={2} />);
     expect(screen.getByText(/this level costs 51 fights/)).toBeTruthy();
-    // 30→31 costs 51 fights (46 + 10%) at 3,615 XP each, so the whole level is 184.4K XP — not 2.8 million.
-    expect(screen.getByText("184.4K XP")).toBeTruthy();
+    // 30→31 costs 51 fights (46 + 10%) at 3,615 XP each, plus the flat 100 XP every bill carries,
+    // so the whole level is 184.5K XP — not 2.8 million.
+    expect(screen.getByText("184.5K XP")).toBeTruthy();
     expect(screen.getByText("Level 31")).toBeTruthy();
   });
 
