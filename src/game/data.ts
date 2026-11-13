@@ -767,12 +767,20 @@ export const LATE_CURVE_LEVEL = 40;
  * never enough to become a wall.
  */
 export const LATE_CURVE_PER_LEVEL = 0.0015;
+/** Every level's fight bill is multiplied by this: 1.1 makes levelling 10% harder at every level
+ *  (11 fights a level below 20 instead of 10). Change it here, never per call site. */
+export const LEVEL_COST_MULTIPLIER = 1.1;
 
 /** Fights one level costs, counted in cleared fights at the hero's own level.
- *  Levels 1–19 cost ten fights each; from level 20 the bill climbs smoothly (16, 20, 25 … 46 at 30,
+ *  Levels 1–19 cost eleven fights each (ten × LEVEL_COST_MULTIPLIER); from level 20 the bill climbs smoothly (16, 20, 25 … 46 at 30,
  *  141 at 80) with no cliff, so a level is a session's work and the road to 80 is about five
  *  thousand wins — weeks of play, never one impossible bill. */
 export function fightsToLevel(level: number) {
+  return Math.round(baseFightsToLevel(level) * LEVEL_COST_MULTIPLIER);
+}
+
+/** The fight bill before LEVEL_COST_MULTIPLIER: ten a level below 20, then the smooth climb. */
+export function baseFightsToLevel(level: number) {
   const lv = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
   if (lv < LATE_LEVEL) return EASY_FIGHTS;
   const base = EASY_FIGHTS + Math.round(GRIND_FIGHTS * Math.pow(lv - LATE_LEVEL + 1, GRIND_RAMP));
