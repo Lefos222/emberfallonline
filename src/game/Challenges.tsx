@@ -1,11 +1,11 @@
 import { tName , t} from "./i18n";
-import { warDropKind, dungeonDrops, bossCrystals } from "./war-drops";
+import { warDropKind, dungeonDrops, bossCrystals, DUNGEON_DROP_CHANCE } from "./war-drops";
 import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { scrollXp } from "./scrolls";
 import { Crown, Lock, Skull, Sparkles, Trophy } from "lucide-react";
 import { Swords } from "./PaintedIcons";
-import { foeRating, invCap, heroStats, makeItem, type Item } from "./data";
+import { foeRating, invCap, heroStats, makeItem, RARITIES, type Item } from "./data";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
 import { DangerPill, Meter, StaminaMeter } from "./GateUI";
@@ -205,7 +205,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
                     <Gold n={rw.gold} />
                     <span className="text-xp">{fmt(rw.xp)}  {t("XP")}</span>
                     {rw.bossCore ? <span>{rw.bossCore}{t("× core")}</span> : null}
-                    <span className="text-r2">{["", "", "", "Epic", "Legendary", "Mythic"][rw.minRarity] ?? "Rare"}{t("+ gear")}</span>
+                    <span className="text-r2">{RARITIES[rw.minRarity].name}{t("+ gear")}</span>
                     <span>{DUNGEON_STAMINA}  {t("stamina ·")} {fmt(foe.hp)}  {t("HP")}</span>
                   </div>
                 </div>
@@ -237,12 +237,13 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
           </div>
           <div className="slot flex flex-col p-3 text-sm">
             <p className="text-xs text-muted-foreground">
-               {t("An elite scaled to your level — the best repeatable source of Soul Essence, with a high chance of Rare+ gear.")} {DUNGEON_STAMINA}  {t("stamina per run, win or lose.")} </p>
+               {t("An elite scaled to your level — the best repeatable source of Soul Essence, but only half of your wins pay a bundle.")} {DUNGEON_STAMINA}  {t("stamina per run, win or lose.")} </p>
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
               <span className="text-xp">{fmt(lvl * 60)}  {t("XP")}</span>
               <Gold n={lvl * 12} />
+              <span className="text-muted-foreground">{t("Drop chance")} {Math.round(DUNGEON_DROP_CHANCE * 100)}%</span>
               <span>{t("+2 Soul Essence")}</span>
-              <span className="text-r2">{t("Rare+ loot")}</span>
+              <span className="text-r2">{t("Uncommon+ loot")}</span>
             </div>
             <div className="mt-auto pt-2">
               <Button className="w-full py-2" disabled={stamina < DUNGEON_STAMINA} onClick={fightElite}
@@ -260,7 +261,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
           <div className="min-w-0 flex-1">
             <div className="font-display text-gold">{t("Material expeditions")}</div>
             <p className="text-xs text-muted-foreground">
-               {t("A crate of forge materials — ore, essence, starshards, fragments, sigils and boss cores — in")} {DUNGEON_STAMINA}  {t("stamina, win or lose. Deeper sites open as you level.")} </p>
+               {t("A crate of forge materials — ore, essence, starshards, fragments, sigils and boss cores — but only half your wins pay it.")} {DUNGEON_STAMINA}  {t("stamina, win or lose. Deeper sites open as you level.")} </p>
           </div>
           {onExpeditions
             ? <Button className="shrink-0" onClick={onExpeditions}><Swords className="mr-1 inline h-4 w-4" />{t("Open expeditions")}</Button>
