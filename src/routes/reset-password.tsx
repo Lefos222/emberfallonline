@@ -5,9 +5,11 @@ import castle from "@/assets/castle.jpg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/reset-password")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Reset password — EmberFall Online" },
+      { name: "robots", content: "noindex" },
       { name: "description", content: "Choose a new password for your EmberFall Online account." },
       { property: "og:title", content: "Reset password — EmberFall Online" },
       { property: "og:description", content: "Choose a new password for your EmberFall Online account." },

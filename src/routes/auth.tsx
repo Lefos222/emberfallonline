@@ -9,6 +9,7 @@ import { useT , t} from "@/game/i18n";
 import { LanguagePicker } from "@/game/LanguagePicker";
 
 export const Route = createFileRoute("/auth")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Sign in — EmberFall Online" },
