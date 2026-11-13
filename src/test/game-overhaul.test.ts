@@ -8,7 +8,8 @@ describe("requested progression rules", () => {
   it("keeps all new expedition materials below rare and pays their stated quantities", () => {
     expect(EXPEDITION_COMMON_ADDITIONS).toEqual(["hide", "bloom", "crystal"]);
     for (const material of EXPEDITION_COMMON_ADDITIONS) expect(MATS[material].rarity).toBeLessThan(3);
-    expect(EXPEDITIONS.filter(e => EXPEDITION_COMMON_ADDITIONS.includes(e.material as "hide" | "bloom" | "crystal")).map(e => e.quantity)).toEqual([8, 6, 4]);
+    expect(EXPEDITIONS.filter(e => EXPEDITION_COMMON_ADDITIONS.includes(e.material as "hide" | "bloom" | "crystal")).map(e => e.quantity)).toEqual([4, 3, 3]);
+    expect(Math.max(...EXPEDITIONS.map(e => e.quantity))).toBeLessThanOrEqual(4);
   });
   it("makes relic bosses progressively harder at the same character level", () => {
     const hero = newHero("Warden", "warrior"); hero.level = 60;

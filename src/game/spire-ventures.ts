@@ -29,12 +29,12 @@ const rng = (seed: string) => {
 
 export interface Warden { id: string; name: string; twist: string; hp: number; atk: number; def: number; mats: Partial<Record<Mat, number>> }
 export const WARDENS: Warden[] = [
-  { id: "bulwark", name: "The Iron Bulwark", twist: "Huge health, slow blows", hp: 2.2, atk: 0.8, def: 1.6, mats: { ore: 12, frostCrystal: 2 } },
-  { id: "reaver", name: "The Crimson Reaver", twist: "Hits hard, breaks easily", hp: 0.9, atk: 1.7, def: 0.8, mats: { essence: 4, dragonScale: 1 } },
-  { id: "warden", name: "The Hollow Warden", twist: "Balanced and relentless", hp: 1.5, atk: 1.25, def: 1.2, mats: { starshard: 6, bossCore: 1 } },
-  { id: "weaver", name: "The Shadow Weaver", twist: "Evasive and sharp", hp: 1.1, atk: 1.4, def: 1, mats: { shadowSilk: 2, crystal: 6 } },
-  { id: "colossus", name: "The Ember Colossus", twist: "A wall of fire", hp: 2.6, atk: 1.1, def: 1.3, mats: { phoenixAsh: 1, hide: 10 } },
-  { id: "seer", name: "The Moon Seer", twist: "Glass cannon of starlight", hp: 0.8, atk: 1.9, def: 0.7, mats: { moonsilver: 2, bloom: 10 } },
+  { id: "bulwark", name: "The Iron Bulwark", twist: "Huge health, slow blows", hp: 2.2, atk: 0.8, def: 1.6, mats: { ore: 3, frostCrystal: 1 } },
+  { id: "reaver", name: "The Crimson Reaver", twist: "Hits hard, breaks easily", hp: 0.9, atk: 1.7, def: 0.8, mats: { essence: 3, dragonScale: 1 } },
+  { id: "warden", name: "The Hollow Warden", twist: "Balanced and relentless", hp: 1.5, atk: 1.25, def: 1.2, mats: { starshard: 3, bossCore: 1 } },
+  { id: "weaver", name: "The Shadow Weaver", twist: "Evasive and sharp", hp: 1.1, atk: 1.4, def: 1, mats: { shadowSilk: 2, crystal: 2 } },
+  { id: "colossus", name: "The Ember Colossus", twist: "A wall of fire", hp: 2.6, atk: 1.1, def: 1.3, mats: { phoenixAsh: 1, hide: 3 } },
+  { id: "seer", name: "The Moon Seer", twist: "Glass cannon of starlight", hp: 0.8, atk: 1.9, def: 0.7, mats: { moonsilver: 2, bloom: 2 } },
 ];
 
 /** The three wardens on watch today. */
@@ -76,5 +76,5 @@ export function riftFoe(kind: "ambush" | "keeper", room: number, level: number):
 /** Gold for clearing a rift room; the Shrine of Fortune adds a quarter to every later room. */
 export const riftGold = (level: number, room: number, kind: RoomKind, fortune: boolean) =>
   Math.round((kind === "keeper" ? 900 : kind === "treasure" ? 500 : 250) * (1 + level / 25) * (1 + room * 0.1) * (fortune ? 1.25 : 1));
-export const riftTreasure: Partial<Record<Mat, number>> = { hide: 6, bloom: 5, crystal: 4, ore: 8 };
-export const riftKeeperMats: Partial<Record<Mat, number>> = { bossCore: 1, starshard: 5, voidCrystal: 1 };
+export const riftTreasure: Partial<Record<Mat, number>> = { ore: 2, hide: 1, bloom: 1 };
+export const riftKeeperMats: Partial<Record<Mat, number>> = { bossCore: 1, starshard: 2, voidCrystal: 1 };

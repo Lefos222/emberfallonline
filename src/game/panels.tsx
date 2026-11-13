@@ -1,5 +1,5 @@
 import xpScrollArt from "@/assets/xp-scroll.webp";
-import { warDropKind } from "./war-drops";
+import { warDropKind, capDropBundle } from "./war-drops";
 import { RoseItem } from "./Roses";
 import { roseCount } from "./friendship";
 import { xpScrollValue } from "./xp-scrolls";
@@ -316,7 +316,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
           const { levels } = grant(h, xp, gold);
           // A Conquest floor no longer guarantees Rare gear: its rarity floor is rolled (see conquestDropFloor).
           if (warDropKind() === "gear") loot = rollLoot(h, stage, 1, spire ? conquestDropFloor() : foe.boss ? 2 : 0);
-          else addMats(h, { ore: 2 + Math.floor(stage / 20), ...(stage >= 10 ? { hide: 1, bloom: 1 } : {}) });
+          else addMats(h, capDropBundle({ ...(stage >= 10 ? { hide: 1, bloom: 1 } : {}), ore: 2 }));
           if (loot) addLoot(h, loot);
           if (tokens) addConquestTokens(h, tokens);
           if (spire && stage === h.spire) h.spire++;
