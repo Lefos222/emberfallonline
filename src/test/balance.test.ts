@@ -9,6 +9,8 @@ import {
   riftFactor,
   EASY_FIGHTS,
   GRIND_FIGHTS,
+  LEVEL_COST_MULTIPLIER,
+  baseFightsToLevel,
   MAX_LEVEL,
   fightsToLevel,
   fightsToNextLevel,
@@ -117,17 +119,22 @@ function seeded(seed: number) {
   return () => (x = (x * 1664525 + 1013904223) % 4294967296) / 4294967296;
 }
 
-describe("ten fights a level, then a smooth climb", () => {
-  it("costs exactly ten fights a level up to level 19", () => {
+describe("eleven fights a level, then a smooth climb", () => {
+  it("makes every level 10% harder than the old curve", () => {
+    expect(LEVEL_COST_MULTIPLIER).toBe(1.1);
+    for (const lv of [1, 10, 19, 20, 30, 40, 60, 80, 120])
+      expect(fightsToLevel(lv)).toBe(Math.round(baseFightsToLevel(lv) * 1.1));
+  });
+  it("costs exactly eleven fights a level up to level 19", () => {
     expect(EASY_FIGHTS).toBe(10);
-    expect(xpToNext({ level: 0, paragon: 0 })).toBe(10 * stageRewards(1).xp);
+    expect(xpToNext({ level: 0, paragon: 0 })).toBe(11 * stageRewards(1).xp);
     for (const lv of [1, 5, 10, 17, 19]) {
-      expect(fightsToLevel(lv)).toBe(EASY_FIGHTS);
-      expect(xpToNext({ level: lv, paragon: 0 })).toBe(EASY_FIGHTS * stageRewards(lv).xp);
+      expect(fightsToLevel(lv)).toBe(11);
+      expect(xpToNext({ level: lv, paragon: 0 })).toBe(11 * stageRewards(lv).xp);
     }
   });
   it("climbs gently from level 20 instead of jumping a wall", () => {
-    expect(fightsToLevel(20)).toBe(EASY_FIGHTS + GRIND_FIGHTS);
+    expect(fightsToLevel(20)).toBe(Math.round((EASY_FIGHTS + GRIND_FIGHTS) * 1.1));
     for (let lv = 20; lv < MAX_LEVEL; lv++) {
       // Every level asks for more than the one before it, and none of them doubles the last.
       expect(fightsToLevel(lv + 1)).toBeGreaterThan(fightsToLevel(lv));
@@ -136,18 +143,18 @@ describe("ten fights a level, then a smooth climb", () => {
     }
   });
   it("keeps every level a session's work, with no multi-million bill", () => {
-    // Level 30→31 used to demand 2.8 million XP; it is now dozens of fights.
-    expect(fightsToLevel(30)).toBe(46);
-    // Past level 40 the curve steepens a touch: the same level 80 costs nine fights more.
-    expect(fightsToLevel(40)).toBe(69);
-    expect(fightsToLevel(80)).toBe(149);
+    // Level 30→31 used to demand 2.8 million XP; it is now dozens of fights (46, +10% = 51).
+    expect(fightsToLevel(30)).toBe(51);
+    // Past level 40 the curve steepens a touch (69 → 76 and 149 → 164 with the +10%).
+    expect(fightsToLevel(40)).toBe(76);
+    expect(fightsToLevel(80)).toBe(164);
     expect(xpToNext({ level: 30, paragon: 0 })).toBeLessThan(300_000);
-    for (const lv of [25, 30, 40, 50, 60, 80, 100]) expect(fightsToLevel(lv)).toBeLessThan(200);
+    for (const lv of [25, 30, 40, 50, 60, 80, 100]) expect(fightsToLevel(lv)).toBeLessThan(220);
   });
   it("adds a little more work to every level past 40, without ever walling the climb", () => {
     // Level 40 itself keeps the old bill; past it each level asks for a hair more.
-    expect(fightsToLevel(40)).toBe(EASY_FIGHTS + Math.round(GRIND_FIGHTS * Math.pow(21, 0.75)));
-    const ratio = (lv: number) => fightsToLevel(lv) / (EASY_FIGHTS + Math.round(GRIND_FIGHTS * Math.pow(lv - 20 + 1, 0.75)));
+    expect(baseFightsToLevel(40)).toBe(EASY_FIGHTS + Math.round(GRIND_FIGHTS * Math.pow(21, 0.75)));
+    const ratio = (lv: number) => baseFightsToLevel(lv) / (EASY_FIGHTS + Math.round(GRIND_FIGHTS * Math.pow(lv - 20 + 1, 0.75)));
     expect(ratio(41)).toBeGreaterThanOrEqual(1);
     for (const lv of [45, 50, 60, 80, 100, 120, 140]) {
       expect(ratio(lv)).toBeGreaterThan(1);
@@ -166,7 +173,7 @@ describe("ten fights a level, then a smooth climb", () => {
   });
   it("counts the fights left in the current level from saved XP", () => {
     const hero = newHero("Balanced", "warrior");
-    expect(fightsToNextLevel({ level: hero.level, paragon: 0, xp: 0 })).toBe(EASY_FIGHTS);
+    expect(fightsToNextLevel({ level: hero.level, paragon: 0, xp: 0 })).toBe(11);
     expect(fightsToNextLevel({ level: hero.level, paragon: 0, xp: xpToNext(hero) - 1 })).toBe(1);
     expect(fightsToNextLevel({ level: hero.level, paragon: 0, xp: xpToNext(hero) })).toBe(1);
   });
@@ -236,7 +243,7 @@ describe("campaign balance", () => {
   it("pays rewards on the same curve the next level costs", () => {
     // One cleared stage is one fight: the level bill divided by a stage's XP is the fight count.
     for (const stage of [5, 10, 17]) {
-      expect(xpToNext({ level: stage, paragon: 0 }) / stageRewards(stage).xp).toBe(EASY_FIGHTS);
+      expect(xpToNext({ level: stage, paragon: 0 }) / stageRewards(stage).xp).toBe(11);
     }
     // From level 20 that count climbs by fifty-two every level.
     for (const stage of [40, 50, 60, 80]) {

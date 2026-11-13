@@ -399,7 +399,7 @@ const chapters: GuideChapter[] = [
       ),
       step(
         "The climb steepens past 40",
-        "A level costs about ten fights up to 19, then a little more each level. Past level 40 every level asks for one fight more than the level before it would have, so the late climb is a longer road — about a seventh longer by the cap. Nothing is walled: keep clearing fights and the levels keep coming.",
+        "A level costs about eleven fights up to 19, then a little more each level. Past level 40 every level asks for one fight more than the level before it would have, so the late climb is a longer road — about a seventh longer by the cap. Nothing is walled: keep clearing fights and the levels keep coming.",
       ),
     ],
     tip: "Barracks drills work in real time even while you are logged out — keep training drills queued around the clock.",

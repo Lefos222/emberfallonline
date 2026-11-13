@@ -1,10 +1,10 @@
 import { t } from "./i18n";
-import { EASY_FIGHTS, LATE_LEVEL, fightsToLevel, fightsToNextLevel, xpPerFight, xpToNext, type Hero } from "./data";
+import { LATE_LEVEL, fightsToLevel, fightsToNextLevel, xpPerFight, xpToNext, type Hero } from "./data";
 import { fmt } from "./ui";
 
 /**
  * The level bill, spelled out: how far the hero is, how many fights the level still costs and
- * what the next few levels ask for: ten fights a level below 20, then a smooth climb with no wall.
+ * what the next few levels ask for: eleven fights a level below 20, then a smooth climb with no wall.
  */
 export function LevelProgress({ hero, rows = 0 }: { hero: Hero; rows?: number }) {
   const need = xpToNext(hero);
@@ -47,7 +47,7 @@ function LevelLadder({ level, rows }: { level: number; rows: number }) {
         ))}
       </div>
       <p className="mt-2 text-[11px] text-muted-foreground">
-         {t("Levels 1–")}{LATE_LEVEL - 1}  {t("cost")} {EASY_FIGHTS}  {t("fights each. From level")} {LATE_LEVEL}  {t("the bill climbs gently —")} {fmt(fightsToLevel(20))}  {t("fights at 20,")} {fmt(fightsToLevel(50))}  {t("at 50,")} {fmt(fightsToLevel(80))}  {t("at 80 — so every level is a session's work and none of them is a wall.")} </p>
+         {t("Levels 1–")}{LATE_LEVEL - 1}  {t("cost")} {fightsToLevel(1)}  {t("fights each. From level")} {LATE_LEVEL}  {t("the bill climbs gently —")} {fmt(fightsToLevel(20))}  {t("fights at 20,")} {fmt(fightsToLevel(50))}  {t("at 50,")} {fmt(fightsToLevel(80))}  {t("at 80 — so every level is a session's work and none of them is a wall.")} </p>
     </div>
   );
 }
