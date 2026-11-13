@@ -1,4 +1,5 @@
 import { addGem, addMats, GEM_MAX_TIER, type GemType, type Mat } from "./crafting";
+import { addStones } from "./enchant";
 import { addChests, type ChestKind } from "./chests";
 import { BLITZ_GOLD_SHARE, BLITZ_RUNNING, blitzRunning, startBlitzRun } from "./blitz-run";
 import { stageRewards, type Hero } from "./data";
@@ -122,7 +123,7 @@ export function buyConquestGem(h: Hero, type: GemType, level: number): string | 
 }
 
 /** Equipment materials and chest items the Conquest Gate sells for tokens. */
-export interface TokenOffer { id: string; mat: Mat; qty: number; cost: number; chest?: ChestKind; name?: string }
+export interface TokenOffer { id: string; mat?: Mat; qty: number; cost: number; chest?: ChestKind; name?: string; stone?: number }
 export const TOKEN_OFFERS: TokenOffer[] = [
   { id: "goldchest", mat: "ore", qty: 0, cost: 90, chest: "gold", name: "Gold Chest" },
   { id: "gemchest", mat: "ore", qty: 0, cost: 260, chest: "gem", name: "Gem Chest" },
@@ -132,7 +133,7 @@ export const TOKEN_OFFERS: TokenOffer[] = [
   { id: "essence", mat: "essence", qty: 2, cost: 120 },
   { id: "fragment", mat: "fragment", qty: 2, cost: 150 },
   { id: "crystal", mat: "crystal", qty: 1, cost: 180 },
-  { id: "enchantstone", mat: "enchantStone", qty: 2, cost: 240 },
+  { id: "enchantstone", stone: 2, qty: 2, cost: 240 },
   { id: "sigil", mat: "sigil", qty: 1, cost: 360 },
   { id: "starshard", mat: "starshard", qty: 1, cost: 450 },
   { id: "bossCore", mat: "bossCore", qty: 1, cost: 900 },
@@ -145,7 +146,8 @@ export function buyTokenOffer(h: Hero, id: string): string | null {
   if (conquestTokens(h) < o.cost) return `Not enough Conquest Tokens — ${o.cost} needed`;
   addConquestTokens(h, -o.cost);
   if (o.chest) { addChests(h, o.chest); return null; }
-  addMats(h, { [o.mat]: o.qty });
+  if (o.stone) addStones(h, o.stone, o.qty);
+  else if (o.mat) addMats(h, { [o.mat]: o.qty });
   return null;
 }
 

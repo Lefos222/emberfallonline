@@ -1,6 +1,7 @@
 import type { Hero } from "./data";
 import { type BonusFx, zeroFx, addMats, matCount, type Mat } from "./crafting";
 import { scaledGold } from "./gold";
+import { addStones } from "./enchant";
 
 // ---------- Guild contribution: gold → guild coins ----------
 /** 1000 gold = 1000 guild coins (1:1 rate). */
@@ -216,7 +217,10 @@ export interface GuildShopItem {
   name: string;
   desc: string;
   cost: number;
-  mat: Mat;
+  /** A crafting material the item pays, or absent for an enchantment-stone good. */
+  mat?: Mat;
+  /** Enchantment-stone grade the item pays (see enchant.ts). */
+  stone?: number;
   qty: number;
 }
 
@@ -233,8 +237,8 @@ export const GUILD_SHOP: GuildShopItem[] = [
   { id: "g_sigil", name: "Elite Sigil ×5", desc: "For Epic+ gear", cost: 2500, mat: "sigil", qty: 5 },
   { id: "g_bossCore", name: "Boss Core ×3", desc: "For Legendary+ gear", cost: 3000, mat: "bossCore", qty: 3 },
   { id: "g_crystal", name: "Arcane Crystal ×5", desc: "Refines into Starshards", cost: 2000, mat: "crystal", qty: 5 },
-  { id: "g_enchant3", name: "Enchantment Stone ×3", desc: "Enchant gear at the Forge (higher success)", cost: 1500, mat: "enchantStone", qty: 3 },
-  { id: "g_enchant10", name: "Enchantment Stone ×10", desc: "Bulk enchantment stones", cost: 4000, mat: "enchantStone", qty: 10 },
+  { id: "g_enchant3", name: "Lv 2 Enchantment Stone ×3", desc: "Enchant gear at the Forge (higher success)", cost: 1500, stone: 2, qty: 3 },
+  { id: "g_enchant10", name: "Lv 2 Enchantment Stone ×10", desc: "Bulk enchantment stones", cost: 4000, stone: 2, qty: 10 },
 ];
 
 export function buyGuildShopItem(h: Hero, id: string, times = 1): string | null {
@@ -244,7 +248,8 @@ export function buyGuildShopItem(h: Hero, id: string, times = 1): string | null 
   const total = item.cost * count;
   if ((h.guildCoins ?? 0) < total) return `Need ${total} guild coins`;
   h.guildCoins = (h.guildCoins ?? 0) - total;
-  addMats(h, { [item.mat]: item.qty * count });
+  if (item.stone) addStones(h, item.stone, item.qty * count);
+  else if (item.mat) addMats(h, { [item.mat]: item.qty * count });
   trackGuildSpend(h, total);
   return null;
 }
@@ -263,7 +268,6 @@ export const GUILD_VAULT: VaultLot[] = [
   { mat: "starshard", name: "Starshard", rate: 80 },
   { mat: "sigil", name: "Elite Sigil", rate: 100 },
   { mat: "bossCore", name: "Boss Core", rate: 200 },
-  { mat: "enchantStone", name: "Enchantment Stone", rate: 100 },
 ];
 
 /** Trade materials from the bag for guild coins. */

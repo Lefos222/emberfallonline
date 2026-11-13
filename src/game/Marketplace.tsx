@@ -19,7 +19,7 @@ import { GameTabs, Gold, ItemCard, Panel, fmt } from "./ui";
 import { GearIcon } from "./GearIcon";
 import { MatIcon, StoneIcon } from "./MatIcon";
 import { ScrollGoods } from "./ScrollShop";
-import { STONE_LEVELS, addStones, clampStone, stoneBonus, stoneCount, stonePrice } from "./enchant";
+import { MIN_STONE_LEVEL, STONE_LEVELS, addStones, clampStone, stoneBonus, stoneCount, stonePrice } from "./enchant";
 import { FATE_STONE_PRICE, FATE_SUCCESS_BONUS, addFateStones, fateStoneCost, fateStoneCount } from "./fate";
 import { FarmShopTab } from "./Farm";
 
@@ -82,7 +82,7 @@ export function buyFateStone(h: Hero): string | null {
 /** Gold one enchantment stone of a grade costs in the shop, after the house discount. */
 export const stoneShopPrice = (stone: number, level = 1) => cutPrice(stonePrice(stone, level));
 
-/** Buy one enchantment stone of a grade. Grade 1 is the stone every other source pays out. */
+/** Buy one enchantment stone of a grade (the removed grade 1 clamps up to Lv 2). */
 export function buyEnchantStone(h: Hero, stone: number): string | null {
   const grade = clampStone(stone);
   const price = stoneShopPrice(grade, h.level);
@@ -218,11 +218,11 @@ function ShopTab({ hero }: { hero: Hero }) {
         })()}
       </article>
 
-      <div className="mt-5 mb-2 font-display text-sm text-gold">{t("Enchantment Stones · nine grades")}</div>
+      <div className="mt-5 mb-2 font-display text-sm text-gold">{t("Enchantment Stones")}</div>
       <p className="mb-2 text-xs text-muted-foreground">
          {t("Stones taken to the Forge enchant gear instead of gold — each grade adds 10% success. Two stones of one grade plus gold forge the next grade up at the Forge.")} </p>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
-        {Array.from({ length: STONE_LEVELS }, (_, i) => i + 1).map((grade) => {
+        {Array.from({ length: STONE_LEVELS - MIN_STONE_LEVEL + 1 }, (_, i) => i + MIN_STONE_LEVEL).map((grade) => {
           const price = stoneShopPrice(grade, hero.level);
           const held = stoneCount(hero, grade);
           return (

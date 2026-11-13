@@ -33,6 +33,9 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Roll guild dice together for weekly shared milestones.": ["Ρίξτε μαζί ζάρια συντεχνίας για εβδομαδιαία κοινά ορόσημα.", "Rzucajcie kośćmi gildii, aby osiągać wspólne tygodniowe cele."],
   "Gold and ordinary crafting materials": ["Χρυσός και κοινά υλικά κατασκευής", "Złoto i zwykłe materiały rzemieślnicze"],
   "Announcements": ["Ανακοινώσεις", "Ogłoszenia"],
+  "Account banned": ["Ο λογαριασμός αποκλείστηκε", "Konto zablokowane"],
+  "This account has been banned from EmberFall Online.": ["Αυτός ο λογαριασμός έχει αποκλειστεί από το EmberFall Online.", "To konto zostało zablokowane w EmberFall Online."],
+  "If you believe this was a mistake, contact the game team.": ["Αν πιστεύεις ότι έγινε λάθος, επικοινώνησε με την ομάδα του παιχνιδιού.", "Jeśli uważasz, że to pomyłka, skontaktuj się z zespołem gry."],
   "Help and quests": ["Βοήθεια και αποστολές", "Pomoc i zadania"],
   "Every quest counts from the moment this board opened, and its rewards grow with your level.": ["Κάθε αποστολή μετράει από τη στιγμή που άνοιξε αυτός ο πίνακας και οι ανταμοιβές της μεγαλώνουν με το επίπεδό σου.", "Każde zadanie liczy się od chwili otwarcia tej tablicy, a jego nagrody rosną z twoim poziomem."],
   "One relic per victory": ["Ένα κειμήλιο ανά νίκη", "Jedna relikwia za zwycięstwo"],
@@ -323,6 +326,10 @@ export const UI_TEXT: Record<string, ContentRow> = {
       "Οι πεσμένοι εχθροί αφήνουν μερικές φορές Θραύσματα Ψυχής. Ενσωμάτωσέ τα εδώ για μόνιμα μπόνους στατιστικών που δεν μηδενίζονται ποτέ — κάθε βαθμίδα είναι ένα μικρό βήμα προς έναν πολύ δυνατότερο ήρωα.",
       "Pokonani wrogowie czasem zostawiają Odłamki Duszy. Wtop je tutaj, by zyskać stałe bonusy do statystyk, które nigdy nie znikają — każdy stopień to mały krok do znacznie silniejszego bohatera.",
     ],
+  "Pays gold only. The chance shrinks as the piece climbs, all the way to +60.": ["Πληρώνεις μόνο χρυσό. Η πιθανότητα μειώνεται όσο ανεβαίνει το κομμάτι, μέχρι το +60.", "Płacisz tylko złotem. Szansa spada w miarę wzrostu poziomu przedmiotu, aż do +60."],
+  "Any stone works, but rarer gear resists weaker stones — a higher grade lands far more often.": ["Κάθε πέτρα δουλεύει, αλλά ο σπανιότερος εξοπλισμός αντιστέκεται στις πιο αδύναμες πέτρες — μια ανώτερη βαθμίδα πετυχαίνει πολύ συχνότερα.", "Każdy kamień działa, ale rzadszy ekwipunek opiera się słabszym kamieniom — wyższy stopień trafia znacznie częściej."],
+  "No stones yet — battle wins drop them, and the Auction House shop sells every grade.": ["Δεν έχεις πέτρες ακόμη — οι νίκες τις ρίχνουν και το κατάστημα του Οίκου Δημοπρασιών πουλά κάθε βαθμίδα.", "Nie masz jeszcze kamieni — wygrane bitwy je zostawiają, a sklep Domu Aukcyjnego sprzedaje każdy stopień."],
+  "Replay · reduced rewards": ["Επανάληψη · μειωμένες ανταμοιβές", "Powtórka · zmniejszone nagrody"],
   "Stones taken to the Forge enchant gear instead of gold — each grade adds 10% success. Two stones of one grade plus gold forge the next grade up at the Forge.":
     [
       "Οι πέτρες που πηγαίνουν στο Σιδηρουργείο γοητεύουν εξοπλισμό αντί για χρυσό — κάθε βαθμίδα προσθέτει 10% επιτυχία. Δύο πέτρες ίδιας βαθμίδας μαζί με χρυσό σφυρηλατούν την επόμενη βαθμίδα στο Σιδηρουργείο.",

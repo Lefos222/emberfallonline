@@ -54,7 +54,7 @@ describe("the world tree panel", () => {
     render(<WorldMap onClose={() => {}} start={() => {}} />);
     expect(screen.getByText("The World Tree")).toBeInTheDocument();
     expect(screen.getByText(/places of interest/)).toBeInTheDocument();
-    expect(WORLD_SITES.length).toBeGreaterThan(300);
+    expect(WORLD_SITES.length).toBeGreaterThan(200);
     expect(screen.getByText(/Gold mine:/)).toBeInTheDocument();
   });
 

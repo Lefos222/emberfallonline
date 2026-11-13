@@ -1,8 +1,8 @@
 import type { Hero } from "./data";
 
-/** Extra monster health/attack/defence per trained attribute point: 0.15%, capped at +60%. */
-export const FOE_ATTR_SCALE = 0.0015;
-export const FOE_ATTR_CAP = 0.6;
+/** Extra monster health/attack/defence per trained attribute point: 0.12%, capped at +50%. */
+export const FOE_ATTR_SCALE = 0.0012;
+export const FOE_ATTR_CAP = 0.5;
 
 /** How much tougher monsters get for this hero's trained attributes. */
 export function foeAttrFactor(h: Pick<Hero, "attrs">): number {

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useGame, update } from "./store";
 import { fmt, Gold } from "./ui";
 import { GoldCoin } from "./CoinIcon";
-import { MatIcon } from "./MatIcon";
+import { MatIcon, StoneIcon } from "./MatIcon";
 import { matCount } from "./crafting";
 import {
   GUILD_SHOP, GUILD_VAULT, GUILD_CONTRIB_MIN,
@@ -76,7 +76,7 @@ export function GuildShopPanel() {
             title={item.desc}
             onClick={() => update((h) => { const err = buyGuildShopItem(h, item.id); say(!err, err ?? `Bought ${itemName(item.name)}!`); })}>
             <span className="flex min-w-0 items-center gap-1.5">
-              <MatIcon mat={item.mat} size={18} />
+              {item.stone ? <StoneIcon level={item.stone} size={18} /> : item.mat ? <MatIcon mat={item.mat} size={18} /> : null}
               <span className="truncate">{itemName(item.name)}</span>
             </span>
             <span className="shrink-0 font-bold text-gold">{fmt(item.cost)} c</span>

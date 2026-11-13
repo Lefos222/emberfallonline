@@ -1,4 +1,4 @@
-import { z } from "zod";
+import z from "zod";
 import { CLASSES, battleRating, stageFoe, type Foe, type HeroClass } from "./data";
 import { dungeonFoe, DUNGEONS, enemySprite, type SpriteRect } from "./world";
 import { goldGain } from "./gold";

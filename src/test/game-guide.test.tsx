@@ -65,7 +65,7 @@ describe("the game guide", () => {
     expect(screen.getByText("Mage")).toBeInTheDocument();
     expect(screen.getByText("Archer")).toBeInTheDocument();
     expect(screen.getByText("Icons and materials")).toBeInTheDocument();
-    expect(screen.getByText("Enchantment Stone")).toBeInTheDocument();
+    expect(screen.getByText("Enchantment Stones")).toBeInTheDocument();
 
     // A chapter with a picture on its first step keeps it after switching.
     fireEvent.click(

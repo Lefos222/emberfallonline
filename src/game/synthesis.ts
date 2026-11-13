@@ -235,7 +235,7 @@ const MATS_NAME: Record<Mat, string> = {
   dragonScale: "Dragon Scale", abyssalShard: "Abyssal Shard", titanHeart: "Titan Heart", wyrmBone: "Wyrm Bone", moonsilver: "Moonsilver", shadowSilk: "Shadow Silk", phoenixAsh: "Phoenix Ash",
   ore: "Ember Ore", essence: "Soul Essence", starshard: "Starshard", bossCore: "Boss Core",
   fragment: "Armor Fragment", sigil: "Elite Sigil", hide: "Beast Hide", bloom: "Emberbloom",
-  crystal: "Arcane Crystal", enchantStone: "Enchantment Stone", fateStone: "Fate Stone",
+  crystal: "Arcane Crystal", fateStone: "Fate Stone",
 };
 
 /** Forge one piece: spends its materials and records it on the save. */

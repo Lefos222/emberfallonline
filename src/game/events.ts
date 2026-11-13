@@ -257,7 +257,6 @@ const MAT_NAME: Record<import("./crafting").Mat, string> = {
   hide: "Beast Hide",
   bloom: "Emberbloom",
   crystal: "Arcane Crystal",
-  enchantStone: "Enchantment Stone",
   fateStone: "Fate Stone",
 };
 const GEM_NAME: Record<import("./crafting").GemType, string> = {
