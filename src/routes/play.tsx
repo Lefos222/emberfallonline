@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Game } from "@/game/Game";
 
 export const Route = createFileRoute("/play")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Play EmberFall Online — Enter Your Castle" },

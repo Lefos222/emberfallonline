@@ -6,6 +6,7 @@ import { LanguagePicker } from "@/game/LanguagePicker";
 import { GuideClassCards, GuideLegend, GuideReader } from "@/game/GuideReader";
 
 export const Route = createFileRoute("/guide")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "How to play — EmberFall Online" },

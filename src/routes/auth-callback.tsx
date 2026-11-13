@@ -7,9 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { setUser } from "@/game/store";
 
 export const Route = createFileRoute("/auth-callback")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Signing you in — EmberFall Online" },
+      { name: "robots", content: "noindex" },
       { name: "description", content: "Finishing your sign-in so you can return to the castle." },
       { property: "og:title", content: "Signing you in — EmberFall Online" },
       { property: "og:description", content: "Finishing your sign-in." },

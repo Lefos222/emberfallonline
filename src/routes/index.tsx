@@ -13,6 +13,7 @@ import mage from "@/assets/heroes/mage-female-idle.png";
 import archer from "@/assets/heroes/archer-male-idle.png";
 
 export const Route = createFileRoute("/")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "EmberFall Online — Official Site of the Dark-Fantasy Browser MMORPG" },
