@@ -2259,5 +2259,17 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "A gem can be prised back out for gold — the smith charges more for a higher gem, and the gem returns to your pouch.": ["Ένα πετράδι μπορεί να βγει με χρυσό — ο σιδεράς ζητά περισσότερα για μεγαλύτερο πετράδι και το πετράδι επιστρέφει στο πουγκί σου.", "Klejnot można wyjąć za złoto — kowal żąda więcej za wyższy klejnot, a klejnot wraca do sakiewki."],
   "Not enough gold to prise this gem out": ["Δεν φτάνει ο χρυσός για να βγει αυτό το πετράδι", "Za mało złota, by wyjąć ten klejnot"],
   "The smith charges gold to prise a gem back out": ["Ο σιδεράς χρεώνει χρυσό για να βγάλει ένα πετράδι", "Kowal bierze złoto za wyjęcie klejnotu"],
+  // ---- Blacksmith layout (panels.tsx) ----
+  "Blacksmith sections": ["Ενότητες σιδηρουργείου", "Sekcje kuźni"],
+  "Gear": ["Εξοπλισμός", "Sprzęt"],
+  "Stones": ["Πέτρες", "Kamienie"],
+  "Pick a worn or bagged item to enhance it, check the gems inside it, or salvage it for materials.": ["Διάλεξε ένα φορεμένο ή αντικείμενο της τσάντας για να το βελτιώσεις, να δεις τις πέτρες του ή να το διαλύσεις σε υλικά.", "Wybierz noszony przedmiot lub ten z plecaka, aby go ulepszyć, sprawdzić jego kamienie lub rozłożyć go na materiały."],
+  // ---- Spire layout (SpireGate.tsx, SpireVentures.tsx) ----
+  "Spire Gate sections": ["Ενότητες Πύλης του Πύργου", "Sekcje Bramy Iglicy"],
+  "Spire modes": ["Τρόποι του Πύργου", "Tryby Iglicy"],
+  "Climb": ["Ανάβαση", "Wspinaczka"],
+  "Choose a dungeon": ["Διάλεξε μπουντρούμι", "Wybierz loch"],
+  "Best floors": ["Καλύτερα πατώματα", "Najlepsze piętra"],
+  "Every floor your party clears earns a Spire Chest. Opening one pays gold and materials scaled by your best floor.": ["Κάθε όροφος που καθαρίζει η παρέα σου κερδίζει ένα Μπαούλο του Πύργου. Το άνοιγμά του δίνει χρυσό και υλικά ανάλογα με τον καλύτερό σου όροφο.", "Każde piętro oczyszczone przez drużynę daje Skrzynię Iglicy. Jej otwarcie daje złoto i materiały zależne od twojego najlepszego piętra."],
   // @@ROWS@@
 };

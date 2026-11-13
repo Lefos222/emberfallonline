@@ -58,10 +58,12 @@ describe("the Spire tab", () => {
 
     expect(await screen.findByRole("button", { name: "Start the climb" })).toBeTruthy();
     const body = document.body.textContent ?? "";
-    expect(body).toContain("12");
+    // The server's best floor arrives with the ledger.
+    expect(await screen.findByText("12")).toBeTruthy();
     expect(body).toContain("Open a chest");
-    // The party code is the five-letter handle a friend types in.
-    expect(body).toMatch(/[A-Z0-9]{5}/);
+    // The party code is the five-letter handle a friend types in, one tap away on the Party tab.
+    fireEvent.click(screen.getByRole("tab", { name: "Party" }));
+    expect(document.body.textContent).toMatch(/[A-Z0-9]{5}/);
   });
 
   it("opens a Spire Chest and says what it paid", async () => {
@@ -128,6 +130,7 @@ describe("the Spire tab", () => {
     store.hero = newHero("Climber", "warrior");
     open();
 
+    fireEvent.click(await screen.findByRole("tab", { name: "Party" }));
     fireEvent.change(await screen.findByLabelText("Party code to join"), { target: { value: "AB" } });
     fireEvent.click(screen.getByRole("button", { name: "Join party" }));
 
