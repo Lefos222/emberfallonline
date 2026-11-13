@@ -1,5 +1,5 @@
 import { t } from "./i18n";
-import { warDropKind } from "./war-drops";
+import { warDropKind, dungeonDrops } from "./war-drops";
 import { Swords } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EXPEDITIONS, expeditionFoe } from './building-content';
@@ -25,8 +25,9 @@ export function Expeditions({onClose,start}:{onClose:()=>void;start:StartBattle}
       update(h=>{
         const xp=scrollXp(rw.xp,xpMultiplier);const {levels}=grant(h,xp,rw.gold);
         h.wins++; recordRosterEncounter(h,foe.rosterId,true);
-        if(warDropKind()==="materials") { addMats(h,{[expedition.material]:expedition.quantity}); lines.push(`+${expedition.quantity} ${MATS[expedition.material].name}`); }
-        else { loot=rollLoot(h,foe.level,1,foe.boss?2:0);if(loot)addLoot(h,loot); }
+        const drops=dungeonDrops();
+        if(drops&&warDropKind()==="materials") { addMats(h,{[expedition.material]:expedition.quantity}); lines.push(`+${expedition.quantity} ${MATS[expedition.material].name}`); }
+        else if(drops) { loot=rollLoot(h,foe.level,1,foe.boss?1:0);if(loot)addLoot(h,loot); }
         lines.push(`+${fmt(xp)} XP`,`+${fmt(rw.gold)} gold`);
         if(levels)lines.push(`Level up ×${levels}`);
       });return {lines,loot};

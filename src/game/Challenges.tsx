@@ -1,5 +1,5 @@
 import { tName , t} from "./i18n";
-import { warDropKind } from "./war-drops";
+import { warDropKind, dungeonDrops, bossCrystals } from "./war-drops";
 import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { scrollXp } from "./scrolls";
@@ -86,13 +86,14 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
         update((h) => {
           const { levels } = grant(h, scrollXp(rw.xp, xpMultiplier), rw.gold);
           h.challenges = { ...(h.challenges ?? {}), [id]: Math.max(cleared(h, id), d) };
-          const materials = warDropKind() === "materials";
+          const drops = dungeonDrops();
+          const materials = drops && warDropKind() === "materials";
           if (materials && rw.bossCore) addMats(h, { bossCore: rw.bossCore });
           // Higher-armour crystals: Frost from every boss, Void from deeper ranks, Sun rarely from the deepest.
-          const cry = { frostCrystal: 1 + Math.floor(d / 2), ...(d >= 3 ? { voidCrystal: Math.floor(d / 3) } : {}), ...(d >= 5 && Math.random() < 0.35 ? { sunCrystal: 1 } : {}), dragonScale: 1 + Math.floor(d / 2), ...(d >= 3 ? { abyssalShard: Math.floor(d / 3) } : {}), ...(d >= 5 && Math.random() < 0.3 ? { titanHeart: 1 } : {}) };
+          const cry = bossCrystals(d) as Partial<Record<Mat, number>>;
           if(materials) addMats(h, cry);
           addWeeklyKill(h);
-          if(!materials) {
+          if(drops && !materials) {
           loot = makeDrop(h.cls, h.level + Math.floor(h.paragon / 2) + d * 2, cappedRarity(rw.minRarity, h.level));
           loot.name = `${TIER_BOSSES[id].name.split(",")[0]}'s ${loot.name.split(" ").slice(1).join(" ")}`;
           const full = h.inventory.length >= invCap(h); addLoot(h, loot); if (full) lines.push("Bag full — gear placed in your Overflow Chest (Armory)");
@@ -116,8 +117,9 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
         let lines: string[] = []; let loot: Item | null = null;
         update((h) => {
           const { levels } = grant(h, scrollXp(lvl * 60, xpMultiplier), lvl * 12);
-          const materials = warDropKind() === "materials";
-          loot = materials ? null : rollLoot(h, lvl + 5, 1, 2);
+          const drops = dungeonDrops();
+          const materials = drops && warDropKind() === "materials";
+          loot = drops && !materials ? rollLoot(h, lvl + 5, 1, 1) : null;
           if (loot) addLoot(h, loot);
           const bones = 1 + Math.floor(lvl / 40);
           if(materials) addMats(h, { essence: 2, wyrmBone: bones });
