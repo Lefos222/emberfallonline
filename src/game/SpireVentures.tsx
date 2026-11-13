@@ -206,20 +206,21 @@ export function SpireHub({ onClose, start, onBattleVisible }: { onClose: () => v
   const v = ventureOf(hero?.spireVentures);
   const riftLeft = v.failed ? 0 : RIFT_ROOMS - v.room;
   const header = (
-    <div className="mb-3 grid gap-2 sm:grid-cols-2">
-      {([
-        ["party", "Party Dungeons", "Climb floors together with up to three friends"],
-        ["ventures", "Solo Ventures", "Warden hunts and a daily rift path"],
-      ] as const).map(([id, name, note]) => (
-        <button key={id} onClick={() => { setMode(id); storePick(MODE_KEY, id); }} className={`slot p-3 text-left ${mode === id ? "border-gold ring-1 ring-gold" : "opacity-80 hover:opacity-100"}`}>
-          <b className="font-display text-gold">{t(name)}</b>
-          <div className="text-xs text-muted-foreground">{t(note)}</div>
-        </button>
-      ))}
-      <div className="sm:col-span-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+    <div className="mb-3 space-y-2">
+      <div role="tablist" aria-label={t("Spire modes")} className="flex gap-1">
+        {([
+          ["party", "Party Dungeons"],
+          ["ventures", "Solo Ventures"],
+        ] as const).map(([id, name]) => (
+          <button key={id} role="tab" aria-selected={mode === id} onClick={() => { setMode(id); storePick(MODE_KEY, id); }}
+            className={`${mode === id ? "btn-gold" : "btn-ghost"} flex-1 px-2 py-2 text-xs sm:text-sm`}>
+            {t(name)}
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
         <span className="slot px-2 py-1">{t("Today")}: <b className="text-gold">{3 - v.wardens.length}</b> {t("wardens left")}</span>
         <span className="slot px-2 py-1"><b className="text-gold">{riftLeft}</b> {t("rift rooms left")}</span>
-        {mode === "party" && <span className="slot px-2 py-1">{t("1. Pick a dungeon · 2. Share the code or invite friends · 3. Start the climb")}</span>}
       </div>
     </div>
   );

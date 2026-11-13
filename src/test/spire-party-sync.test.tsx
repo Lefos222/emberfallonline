@@ -136,11 +136,13 @@ describe("the party's live fight", () => {
 
     // 2: two friends join with the code
     const mate = await seat({ hero: newHero("Bo", "mage"), heroId: "hero-b", gender: "female" });
+    fireEvent.click(mate.screen.getByRole("tab", { name: "Party" }));
     fireEvent.change(mate.screen.getByLabelText("Party code to join"), { target: { value: code } });
     fireEvent.click(mate.screen.getByRole("button", { name: "Join party" }));
     await settle(50);
 
     const scout = await seat({ hero: newHero("Cy", "archer"), heroId: "hero-c", gender: "male" });
+    fireEvent.click(scout.screen.getByRole("tab", { name: "Party" }));
     fireEvent.change(scout.screen.getByLabelText("Party code to join"), {
       target: { value: code },
     });
@@ -148,10 +150,12 @@ describe("the party's live fight", () => {
     await settle(50);
 
     // The leader's roster carries all three heroes.
+    fireEvent.click(leader.screen.getByRole("tab", { name: "Party" }));
     expect(leader.screen.getByText("Bo")).toBeTruthy();
     expect(leader.screen.getByText("Cy")).toBeTruthy();
 
     // 3: the leader starts the climb, and every screen draws the same floor
+    fireEvent.click(leader.screen.getByRole("tab", { name: "Climb" }));
     fireEvent.click(leader.screen.getByRole("button", { name: "Start the climb" }));
     await settle(TICK_MS * 2);
     expect(leader.screen.getByText(/Floor 1/)).toBeTruthy();

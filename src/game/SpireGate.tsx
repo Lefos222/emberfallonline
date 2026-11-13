@@ -5,7 +5,7 @@ import { takeAccepted, useInvites } from "./party-invites";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { tr } from "./i18n";
-import { fmt, Panel } from "./ui";
+import { fmt, GameTabs, Panel } from "./ui";
 import { Meter } from "./GateUI";
 import { Button } from "@/components/ui/button";
 import { CharacterModel } from "./CharacterModel";
@@ -105,6 +105,8 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
   }, [battle !== null, onBattleVisible]);
   const [earned, setEarned] = useState(0);
   const [live, setLive] = useState(false);
+  /** Climb first, then the party's seats, then what the chests hold. */
+  const [tab, setTab] = useState<"climb" | "party" | "rewards">("climb");
 
   const self = useMemo(() => (hero && heroId ? memberOf(hero, gender, heroId) : null), [hero, heroId, gender]);
   const selfRef = useRef<SpireMember | null>(null);
@@ -466,12 +468,15 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
     <>
       <Panel title="Spire Gate" subtitle="Party dungeons, warden hunts and rift paths" art="swords" onClose={close} wide>
         {!battle && header}
-        {/* The climb at a glance: the runs left, how far this dungeon has been climbed, chests waiting. */}
-        <div className="grid gap-2 sm:grid-cols-3">
-          <div className="slot p-3">
-            <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">{tr("Runs left today")}</span>
-            <b className="font-display text-xl">{st ? st.runs_left : "…"}</b>
-            <span className="text-muted-foreground"> / {Math.max(SPIRE_RUNS_PER_DAY, st?.runs_left ?? 0)}</span>
+
+        {/* Three tight counters instead of three tall cards: the whole climb at a glance. */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="slot px-2 py-2 text-center sm:px-3">
+            <span className="block text-[10px] uppercase leading-tight tracking-wide text-muted-foreground sm:text-[11px]">{tr("Runs left today")}</span>
+            <div className="font-display text-lg leading-tight sm:text-xl">
+              <b>{st ? st.runs_left : "…"}</b>
+              <span className="text-xs text-muted-foreground"> / {Math.max(SPIRE_RUNS_PER_DAY, st?.runs_left ?? 0)}</span>
+            </div>
             <span className="mt-1 block h-1.5 w-full overflow-hidden rounded bg-background/70">
               <span
                 className="block h-full bg-gold"
@@ -479,25 +484,25 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
               />
             </span>
           </div>
-          <div className="slot p-3">
-            <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">{tr("Best floor")}</span>
-            <b className="font-display text-xl">{bests[picked.id] ?? 0}</b>
-            <span className="text-muted-foreground"> / {picked.floors}</span>
-            <span className="mt-1 block truncate text-[11px] text-muted-foreground">{tr(picked.name)}</span>
-          </div>
-          <div className="slot flex flex-col gap-1.5 p-3">
-            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">{tr("Spire Chests")}</span>
-            <div className="flex items-center justify-between gap-2">
-              <b className="font-display text-xl text-gold">{st ? st.chests : "…"}</b>
-              <Button
-                variant="ghost"
-                className="btn-ghost px-2 py-1 text-xs"
-                onClick={() => void openChest()}
-                disabled={busy || !st || st.chests < 1}
-              >
-                {tr("Open a chest")}
-              </Button>
+          <div className="slot px-2 py-2 text-center sm:px-3">
+            <span className="block text-[10px] uppercase leading-tight tracking-wide text-muted-foreground sm:text-[11px]">{tr("Best floor")}</span>
+            <div className="font-display text-lg leading-tight sm:text-xl">
+              <b>{st ? st.best : (bests[picked.id] ?? 0)}</b>
+              <span className="text-xs text-muted-foreground"> / {picked.floors}</span>
             </div>
+            <span className="mt-1 block truncate text-[10px] text-muted-foreground sm:text-[11px]">{tr(picked.name)}</span>
+          </div>
+          <div className="slot flex flex-col items-center justify-center px-2 py-2 sm:px-3">
+            <span className="block text-[10px] uppercase leading-tight tracking-wide text-muted-foreground sm:text-[11px]">{tr("Spire Chests")}</span>
+            <b className="font-display text-lg leading-tight text-gold sm:text-xl">{st ? st.chests : "…"}</b>
+            <Button
+              variant="ghost"
+              className="btn-gold mt-0.5 w-full px-1.5 py-1 text-[10px] sm:text-[11px]"
+              onClick={() => void openChest()}
+              disabled={busy || !st || st.chests < 1}
+            >
+              {tr("Open a chest")}
+            </Button>
           </div>
         </div>
 
@@ -512,162 +517,233 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
           </p>
         )}
 
-        {/* The gate's dungeons: pick the climb, see how far the hero has been. */}
-        <div role="radiogroup" aria-label={tr("Dungeons of the Spire Gate")} className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {SPIRE_DUNGEONS.map((d) => {
-            const open = dungeonUnlocked(d, heroLevel);
-            const best = bests[d.id] ?? 0;
-            const on = d.id === picked.id;
-            return (
-              <button
-                key={d.id}
-                role="radio"
-                aria-checked={on}
-                disabled={!open || !!battle}
-                onClick={() => {
-                  setDungeon(d.id);
-                  savePick(d.id);
-                  setNote("");
-                }}
-                className={`slot overflow-hidden p-0 text-left disabled:opacity-60 ${on ? "ring-2 ring-gold" : ""}`}
-              >
-                <span className="relative block h-16">
-                  <img src={DUNGEON_ART[d.id] ?? gateDungeon} alt="" className="absolute inset-0 h-full w-full object-cover opacity-60" />
-                  <span className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-                  <span className="absolute left-2 top-1.5 font-display text-sm text-gold">{tr(d.name)}</span>
-                  <span className="absolute right-2 top-1.5 rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
-                    {open ? `${d.floors} ${tr("floors")}` : `Lv ${d.level}`}
-                  </span>
-                  {on && (
-                    <span className="absolute bottom-1 left-2 rounded bg-gold/90 px-1.5 py-0.5 text-[10px] font-bold text-background">
-                      {tr("Selected")}
-                    </span>
-                  )}
-                  {best >= d.floors && (
-                    <span className="absolute bottom-1 right-2 text-[10px] font-bold text-gold">{tr("Conquered")}</span>
-                  )}
-                </span>
-                <span className="block px-2 py-1.5">
-                  <span className="block text-[11px] text-muted-foreground">
-                    {open ? tr(d.blurb) : tr("Unlocks at level {n}", { n: d.level })}
-                  </span>
-                  <span className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
-                    <span>
-                      {tr("Best")} <b className="text-gold">{best}</b>/{d.floors}
-                    </span>
-                    <span>{d.floors ? Math.min(100, Math.round((best / d.floors) * 100)) : 0}%</span>
-                  </span>
-                  <span className="mt-1 block h-1.5 w-full overflow-hidden rounded bg-background/70">
-                    <span className="block h-full bg-gold" style={{ width: `${Math.min(100, Math.round((best / d.floors) * 100))}%` }} />
-                  </span>
-                  <span className="mt-1 block text-[10px] text-muted-foreground">
-                    {tr("Drops")}: <b className="text-gold">{MATS[d.mat].name}</b>
-                  </span>
-                </span>
-              </button>
-            );
-          })}
+        <div className="mt-3">
+          <GameTabs label={tr("Spire Gate sections")} value={tab} onChange={setTab} tabs={[
+            { id: "climb", name: tr("Climb") },
+            { id: "party", name: tr("Party") },
+            { id: "rewards", name: tr("Rewards") },
+          ]} />
         </div>
 
-        <div className="slot mt-3 grid gap-3 p-3 md:grid-cols-2">
-          <div>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="font-display text-gold">{tr("Party code")}</span>
-              <b className="font-display text-2xl tracking-[0.3em]">{code}</b>
-              <Button variant="ghost" className="btn-ghost px-2 py-1 text-xs" onClick={copyCode}>
-                {copied ? tr("Copied") : tr("Copy code")}
-              </Button>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {leader
-                ? tr("Friends join with this code. One fight is shared by up to four heroes.")
-                : tr("You joined this party. The party's leader starts the climb.")}
-              {live ? "" : ` · ${tr("Playing alone — the party channel is closed.")}`}
-            </p>
-
-            {leader && heroId && hero && <InviteFriends heroId={heroId} kind="spire" code={code} from={{ name: hero.name, level: hero.level }} full={roster.length >= SPIRE_PARTY_MAX} />}
-
-            {leader && (
-              <form className="mt-2 flex flex-wrap items-center gap-2" onSubmit={join}>
-                <input
-                  aria-label={tr("Party code to join")}
-                  value={joinCode}
-                  onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 8))}
-                  placeholder={tr("Party code")}
-                  className="w-28 rounded border border-border bg-background p-2 text-sm tracking-[0.2em]"
-                />
-                <Button type="submit" variant="ghost" className="btn-ghost px-2 py-1 text-xs">
-                  {tr("Join party")}
+        {tab === "climb" && (
+          <div className="space-y-3">
+            {/* The chosen climb and the way in, so Start is never buried under six cards. */}
+            <div className="slot flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
+              <span className="relative hidden h-14 w-14 shrink-0 overflow-hidden rounded-md sm:block">
+                <img src={DUNGEON_ART[picked.id] ?? gateDungeon} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-baseline gap-x-2">
+                  <span className="font-display text-lg text-gold">{tr(picked.name)}</span>
+                  <span className="text-[11px] text-muted-foreground">{picked.floors} {tr("floors")}</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground">{tr(picked.blurb)}</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  {tr("Best")} <b className="text-gold">{bests[picked.id] ?? 0}</b>/{picked.floors} · {tr("Drops")}: <b className="text-gold">{MATS[picked.mat].name}</b>
+                </p>
+              </div>
+              {leader ? (
+                <Button
+                  className="btn-gold w-full shrink-0 px-5 py-3 text-lg sm:w-auto"
+                  onClick={() => void startRun()}
+                  disabled={busy || !ready}
+                >
+                  {!gateOpen
+                    ? tr("Unlocks at level {n}", { n: picked.level })
+                    : ready
+                      ? tr("Start the climb")
+                      : tr("No runs left today")}
                 </Button>
-              </form>
-            )}
-          </div>
-
-          <div>
-            <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">
-              {tr("Party")} · {roster.length}/{SPIRE_PARTY_MAX}
-            </span>
-            <ul aria-label={tr("Party")} className="mt-1 grid gap-1">
-              {roster.map((m) => (
-                <li key={m.id} className="slot flex items-center gap-2 p-2 text-xs">
-                  <CharacterModel cls={m.cls} gender={m.gender} synth={m.synth} look={m.look} className="h-10 w-10" />
-                  <span className="min-w-0 flex-1 truncate">{m.name}</span>
-                  <span className="text-muted-foreground">
-                    {tr("Lv")} {m.level}
-                  </span>
-                  {m.id === self?.id && <span className="text-gold">{tr("You")}</span>}
-                </li>
-              ))}
-              {Array.from({ length: Math.max(0, SPIRE_PARTY_MAX - roster.length) }, (_, i) => (
-                <li key={`seat-${i}`} className="slot flex items-center justify-center p-2 text-xs text-muted-foreground">
-                  {tr("Empty seat")}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* The Vulcan Card the hero carries: selected here, it burns into one more climb today. */}
-        {cards > 0 && (
-          <div role="group" aria-label={tr("Vulcan Card")} className="slot mt-3 flex flex-wrap items-center gap-3 border-gold p-3">
-            <img src={vulcanArt} alt="" aria-hidden="true" className="h-14 w-11 shrink-0 rounded object-cover" />
-            <div className="min-w-0 flex-1">
-              <b className="block font-display text-gold">
-                {tr("Vulcan Card")} ×{cards}
-              </b>
-              <span className="text-[11px] text-muted-foreground">{tr("Select a Vulcan Card for one more climb today.")}</span>
+              ) : (
+                <p className="text-center text-xs text-muted-foreground sm:text-right">{tr("Waiting for the party leader…")}</p>
+              )}
             </div>
-            <Button
-              variant="ghost"
-              className="btn-gold px-3 py-1.5 text-xs"
-              disabled={busy || !!battle}
-              title={tr("Burn one Vulcan Card for one more run today")}
-              onClick={() => void burnCard()}
-            >
-              {tr("Use a Vulcan Card · +1 run")}
-            </Button>
+            <p className="text-center text-[11px] text-muted-foreground">{tr("The climb goes on until the summit or the whole party falls.")}</p>
+
+            {/* The Vulcan Card the hero carries: one more climb today. */}
+            {cards > 0 && (
+              <div role="group" aria-label={tr("Vulcan Card")} className="slot flex flex-wrap items-center gap-3 border-gold p-2.5">
+                <img src={vulcanArt} alt="" aria-hidden="true" className="h-12 w-9 shrink-0 rounded object-cover" />
+                <div className="min-w-0 flex-1">
+                  <b className="block font-display text-sm text-gold">{tr("Vulcan Card")} ×{cards}</b>
+                  <span className="text-[11px] text-muted-foreground">{tr("Select a Vulcan Card for one more climb today.")}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  className="btn-gold w-full px-3 py-1.5 text-xs sm:w-auto"
+                  disabled={busy || !!battle}
+                  title={tr("Burn one Vulcan Card for one more run today")}
+                  onClick={() => void burnCard()}
+                >
+                  {tr("Use a Vulcan Card · +1 run")}
+                </Button>
+              </div>
+            )}
+
+            <div>
+              <div className="mb-1.5 flex items-center justify-between gap-2">
+                <span className="font-display text-sm text-gold">{tr("Choose a dungeon")}</span>
+                <span className="text-[11px] text-muted-foreground">{heroLevel} {tr("Lv")}</span>
+              </div>
+              <div role="radiogroup" aria-label={tr("Dungeons of the Spire Gate")} className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+                {SPIRE_DUNGEONS.map((d) => {
+                  const open = dungeonUnlocked(d, heroLevel);
+                  const best = bests[d.id] ?? 0;
+                  const on = d.id === picked.id;
+                  const pct = d.floors ? Math.min(100, Math.round((best / d.floors) * 100)) : 0;
+                  return (
+                    <button
+                      key={d.id}
+                      role="radio"
+                      aria-checked={on}
+                      disabled={!open || !!battle}
+                      onClick={() => {
+                        setDungeon(d.id);
+                        savePick(d.id);
+                        setNote("");
+                      }}
+                      className={`slot overflow-hidden p-0 text-left disabled:opacity-60 ${on ? "ring-2 ring-gold" : ""}`}
+                    >
+                      <span className="relative block h-16 sm:h-20">
+                        <img src={DUNGEON_ART[d.id] ?? gateDungeon} alt="" className="absolute inset-0 h-full w-full object-cover opacity-60" />
+                        <span className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+                        <span className="absolute left-2 top-1.5 max-w-[calc(100%-1rem)] truncate font-display text-sm text-gold">{tr(d.name)}</span>
+                        <span className="absolute right-1.5 top-1.5 rounded bg-background/80 px-1 py-0.5 text-[10px] font-bold">
+                          {open ? `${d.floors} ${tr("floors")}` : `Lv ${d.level}`}
+                        </span>
+                        {on && (
+                          <span className="absolute bottom-1 left-2 rounded bg-gold/90 px-1.5 py-0.5 text-[10px] font-bold text-background">
+                            {tr("Selected")}
+                          </span>
+                        )}
+                        {best >= d.floors && (
+                          <span className="absolute bottom-1 right-2 text-[10px] font-bold text-gold">{tr("Conquered")}</span>
+                        )}
+                      </span>
+                      <span className="block px-2 py-1.5">
+                        <span className="flex items-center justify-between text-[10px] text-muted-foreground">
+                          <span>{open ? <>{tr("Best")} <b className="text-gold">{best}</b>/{d.floors}</> : tr("Unlocks at level {n}", { n: d.level })}</span>
+                          <span>{open ? `${pct}%` : ""}</span>
+                        </span>
+                        <span className="mt-1 block h-1.5 w-full overflow-hidden rounded bg-background/70">
+                          <span className="block h-full bg-gold" style={{ width: `${pct}%` }} />
+                        </span>
+                        <span className="mt-1 hidden truncate text-[10px] text-muted-foreground sm:block">
+                          {tr("Drops")}: <b className="text-gold">{MATS[d.mat].name}</b>
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 
-        {leader ? (
-          <>
-            <Button
-              className="btn-gold mt-3 w-full py-2.5 text-lg"
-              onClick={() => void startRun()}
-              disabled={busy || !ready}
-            >
-              {!gateOpen
-                ? tr("Unlocks at level {n}", { n: picked.level })
-                : ready
-                  ? tr("Start the climb")
-                  : tr("No runs left today")}
-            </Button>
-            <p className="mt-1 text-center text-[11px] text-muted-foreground">
-              {tr(picked.name)} · {tr("The climb goes on until the summit or the whole party falls.")}
-            </p>
-          </>
-        ) : (
-          <p className="mt-3 text-center text-xs text-muted-foreground">{tr("Waiting for the party leader…")}</p>
+        {tab === "party" && (
+          <div className="grid gap-3 md:grid-cols-2">
+            <section className="slot p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-display text-gold">{tr("Party code")}</span>
+                <b className="font-display text-2xl tracking-[0.3em]">{code}</b>
+                <Button variant="ghost" className="btn-ghost px-2 py-1 text-xs" onClick={copyCode}>
+                  {copied ? tr("Copied") : tr("Copy code")}
+                </Button>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {leader
+                  ? tr("Friends join with this code. One fight is shared by up to four heroes.")
+                  : tr("You joined this party. The party's leader starts the climb.")}
+                {live ? "" : ` · ${tr("Playing alone — the party channel is closed.")}`}
+              </p>
+
+              {leader && heroId && hero && <InviteFriends heroId={heroId} kind="spire" code={code} from={{ name: hero.name, level: hero.level }} full={roster.length >= SPIRE_PARTY_MAX} />}
+
+              {leader && (
+                <form className="mt-3 flex flex-wrap items-center gap-2" onSubmit={join}>
+                  <input
+                    aria-label={tr("Party code to join")}
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 8))}
+                    placeholder={tr("Party code")}
+                    className="h-10 w-28 rounded border border-border bg-background px-2 text-sm tracking-[0.2em]"
+                  />
+                  <Button type="submit" variant="ghost" className="btn-ghost px-3 py-2 text-xs">
+                    {tr("Join party")}
+                  </Button>
+                </form>
+              )}
+              <p className="mt-3 text-[11px] text-muted-foreground">{tr("1. Pick a dungeon · 2. Share the code or invite friends · 3. Start the climb")}</p>
+            </section>
+
+            <section className="slot p-3">
+              <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">
+                {tr("Party")} · {roster.length}/{SPIRE_PARTY_MAX}
+              </span>
+              <ul aria-label={tr("Party")} className="mt-1.5 grid gap-1.5">
+                {roster.map((m) => (
+                  <li key={m.id} className="slot flex items-center gap-2 p-2 text-xs">
+                    <CharacterModel cls={m.cls} gender={m.gender} synth={m.synth} look={m.look} className="h-10 w-10" />
+                    <span className="min-w-0 flex-1 truncate">{m.name}</span>
+                    <span className="text-muted-foreground">{tr("Lv")} {m.level}</span>
+                    {m.id === self?.id && <span className="text-gold">{tr("You")}</span>}
+                  </li>
+                ))}
+                {Array.from({ length: Math.max(0, SPIRE_PARTY_MAX - roster.length) }, (_, i) => (
+                  <li key={`seat-${i}`} className="slot flex items-center justify-center p-2 text-xs text-muted-foreground">
+                    {tr("Empty seat")}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
+        )}
+
+        {tab === "rewards" && (
+          <div className="space-y-3">
+            <div className="slot flex flex-wrap items-center gap-3 p-3">
+              <img src={spireChest} alt="" aria-hidden="true" className="h-16 w-16 shrink-0 object-contain" />
+              <div className="min-w-0 flex-1">
+                <b className="block font-display text-lg text-gold">{st ? st.chests : "…"} {tr("Spire Chests")}</b>
+                <p className="text-xs text-muted-foreground">{tr("Every floor your party clears earns a Spire Chest. Opening one pays gold and materials scaled by your best floor.")}</p>
+              </div>
+              <Button
+                variant="ghost"
+                className="btn-gold w-full px-4 py-2 text-sm sm:w-auto"
+                onClick={() => void openChest()}
+                disabled={busy || !st || st.chests < 1}
+              >
+                {tr("Open a chest")}
+              </Button>
+            </div>
+
+            <div className="slot p-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="font-display text-sm text-gold">{tr("Best floors")}</span>
+                <span className="text-[11px] text-muted-foreground">{tr("Drops")}</span>
+              </div>
+              <ul className="space-y-2">
+                {SPIRE_DUNGEONS.map((d) => {
+                  const best = bests[d.id] ?? 0;
+                  const pct = d.floors ? Math.min(100, Math.round((best / d.floors) * 100)) : 0;
+                  return (
+                    <li key={d.id} className="flex items-center gap-2 text-xs">
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center justify-between gap-2">
+                          <b className="truncate font-display">{tr(d.name)}</b>
+                          <span className="shrink-0 text-muted-foreground">{best}/{d.floors}</span>
+                        </span>
+                        <span className="mt-1 block h-1.5 w-full overflow-hidden rounded bg-background/70">
+                          <span className="block h-full bg-gold" style={{ width: `${pct}%` }} />
+                        </span>
+                      </span>
+                      <span className="w-20 shrink-0 truncate text-right text-[10px] text-gold">{MATS[d.mat].name}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
         )}
       </Panel>
 
