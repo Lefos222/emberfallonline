@@ -15,6 +15,7 @@ import { fmt } from "./ui";
 import { useT , t} from "./i18n";
 import { LanguagePicker } from "./LanguagePicker";
 import { AnticheatNotice } from "./AnticheatNotice";
+import { BanNotice } from "./BanNotice";
 
 export function Portrait({ cls, gender, className = "", synth, look }: { cls: HeroClass; gender: Gender; className?: string; synth?: number | null; look?: number | null }) {
   return <CharacterModel cls={cls} gender={gender} className={className} synth={synth} look={look} />;
@@ -103,6 +104,7 @@ export function CharacterSelect() {
       </div>
 
       <AnticheatNotice />
+      <BanNotice />
       {confirmDel && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4">
           <div className="game-panel anim-pop w-full max-w-sm p-6 text-center">
