@@ -310,9 +310,9 @@ export const GUIDE_LEGEND: { get label(): string; glyph: GuideGlyph }[] = [
   },
   {
     get label() {
-      return MATS.enchantStone.name;
+      return t("Enchantment Stones");
     },
-    glyph: { kind: "stone", level: 1 },
+    glyph: { kind: "stone", level: 2 },
   },
   {
     get label() {

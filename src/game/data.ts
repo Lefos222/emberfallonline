@@ -35,6 +35,7 @@ import { titleFx } from "./titles";
 import { feastFx, normalizeFarm, type FarmState } from "./farm";
 import { epicMult } from "./epic-armour";
 import { normalizeMine, type MineState } from "./mine";
+import { migrateEnchantStones } from "./enchant";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -70,9 +71,9 @@ export type GearRecord = Partial<Record<WearSlot, Item>>;
 
 export const MAX_LEVEL = 140;
 /** Gear can be enchanted this far. The climb is the game's long-term gold sink. */
-export const ENHANCE_MAX = 70;
-/** Gold enhancement stops here: beyond +13 the forge only answers to Enchantment Stones. */
-export const ENHANCE_GOLD_LIMIT = 13;
+export const ENHANCE_MAX = 60;
+/** Gold carries a piece the whole climb: every step up to +60 may be paid in gold. */
+export const ENHANCE_GOLD_LIMIT = ENHANCE_MAX;
 export const CONQUEST_LEVEL = 10;
 export const canEnterConquest = (level: number) => level >= CONQUEST_LEVEL;
 export const INVENTORY_CAP = 40;
@@ -402,38 +403,40 @@ export function buyPrice(it: Item, level = 1) {
 }
 /**
  * Enhancing at the Forge: the item's own level and the hero's level both raise the price, and each
- * further step costs more than the last. Gold carries a piece to +13; the climb to +70 is a long,
- * deliberate sink of Enchantment Stones on top of the gold.
+ * further step costs more than the last. Gold alone carries a piece all the way to +60, and every
+ * step adds a real chunk of stats (see itemStats).
  */
 export function enhanceCost(it: Item, level = 1) {
   return scaledGold(it.ilvl * 2.4 * Math.pow(it.enh + 1, 1.4), level);
 }
 /**
- * Success chance falls with the enhancement level. The opening steps are near-certain, but past
- * the gold limit the roll keeps dropping (nothing below the master smith's 12% floor), so the
- * deep enchantments need Enchantment Stones to stay worth attempting.
+ * Success chance falls with the enhancement level. The opening steps are near-certain, but the
+ * roll keeps dropping (nothing below the master smith's 12% floor), so the deep enchantments stay
+ * a gamble even with gold to spare.
  */
 export function enhanceChance(it: Item) {
   return Math.max(0.12, 1 - it.enh * 0.021);
 }
-/** True when gold alone may still buy the next step (+13 is the last one). */
+/** True when gold alone may still buy the next step (it may, the whole way to +60). */
 export const goldEnhanceAllowed = (it: Item) => it.enh < ENHANCE_GOLD_LIMIT;
 /** True when the piece is already at the forge's highest enchantment. */
 export const enhanceMaxed = (it: Item) => it.enh >= ENHANCE_MAX;
 /** Enchantment Stones needed to enhance: 1 per 3 enhancement levels. */
 export const enchantStoneCost = (it: Item) => 1 + Math.floor(it.enh / 3);
 /**
- * The stone grade the next step demands. Grade 1 carries a piece from +13 to +19, then every six
- * steps call for one grade higher, up to a Lv 9 stone for the deepest enchantments.
+ * Enchanting with a stone: any grade may be used on any piece. The stone's own grade adds its
+ * bonus to the roll, but rarer gear resists the attempt — and it resists a low-grade stone far
+ * more than a high-grade one, so cheap stones on Mythic gear stay a real gamble. The roll never
+ * reaches certainty, so even a Lv 9 stone keeps a sliver of bad luck.
  */
-export const enchantStoneGrade = (it: Item) =>
-  Math.max(1, Math.min(9, 1 + Math.floor(Math.max(0, it.enh - (ENHANCE_GOLD_LIMIT - 1)) / 6)));
-/**
- * Enchanting with a stone: the stone grade (1-9, see enchant.ts) adds 10% per grade to the roll.
- * The chance never reaches certainty, so even a Lv 9 stone keeps a sliver of bad luck.
- */
-export const enhanceStoneChance = (it: Item, stoneLevel = 1) =>
-  Math.min(0.99, enhanceChance(it) + Math.max(1, Math.min(9, Math.round(stoneLevel))) * 0.1);
+export const enhanceStoneChance = (it: Item, stoneLevel = 2) => {
+  const grade = Math.max(2, Math.min(9, Math.round(Number.isFinite(stoneLevel) ? stoneLevel : 2)));
+  const rarity = Math.max(0, Math.min(RARITIES.length - 1, it.rarity));
+  // Each rarity step above Common resists the stone: a Lv 2 stone loses 9% per step, a Lv 9
+  // stone only 2%, so rare gear answers far better to the deeper grades.
+  const resist = Math.max(0, rarity - 1) * Math.max(0.02, 0.11 - grade * 0.01);
+  return Math.max(0.05, Math.min(0.99, enhanceChance(it) + grade * 0.1 - resist));
+};
 
 // ---------- Wearing gear ----------
 /** Which wear position a worn item occupies. */
@@ -576,7 +579,7 @@ export interface Hero {
   achClaimed?: string[];
   mats?: Partial<Record<Mat, number>>;
   gems?: Record<string, number>;
-  /** Enchantment Stones of grades 2-9 by grade; grade 1 lives in `mats.enchantStone` (see enchant.ts). */
+  /** Enchantment Stones of grades 2-9 by grade; the old grade-1 stone was removed (see enchant.ts). */
   enchantStones?: Record<string, number>;
   astrals?: Astral[];
   astralSlots?: (string | null)[];
@@ -876,7 +879,7 @@ export function normalizeHero(h: Hero): Hero {
     const worn = h.equipment[pos];
     if (worn && worn.rarity > maxRarity) delete h.equipment[pos];
   }
-  // Enhancement is capped at +30 now: older saves that climbed past it are clamped down.
+  // Enhancement is capped at +60 now: older saves that climbed past it are clamped down.
   for (const it of [...h.inventory, ...WEAR_SLOTS.map((p) => h.equipment[p])]) {
     if (it && it.enh > ENHANCE_MAX) it.enh = ENHANCE_MAX;
     // Cut gem sockets stay inside the forge's limit whatever a save claims.
@@ -889,6 +892,8 @@ export function normalizeHero(h: Hero): Hero {
   delete legacy.road;
   // Gems from older saves are remapped onto the eight chart families (see crafting.ts).
   migrateGems(h);
+  // The plain grade-1 stone was removed: leftover stacks become Lv 2 stones (see enchant.ts).
+  migrateEnchantStones(h);
   // Astrals are clamped onto the six-colour, ten-level ladder (see crafting.ts).
   normalizeAstrals(h);
   // Synthesis gear survives every save round-trip; unknown or un-forged pieces are dropped.
@@ -1157,11 +1162,11 @@ export const foeRating = (foe: Pick<Foe, "hp" | "atk" | "def" | "level">) =>
   battleRating(foe.atk * 2 + foe.def * 1.5 + foe.hp * 0.2, foe.level);
 
 /** How many levels above a chosen stage the world may scale its foes. */
-export const WORLD_DRIFT = 20;
+export const WORLD_DRIFT = 15;
 
 /**
  * Enemies level up with the hero: a hero far above a stage meets tougher versions of that stage's
- * foes, up to WORLD_DRIFT levels higher. A level-100 hero returning to stage 1 fights level-21
+ * foes, up to WORLD_DRIFT levels higher. A level-100 hero returning to stage 1 fights level-16
  * Goblins instead of a tutorial, while the next stage they have not cleared still waits at its
  * own level, so progress is never walled by over-levelling.
  */
@@ -1169,7 +1174,7 @@ export function scaledFoe<T extends Foe>(foe: T, heroLevel: number): T {
   const lv = Math.max(1, Math.floor(heroLevel));
   if (lv <= foe.level) return foe;
   const target = Math.min(lv, foe.level + WORLD_DRIFT);
-  const mult = Math.pow(1.03, target - foe.level);
+  const mult = Math.pow(1.025, target - foe.level);
   return {
     ...foe,
     level: target,
@@ -1304,6 +1309,23 @@ export function stageRewards(stage: number, mult = 1) {
     xp: Math.round(22 * Math.pow(stage, 1.5) * late * grindTaper * mult),
     gold: goldGain(Math.round((6 + 1.5 * Math.pow(stage, 1.55)) * late * mult), stage),
   };
+}
+
+/** A campaign stage pays in full the first time it is cleared; replays pay a fraction. */
+export const CAMPAIGN_REPLAY_XP = 0.25;
+export const CAMPAIGN_REPLAY_GOLD = 0.5;
+
+/**
+ * What one campaign fight pays. `frontier` is the hero's next stage (`hero.stage`): fighting it is
+ * a first clear and pays in full, while any stage already behind it is a replay and pays 25% XP and
+ * 50% gold, so a hero cannot level up by farming the same cleared stage (or a blitz) forever.
+ */
+export function campaignFightRewards(stage: number, frontier: number) {
+  const rw = stageRewards(stage);
+  const replay = stage < Math.max(1, Math.floor(frontier || 1));
+  return replay
+    ? { xp: Math.round(rw.xp * CAMPAIGN_REPLAY_XP), gold: Math.round(rw.gold * CAMPAIGN_REPLAY_GOLD), replay }
+    : { ...rw, replay };
 }
 
 // ---------- Skills ----------

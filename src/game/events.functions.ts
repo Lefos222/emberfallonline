@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
+import z from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { MAX_LEVEL } from "./data";
 import { WORLD_EVENTS } from "./events";

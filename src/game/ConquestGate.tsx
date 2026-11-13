@@ -5,7 +5,8 @@ import { Gem, Sparkles, Zap } from "lucide-react";
 import { Swords } from "./PaintedIcons";
 import { Button } from "@/components/ui/button";
 import { ConquestCoin, GemChestIcon, GoldChestIcon } from "./CoinIcon";
-import { GemIcon, MatIcon } from "./MatIcon";
+import { GemIcon, MatIcon, StoneIcon } from "./MatIcon";
+import { stoneName } from "./enchant";
 import { GEMS, GEM_MAX_TIER, GEM_STAT_LABEL, GEM_TYPES, MATS, gemKey, gemValue, type GemType } from "./crafting";
 import { BlitzRunCard } from "./BlitzRun";
 import { buyConquestKey, conquestKeyShopPrice } from "./Marketplace";
@@ -279,25 +280,28 @@ function MarketTab({ hero }: { hero: Hero }) {
       ok: true,
       t: isChest
         ? `${o.name} added to your vault — open it from the Armory`
-        : `Bought ${MATS[o.mat].name} ×${o.qty}`,
+        : o.stone
+          ? `Bought ${stoneName(o.stone)} ×${o.qty}`
+          : `Bought ${MATS[o.mat!].name} ×${o.qty}`,
     });
   });
 
   const offer = (o: (typeof TOKEN_OFFERS)[number]) => {
     const isChest = !!o.chest;
-    const label = isChest ? (o.name ?? "Chest") : `${MATS[o.mat].name} ×${o.qty}`;
+    const label = isChest ? (o.name ?? "Chest") : o.stone ? `${stoneName(o.stone)} ×${o.qty}` : `${MATS[o.mat!].name} ×${o.qty}`;
+    const note = isChest ? "" : o.stone ? "Enchantment Stones for the Forge" : MATS[o.mat!].src;
     const short = Math.max(0, o.cost - tokens);
     return (
       <button key={o.id} className="slot flex items-center justify-between gap-2 p-2.5 text-left text-xs"
         disabled={tokens < o.cost}
-        title={short > 0 ? `${fmt(short)} more tokens needed` : (isChest ? "Goes to your vault — open it from the Armory" : `${MATS[o.mat].desc} (${MATS[o.mat].src})`)}
+        title={short > 0 ? `${fmt(short)} more tokens needed` : (isChest ? "Goes to your vault — open it from the Armory" : `${MATS[o.mat!].desc} (${MATS[o.mat!].src})`)}
         onClick={() => buy(o)}>
         <span className="flex min-w-0 items-center gap-2">
-          {o.chest === "gold" ? <GoldChestIcon size={22} /> : o.chest === "gem" ? <GemChestIcon size={22} /> : <MatIcon mat={o.mat} size={20} />}
+          {o.chest === "gold" ? <GoldChestIcon size={22} /> : o.chest === "gem" ? <GemChestIcon size={22} /> : o.stone ? <StoneIcon level={o.stone} size={20} /> : <MatIcon mat={o.mat!} size={20} />}
           <span className="min-w-0">
             <span className="block truncate font-bold">{label}</span>
             <span className="block truncate text-[10px] text-muted-foreground">
-              {short > 0 ? `${fmt(short)} tokens short` : isChest ? tr("Vault item") : MATS[o.mat].src}
+              {short > 0 ? `${fmt(short)} tokens short` : isChest ? tr("Vault item") : note}
             </span>
           </span>
         </span>

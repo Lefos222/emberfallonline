@@ -136,7 +136,6 @@ export const MATERIAL_PRICES: Record<DiamondMat, MaterialPrices> = {
   crystal: { one: 11, five: 44 },
   starshard: { one: 28, five: 110 },
   sigil: { one: 28, five: 110 },
-  enchantStone: { one: 33, five: 132 },
   bossCore: { one: 55, five: 220 },
 };
 
@@ -150,7 +149,6 @@ export const MATERIAL_ORDER: DiamondMat[] = [
   "crystal",
   "starshard",
   "sigil",
-  "enchantStone",
   "bossCore",
 ];
 

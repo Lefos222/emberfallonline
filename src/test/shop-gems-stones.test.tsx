@@ -12,7 +12,7 @@ import {
 import { activateConquestKey, conquestKeyActive, conquestKeys } from "@/game/conquest";
 import { Forge } from "@/game/panels";
 import { GemWorkshop } from "@/game/Workshop";
-import { makeItem, newHero } from "@/game/data";
+import { makeItem, newHero, normalizeHero } from "@/game/data";
 import { MAX_SOCKETS, cutHole, holeCost, insertGem, socketCount, sockets } from "@/game/crafting";
 import {
   addStones,
@@ -40,32 +40,43 @@ describe("auction house shop discount", () => {
     expect(stoneShopPrice(1, 1)).toBe(Math.round(stonePrice(1, 1) * (1 - SHOP_DISCOUNT)));
   });
 
-  it("carries all nine stone grades and the battle scrolls inside the shop", () => {
+  it("carries every remaining stone grade and the battle scrolls inside the shop", () => {
     setHero(hero());
     render(<AuctionHousePanel onClose={() => {}} />);
     fireEvent.click(screen.getByRole("tab", { name: "Shop" }));
 
-    expect(screen.getByText("Enchantment Stones · nine grades")).toBeInTheDocument();
-    for (let grade = 1; grade <= 9; grade += 1) {
+    expect(screen.getByText("Enchantment Stones")).toBeInTheDocument();
+    // The plain grade-1 stone was removed: grades 2-9 are the ones on sale.
+    for (let grade = 2; grade <= 9; grade += 1) {
       expect(screen.getByRole("button", { name: `Buy a Lv ${grade} stone` })).toBeInTheDocument();
     }
+    expect(screen.queryByRole("button", { name: "Buy a Lv 1 stone" })).not.toBeInTheDocument();
     // The scrolls live in the shop as well, with their own buy buttons.
     expect(screen.getByText("Battle Scrolls")).toBeInTheDocument();
     expect(screen.getByText("Damage Scroll")).toBeInTheDocument();
     expect(screen.getByText("Experience Scroll")).toBeInTheDocument();
   });
 
-  it("buys a stone of any grade into the pouch", () => {
+  it("buys a stone of any remaining grade into the pouch", () => {
     const h = hero();
     const gold = h.gold;
+    // Grade 1 no longer exists: the shop clamps it up to the lowest stone that remains.
     expect(buyEnchantStone(h, 1)).toBeNull();
-    expect(stoneCount(h, 1)).toBe(1);
-    expect(h.mats?.enchantStone).toBe(1);
-    expect(h.gold).toBe(gold - stoneShopPrice(1, h.level));
+    expect(stoneCount(h, 2)).toBe(1);
+    expect((h.mats as Record<string, number> | undefined)?.enchantStone).toBeUndefined();
+    expect(h.gold).toBe(gold - stoneShopPrice(2, h.level));
 
     expect(buyEnchantStone(h, 4)).toBeNull();
     expect(stoneCount(h, 4)).toBe(1);
     expect(h.enchantStones?.["4"]).toBe(1);
+  });
+
+  it("turns an old grade-1 stack into a Lv 2 stone on load", () => {
+    const h = hero();
+    h.mats = { ...(h.mats ?? {}), enchantStone: 5 } as unknown as typeof h.mats;
+    normalizeHero(h);
+    expect((h.mats as Record<string, number> | undefined)?.enchantStone).toBeUndefined();
+    expect(stoneCount(h, 2)).toBe(5);
   });
 });
 

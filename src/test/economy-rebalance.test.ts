@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  CAMPAIGN_REPLAY_GOLD,
+  CAMPAIGN_REPLAY_XP,
   ENHANCE_MAX,
+  campaignFightRewards,
   enhanceChance,
   enhanceCost,
   enhanceMaxed,
+  enhanceStoneChance,
   heroStats,
   makeItem,
   newHero,
@@ -14,9 +18,9 @@ import { BOSS_CRYSTALS, CRYSTALS_PER_LEVEL, grant } from "@/game/logic";
 import { barracksCost, barracksLevel, upgradeBarracks } from "@/game/barracks";
 import { ADVANCED_DRILLS, advancedBlocker, advancedCost, advancedRank, drillAttrs, trainAdvanced } from "@/game/drills";
 
-describe("gear enhancement climbs to +70", () => {
-  it("caps enhancement at seventy", () => {
-    expect(ENHANCE_MAX).toBe(70);
+describe("gear enhancement climbs to +60", () => {
+  it("caps enhancement at sixty", () => {
+    expect(ENHANCE_MAX).toBe(60);
     const piece = makeItem("warrior", 40, 2, "weapon");
     expect(enhanceMaxed(piece)).toBe(false);
     piece.enh = ENHANCE_MAX;
@@ -38,6 +42,38 @@ describe("gear enhancement climbs to +70", () => {
     expect(enhanceChance(piece)).toBe(1);
     piece.enh = 20;
     expect(enhanceChance(piece)).toBeLessThan(0.7);
+  });
+
+  it("lets any stone grade try, but rarer gear resists cheap stones", () => {
+    const common = makeItem("warrior", 40, 0, "weapon");
+    const mythic = makeItem("warrior", 40, 5, "weapon");
+    common.enh = 20;
+    mythic.enh = 20;
+
+    // No grade is turned away: every stone rolls, and a higher grade always rolls better.
+    for (const grade of [2, 4, 6, 8, 9]) expect(enhanceStoneChance(mythic, grade)).toBeGreaterThan(0);
+    expect(enhanceStoneChance(mythic, 9)).toBeGreaterThan(enhanceStoneChance(mythic, 2));
+
+    // Mythic gear is harder than Common with the same stone, and the gap is worst for cheap stones.
+    expect(enhanceStoneChance(mythic, 2)).toBeLessThan(enhanceStoneChance(common, 2));
+    expect(enhanceStoneChance(common, 2) - enhanceStoneChance(mythic, 2))
+      .toBeGreaterThan(enhanceStoneChance(common, 9) - enhanceStoneChance(mythic, 9));
+    expect(enhanceStoneChance(mythic, 2)).toBeGreaterThanOrEqual(0.05);
+    expect(enhanceStoneChance(common, 9)).toBeLessThanOrEqual(0.99);
+  });
+});
+
+describe("campaign replays", () => {
+  it("pays a stage in full once and a replay at a reduced share", () => {
+    const first = campaignFightRewards(10, 10);
+    const replay = campaignFightRewards(10, 11);
+    expect(first.replay).toBe(false);
+    expect(replay.replay).toBe(true);
+    expect(replay.xp).toBe(Math.round(first.xp * CAMPAIGN_REPLAY_XP));
+    expect(replay.gold).toBe(Math.round(first.gold * CAMPAIGN_REPLAY_GOLD));
+    // Replaying may not be the fastest way to level: far less XP than the frontier pays.
+    expect(replay.xp).toBeLessThan(first.xp);
+    expect(replay.gold).toBeLessThan(first.gold);
   });
 });
 

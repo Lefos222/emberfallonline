@@ -14,8 +14,8 @@ import { Shield, Swords } from "./PaintedIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import {
-  SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, enchantStoneGrade, goldEnhanceAllowed, ENHANCE_MAX, ENHANCE_GOLD_LIMIT, heroStats, invCap, bagSize, matSlots, MAT_STACK, bagRowCost, MAX_BAG_ROWS, sellValue,
-  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, scaledFoe, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
+  SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, goldEnhanceAllowed, ENHANCE_MAX, heroStats, invCap, bagSize, matSlots, MAT_STACK, bagRowCost, MAX_BAG_ROWS, sellValue,
+  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, campaignFightRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, scaledFoe, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import {
   addConquestTokens, CONQUEST_XP_RATE, conquestDropFloor, conquestKeyActive, conquestRewardMultiplier,
@@ -267,7 +267,9 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   const mult = spire ? 1.35 : 1;
   // Enemies level up with the hero (see scaledFoe): old stages never become a free tutorial.
   const foe = scaledFoe(stageFoe(stage, mult), hero.level);
-  const rw = stageRewards(stage, spire ? 2 : 1);
+  // A cleared campaign stage is a replay: it still pays, but at a reduced share (see campaignFightRewards).
+  const rw = spire ? stageRewards(stage, 2) : campaignFightRewards(stage, hero.stage);
+  const replay = !spire && "replay" in rw && Boolean(rw.replay);
   // Today's Conquest Key doubles every Conquest Gate payout (see conquest.ts).
   const keyOn = spire && conquestKeyActive(hero);
   const keyMult = keyOn ? 2 : 1;
@@ -353,6 +355,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
             : <span className="font-bold text-xp">+{fmt(rw.xp)}  {t("XP")}</span>}
           <Gold n={spire ? Math.round(rw.gold * keyMult) : rw.gold} />
         </span>
+        {replay && <span className="slot px-2.5 py-1.5 text-muted-foreground">{t("Replay · reduced rewards")}</span>}
         <span className="slot px-2.5 py-1.5 text-muted-foreground">
           {keyOn
             ? t("Conquest Key ×2 today")
@@ -454,7 +457,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   if (!hero) return null;
   // The stone the forge would use: whichever grade the player picked, else the best one held.
   const heldStones = heldStoneLevels(hero);
-  const stoneLvl = stonePick !== null && heldStones.includes(stonePick) ? stonePick : (heldStones[heldStones.length - 1] ?? 1);
+  const stoneLvl = stonePick !== null && heldStones.includes(stonePick) ? stonePick : (heldStones[heldStones.length - 1] ?? 2);
   const equipped = WEAR_SLOTS.map((s) => hero.equipment[s]).filter(Boolean) as Item[];
   const bagged = hero.inventory;
   const shown = bagged.filter((it) => !q || it.name.toLowerCase().includes(q.toLowerCase()));
@@ -465,8 +468,6 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
     ...bagged,
   ];
   const sel = all.find((i) => i.id === selId);
-  /** Stone grade the selected piece's next step demands (see enchantStoneGrade). */
-  const needGrade = sel ? enchantStoneGrade(sel) : 1;
   const equippedSel = !!sel && equipped.some((i) => i.id === sel.id);
   const salvage = () => {
     if (!sel) return;
@@ -491,11 +492,6 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   };
   const enhance = () => {
     if (!sel || enhanceMaxed(sel)) return;
-    // Past +13 the forge's plain rolls stop being enough: only Enchantment Stones carry gear deeper.
-    if ((mode === "gold" || mode === "fate") && !goldEnhanceAllowed(sel)) {
-      setMsg({ ok: false, t: `Beyond +${ENHANCE_GOLD_LIMIT} the forge only answers to Enchantment Stones` });
-      return;
-    }
     if (mode === "fate") {
       const fateCost = fateStoneCost(sel);
       if (fateStoneCount(hero) < fateCost) return;
@@ -512,8 +508,6 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
         : { ok, t: `Fate turned — ${fateCost} stone${fateCost === 1 ? "" : "s"} spent` });
     } else if (mode === "stone") {
       const stoneCost = enchantStoneCost(sel);
-      const needGrade = enchantStoneGrade(sel);
-      if (stoneLvl < needGrade) { setMsg({ ok: false, t: `+${sel.enh} needs a Lv ${needGrade} Enchantment Stone` }); return; }
       if (stoneCount(hero, stoneLvl) < stoneCost) return;
       // Even the rarest stone never guarantees the step: the roll keeps its sliver of bad luck.
       const ok = Math.random() < enhanceStoneChance(sel, stoneLvl);
@@ -592,15 +586,15 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                 </div>
                 <div className="mt-2 grid grid-cols-3 gap-1 text-xs" role="group" aria-label={t("Enhancement method")}>
                   <button className={`py-1.5 ${mode === "gold" ? "btn-gold" : "btn-ghost"}`} aria-pressed={mode === "gold"} disabled={!goldEnhanceAllowed(sel)}
-                    title={goldEnhanceAllowed(sel) ? "Pay gold for the next step" : `Gold stops at +${ENHANCE_GOLD_LIMIT} — use Enchantment Stones`}
+                    title={goldEnhanceAllowed(sel) ? "Pay gold for the next step" : "This piece is fully enhanced"}
                     onClick={() => setMode("gold")}>{t("Gold")}</button>
                   <button className={`py-1.5 ${mode === "stone" ? "btn-gold" : "btn-ghost"}`} aria-pressed={mode === "stone"} onClick={() => setMode("stone")}>{t("Enchantment Stone")}</button>
                   <button className={`py-1.5 ${mode === "fate" ? "btn-gold" : "btn-ghost"}`} aria-pressed={mode === "fate"} disabled={!goldEnhanceAllowed(sel)}
-                    title={goldEnhanceAllowed(sel) ? "Refine with a Fate Stone" : `Fate refining stops at +${ENHANCE_GOLD_LIMIT} — use Enchantment Stones`}
+                    title={goldEnhanceAllowed(sel) ? "Refine with a Fate Stone" : "This piece is fully enhanced"}
                     onClick={() => setMode("fate")}>{t("Fate Stone")}</button>
                 </div>
                 {mode === "gold" && (
-                  <p className="mt-2 text-xs text-muted-foreground">{t("Pays gold only. The chance shrinks as the piece climbs, and gold stops at +")}{ENHANCE_GOLD_LIMIT}  {t("— deeper steps need Enchantment Stones.")}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">{t("Pays gold only. The chance shrinks as the piece climbs, all the way to +60.")}</p>
                 )}
                 {mode === "fate" && (
                   <div className="slot mt-2 p-2">
@@ -619,15 +613,14 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                       <span className="text-muted-foreground">+{stoneBonus(stoneLvl)}{t("% success")}</span>
                     </div>
                     <p className="mb-1 text-[11px] text-muted-foreground">
-                      +{sel.enh}  {t("demands a")} <b className="text-gold">{t("Lv")} {needGrade}</b>  {t("stone or better — the deeper the enchantment, the rarer the stone.")} </p>
+                      {t("Any stone works, but rarer gear resists weaker stones — a higher grade lands far more often.")} </p>
                     {heldStones.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">{t("No stones yet — battle wins drop them, and the Auction House shop sells all nine grades.")}</p>
+                      <p className="text-xs text-muted-foreground">{t("No stones yet — battle wins drop them, and the Auction House shop sells every grade.")}</p>
                     ) : (
                       <div className="flex flex-wrap gap-1">
                         {heldStones.map((lvl) => (
-                          <button key={lvl} className={`flex items-center gap-1 rounded border px-1.5 py-0.5 text-xs ${lvl === stoneLvl ? "border-gold text-gold" : "border-border"} ${lvl < needGrade ? "opacity-50" : ""}`}
-                            title={lvl < needGrade ? `${stoneName(lvl)} is too weak for +${sel.enh}` : stoneName(lvl)}
-                            disabled={lvl < needGrade}
+                          <button key={lvl} className={`flex items-center gap-1 rounded border px-1.5 py-0.5 text-xs ${lvl === stoneLvl ? "border-gold text-gold" : "border-border"}`}
+                            title={stoneName(lvl)}
                             onClick={() => setStonePick(lvl)}>
                             <StoneIcon level={lvl} size={16} /> ×{fmt(stoneCount(hero, lvl))}
                           </button>
@@ -650,14 +643,12 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                 )}
                 <button className="btn-gold mt-2 w-full py-3 text-lg" disabled={
                   enhanceMaxed(sel)
-                  || (mode === "fate" ? !goldEnhanceAllowed(sel) || fateStoneCount(hero) < fateStoneCost(sel)
-                    : mode === "stone" ? stoneLvl < needGrade || stoneCount(hero, stoneLvl) < enchantStoneCost(sel)
-                      : !goldEnhanceAllowed(sel) || hero.gold < enhanceCost(sel, hero.level))} onClick={enhance}>
+                  || (mode === "fate" ? fateStoneCount(hero) < fateStoneCost(sel)
+                    : mode === "stone" ? stoneCount(hero, stoneLvl) < enchantStoneCost(sel)
+                      : hero.gold < enhanceCost(sel, hero.level))} onClick={enhance}>
                   <Hammer className="mr-2 inline" />{enhanceMaxed(sel)
                     ? `Fully enhanced · +${ENHANCE_MAX}`
-                    : mode === "gold" && !goldEnhanceAllowed(sel)
-                      ? t("Requires Enchantment Stones")
-                      : `${mode === "fate" ? t("Refine") : t("Enhance")} +${sel.enh + 1}`}
+                    : `${mode === "fate" ? t("Refine") : t("Enhance")} +${sel.enh + 1}`}
                 </button>
               </section>
 

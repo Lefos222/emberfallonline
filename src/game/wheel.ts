@@ -84,7 +84,6 @@ export const WHEEL_SEGMENTS: WheelSegment[] = [
     weight: 7,
     good: false,
     prize: "2 Enchantment Stones",
-    mats: { enchantStone: 2 },
   },
   /* 13 */ {
     label: "Sun Crystal",
