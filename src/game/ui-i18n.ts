@@ -423,11 +423,12 @@ export const UI_TEXT: Record<string, ContentRow> = {
       "σφυρηλατημένα συνολικά. Η εμφάνιση ακολουθεί το υψηλότερο σετ που φοράς πραγματικά και αποθηκεύεται με τον χαρακτήρα σου.",
       "wykutych łącznie. Wygląd idzie za najwyższym zestawem, który naprawdę nosisz, i jest zapisywany z twoim bohaterem.",
     ],
-  "An elite scaled to your level — the best repeatable source of Soul Essence, with a high chance of Rare+ gear.":
+  "An elite scaled to your level — the best repeatable source of Soul Essence, but only half of your wins pay a bundle.":
     [
-      "Μια ελίτ προσαρμοσμένη στο επίπεδό σου — η καλύτερη επαναλαμβανόμενη πηγή Ουσίας Ψυχής, με υψηλή πιθανότητα εξοπλισμού Σπάνιου+.",
-      "Elita dopasowana do twojego poziomu — najlepsze powtarzalne źródło Esencji Duszy, z wysoką szansą na ekwipunek Rzadki+.",
+      "Μια ελίτ προσαρμοσμένη στο επίπεδό σου — η καλύτερη επαναλαμβανόμενη πηγή Ουσίας Ψυχής, αλλά μόνο οι μισές νίκες σου δίνουν δέσμη λάφυρων.",
+      "Elita dopasowana do twojego poziomu — najlepsze powtarzalne źródło Esencji Duszy, ale tylko połowa twoich zwycięstw daje paczkę łupów.",
     ],
+  "Drop chance": ["Πιθανότητα λάφυρου", "Szansa na łup"],
   "Pick a worn or bagged item on the left to enhance it, check the gems inside it, or salvage it for materials.":
     [
       "Διάλεξε ένα φορεμένο ή στην τσάντα αντικείμενο στα αριστερά για να το βελτιώσεις, να δεις τα πετράδια του ή να το διαλύσεις για υλικά.",
@@ -503,10 +504,10 @@ export const UI_TEXT: Record<string, ContentRow> = {
       "Πάτησε ένα ελεύθερο σημείο για να τοποθετήσεις ένα Αστρικό δίπλα στον ήρωά σου. Πάτησε ένα τοποθετημένο για να το επιστρέψεις.",
       "Kliknij wolne miejsce, by umieścić Astrala obok bohatera. Kliknij umieszczonego, by go odesłać.",
     ],
-  "A crate of forge materials — ore, essence, starshards, fragments, sigils and boss cores — in":
+  "A crate of forge materials — ore, essence, starshards, fragments, sigils and boss cores — but only half your wins pay it.":
     [
-      "Ένα κιβώτιο υλικών σιδηρουργείου — μετάλλευμα, ουσία, αστρόθραυστα, θραύσματα, σφραγίδες και πυρήνες αφεντικών — σε",
-      "Skrzynia materiałów kuźni — ruda, esencja, gwiezdne odłamki, fragmenty, pieczęcie i rdzenie bossów — w",
+      "Ένα κιβώτιο υλικών σιδηρουργείου — μετάλλευμα, ουσία, αστρόθραυστα, θραύσματα, σφραγίδες και πυρήνες αφεντικών — αλλά μόνο οι μισές νίκες σου το πληρώνουν.",
+      "Skrzynia materiałów kuźni — ruda, esencja, gwiezdne odłamki, fragmenty, pieczęcie i rdzenie bossów — ale tylko połowa twoich zwycięstw ją daje.",
     ],
   "Earn 1 point per level, plus a bonus every 5 levels — quests and achievements can add more.":
     [
@@ -1556,7 +1557,7 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Next level": ["Επόμενο επίπεδο", "Następny poziom"],
   "Not forged": ["Δεν σφυρηλατήθηκε", "Niewykute"],
   "Online now": ["Σε σύνδεση τώρα", "Teraz online"],
-  "Rare+ loot": ["Λάφυρο Σπάνιο+", "Łup Rzadki+"],
+  "Uncommon+ loot": ["Λάφυρο Ασυνήθιστο+", "Łup Niezwykły+"],
   "Requests (": ["Αιτήματα (", "Prośby ("],
   "Reset tree": ["Επαναφορά δέντρου", "Reset drzewka"],
   "resource ·": ["πόρος ·", "surowiec ·"],
