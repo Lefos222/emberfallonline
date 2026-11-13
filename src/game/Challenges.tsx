@@ -1,5 +1,5 @@
 import { tName , t} from "./i18n";
-import { warDropKind, dungeonDrops, bossCrystals, DUNGEON_DROP_CHANCE } from "./war-drops";
+import { warDropKind, dungeonDrops, bossCrystals, capDropBundle, DUNGEON_DROP_CHANCE } from "./war-drops";
 import { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { scrollXp } from "./scrolls";
@@ -121,9 +121,9 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
           const materials = drops && warDropKind() === "materials";
           loot = drops && !materials ? rollLoot(h, lvl + 5, 1, 1) : null;
           if (loot) addLoot(h, loot);
-          const bones = 1 + Math.floor(lvl / 40);
-          if(materials) addMats(h, { essence: 2, wyrmBone: bones });
-          lines = [`+${fmt(scrollXp(lvl * 60, xpMultiplier))} XP`, `+${fmt(lvl * 12)} gold`, ...(materials ? ["+2 Soul Essence", `+${bones} Wyrm Bone`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
+          const bundle = capDropBundle({ essence: 2, wyrmBone: 1 + Math.floor(lvl / 40) });
+          if(materials) addMats(h, bundle);
+          lines = [`+${fmt(scrollXp(lvl * 60, xpMultiplier))} XP`, `+${fmt(lvl * 12)} gold`, ...(materials ? [`+${bundle.essence ?? 0} Soul Essence`, `+${bundle.wyrmBone ?? 0} Wyrm Bone`] : []), ...(levels ? [`LEVEL UP ×${levels}!`] : [])];
         });
         return { lines, loot };
       },

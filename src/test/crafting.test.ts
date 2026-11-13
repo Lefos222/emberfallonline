@@ -165,8 +165,14 @@ describe("materials carried in the bag", () => {
     expect(refine(h, "crystal")).toBe("Not enough Arcane Crystal");
     expect(h.mats.crystal).toBe(2);
   });
-  it("battles drop the spare materials", () => {
+  it("battles drop a small bundle of spare materials", () => {
     const m = battleMats(30, false, () => 0.5);
-    expect(m.hide).toBe(3); expect(m.ore).toBeGreaterThan(0);
+    expect(m.hide).toBe(1); expect(m.ore).toBe(1);
+  });
+  it("material payouts barely grow with level", () => {
+    const sum = (m: Partial<Record<string, number>>) => Object.values(m).reduce<number>((a, n) => a + (n ?? 0), 0);
+    const low = battleMats(1, false, () => 0.99), high = battleMats(200, false, () => 0.99);
+    expect(sum(high)).toBeLessThanOrEqual(sum(low) + 1);
+    expect(sum(battleMats(200, false))).toBeLessThanOrEqual(7);
   });
 });

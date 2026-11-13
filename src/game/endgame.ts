@@ -42,7 +42,7 @@ export function challengeRewards(id: TierBossId, difficulty: number, mod: Modifi
   return {
     gold: Math.round(150 * difficulty * difficulty * m),
     xp: Math.round(800 * difficulty * difficulty * m),
-    bossCore: difficulty >= 3 ? Math.ceil(difficulty / 3) : 0,
+    bossCore: difficulty >= 3 ? Math.min(2, Math.ceil(difficulty / 4)) : 0,
     /** Minimum gear rarity from this clear: Rare, Epic from D5, Legendary from D8. */
     minRarity: difficulty >= 8 ? 4 : difficulty >= 5 ? 3 : 2,
   };

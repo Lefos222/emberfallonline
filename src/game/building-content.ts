@@ -20,14 +20,14 @@ export function trainAttribute(h: Hero, attr: Attr, count: number) {
 }
 
 export const EXPEDITIONS = locAll([
-  { id: 'quarry', name: 'Ember Quarry', level: 1, material: 'ore' as const, quantity: 6, desc: 'Clear the quarry for gem-cutting ore.' },
+  { id: 'quarry', name: 'Ember Quarry', level: 1, material: 'ore' as const, quantity: 4, desc: 'Clear the quarry for gem-cutting ore.' },
   { id: 'crypt', name: 'Soul Crypt', level: 10, material: 'essence' as const, quantity: 3, desc: 'Hunt restless souls for forge and fusion essence.' },
   { id: 'observatory', name: 'Fallen Observatory', level: 20, material: 'starshard' as const, quantity: 3, desc: 'Recover shards for Astral summoning and upgrades.' },
-  { id: 'bastion', name: 'Shattered Bastion', level: 25, material: 'fragment' as const, quantity: 4, desc: 'Salvage fragments for crafted armor.' },
+  { id: 'bastion', name: 'Shattered Bastion', level: 25, material: 'fragment' as const, quantity: 3, desc: 'Salvage fragments for crafted armor.' },
   { id: 'citadel', name: 'Elite Citadel', level: 35, material: 'sigil' as const, quantity: 2, desc: 'Challenge a commander for elite crafting trophies.' },
-  { id: 'hunting', name: 'Beastwood Hunting Grounds', level: 5, material: 'hide' as const, quantity: 8, desc: 'Recover Beast Hides to refine into Armor Fragments.' },
-  { id: 'garden', name: 'Ashroot Gardens', level: 12, material: 'bloom' as const, quantity: 6, desc: 'Gather Emberbloom to refine into Soul Essence.' },
-  { id: 'arcane', name: 'Arcane Reservoir', level: 22, material: 'crystal' as const, quantity: 4, desc: 'Recover Arcane Crystals to refine into Starshards.' },
+  { id: 'hunting', name: 'Beastwood Hunting Grounds', level: 5, material: 'hide' as const, quantity: 4, desc: 'Recover Beast Hides to refine into Armor Fragments.' },
+  { id: 'garden', name: 'Ashroot Gardens', level: 12, material: 'bloom' as const, quantity: 3, desc: 'Gather Emberbloom to refine into Soul Essence.' },
+  { id: 'arcane', name: 'Arcane Reservoir', level: 22, material: 'crystal' as const, quantity: 3, desc: 'Recover Arcane Crystals to refine into Starshards.' },
   { id: 'heart', name: 'Tyrant’s Heart', level: 50, material: 'bossCore' as const, quantity: 2, desc: 'Slay a rotating tyrant for high-rarity forge cores.' },
 ], ["name"], ["desc"]);
 export const EXPEDITION_COMMON_ADDITIONS = ["hide", "bloom", "crystal"] as const;
