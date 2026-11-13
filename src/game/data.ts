@@ -807,13 +807,17 @@ export function fightsToNextLevel(h: Pick<Hero, "level" | "paragon" | "xp">) {
 export const XP_EASE_LEVEL = 30;
 export const XP_EASE = 0.96;
 
+/** Flat extra XP every level's bill carries on top of its fight count (see xpToNext). */
+export const XP_LEVEL_FLAT = 100;
+
 export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
   const lv = Math.min(MAX_LEVEL, h.level);
   // One level is worth exactly `fightsToLevel` fights at the hero's own stage, so the campaign
   // pays the same XP per fight at every level and only the fight count moves.
   // Past level 30 every level costs a little less (4%), easing the long grind softly.
   const base = Math.round(fightsToLevel(lv) * xpPerFight(lv) * (lv > XP_EASE_LEVEL ? XP_EASE : 1));
-  return h.level < MAX_LEVEL ? base : Math.round(base * Math.pow(1.1, h.paragon));
+  const bill = base + XP_LEVEL_FLAT;
+  return h.level < MAX_LEVEL ? bill : Math.round(bill * Math.pow(1.1, h.paragon));
 }
 
 /** Share of its nominal value a level-relative payout (a quest, a commission) is worth at a level.

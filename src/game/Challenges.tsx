@@ -8,7 +8,9 @@ import { Swords } from "./PaintedIcons";
 import { foeRating, invCap, heroStats, makeItem, RARITIES, type Item } from "./data";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
-import { DangerPill, Meter, StaminaMeter } from "./GateUI";
+import { DangerPill, Meter, StaminaMeter, VERDICT_STYLE } from "./GateUI";
+import { forecastFight } from "./battle-advice";
+import { prepareFoe } from "./foe-scaling";
 import { Sprite } from "./Sprite";
 import type { StartBattle } from "./panels";
 import { TIER_BOSSES } from "./world";
@@ -21,15 +23,6 @@ import {
 
 type DungeonTab = "bosses" | "elite" | "expeditions" | "relics" | "weekly";
 
-/** A small colour-coded verdict on how the chosen fight compares to the hero. */
-function dangerOf(power: number, foePower: number) {
-  const ratio = power / Math.max(1, foePower);
-  if (ratio > 1.15) return { t: "Fair fight", c: "text-r1" };
-  if (ratio > 0.9) return { t: "Hard", c: "text-r4" };
-  if (ratio > 0.7) return { t: "Very hard", c: "text-hp" };
-  return { t: "Deadly", c: "text-blood" };
-}
-
 export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClose: () => void; start: StartBattle; onExpeditions?:()=>void; onRelics?:()=>void }) {
   const { hero } = useGame();
   const [diff, setDiff] = useState<Record<string, number>>({});
@@ -38,7 +31,8 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
   const lvl = hero.level + hero.paragon;
   const mod = weeklyModifier(weekIndex());
   const weekly = currentWeekly(hero);
-  const power = heroStats(hero).power;
+  const stats = heroStats(hero);
+  const power = stats.power;
   const stamina = staminaLeft(hero);
 
   if (hero.level < ENDGAME_LEVEL) {
@@ -138,7 +132,8 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
   });
 
   const elite = eliteFoe(lvl);
-  const eliteDanger = dangerOf(power, foeRating(elite));
+  const shownElite = prepareFoe(elite, hero);
+  const eliteDanger = VERDICT_STYLE[forecastFight(stats, shownElite).verdict];
   const defeated = BOSS_ORDER.filter((id) => cleared(hero, id) > 0).length;
 
   return (
@@ -171,7 +166,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
             const max = Math.min(MAX_DIFFICULTY, c + 1);
             const d = Math.min(diff[id] ?? max, max);
             const foe = challengeFoe(id, d, mod);
-            const danger = dangerOf(power, foeRating(foe));
+            const danger = VERDICT_STYLE[forecastFight(stats, prepareFoe(foe, hero)).verdict];
             const rw = challengeRewards(id, d, mod);
             const previous = i > 0 ? TIER_BOSSES[BOSS_ORDER[i - 1]]?.name : null;
             return (
@@ -228,7 +223,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
             <Sprite rect={elite.sprite} className="h-20 w-20 shrink-0" />
             <div className="min-w-0">
               <div className="font-display text-lg leading-tight">{elite.name}</div>
-              <div className="text-xs text-muted-foreground">{t("Level")} {elite.level} · {fmt(foeRating(elite))}  {t("power")}</div>
+              <div className="text-xs text-muted-foreground">{t("Level")} {shownElite.level} · {fmt(foeRating(shownElite))}  {t("power")}</div>
               <div className="mt-1 flex items-center justify-center gap-2">
                 <DangerPill danger={eliteDanger} />
                 <span className="text-[11px] text-muted-foreground">{t("you")} {fmt(power)}</span>

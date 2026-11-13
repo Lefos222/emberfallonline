@@ -69,7 +69,7 @@ import { Challenges } from "./Challenges";
 import { SpireHub } from "./SpireVentures";
 import { GameGuide } from "./GameGuide";
 import { playGuideSound, playLevelUpSound, playBattleEndSound } from "./guide-sound";
-import { scaleFoeToHero } from "./foe-scaling";
+import { prepareFoe } from "./foe-scaling";
 import { RelicTrials } from "./RelicTrials";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
@@ -275,7 +275,7 @@ export function Game() {
         fightOpen.current = true;
         setBattle({
           ...o,
-          right: o.arena ? o.right : scaleFoeToHero(o.right, current.hero),
+          right: o.arena ? o.right : prepareFoe(o.right, current.hero),
           gate: !o.arena && ["portal", "spire", "dungeon"].includes(open ?? ""),
           left: scrollFighter(
             {

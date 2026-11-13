@@ -4,7 +4,10 @@ import { GoldMinePanel } from "@/game/GoldMine";
 import { Campaign } from "@/game/panels";
 import { Challenges } from "@/game/Challenges";
 import { ConquestTokens } from "@/game/ConquestGate";
-import { newHero } from "@/game/data";
+import { fmt } from "@/game/ui";
+import { heroStats, newHero, stageFoe } from "@/game/data";
+import { forecastFight } from "@/game/battle-advice";
+import { prepareFoe } from "@/game/foe-scaling";
 import { getState, setHero } from "@/game/store";
 import { conquestKeyActive } from "@/game/conquest";
 import { MINE_MAX_LEVEL, mineLevel, minePerHour, mineUpgradeCost } from "@/game/mine";
@@ -82,6 +85,24 @@ describe("the reworked gates", () => {
     expect(screen.getByRole("button", { name: /FIGHT/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: /Blitz & progress/i }));
     expect(screen.getByRole("button", { name: /Blitz/ })).toBeInTheDocument();
+  });
+
+  it("recommends a Battle Rating for the floor being fought, and the pill reads the real fight", () => {
+    const hero = newHero("Rater", "warrior");
+    hero.stage = 12;
+    hero.level = 9;
+    hero.attrs = { str: 4, int: 1, agi: 1, vit: 6 };
+    setHero(hero);
+    render(<Campaign onClose={() => {}} start={vi.fn()} />);
+
+    // The gate previews the very foe the fight will start (prepareFoe), so the number and the
+    // colour come from one forecast of that fight.
+    const foe = prepareFoe(stageFoe(12), hero);
+    const forecast = forecastFight(heroStats(hero), foe);
+
+    const line = screen.getByText(/Recommended rating/i);
+    expect(line).toHaveTextContent(fmt(forecast.recommended));
+    expect(screen.getByTitle(/compares to your battle rating/i)).toHaveTextContent(forecast.verdict);
   });
 
   it("pays the Conquest Gate's tokens on every floor and sells gems for tokens only", () => {
