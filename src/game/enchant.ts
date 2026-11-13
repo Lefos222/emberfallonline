@@ -101,10 +101,10 @@ export function migrateEnchantStones(h: {
   enchantStones?: Record<string, number>;
 }) {
   const mats = h.mats as Record<string, number | undefined> | undefined;
-  const legacy = Math.max(0, Math.floor(mats?.enchantStone ?? 0));
+  const legacy = Math.max(0, Math.floor(mats?.["enchantStone"] ?? 0));
   const stray = Math.max(0, Math.floor(h.enchantStones?.["1"] ?? 0));
   const lift = legacy + stray;
-  if (legacy && mats) delete mats.enchantStone;
+  if (legacy && mats) delete mats["enchantStone"];
   if (!lift && !stray) return;
   const stones = { ...(h.enchantStones ?? {}) };
   delete stones["1"];

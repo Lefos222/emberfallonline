@@ -63,7 +63,7 @@ describe("auction house shop discount", () => {
     // Grade 1 no longer exists: the shop clamps it up to the lowest stone that remains.
     expect(buyEnchantStone(h, 1)).toBeNull();
     expect(stoneCount(h, 2)).toBe(1);
-    expect((h.mats as Record<string, number> | undefined)?.enchantStone).toBeUndefined();
+    expect((h.mats as Record<string, number> | undefined)?.["enchantStone"]).toBeUndefined();
     expect(h.gold).toBe(gold - stoneShopPrice(2, h.level));
 
     expect(buyEnchantStone(h, 4)).toBeNull();
@@ -75,7 +75,7 @@ describe("auction house shop discount", () => {
     const h = hero();
     h.mats = { ...(h.mats ?? {}), enchantStone: 5 } as unknown as typeof h.mats;
     normalizeHero(h);
-    expect((h.mats as Record<string, number> | undefined)?.enchantStone).toBeUndefined();
+    expect((h.mats as Record<string, number> | undefined)?.["enchantStone"]).toBeUndefined();
     expect(stoneCount(h, 2)).toBe(5);
   });
 });
