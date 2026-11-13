@@ -68,7 +68,8 @@ import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
 import { SpireHub } from "./SpireVentures";
 import { GameGuide } from "./GameGuide";
-import { playGuideSound } from "./guide-sound";
+import { playGuideSound, playLevelUpSound, playBattleEndSound } from "./guide-sound";
+import { scaleFoeToHero } from "./foe-scaling";
 import { RelicTrials } from "./RelicTrials";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats } from "./crafting";
@@ -274,6 +275,7 @@ export function Game() {
         fightOpen.current = true;
         setBattle({
           ...o,
+          right: o.arena ? o.right : scaleFoeToHero(o.right, current.hero),
           gate: !o.arena && ["portal", "spire", "dungeon"].includes(open ?? ""),
           left: scrollFighter(
             {
@@ -350,6 +352,7 @@ export function Game() {
     const r = { ...r0, lines: [...r0.lines] };
     // World chat hears about the milestones worth bragging about, never about ordinary fights.
     const after = getState().hero;
+    if (after && after.level > levelBefore) playLevelUpSound();
     if (after && after.level > levelBefore)
       void announceWorldEvent(heroId, `reached level ${after.level}!`);
     if (r.loot && r.loot.rarity >= 2)
@@ -458,6 +461,7 @@ export function Game() {
         r.lines.push(t("+{n} Stamina Potion — +{amount} stamina", { n: potions, amount: POTION_STAMINA }));
       }
     }
+    playBattleEndSound();
     setResult({ won, ...r });
   };
 

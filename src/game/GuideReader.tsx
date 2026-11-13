@@ -14,6 +14,7 @@ import {
   type GuideGlyph,
 } from "./guide-art";
 import { ArtIcon } from "./ArtIcon";
+import { playGuideSound } from "./guide-sound";
 
 /**
  * The guide's reader: one painted chapter at a time, with a picture on every step.
@@ -40,6 +41,7 @@ export function GuideReader({
   const [query, setQuery] = useState("");
   const current = chapterId ?? own;
   const setChapter = (id: string) => {
+    if (id !== current) playGuideSound();
     setOwn(id);
     setExpanded(new Set([0]));
     onChapter?.(id);

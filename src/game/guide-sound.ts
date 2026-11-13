@@ -1,20 +1,29 @@
-import bookOpenSound from "@/assets/book-open.mp3";
+import pagesSound from "@/assets/fliping_pages_in_guide.mp3.asset.json";
+import levelUpSound from "@/assets/levelup.mp3.asset.json";
+import winLoseSound from "@/assets/winlose.mp3.asset.json";
 
-let audio: HTMLAudioElement | null = null;
+const cache = new Map<string, HTMLAudioElement>();
 
-/**
- * Plays the book-opening sound when the guide opens or a guide tab changes.
- * The Audio element is lazily created and reused so the sound stays responsive.
- */
-export function playGuideSound() {
+function play(url: string, volume = 0.5) {
+  if (typeof Audio === "undefined") return;
+  let audio = cache.get(url);
   if (!audio) {
-    audio = new Audio(bookOpenSound);
-    audio.volume = 0.5;
+    audio = new Audio(url);
+    audio.volume = volume;
+    cache.set(url, audio);
   }
-  audio.currentTime = 0;
-  // A browser whose media element cannot play (or a test DOM without one) never breaks the guide.
-  const started = audio.play() as Promise<void> | undefined;
-  started?.catch(() => {
-    /* Autoplay can be blocked until the user has interacted with the page */
-  });
+  try {
+    audio.currentTime = 0;
+    const started = audio.play() as Promise<void> | undefined;
+    started?.catch(() => {});
+  } catch {
+    /* A media element that cannot play never breaks the game. */
+  }
 }
+
+/** Page-flip sound when the guide opens or a guide tab changes. */
+export const playGuideSound = () => play(pagesSound.url);
+/** Played when a hero gains a level. */
+export const playLevelUpSound = () => play(levelUpSound.url, 0.6);
+/** Played when a battle ends, won or lost. */
+export const playBattleEndSound = () => play(winLoseSound.url, 0.5);

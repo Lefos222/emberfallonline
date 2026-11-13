@@ -18,9 +18,9 @@ export const MINE_MAX_LEVEL = 40;
 /** Hours of production the cart holds before it stops filling. */
 export const MINE_STORE_HOURS = 24;
 
-/** Gold the mine banks each hour: 240 at Level 1, rising with every upgrade. */
+/** Gold the mine banks each hour: 144 at Level 1 (nerfed 40%), rising with every upgrade. */
 export const minePerHour = (level: number) =>
-  Math.round(240 * Math.pow(clampLevel(level), 1.35));
+  Math.round(144 * Math.pow(clampLevel(level), 1.35));
 
 /** Most gold the cart can hold at a level — a full day of production. */
 export const mineCapacity = (level: number) => minePerHour(level) * MINE_STORE_HOURS;
