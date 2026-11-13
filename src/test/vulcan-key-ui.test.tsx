@@ -85,6 +85,6 @@ describe("the smith's fee for prising a gem out", () => {
     const after = getState().hero!;
     expect(after.gold).toBe(5_000_000 - fee);
     expect(after.gems?.["ruby:3"]).toBe(1);
-    expect(after.equipment.armour.gems?.[0]).toBeFalsy();
+    expect(after.equipment.armour?.gems?.[0]).toBeFalsy();
   });
 });
