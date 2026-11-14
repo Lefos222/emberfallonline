@@ -1267,6 +1267,11 @@ export interface LateCurve {
   rift: number;
 }
 
+/** A boss's own attack bonus over a normal foe of its stage. Bosses already bring +80% health,
+ *  an extra add, extra crit and the telegraphed Cataclysm on top, so their ordinary swing stays
+ *  close to a normal foe's — stacking another quarter of raw attack made them hit far too hard. */
+export const BOSS_ATK_BONUS = 0.05;
+
 /**
  * Enemy stats follow the hero's own growth instead of an exponential wall: health and damage
  * climb with the stage at a steady pace, so a hero whose gear keeps up clears the campaign
@@ -1294,7 +1299,7 @@ export function stageFoe(
     boss,
     hp: Math.round((150 + stage * 150) * (1 + b * 0.8) * mult * rift * tough * ease),
     atk: Math.round(
-      (12 + stage * 8 + stage * stage * 0.2) * (1 + b * 0.25) * mult * rift * tough * ease,
+      (12 + stage * 8 + stage * stage * 0.2) * (1 + b * BOSS_ATK_BONUS) * mult * rift * tough * ease,
     ),
     def: Math.round((5 + stage * 1.4) * mult * Math.sqrt(rift)),
     crit: Math.min(40, 5 + stage * 0.15),
@@ -1342,6 +1347,10 @@ export function stageRewards(stage: number, mult = 1) {
 export const CAMPAIGN_REPLAY_XP = 0.25;
 export const CAMPAIGN_REPLAY_GOLD = 0.5;
 
+/** Campaign gold pays this share of the stage table: a flat 40% cut to every campaign payout
+ *  (first clears, replays and campaign blitzes), so coin stays the scarce resource it is elsewhere. */
+export const CAMPAIGN_GOLD_RATE = 0.6;
+
 /**
  * What one campaign fight pays. `frontier` is the hero's next stage (`hero.stage`): fighting it is
  * a first clear and pays in full, while any stage already behind it is a replay and pays 25% XP and
@@ -1349,10 +1358,11 @@ export const CAMPAIGN_REPLAY_GOLD = 0.5;
  */
 export function campaignFightRewards(stage: number, frontier: number) {
   const rw = stageRewards(stage);
+  const gold = Math.round(rw.gold * CAMPAIGN_GOLD_RATE);
   const replay = stage < Math.max(1, Math.floor(frontier || 1));
   return replay
-    ? { xp: Math.round(rw.xp * CAMPAIGN_REPLAY_XP), gold: Math.round(rw.gold * CAMPAIGN_REPLAY_GOLD), replay }
-    : { ...rw, replay };
+    ? { xp: Math.round(rw.xp * CAMPAIGN_REPLAY_XP), gold: Math.round(gold * CAMPAIGN_REPLAY_GOLD), replay }
+    : { xp: rw.xp, gold, replay };
 }
 
 // ---------- Skills ----------

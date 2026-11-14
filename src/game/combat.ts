@@ -342,7 +342,9 @@ export function drinkPotion(s: BattleState): ActResult {
   return { ok: true, events: ev };
 }
 
-const BOSS_SKILL: TSkill = { id: "cataclysm", name: "Cataclysm", desc: "", icon: "flame", mult: 2.4, cd: 0, cost: 0, target: "enemy" };
+/** The telegraphed boss blow. It lands every third boss turn, so it stays the fight's big hit —
+ *  but at 2.4× a boss's attack it was deleting heroes; 1.8× keeps the threat readable and survivable. */
+const BOSS_SKILL: TSkill = { id: "cataclysm", name: "Cataclysm", desc: "", icon: "flame", mult: 1.8, cd: 0, cost: 0, target: "enemy" };
 const ELITE_SKILL: TSkill = { id: "rend", name: "Savage Rend", desc: "", icon: "axe", mult: 1.6, cd: 0, cost: 0, target: "enemy", applies: { kind: "burn", turns: 2, value: 0.2 } };
 const BASIC: TSkill = { id: "hit", name: "Attack", desc: "", icon: "sword", mult: 1, cd: 0, cost: 0, target: "enemy" };
 

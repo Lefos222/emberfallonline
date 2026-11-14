@@ -1,5 +1,5 @@
 import { BLITZ_GOLD_SHARE, BLITZ_RUNNING, BLITZ_XP_SHARE, blitzRunning, startBlitzRun } from "./blitz-run";
-import { stageRewards, type Hero } from "./data";
+import { CAMPAIGN_GOLD_RATE, stageRewards, type Hero } from "./data";
 import { blitzesLeft, BLITZ_PER_DAY, spendBlitz, type BlitzState } from "./conquest";
 
 /**
@@ -18,7 +18,8 @@ export interface CampaignBlitzResult {
   gold: number;
 }
 
-/** What a campaign blitz to `target` pays in total: 40% of those stages' gold and only 30% of their XP. */
+/** What a campaign blitz to `target` pays in total: its usual 40% share of those stages' gold,
+ *  itself cut by `CAMPAIGN_GOLD_RATE` like every campaign payout, and only 30% of their XP. */
 export function campaignBlitzRewards(target: number): CampaignBlitzResult {
   let xp = 0,
     gold = 0;
@@ -27,7 +28,11 @@ export function campaignBlitzRewards(target: number): CampaignBlitzResult {
     xp += r.xp;
     gold += r.gold;
   }
-  return { stages: target, xp: Math.round(xp * BLITZ_XP_SHARE), gold: Math.round(gold * BLITZ_GOLD_SHARE) };
+  return {
+    stages: target,
+    xp: Math.round(xp * BLITZ_XP_SHARE),
+    gold: Math.round(gold * CAMPAIGN_GOLD_RATE * BLITZ_GOLD_SHARE),
+  };
 }
 
 /**
