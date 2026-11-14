@@ -26,7 +26,7 @@ export function acPowerCap(level: number, paragon = 0): number {
   );
 }
 
-/** Most gold the server accepts as earned in one save (four times this per hour). */
+/** Gold per save (four times this per hour) above which the server logs a review flag; gold alone never bans. */
 export function acGoldCap(level: number, paragon = 0): number {
-  return 100_000 + 40_000 * Math.max(0, level || 0) + 20_000 * Math.max(0, paragon || 0);
+  return 500_000 + 150_000 * Math.max(0, level || 0) + 60_000 * Math.max(0, paragon || 0);
 }
