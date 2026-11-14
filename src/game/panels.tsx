@@ -30,7 +30,7 @@ import { update, useGame } from "./store";
 import { GameTabs, Gold, InfoTip, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { ConquestCoin } from "./CoinIcon";
 import { DangerPill, FloorLadder, StageStepper, StaminaMeter, VERDICT_STYLE } from "./GateUI";
-import { prepareFoe, type ScalingMode } from "./foe-scaling";
+import { prepareFoe } from "./foe-scaling";
 import { forecastFight } from "./battle-advice";
 import { GemIcon, MatIcon, StoneIcon } from "./MatIcon";
 import { Vault, vaultTiles, type VaultPick } from "./Vault";
@@ -55,8 +55,6 @@ export type StartBattle = (opts: {
   stamina?: number;
   /** A Blood Arena duel: it spends one of the five fights allowed every twelve hours (see arena-limits.ts). */
   arena?: boolean;
-  /** A Conquest floor fights at the gate's own scaling, so the climb rises floor by floor (see ScalingMode). */
-  scaling?: ScalingMode;
   onResult: (won: boolean, xpMultiplier?: number) => { lines: string[]; loot?: Item | null } | Promise<{ lines: string[]; loot?: Item | null }>;
 }) => void;
 
@@ -271,11 +269,10 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   const max = spire ? hero.spire : hero.stage;
   /** Which gate's ladder this is: the Conquest Gate answers to its own floor curve (see conquest.ts). */
   const gate: GateKind = spire ? "conquest" : "campaign";
-  // Enemies level up with the hero (see scaledFoe): old stages never become a free tutorial.
   // Every fight the gate starts is prepared the same way the battle itself prepares it (see
-  // prepareFoe): the world levels up with the hero, then every monster keeps pace with what the
-  // hero trained. The preview is the fight the player actually gets.
-  const foe = prepareFoe(spire ? conquestFoe(stage) : stageFoe(stage), hero, spire ? "gate" : "world");
+  // prepareFoe). Monsters keep the numbers they were built with — the ladder is the difficulty —
+  // so the preview is exactly the fight the player gets.
+  const foe = prepareFoe(spire ? conquestFoe(stage) : stageFoe(stage));
   // A cleared campaign stage is a replay: it still pays, but at a reduced share (see campaignFightRewards).
   const rw = spire ? stageRewards(stage, 2) : campaignFightRewards(hero.level, stage, hero.stage);
   const replay = !spire && "replay" in rw && Boolean(rw.replay);
@@ -320,7 +317,6 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
       auto: autoThisFight,
       stamina: staminaCost || undefined,
       // The battle prepares the foe exactly as this preview did, so the shown fight is the real one.
-      scaling: spire ? "gate" : undefined,
       right: { ...foe, name: tName(foe.name) },
       onResult: async (won, xpMultiplier = 1) => {
         if (!won) return { lines: ["Defeated… grow stronger and return."] };

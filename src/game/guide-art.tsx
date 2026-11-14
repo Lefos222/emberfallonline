@@ -5,6 +5,11 @@ import { GoldCoin } from "./CoinIcon";
 import { GEMS, MATS, type GemType, type Mat } from "./crafting";
 import { t } from "./i18n";
 import activityDesk from "@/assets/activity-command-desk.jpg";
+import aspectFury from "@/assets/awakening/aspect-fury.webp";
+import dawnshard from "@/assets/awakening/dawnshard.webp";
+import echoArt from "@/assets/awakening/echo.webp";
+import sanctum from "@/assets/awakening/sanctum.webp";
+import sigilDaCrown from "@/assets/awakening/dawn-crown.webp";
 import arenaCrypt from "@/assets/arena-crypt.jpg";
 import arenaField from "@/assets/arena-field.jpg";
 import cardName from "@/assets/card-name.webp";
@@ -74,6 +79,7 @@ export const CHAPTER_ART: Record<string, { src: string; fit: string }> = {
   rating: { src: magicTower, fit: "object-cover" },
   guild: { src: sceneGuildHall, fit: "object-cover" },
   world: { src: sceneWorldMap, fit: "object-cover" },
+  awakening: { src: sanctum, fit: "object-cover" },
   arena: { src: arenaCrypt, fit: "object-cover" },
   diamonds: { src: wheel, fit: "object-contain" },
   premium: { src: magicTower, fit: "object-cover" },
@@ -196,6 +202,18 @@ export const STEP_GLYPHS: Record<string, GuideGlyph[]> = {
     { kind: "img", src: worldKeep, fit: "contain" },
     { kind: "art", name: "quest" },
     { kind: "art", name: "swords" },
+  ],
+  awakening: [
+    { kind: "img", src: sanctum, fit: "contain" },
+    { kind: "img", src: dawnshard, fit: "contain" },
+    { kind: "art", name: "astral" },
+    { kind: "img", src: aspectFury, fit: "contain" },
+    { kind: "img", src: sigilDaCrown, fit: "contain" },
+    { kind: "img", src: echoArt, fit: "contain" },
+    { kind: "art", name: "swords" },
+    { kind: "art", name: "star" },
+    { kind: "art", name: "shield" },
+    { kind: "art", name: "diamond" },
   ],
   arena: [
     { kind: "art", name: "swords" },

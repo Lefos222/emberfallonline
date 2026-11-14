@@ -81,7 +81,7 @@ export function GuildStorage({ guildId }: { guildId: string }) {
           ))}
         </div>
       </div>
-      <p className="mb-2 text-xs text-muted-foreground">{tr("Store gear for the whole guild. Any member can take an item out when their bag has room.")}</p>
+      <p className="mb-2 text-xs text-muted-foreground">{tr("Your own stash inside the guild: nobody else sees what you store here, and only you can take it back.")}</p>
       {note && <p className="mb-2 text-xs text-gold">{note}</p>}
       <div className="grid max-h-80 grid-cols-8 gap-1 overflow-y-auto sm:grid-cols-12 lg:grid-cols-16">
         {Array.from({ length: VAULT_SLOTS }, (_, i) => {

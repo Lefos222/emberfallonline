@@ -132,7 +132,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
   });
 
   const elite = eliteFoe(lvl);
-  const shownElite = prepareFoe(elite, hero);
+  const shownElite = prepareFoe(elite);
   const eliteDanger = VERDICT_STYLE[forecastFight(stats, shownElite).verdict];
   const defeated = BOSS_ORDER.filter((id) => cleared(hero, id) > 0).length;
 
@@ -166,7 +166,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
             const max = Math.min(MAX_DIFFICULTY, c + 1);
             const d = Math.min(diff[id] ?? max, max);
             const foe = challengeFoe(id, d, mod);
-            const danger = VERDICT_STYLE[forecastFight(stats, prepareFoe(foe, hero)).verdict];
+            const danger = VERDICT_STYLE[forecastFight(stats, prepareFoe(foe)).verdict];
             const rw = challengeRewards(id, d, mod);
             const previous = i > 0 ? TIER_BOSSES[BOSS_ORDER[i - 1]]?.name : null;
             return (

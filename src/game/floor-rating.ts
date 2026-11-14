@@ -26,9 +26,9 @@ import { prepareFoe } from "./foe-scaling";
  * Two properties follow from that, and both are what the gate is for:
  *  - deeper floors ask for more, floor after floor, in one ladder that only steps up (every tenth
  *    floor is a boss and spikes above its neighbours, then the climb carries on from where it was);
- *  - the same floor asks for more as the hero levels up, because a gate floor keeps pace with the
- *    hero's trained attributes (prepareFoe). Levels alone never carry a hero past the gate — gear,
- *    gems and the trained tracks do, which is why a well-built hero clears floors a bare one cannot.
+ *  - the same floor asks for more Battle Rating from a higher-level hero, because rating itself
+ *    rises with level. Levels alone never carry a hero past the gate — gear, gems and the trained
+ *    tracks do, which is why a well-built hero clears floors a bare one cannot.
  */
 
 export type GateKind = "campaign" | "conquest";
@@ -69,9 +69,6 @@ export function referenceHero(level: number, cls: HeroClass, paragon = 0): Hero 
 const foeOf = (gate: GateKind, floor: number): Foe =>
   gate === "conquest" ? conquestFoe(floor) : stageFoe(floor);
 
-/** A Conquest floor fights at the gate's own scaling; the campaign road fights at the world's. */
-const scalingOf = (gate: GateKind) => (gate === "conquest" ? "gate" : "world");
-
 /** Ratings read as tidy numbers: three significant figures, so 11 277 reads 11 300. */
 function tidy(n: number): number {
   const mag = Math.pow(10, Math.max(0, Math.floor(Math.log10(Math.max(1, n))) - 2));
@@ -98,8 +95,8 @@ function referenceStanding(level: number, paragon: number) {
 /**
  * The Battle Rating a floor asks of a hero standing at `level`.
  *
- * Built from the real fight: the floor's foe is prepared for the reference hero of that level,
- * with the gate's own scaling (see ScalingMode), and the forecast says how far that hero stands
+ * Built from the real fight: the floor's own foe (monsters never scale, see foe-scaling.ts) is
+ * weighed against the reference hero of that level, and the forecast says how far that hero stands
  * from a Fair win. Because fighting strength and rating
  * move together, the rating that lands the fight exactly on Fair is the reference rating times
  * the square root of that distance — the same inverse forecast the gate has always used, now
@@ -117,11 +114,7 @@ export function floorRequirement(
   const key = `${gate}:${f}:${lv}:${asc}`;
   const hit = cache.get(key);
   if (hit !== undefined) return hit;
-  const foe = prepareFoe(
-    foeOf(gate, floor),
-    referenceHero(level, "warrior", paragon),
-    scalingOf(gate),
-  );
+  const foe = prepareFoe(foeOf(gate, floor));
   const { power, marginAgainst } = referenceStanding(level, paragon);
   // All three classes share the same attributes, so they meet the same prepared foe.
   const margin = marginAgainst(foe);

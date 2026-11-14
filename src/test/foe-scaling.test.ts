@@ -10,7 +10,7 @@ import {
   type HeroClass,
   type Slot,
 } from "@/game/data";
-import { FOE_ATTR_CAP, FOE_LEVEL_CAP, FOE_LEVEL_SCALE, foeScale, prepareFoe } from "@/game/foe-scaling";
+import { prepareFoe } from "@/game/foe-scaling";
 import { forecastFight } from "@/game/battle-advice";
 import { current, enemyAct, formation, heroUnit, initBattle, playerAct, skillReady } from "@/game/combat";
 
@@ -92,57 +92,36 @@ function autoBattle(h: Hero, foe: ReturnType<typeof stageFoe>) {
   return { over: s.over, turns };
 }
 
-describe("monsters keep pace with the hero", () => {
-  it("lifts the opening stages hardest, so a level-1 hero no longer ends a fight in one tap", () => {
-    const fresh = newHero("Fresh", "warrior");
-    const scaled = prepareFoe(stageFoe(1), fresh);
-    expect(scaled.hp).toBeGreaterThan(stageFoe(1).hp);
-    // The same lift is gentler where the campaign is already hard.
-    const late = prepareFoe(stageFoe(60), heroAt(60));
-    expect(late.hp).toBeLessThan(stageFoe(60).hp * 1.4);
+describe("monsters do not scale", () => {
+  it("keeps every fight's own numbers, whatever the hero has become", () => {
+    for (const level of [1, 10, 30, 60, 80]) {
+      const foe = stageFoe(level);
+      const fresh = prepareFoe(foe);
+      const trained = prepareFoe(stageFoe(level));
+      expect(fresh.hp).toBe(foe.hp);
+      expect(fresh.atk).toBe(foe.atk);
+      expect(fresh.def).toBe(foe.def);
+      expect(fresh.level).toBe(foe.level);
+      expect(trained.hp).toBe(foe.hp);
+      expect(trained.level).toBe(foe.level);
+    }
   });
 
-  it("grows with the attributes a hero trains", () => {
-    const trained = heroAt(40);
-    const untrained = newHero("Untrained", "warrior");
-    untrained.level = trained.level;
-    expect(foeScale(stageFoe(40).level, trained)).toBeGreaterThan(foeScale(stageFoe(40).level, untrained));
-    const base = prepareFoe(stageFoe(40), untrained);
-    const buffed = prepareFoe(stageFoe(40), trained);
-    expect(buffed.hp).toBeGreaterThan(base.hp);
-    expect(buffed.atk).toBeGreaterThan(base.atk);
+  it("grows only with the ladder: deeper stages field stronger monsters", () => {
+    const ladder = [1, 20, 45, 80].map((stage) => prepareFoe(stageFoe(stage)));
+    for (let i = 1; i < ladder.length; i++) {
+      expect(ladder[i].hp).toBeGreaterThan(ladder[i - 1].hp);
+      expect(ladder[i].atk).toBeGreaterThan(ladder[i - 1].atk);
+    }
   });
 
-  it("grows with the hero's level above a fight, up to its cap", () => {
-    const small = heroAt(20);
-    const huge = heroAt(MAX_LEVEL);
-    expect(foeScale(20, huge)).toBeGreaterThan(foeScale(20, small));
-    // The level part of the scale saturates instead of growing forever.
-    const cap = 1 + FOE_LEVEL_CAP * FOE_LEVEL_SCALE;
-    expect(foeScale(20, huge) / foeScale(20, { ...huge, level: 20 })).toBeLessThanOrEqual(cap + 0.0001);
-    // Attribute scaling saturates too.
-    expect(foeScale(20, { ...huge, attrs: { str: 100000, int: 0, agi: 0, vit: 0 } })).toBeLessThanOrEqual(
-      foeScale(20, huge) * (1 + FOE_ATTR_CAP),
-    );
-  });
-
-  it("scales a previewed foe only once, so the gate shows the fight the player gets", () => {
-    const hero = heroAt(45);
-    const once = prepareFoe(stageFoe(30), hero);
-    const twice = prepareFoe(once, hero);
+  it("prepares a previewed foe only once, so the gate shows the fight the player gets", () => {
+    const once = prepareFoe(stageFoe(30));
+    const twice = prepareFoe(once);
     expect(twice.hp).toBe(once.hp);
     expect(twice.atk).toBe(once.atk);
     expect(twice.def).toBe(once.def);
     expect(twice.level).toBe(once.level);
-  });
-
-  it("never shows a hero a weaker monster than the fight's own numbers", () => {
-    for (const level of [1, 10, 30, 60, 80]) {
-      const foe = stageFoe(level);
-      const scaled = prepareFoe(foe, newHero("Fresh", "warrior"));
-      expect(scaled.hp).toBeGreaterThanOrEqual(foe.hp);
-      expect(scaled.atk).toBeGreaterThanOrEqual(foe.atk);
-    }
   });
 
   afterEach(() => {
@@ -154,7 +133,7 @@ describe("monsters keep pace with the hero", () => {
     for (const cls of ["warrior", "mage", "archer"] as const) {
       for (const stage of [1, 10, 20, 40, 60]) {
         const h = heroAt(stage, cls);
-        const r = autoBattle(h, prepareFoe(stageFoe(stage), h));
+        const r = autoBattle(h, prepareFoe(stageFoe(stage)));
         expect(r.over, `${cls} should still win stage ${stage}`).toBe("won");
         expect(r.turns, `${cls} should not stall on stage ${stage}`).toBeLessThan(30);
       }
@@ -166,8 +145,8 @@ describe("the gate's rating forecast", () => {
   it("reads a level-matched fight as winnable and an over-levelled one as comfortable", () => {
     const hero = heroAt(40);
     const stats = heroStats(hero);
-    const matched = forecastFight(stats, prepareFoe(stageFoe(40), hero));
-    const replay = forecastFight(stats, prepareFoe(stageFoe(5), hero));
+    const matched = forecastFight(stats, prepareFoe(stageFoe(40)));
+    const replay = forecastFight(stats, prepareFoe(stageFoe(5)));
     expect(matched.margin).toBeGreaterThan(1);
     expect(replay.margin).toBeGreaterThan(matched.margin);
   });
@@ -175,7 +154,7 @@ describe("the gate's rating forecast", () => {
   it("warns a hero who walks into a fight far above them", () => {
     const hero = heroAt(20);
     const stats = heroStats(hero);
-    const deadly = forecastFight(stats, prepareFoe(stageFoe(45), hero));
+    const deadly = forecastFight(stats, prepareFoe(stageFoe(45)));
     expect(deadly.verdict).toBe("Deadly");
     // The recommendation is the rating that would make the same fight fair — above where the hero stands.
     expect(deadly.recommended).toBeGreaterThan(stats.power);
@@ -184,8 +163,8 @@ describe("the gate's rating forecast", () => {
   it("recommends a rating at or below the hero's own for a fight they comfortably win", () => {
     const hero = heroAt(60);
     const stats = heroStats(hero);
-    const easy = forecastFight(stats, prepareFoe(stageFoe(20), hero));
+    const easy = forecastFight(stats, prepareFoe(stageFoe(20)));
     expect(easy.recommended).toBeLessThan(stats.power);
-    expect(foeRating(prepareFoe(stageFoe(20), hero))).toBeLessThan(stats.power);
+    expect(foeRating(prepareFoe(stageFoe(20)))).toBeLessThan(stats.power);
   });
 });
