@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import {
   SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, goldEnhanceAllowed, ENHANCE_MAX, REFINE_STAT_BONUS, refineRank, heroStats, invCap, bagSize, matSlots, MAT_STACK, bagRowCost, MAX_BAG_ROWS, sellValue,
-  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, campaignFightRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
+  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, campaignFightRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import {
   addConquestTokens, CONQUEST_XP_RATE, conquestDropFloor, conquestFoe, conquestKeyActive,
@@ -277,7 +277,7 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   // hero trained. The preview is the fight the player actually gets.
   const foe = prepareFoe(spire ? conquestFoe(stage) : stageFoe(stage), hero, spire ? "gate" : "world");
   // A cleared campaign stage is a replay: it still pays, but at a reduced share (see campaignFightRewards).
-  const rw = spire ? stageRewards(stage, 2) : campaignFightRewards(stage, hero.stage);
+  const rw = spire ? stageRewards(stage, 2) : campaignFightRewards(hero.level, stage, hero.stage);
   const replay = !spire && "replay" in rw && Boolean(rw.replay);
   // Today's Conquest Key doubles every Conquest Gate payout (see conquest.ts).
   const keyOn = spire && conquestKeyActive(hero);
@@ -334,11 +334,13 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
         const tokens = spire ? floorTokens(stage) * keyMult : 0;
         const gold = spire ? Math.round(rw.gold * keyMult) : rw.gold;
         update((h) => {
-          // Fighting above the hero's level pays catch-up XP (see catchUpXpFactor).
-          // Non-campaign (Conquest) fights pay CONQUEST_XP_RATE of the stage XP but never enough to level up.
+          // Both gates pay from the hero's own level, never from the stage number: the frontier can
+          // run far ahead of the level, and a stage-priced payout would fill the bar in a handful of
+          // fights (see campaignFightRewards). Conquest pays CONQUEST_XP_RATE of it, capped below a
+          // level-up — the Campaign Gate is where levels are earned.
           const xp = spire
-            ? Math.max(0, Math.min(Math.round(rw.xp * CONQUEST_XP_RATE * xpMultiplier), Math.max(0, xpToNext(h) - h.xp - 1)))
-            : scrollXp(rw.xp * catchUpXpFactor(h.level, stage), xpMultiplier);
+            ? Math.max(0, Math.min(Math.round(xpPerFight(h.level) * CONQUEST_XP_RATE * xpMultiplier), Math.max(0, xpToNext(h) - h.xp - 1)))
+            : scrollXp(campaignFightRewards(h.level, stage, h.stage).xp, xpMultiplier);
           const { levels } = grant(h, xp, gold);
           // A Conquest floor no longer guarantees Rare gear: its rarity floor is rolled (see conquestDropFloor).
           if (warDropKind() === "gear") loot = rollLoot(h, stage, 1, spire ? conquestDropFloor() : foe.boss ? 2 : 0);
@@ -984,7 +986,7 @@ export function XpBar({ hero }: { hero: Hero }) {
         <span className="truncate">
           {left}  {t("fight")}{left === 1 ? "" : "s"} → {next}
         </span>
-        <span className="shrink-0 text-gold/90" title={t("XP a fight at your own level pays before scrolls and catch-up bonuses")}>
+        <span className="shrink-0 text-gold/90" title={t("XP a fight at your own level pays before scroll buffs")}>
           {fmt(xpPerFight(hero.level))}  {t("xp/fight")} </span>
       </div>
     </div>

@@ -809,7 +809,8 @@ export function baseFightsToLevel(level: number) {
   return Math.round(base * (1 + (lv - LATE_CURVE_LEVEL) * LATE_CURVE_PER_LEVEL));
 }
 
-/** XP one fight at this level pays before scrolls and catch-up bonuses (see stageRewards). */
+/** XP one campaign fight at this level pays (before scroll buffs). The level bill is priced in
+ *  exactly this, so a level takes `fightsToLevel` fights (see xpToNext). */
 export function xpPerFight(level: number) {
   return stageRewards(Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)))).xp;
 }
@@ -820,20 +821,15 @@ export function fightsToNextLevel(h: Pick<Hero, "level" | "paragon" | "xp">) {
   return Math.max(1, Math.ceil(left / Math.max(1, xpPerFight(h.level))));
 }
 
-/** Levels above this one cost XP_EASE of their old bill. */
-export const XP_EASE_LEVEL = 30;
-export const XP_EASE = 0.96;
-
-/** Flat extra XP every level's bill carries on top of its fight count (see xpToNext). */
-export const XP_LEVEL_FLAT = 100;
-
+/**
+ * The XP one level costs: exactly `fightsToLevel` fights at the hero's own level — the same
+ * numbers the HUD and the gate show. No flat padding and no hidden share, so "N fights to level"
+ * is literally true: N campaign wins at the frontier fill the bar (see campaignFightRewards).
+ * Ascension bills compound 10% each.
+ */
 export function xpToNext(h: Pick<Hero, "level" | "paragon">) {
   const lv = Math.min(MAX_LEVEL, h.level);
-  // One level is worth exactly `fightsToLevel` fights at the hero's own stage, so the campaign
-  // pays the same XP per fight at every level and only the fight count moves.
-  // Past level 30 every level costs a little less (4%), easing the long grind softly.
-  const base = Math.round(fightsToLevel(lv) * xpPerFight(lv) * (lv > XP_EASE_LEVEL ? XP_EASE : 1));
-  const bill = base + XP_LEVEL_FLAT;
+  const bill = fightsToLevel(lv) * xpPerFight(lv);
   return h.level < MAX_LEVEL ? bill : Math.round(bill * Math.pow(1.1, h.paragon));
 }
 
@@ -850,12 +846,6 @@ export function levelShareScale(level: number) {
 export const HARD_STAGE = 30;
 /** Levels past this point are the deep grind: rewards taper so each level takes many sessions. */
 export const GRIND_LEVEL = 20;
-
-/** A hero fighting a stage far above their own level is under-levelled: the campaign pays up to
- *  double XP until they catch up, so a bad stretch never walls a player out of progression. */
-export function catchUpXpFactor(level: number, stage: number) {
-  return 1 + Math.min(1, Math.max(0, stage - level) * 0.1);
-}
 
 export interface Stats {
   hp: number;
@@ -1344,10 +1334,8 @@ export function earlyEase(stage: number) {
   return 0.72 + 0.28 * climbed;
 }
 
-/** Rewards rise with the stage but always stay well below what the next level costs (see xpToNext).
- *  Gold is deliberately scarce: a stage pays a few hundred coins, while one enhancement or barracks
- *  level costs many fights, so coin keeps its value from the first hour to the endgame. */
-/** Rewards rise with the stage but taper hard after the mid-game so the XP curve outpaces them.
+/** The stage table: gold rises with the stage, and its XP is the level's fight pay (xpPerFight).
+ *  Rewards taper hard after the mid-game so the XP curve outpaces them.
  *  Gold is deliberately scarce: a stage pays a few hundred coins, while one enhancement or barracks
  *  level costs many fights, so coin keeps its value from the first hour to the endgame. */
 export function stageRewards(stage: number, mult = 1) {
@@ -1369,17 +1357,22 @@ export const CAMPAIGN_REPLAY_GOLD = 0.5;
 export const CAMPAIGN_GOLD_RATE = 0.6;
 
 /**
- * What one campaign fight pays. `frontier` is the hero's next stage (`hero.stage`): fighting it is
- * a first clear and pays in full, while any stage already behind it is a replay and pays 25% XP and
- * 50% gold, so a hero cannot level up by farming the same cleared stage (or a blitz) forever.
+ * What one campaign fight pays. XP follows the hero's LEVEL, never the stage number: a fight is
+ * worth exactly what the level bill is priced in (see xpToNext), so the HUD's "N fights to level"
+ * is the true count even when the frontier stage has run far ahead of the hero. Gold still rises
+ * with the stage, so pushing deeper keeps paying.
+ * `frontier` is the hero's next stage (`hero.stage`): fighting it is a first clear and pays in
+ * full, while any stage already behind it is a replay and pays 25% XP and 50% gold, so a hero
+ * cannot level up by farming the same cleared stage (or a blitz) forever.
  */
-export function campaignFightRewards(stage: number, frontier: number) {
+export function campaignFightRewards(level: number, stage: number, frontier: number) {
   const rw = stageRewards(stage);
   const gold = Math.round(rw.gold * CAMPAIGN_GOLD_RATE);
   const replay = stage < Math.max(1, Math.floor(frontier || 1));
+  const xp = xpPerFight(level);
   return replay
-    ? { xp: Math.round(rw.xp * CAMPAIGN_REPLAY_XP), gold: Math.round(gold * CAMPAIGN_REPLAY_GOLD), replay }
-    : { xp: rw.xp, gold, replay };
+    ? { xp: Math.round(xp * CAMPAIGN_REPLAY_XP), gold: Math.round(gold * CAMPAIGN_REPLAY_GOLD), replay }
+    : { xp, gold, replay };
 }
 
 // ---------- Skills ----------
