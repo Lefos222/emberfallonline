@@ -365,6 +365,13 @@
       "when": 1794662920236,
       "tag": "0051_anticheat_soft_gold_flags",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1794689302675,
+      "tag": "0052_tighten_guild_auction_reads",
+      "breakpoints": true
     }
   ]
 }
