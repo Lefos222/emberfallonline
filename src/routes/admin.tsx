@@ -80,6 +80,7 @@ function AdminPage() {
     !q || [a.email, a.heroes, a.signup_ip, a.last_ip].some((v) => v?.toLowerCase().includes(q)));
 
   return (
+    <div className="h-dvh overflow-y-auto bg-background">
     <main className="mx-auto min-h-screen max-w-6xl bg-background p-6 text-foreground">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="font-display text-3xl text-gold">Moderation</h1>
@@ -263,6 +264,7 @@ function AdminPage() {
         </div>
       )}
     </main>
+    </div>
   );
 }
 
