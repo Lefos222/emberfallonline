@@ -14,7 +14,7 @@ import { Shield, Swords } from "./PaintedIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import {
-  SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, goldEnhanceAllowed, ENHANCE_MAX, heroStats, invCap, bagSize, matSlots, MAT_STACK, bagRowCost, MAX_BAG_ROWS, sellValue,
+  SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, goldEnhanceAllowed, ENHANCE_MAX, REFINE_STAT_BONUS, refineRank, heroStats, invCap, bagSize, matSlots, MAT_STACK, bagRowCost, MAX_BAG_ROWS, sellValue,
   CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, campaignFightRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import {
@@ -37,7 +37,7 @@ import { Vault, vaultTiles, type VaultPick } from "./Vault";
 import { GearCodex } from "./GearCodex";
 import { MAX_SOCKETS, MATS, REFINE, addMats, gemName, gemStatText, matCount, parseGem, refine, scrapItem, scrapYield, socketCount, sockets, type Mat } from "./crafting";
 import { STONE_FAIL_SAVE_CHANCE, STONE_LEVELS, combineAllStones, combineGold, combineStones, heldStoneLevels, spendStones, stoneBonus, stoneCount, stoneName } from "./enchant";
-import { FATE_SUCCESS_BONUS, enhanceFateChance, fateStoneCost, fateStoneCount, spendFateStones } from "./fate";
+import { FATE_SUCCESS_BONUS, fateRefineChance, fateStoneCost, fateStoneCount, spendFateStones } from "./fate";
 import worldMap from "@/assets/world-map.jpg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
@@ -540,20 +540,23 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
     setMsg({ ok: true, t: "Unequipped and salvaged " + itemName(it.name) + ": " + gain });
   };
   const enhance = () => {
-    if (!sel || enhanceMaxed(sel)) return;
+    if (!sel) return;
+    // Refinement is its own uncapped track, so a fully enchanted piece can still be refined.
+    if (mode !== "fate" && enhanceMaxed(sel)) return;
     if (mode === "fate") {
       const fateCost = fateStoneCost(sel);
       if (fateStoneCount(hero) < fateCost) return;
-      // Fate Stones carry their own luck: a flat lift on the plain roll, never a certainty.
-      const ok = Math.random() < enhanceFateChance(sel);
+      // Fate Stones refine the piece: a won roll raises its refinement rank and leaves `enh` alone,
+      // because refining and enchanting are different crafts.
+      const ok = Math.random() < fateRefineChance(sel);
       update((h) => {
         spendFateStones(h, fateCost);
         const pos = sel.eq ? posOf(h.equipment, sel.id) : undefined;
         const target = pos ? h.equipment[pos] : h.inventory.find((i) => i.id === sel.id);
-        if (target && ok) { target.enh++; recordEnhance(h, target.enh); }
+        if (target && ok) target.refine = refineRank(target) + 1;
       });
       setMsg(ok
-        ? { ok, t: `Refined! +${sel.enh + 1} (Fate Stone)` }
+        ? { ok, t: `Refined! Refinement +${refineRank(sel) + 1} (Fate Stone)` }
         : { ok, t: `Fate turned — ${fateCost} stone${fateCost === 1 ? "" : "s"} spent` });
     } else if (mode === "stone") {
       const stoneCost = enchantStoneCost(sel);
@@ -598,7 +601,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
       <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="flex flex-1 flex-wrap items-center gap-1.5 text-xs">
           <span className="slot flex items-center gap-1 px-2.5 py-1.5" title={t("Gold in your purse")}><Gold n={hero.gold} /></span>
-          <span className="slot flex items-center gap-1 px-2.5 py-1.5" title={t("Fate Stones refine gear instead of gold")}>
+          <span className="slot flex items-center gap-1 px-2.5 py-1.5" title={t("Fate Stones refine gear on their own track")}>
             <MatIcon mat="fateStone" size={16} /> <b className="text-gold">{fmt(fateStoneCount(hero))}</b> <span className="text-muted-foreground">{t("Fate")}</span>
           </span>
           <span className="slot flex items-center gap-1 px-2.5 py-1.5" title={stoneName(stoneLvl) + " " + t("— the best grade you hold")}>
@@ -657,10 +660,10 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                       <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{t("Enchantment")}</div>
                       <div className="font-display text-2xl leading-none text-gold"><b>+{sel.enh}</b> <span className="text-sm text-muted-foreground">/ +{ENHANCE_MAX}</span></div>
                     </div>
-                    {!enhanceMaxed(sel) && (mode === "gold" && !goldEnhanceAllowed(sel)
+                    {(mode === "fate" || !enhanceMaxed(sel)) && (mode === "gold" && !goldEnhanceAllowed(sel)
                       ? <span className="text-xs text-hp">{t("Enchantment Stones required")}</span>
                       : <div className="text-right text-xs">
-                          <div>{t("Chance")} <b className="text-gold">{Math.round((mode === "fate" ? enhanceFateChance(sel) : mode === "stone" ? enhanceStoneChance(sel, stoneLvl) : enhanceChance(sel)) * 100)}%</b></div>
+                          <div>{t("Chance")} <b className="text-gold">{Math.round((mode === "fate" ? fateRefineChance(sel) : mode === "stone" ? enhanceStoneChance(sel, stoneLvl) : enhanceChance(sel)) * 100)}%</b></div>
                           {mode === "stone" && <div className="text-r1">+{stoneBonus(stoneLvl)}{t("% Lv")} {stoneLvl} {t("stone")}</div>}
                           {mode === "fate" && <div className="text-r1">+{Math.round(FATE_SUCCESS_BONUS * 100)}{t("% fate")}</div>}
                         </div>)}
@@ -670,8 +673,8 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                       title={goldEnhanceAllowed(sel) ? "Pay gold for the next step" : "This piece is fully enhanced"}
                       onClick={() => setMode("gold")}>{t("Gold")}</button>
                     <button className={`py-2 text-[11px] leading-tight ${mode === "stone" ? "btn-gold" : "btn-ghost"}`} aria-pressed={mode === "stone"} onClick={() => setMode("stone")}>{t("Enchantment Stone")}</button>
-                    <button className={`py-2 text-[11px] leading-tight ${mode === "fate" ? "btn-gold" : "btn-ghost"}`} aria-pressed={mode === "fate"} disabled={!goldEnhanceAllowed(sel)}
-                      title={goldEnhanceAllowed(sel) ? "Refine with a Fate Stone" : "This piece is fully enhanced"}
+                    <button className={`py-2 text-[11px] leading-tight ${mode === "fate" ? "btn-gold" : "btn-ghost"}`} aria-pressed={mode === "fate"}
+                      title="Refine with a Fate Stone"
                       onClick={() => setMode("fate")}>{t("Fate Stone")}</button>
                   </div>
                   {mode === "gold" && (
@@ -679,6 +682,13 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                   )}
                   {mode === "fate" && (
                     <div className="slot mt-2 p-2">
+                      <div className="mb-1 flex items-center justify-between text-xs">
+                        <span className="font-display text-gold">{t("Refinement")}</span>
+                        <span className="text-muted-foreground">+{refineRank(sel)} · +{Math.round(REFINE_STAT_BONUS * 100)}{t("% stats per rank")}</span>
+                      </div>
+                      <p className="mb-1 text-[11px] text-muted-foreground">
+                        {t("Refining is its own track — a won roll adds a refinement rank, never an enchantment level, and a piece can be refined again and again.")}
+                      </p>
                       <p className="text-[11px] text-muted-foreground">
                         {t("Held")} <b className="text-gold">×{fmt(fateStoneCount(hero))}</b> {t("— a refinement spends")} {fateStoneCost(sel)}{t(", win or lose. Fate Stones drop from rare battles and are sold in the Auction House shop.")}
                       </p>
@@ -714,13 +724,15 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                     </div>
                   )}
                   <button className="btn-gold mt-2 w-full py-3 text-lg" disabled={
-                    enhanceMaxed(sel)
+                    (mode !== "fate" && enhanceMaxed(sel))
                     || (mode === "fate" ? fateStoneCount(hero) < fateStoneCost(sel)
                       : mode === "stone" ? stoneCount(hero, stoneLvl) < enchantStoneCost(sel)
                         : hero.gold < enhanceCost(sel, hero.level))} onClick={enhance}>
-                    <Hammer className="mr-2 inline" />{enhanceMaxed(sel)
-                      ? `Fully enhanced · +${ENHANCE_MAX}`
-                      : `${mode === "fate" ? t("Refine") : t("Enhance")} +${sel.enh + 1}`}
+                    <Hammer className="mr-2 inline" />{mode === "fate"
+                      ? `${t("Refine")} +${refineRank(sel) + 1}`
+                      : enhanceMaxed(sel)
+                        ? `Fully enhanced · +${ENHANCE_MAX}`
+                        : `${t("Enhance")} +${sel.enh + 1}`}
                   </button>
                 </section>
 

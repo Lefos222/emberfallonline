@@ -415,10 +415,10 @@ export const UI_TEXT: Record<string, ContentRow> = {
       "Συνεισφέρεις χρυσό για να κερδίσεις νομίσματα συντεχνίας (1 χρυσός = 1 νόμισμα συντεχνίας). Ξόδεψέ τα στο κατάστημα, στο θησαυροφυλάκιο και στον πύργο δεξιοτήτων.",
       "Wpłać złoto, by zdobyć monety gildii (1 złoto = 1 moneta gildii). Wydaj je w sklepie, skarbcu i wieży umiejętności.",
     ],
-  "% to a Forge refinement and is spent whether the metal holds or not — one stone per step, more as the gear climbs.":
+  "% to a refinement roll and is spent whether the metal holds or not — refinement is its own track, and a piece can be refined again and again.":
     [
-      "% σε μια βελτίωση του Σιδηρουργείου και ξοδεύεται είτε κρατήσει το μέταλλο είτε όχι — μία πέτρα ανά βήμα, περισσότερες όσο ανεβαίνει ο εξοπλισμός.",
-      "% do ulepszenia w Kuźni i zużywa się niezależnie od tego, czy metal wytrzyma — jeden kamień na krok, więcej wraz z poziomem ekwipunku.",
+      "% σε μια ζαριά βελτίωσης και ξοδεύεται είτε κρατήσει το μέταλλο είτε όχι — η βελτίωση είναι δικό της πεδίο και ένα κομμάτι μπορεί να βελτιωθεί ξανά και ξανά.",
+      "% do rzutu ulepszenia i zużywa się niezależnie od tego, czy metal wytrzyma — ulepszanie to osobna ścieżka, a przedmiot można ulepszać w nieskończoność.",
     ],
   "; 20 min (50 deep), no battles until it lands, 25 Diamonds to finish now. Shares the Conquest Gate's allowance.":
     [
@@ -837,8 +837,8 @@ export const UI_TEXT: Record<string, ContentRow> = {
     [". Πωλούνται μόνο κομμένες πέτρες — όχι πανοπλία.", ". Sprzedawane są tylko oszlifowane kamienie — nie zbroje."],
   "· paid in Void Crystals · no rank limit":
     ["· πληρώνεται σε Κρυστάλλους Κενού · χωρίς όριο βαθμίδων", "· płatne Kryształami pustki · bez limitu stopni"],
-  "Fate Stones refine gear instead of gold":
-    ["Οι Πέτρες Πεπρωμένου βελτιώνουν εξοπλισμό αντί για χρυσό", "Kamienie Losu ulepszają ekwipunek zamiast złota"],
+  "Fate Stones refine gear on their own track":
+    ["Οι Πέτρες Πεπρωμένου βελτιώνουν εξοπλισμό σε δικό τους πεδίο", "Kamienie Losu ulepszają ekwipunek na osobnej ścieżce"],
   "Guild chat opens once you join a guild.":
     ["Η συνομιλία συντεχνίας ανοίγει μόλις μπεις σε συντεχνία.", "Czat gildii otwiera się po dołączeniu do gildii."],
   "· the board refills at Greek midnight.":
@@ -1784,6 +1784,13 @@ export const UI_TEXT: Record<string, ContentRow> = {
   Rating: ["Βαθμολογία", "Ocena"],
   "rd win": ["η νίκη", "zwycięstwo"],
   Refine: ["Εκλέπτυνση", "Oczyść"],
+  Refinement: ["Βελτίωση", "Ulepszenie"],
+  "% stats per rank": ["% στατιστικών ανά βαθμό", "% statystyk za rangę"],
+  "Refining is its own track — a won roll adds a refinement rank, never an enchantment level, and a piece can be refined again and again.":
+    [
+      "Η βελτίωση είναι δικό της πεδίο — μια κερδισμένη ζαριά προσθέτει βαθμό βελτίωσης, ποτέ επίπεδο γοητείας, και ένα κομμάτι μπορεί να βελτιωθεί ξανά και ξανά.",
+      "Ulepszanie to osobna ścieżka — udany rzut dodaje rangę ulepszenia, nigdy poziom zaczarowania, a przedmiot można ulepszać w nieskończoność.",
+    ],
   Remove: ["Αφαίρεση", "Usuń"],
   Resets: ["Επαναφορές", "Resety"],
   Roster: ["Σύνθεση", "Skład"],

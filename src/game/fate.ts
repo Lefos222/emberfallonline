@@ -1,25 +1,26 @@
-import { enhanceChance, type Item } from "./data";
+import { refineRank, type Item } from "./data";
 import type { CraftState } from "./crafting";
 
 /**
- * Fate Stones: a rare, single-grade stone that refines gear at the Forge instead of gold. Unlike the
- * nine grades of Enchantment Stone, one Fate Stone adds a flat slice of success to any refinement step
- * and is spent whether the metal holds or not — fate takes its price either way.
+ * Fate Stones: a rare, single-grade stone that refuses to be another Enchantment Stone. Where the
+ * nine grades of Enchantment Stone push the piece's enchantment level (`Item.enh`), a Fate Stone
+ * refines the piece on its own separate track (`Item.refine`) — a rank that never raises the
+ * enchantment and, unlike it, has no ceiling: a piece can be refined again and again.
  *
  * Fate Stones live in `hero.mats.fateStone` like every other material, so battles, the Auction House
  * shop and old saves all read them through the same `matCount` path.
  */
-/** Success a Fate Stone adds to the plain enhancement roll. */
+/** Success a Fate Stone adds to the plain refinement roll. */
 export const FATE_SUCCESS_BONUS = 0.25;
 /** Base gold price of one Fate Stone in the Auction House shop, before level scaling and house discount. */
 export const FATE_STONE_PRICE = 120000;
 
-/** Fate Stones one refinement step costs: one, plus another every five enhancement levels already made. */
-export const fateStoneCost = (it: Item) => 1 + Math.floor(Math.max(0, it.enh) / 5);
+/** Fate Stones one refinement step costs: one, plus another every three refinement ranks. */
+export const fateStoneCost = (it: Item) => 1 + Math.floor(refineRank(it) / 3);
 
-/** Chance a Fate Stone refinement succeeds: the plain roll plus a flat bonus, never a certainty. */
-export const enhanceFateChance = (it: Item) =>
-  Math.min(0.95, enhanceChance(it) + FATE_SUCCESS_BONUS);
+/** Chance a refinement succeeds: the plain roll plus the stone's flat bonus, never a certainty. */
+export const fateRefineChance = (it: Item) =>
+  Math.min(0.95, Math.max(0.05, 1 - refineRank(it) * 0.021) + FATE_SUCCESS_BONUS);
 
 type FateState = Pick<CraftState, "mats">;
 

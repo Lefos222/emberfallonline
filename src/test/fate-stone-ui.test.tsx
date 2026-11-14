@@ -54,9 +54,11 @@ describe("fate stone refinement at the forge", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     fireEvent.click(screen.getByRole("button", { name: /Refine \+1/ }));
 
-    expect(getState().hero!.inventory[0].enh).toBe(1);
+    // Refining is its own track: the piece gains a refinement rank, never an enchantment level.
+    expect(getState().hero!.inventory[0].refine).toBe(1);
+    expect(getState().hero!.inventory[0].enh).toBe(0);
     expect(fateStoneCount(getState().hero!)).toBe(2);
     expect(getState().hero!.gold).toBe(5_000_000);
-    expect(screen.getByText(/Refined! \+1/)).toBeInTheDocument();
+    expect(screen.getByText(/Refined! Refinement \+1/)).toBeInTheDocument();
   });
 });
