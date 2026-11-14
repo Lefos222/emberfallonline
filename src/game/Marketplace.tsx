@@ -246,7 +246,7 @@ function ShopTab({ hero }: { hero: Hero }) {
         <span className="text-xs text-muted-foreground">{t("Held ×")}{fmt(fateStoneCount(hero))}</span>
       </div>
       <p className="mb-2 text-xs text-muted-foreground">
-         {t("One Fate Stone adds a flat +")}{Math.round(FATE_SUCCESS_BONUS * 100)}{t("% to a Forge refinement and is spent whether the metal holds or not — one stone per step, more as the gear climbs.")} </p>
+         {t("One Fate Stone adds a flat +")}{Math.round(FATE_SUCCESS_BONUS * 100)}{t("% to a refinement roll and is spent whether the metal holds or not — refinement is its own track, and a piece can be refined again and again.")} </p>
       {(() => {
         const price = fateStoneShopPrice(hero.level);
         return (

@@ -269,10 +269,10 @@ export const CONTENT: Record<string, ContentRow> = {
     "Wygrane walki, sklep Domu Aukcyjnego, gildia i sklepy Podboju",
   ],
   "Fate Stone": ["Πέτρα της Μοίρας", "Kamień Przeznaczenia"],
-  "A rare rune-cut stone that refines gear at the Forge instead of gold. One adds a flat +25% to the roll and is spent win or lose (see fate.ts).":
+  "A rare rune-cut stone that refines gear at the Forge. Refinement is its own track — a won roll adds a rank, never an enchantment level, and a piece can be refined again and again (see fate.ts).":
     [
-      "Σπάνια πέτρα με ρούνους που βελτιώνει εξοπλισμό στο Σιδηρουργείο αντί για χρυσό. Κάθε μία προσθέτει +25% στη ζαριά και χάνεται είτε πετύχεις είτε όχι.",
-      "Rzadki kamień z runami, którym zamiast złota ulepszasz ekwipunek w Kuźni. Każdy daje +25% do wyniku i przepada niezależnie od efektu.",
+      "Σπάνια πέτρα με ρούνους που βελτιώνει εξοπλισμό στο Σιδηρουργείο. Η βελτίωση είναι δικό της πεδίο — μια κερδισμένη ζαριά προσθέτει βαθμό, ποτέ επίπεδο γοητείας, και ένα κομμάτι μπορεί να βελτιωθεί ξανά και ξανά.",
+      "Rzadki kamień z runami, którym ulepszasz ekwipunek w Kuźni. Ulepszanie to osobna ścieżka — udany rzut dodaje rangę, nigdy poziom zaczarowania, a przedmiot można ulepszać w nieskończoność.",
     ],
   "Rare battle drops, Auction House shop": [
     "Σπάνιες ανταμοιβές μάχης, κατάστημα Οίκου Δημοπρασιών",

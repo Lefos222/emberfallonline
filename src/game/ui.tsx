@@ -8,7 +8,7 @@ import { GoldCoin } from "./CoinIcon";
 import { GearIcon } from "./GearIcon";
 import { GemIcon } from "./MatIcon";
 import { gemName, gemStatText, parseGem, socketCount, sockets } from "./crafting";
-import { itemStats, itemScore, RARITIES, type Item } from "./data";
+import { itemStats, itemScore, refineRank, RARITIES, type Item } from "./data";
 import { itemName, useT , tr} from "./i18n";
 
 /** The windows currently on screen, innermost last: Escape only closes the top one. */
@@ -196,6 +196,7 @@ export function ItemCard({ item, compare, actions }: { item: Item; compare?: Ite
             {itemName(item.name)} {item.enh > 0 && `+${item.enh}`}
           </div>
           <div className="text-xs text-muted-foreground">{RARITIES[item.rarity].name} · {item.slot}  {tr("· iLvl")} {item.ilvl}</div>
+          {refineRank(item) > 0 && <div className="text-xs font-bold text-gold">{tr("Refinement")} +{refineRank(item)}</div>}
           {delta !== null && <div className={`text-xs font-bold ${delta >= 0 ? "text-r1" : "text-hp"}`}>{delta >= 0 ? tr("▲ Upgrade") : tr("▼ Weaker")} ({delta >= 0 ? "+" : ""}{delta}  {tr("power)")}</div>}
         </div>
       </div>

@@ -14,7 +14,7 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   hide: { name: "Beast Hide", desc: "Hide stripped from slain monsters. Refines into Armor Fragments.", src: "Every won battle (more in higher regions)", rarity: 1 },
   bloom: { name: "Emberbloom", desc: "Fire-touched herb. Refines into Soul Essence.", src: "Won battles and elites", rarity: 1 },
   crystal: { name: "Arcane Crystal", desc: "Crystallised mana. Refines into Starshards.", src: "Elites and Dungeon Gate bosses", rarity: 2 },
-  fateStone: { name: "Fate Stone", desc: "A rare rune-cut stone that refines gear at the Forge instead of gold. One adds a flat +25% to the roll and is spent win or lose (see fate.ts).", src: "Rare battle drops, Auction House shop", rarity: 4 },
+  fateStone: { name: "Fate Stone", desc: "A rare rune-cut stone that refines gear at the Forge. Refinement is its own track — a won roll adds a rank, never an enchantment level, and a piece can be refined again and again (see fate.ts).", src: "Rare battle drops, Auction House shop", rarity: 4 },
   frostCrystal: { name: "Frost Crystal", desc: "Ice-bound crystal. Needed for Epic armour.", src: "Bosses, Wheel of Fortune, Black Market", rarity: 3 },
   voidCrystal: { name: "Void Crystal", desc: "Crystal from beyond the veil. Needed for Legendary armour.", src: "Bosses, Wheel of Fortune, Black Market", rarity: 4 },
   sunCrystal: { name: "Sun Crystal", desc: "A shard of captured sunlight. Needed for Mythic armour.", src: "Dungeon bosses, Wheel of Fortune", rarity: 5 },

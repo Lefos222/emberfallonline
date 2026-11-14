@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { enhanceChance, makeItem, newHero } from "@/game/data";
+import { REFINE_STAT_BONUS, itemStats, makeItem, newHero, refineRank } from "@/game/data";
 import { MATS, matCount } from "@/game/crafting";
 import {
   FATE_SUCCESS_BONUS,
   addFateStones,
-  enhanceFateChance,
+  fateRefineChance,
   fateStoneCost,
   fateStoneCount,
   rollFateStone,
@@ -13,7 +13,7 @@ import {
 import { buyFateStone, fateStoneShopPrice, stoneShopPrice } from "@/game/Marketplace";
 import { stonePrice } from "@/game/enchant";
 
-const item = (enh: number) => ({ ...makeItem("warrior", 30, 2, "weapon"), enh });
+const item = (enh: number, refine = 0) => ({ ...makeItem("warrior", 30, 2, "weapon"), enh, refine });
 
 describe("fate stones", () => {
   it("are a Forge material called Fate Stone", () => {
@@ -21,20 +21,32 @@ describe("fate stones", () => {
     expect(MATS.fateStone.rarity).toBe(4);
   });
 
-  it("add a flat bonus to the plain refinement roll, never certainty", () => {
+  it("add a flat bonus to the refinement roll, never certainty", () => {
     expect(FATE_SUCCESS_BONUS).toBe(0.25);
-    const gear = item(20);
-    expect(enhanceFateChance(gear)).toBeCloseTo(enhanceChance(gear) + 0.25, 5);
-    expect(enhanceFateChance(item(0))).toBe(0.95);
-    expect(enhanceFateChance(item(40))).toBeLessThanOrEqual(0.95);
-    expect(enhanceFateChance(item(40))).toBeGreaterThan(enhanceChance(item(40)));
+    const gear = item(20, 20);
+    expect(fateRefineChance(item(0))).toBe(0.95);
+    expect(fateRefineChance(gear)).toBeLessThan(fateRefineChance(item(0)));
+    expect(fateRefineChance(item(40, 0))).toBe(fateRefineChance(item(0, 0)));
   });
 
-  it("cost one stone a step, more as the gear climbs", () => {
-    expect(fateStoneCost(item(0))).toBe(1);
-    expect(fateStoneCost(item(4))).toBe(1);
-    expect(fateStoneCost(item(5))).toBe(2);
-    expect(fateStoneCost(item(10))).toBe(3);
+  it("cost one stone a step, more as the piece is refined", () => {
+    expect(fateStoneCost(item(0, 0))).toBe(1);
+    expect(fateStoneCost(item(0, 2))).toBe(1);
+    expect(fateStoneCost(item(0, 3))).toBe(2);
+    expect(fateStoneCost(item(0, 6))).toBe(3);
+    // The enchantment level does not change the price of a refinement.
+    expect(fateStoneCost(item(40, 0))).toBe(1);
+  });
+
+  it("refine the piece on its own track, separate from enchantment", () => {
+    const gear = item(12, 0);
+    expect(refineRank(gear)).toBe(0);
+    const refined = { ...gear, refine: 4 };
+    expect(refineRank(refined)).toBe(4);
+    expect(refined.enh).toBe(12);
+    expect(REFINE_STAT_BONUS).toBe(0.02);
+    expect(itemStats(refined).atk).toBeGreaterThan(itemStats(gear).atk);
+    expect(itemStats(refined).atk).toBeCloseTo(itemStats(gear).atk * (1 + 4 * REFINE_STAT_BONUS), -1);
   });
 
   it("are counted in the pouch and spent without going negative", () => {
@@ -74,7 +86,7 @@ describe("fate stones", () => {
   });
 
   it("cost far more than the cheapest enchantment stone", () => {
-    expect(fateStoneShopPrice(1)).toBeGreaterThan(stoneShopPrice(1, 1));
+    expect(fateStoneShopPrice(1)).toBeGreaterThan(stonePrice(1, 1));
     expect(stonePrice(1, 1)).toBeGreaterThan(0);
   });
 });

@@ -74,6 +74,11 @@ export const MAX_LEVEL = 140;
 export const ENHANCE_MAX = 60;
 /** Gold carries a piece the whole climb: every step up to +60 may be paid in gold. */
 export const ENHANCE_GOLD_LIMIT = ENHANCE_MAX;
+/** Stats one Fate Stone refinement rank adds, on top of enchantment (see itemStats). */
+export const REFINE_STAT_BONUS = 0.02;
+/** A piece's refinement rank: its own track, never mixed with `enh` and never capped. */
+export const refineRank = (it: { refine?: number }) =>
+  Math.max(0, Math.floor(it.refine ?? 0));
 export const CONQUEST_LEVEL = 10;
 export const canEnterConquest = (level: number) => level >= CONQUEST_LEVEL;
 export const INVENTORY_CAP = 40;
@@ -168,6 +173,8 @@ export interface Item {
   /** Painted band of the gear atlas the icon comes from (see ATLAS_BANDS); absent = 0. */
   art?: number;
   enh: number;
+  /** Refinement rank from Fate Stones: its own track, never an enchantment level (see fate.ts). */
+  refine?: number;
   name: string;
   /** True when produced by the Forge (the only source of Rare+ armor). */
   crafted?: boolean;
@@ -350,7 +357,7 @@ export function makeItem(cls: HeroClass, ilvl: number, rarity: number, slot?: Sl
 }
 
 export function itemStats(it: Item): ItemStats {
-  const base = (8 + it.ilvl * 4) * RARITIES[it.rarity].mult * (1 + it.enh * 0.1) * epicMult(it.epic);
+  const base = (8 + it.ilvl * 4) * RARITIES[it.rarity].mult * (1 + it.enh * 0.1) * (1 + refineRank(it) * REFINE_STAT_BONUS) * epicMult(it.epic);
   const z = { atk: 0, def: 0, hp: 0, crit: 0 };
   switch (it.slot) {
     case "weapon":
