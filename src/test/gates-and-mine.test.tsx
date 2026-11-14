@@ -99,7 +99,7 @@ describe("the reworked gates", () => {
     // The gate previews the very foe the fight will start (prepareFoe), so the colour comes from a
     // real forecast of that fight, and the requirement is the same floor's reference-player
     // requirement (see floor-rating.ts) rather than a number that moves with the viewer's gear.
-    const foe = prepareFoe(stageFoe(12), hero);
+    const foe = prepareFoe(stageFoe(12));
     const forecast = forecastFight(heroStats(hero), foe);
     const required = floorRequirement("campaign", 12, hero.level, hero.paragon);
 

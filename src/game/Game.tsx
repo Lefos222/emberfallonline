@@ -277,7 +277,7 @@ export function Game() {
         fightOpen.current = true;
         setBattle({
           ...o,
-          right: o.arena ? o.right : prepareFoe(o.right, current.hero, o.scaling),
+          right: o.arena ? o.right : prepareFoe(o.right),
           gate: !o.arena && ["portal", "spire", "dungeon"].includes(open ?? ""),
           left: scrollFighter(
             {

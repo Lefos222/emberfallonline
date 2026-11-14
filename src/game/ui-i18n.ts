@@ -177,7 +177,7 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Anyone can browse — only VIP members can buy. Activate VIP in the Premium Shop.": ["Όλοι μπορούν να δουν — μόνο τα μέλη VIP αγοράζουν. Ενεργοποίησε VIP στο Premium Κατάστημα.", "Każdy może oglądać — kupować mogą tylko członkowie VIP. Aktywuj VIP w Sklepie Premium."],
   "Vaultkeeper": ["Θησαυροφύλακας", "Skarbnik"],
   "Page": ["Σελίδα", "Strona"],
-  "Store gear for the whole guild. Any member can take an item out when their bag has room.": ["Αποθήκευσε εξοπλισμό για όλη τη συντεχνία. Κάθε μέλος μπορεί να πάρει αντικείμενο όταν έχει χώρο στον σάκο.", "Przechowuj ekwipunek dla całej gildii. Każdy członek może zabrać przedmiot, gdy ma miejsce w torbie."],
+  "Your own stash inside the guild: nobody else sees what you store here, and only you can take it back.": ["Η προσωπική σου αποθήκη μέσα στη συντεχνία: κανείς άλλος δεν βλέπει ό,τι βάζεις εδώ, και μόνο εσύ μπορείς να το πάρεις πίσω.", "Twoja własna schowka w gildii: nikt inny nie widzi, co tu składasz, i tylko ty możesz to odebrać."],
   "Stored by": ["Αποθηκεύτηκε από", "Złożone przez"],
   "Take to bag": ["Στον σάκο", "Do torby"],
   "Deposit from your bag": ["Κατάθεση από τον σάκο σου", "Złóż z torby"],

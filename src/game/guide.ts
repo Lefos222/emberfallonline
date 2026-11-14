@@ -405,6 +405,55 @@ const chapters: GuideChapter[] = [
     tip: "Barracks drills work in real time even while you are logged out — keep training drills queued around the clock.",
   },
   {
+    id: "awakening",
+    tab: "Awakening",
+    title: "Level 90 and the Awakening",
+    blurb: "What opens after level 90: five stages, Sigils, Echo Trials, the Endless Abyss and the Constellation.",
+    steps: [
+      step(
+        "Open the sanctum at level 90",
+        "At level 90 the Awakening building appears beside the Throne Hall. From then on every fight you win pays Dawnshards (✦), and bosses pay three. Dawnshards are the only currency the sanctum takes.",
+      ),
+      step(
+        "Climb the five stages",
+        "First Light, Kindled Soul, Ember Sovereign, Dawnborne and Eternal Flame. Each stage costs gold and Dawnshards, adds +3% attack, magic attack, defence, magic defence and health, and opens the next part of the sanctum.",
+      ),
+      step(
+        "Attune the Soul Lattice",
+        "Eight nodes, one for each main stat. Every rank costs Dawnshards and gold and stays forever. You can reach rank 20, and rank 30 from the fourth stage, so put your ranks into the stats your class really fights with.",
+      ),
+      step(
+        "Choose your Aspect",
+        "The second stage gives your hero a class form: Juggernaut, Berserker or Warlord for warriors, Aegis Magus, Pyromancer or Archon for mages, Sentinel, Deadeye or Windcaller for archers. The first choice is free; changing it later costs 150 Dawnshards, and mastery adds ten ranks of +15% to the form's bonuses.",
+      ),
+      step(
+        "Forge and refine Sigils",
+        "The third stage opens four sigil slots — Crown, Heart, Wings and Seal — and three sets: Dawnbreaker, Eclipse and Tempest. Two pieces of a set already pay a bonus, four pay a bigger one. Forging costs Dawnshards and crystals, refining adds 10% per level, and reforging another set keeps half the refinement.",
+      ),
+      step(
+        "Run Echo Trials every day",
+        "You get five trials a day. Pick a depth and fight a copy of your own power: every win opens two deeper levels and pays the most Dawnshards in the game.",
+      ),
+      step(
+        "Descend the Endless Abyss",
+        "An unlimited ladder below the sanctum. Every floor is harder than the last and every tenth floor is a guardian. Each fight costs dungeon stamina and pays Dawnshards, Awakening XP and the rare crystals the Raiment needs.",
+      ),
+      step(
+        "Grow the Constellation",
+        "Every won fight at level 90 and above, every Abyss floor and every Echo Trial gives Awakening XP. Each Awakening level gives one point, and the six stars — Wrath, Sorcery, Titan, Bastion, Omens and Fate — are long ladders you feed with those points.",
+      ),
+      step(
+        "Forge the Awakened Raiment",
+        "Six tiers of your class's awakened outfit. Every tier raises all main stats, and your hero wears its look everywhere, in the castle and in battle. The later tiers ask for Abyss materials.",
+      ),
+      step(
+        "Diamonds only save time",
+        "The sanctum sells an XP Surge, a stamina refill, a Dawnshard Cache and an Echo Reset for Diamonds. Everything they give can also be earned by playing, so buy them only when you want the road shorter.",
+      ),
+    ],
+    tip: "Spend Dawnshards on the stages first: every stage lifts all five main stats at once and opens the next part of the sanctum.",
+  },
+  {
     id: "rating",
     tab: "Battle Rating",
     title: "How Battle Rating is built",
@@ -461,7 +510,7 @@ const chapters: GuideChapter[] = [
       ),
       step(
         "Wars and the vault",
-        "Guild wars are declared in brackets from 5v5 to 100v100 and every roster hero gets two attacks. The guild vault is a shared store of gear, gems and materials with three pages.",
+        "Guild wars are declared in brackets from 5v5 to 100v100 and every roster hero gets two attacks. The Guild Vault is your own stash inside the guild: only you can see what you stored there, and only you can take it back.",
       ),
       step(
         "Guild Shop",

@@ -60,11 +60,7 @@ describe("the Battle Rating a gate floor asks of a hero", () => {
       const shown = floorRequirement(gate, floor, level);
       for (const cls of ["warrior", "mage", "archer"] as const) {
         const hero = referenceHero(level, cls);
-        const foe = prepareFoe(
-          gate === "conquest" ? conquestFoe(floor) : stageFoe(floor),
-          referenceHero(level, "warrior"),
-          gate === "conquest" ? "gate" : "world",
-        );
+        const foe = prepareFoe(gate === "conquest" ? conquestFoe(floor) : stageFoe(floor));
         const stats = heroStats(hero);
         const fair = stats.power * Math.sqrt(FAIR_MARGIN / forecastFight(stats, foe).margin);
         expect(
