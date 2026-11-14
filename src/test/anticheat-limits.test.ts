@@ -43,8 +43,8 @@ describe("anticheat limits", () => {
     expect(800_000).toBeGreaterThan(acPowerCap(3));
   });
 
-  it("allows 220,000 gold per save at level 3 and 5,700,000 at level 140", () => {
-    expect(acGoldCap(3)).toBe(220_000);
-    expect(acGoldCap(140)).toBe(5_700_000);
+  it("flags only above 950,000 gold per save at level 3 and 21,500,000 at level 140", () => {
+    expect(acGoldCap(3)).toBe(950_000);
+    expect(acGoldCap(140)).toBe(21_500_000);
   });
 });
