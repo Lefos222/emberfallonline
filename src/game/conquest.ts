@@ -2,7 +2,7 @@ import { addGem, addMats, GEM_MAX_TIER, type GemType, type Mat } from "./craftin
 import { addStones } from "./enchant";
 import { addChests, type ChestKind } from "./chests";
 import { BLITZ_GOLD_SHARE, BLITZ_RUNNING, blitzRunning, startBlitzRun } from "./blitz-run";
-import { stageRewards, type Hero } from "./data";
+import { stageFoe, stageRewards, type Foe, type Hero } from "./data";
 import { greekDayStart } from "./events";
 
 /**
@@ -10,6 +10,29 @@ import { greekDayStart } from "./events";
  * stageFoe/stageRewards factories, so the gate keeps going past any fixed cap.
  * `hero.spire` holds the frontier floor that is next fightable.
  */
+
+/** Every floor is built at 1.35× its campaign stage, so the gate always asks more than the road. */
+export const CONQUEST_MULT = 1.35;
+/**
+ * The gate's own late ramp (see LateCurve in data.ts): +0.5% health and damage per floor past the
+ * campaign's wall, where the campaign itself adds 1.5%. An endless gate has to stay climbable —
+ * a hero who keeps upgrading keeps gaining floors — so the wall the late campaign is allowed to
+ * build is damped here instead of being copied.
+ */
+export const CONQUEST_DEPTH_GROWTH = 1.005;
+/** ...and +0.6% per floor past floor 50, where the campaign's rift adds 2%. */
+export const CONQUEST_RIFT_STEP = 0.006;
+
+/**
+ * The foe on a Conquest floor — the same stageFoe factory as every other gate, with the gate's
+ * gentler late curve. Feed it through prepareFoe like every monster fight, so the floor shown in
+ * the gate is exactly the floor the battle starts.
+ */
+export const conquestFoe = (floor: number): Foe =>
+  stageFoe(floor, CONQUEST_MULT, undefined, undefined, {
+    toughness: CONQUEST_DEPTH_GROWTH,
+    rift: CONQUEST_RIFT_STEP,
+  });
 
 /** Deepest floor the hero has already cleared. */
 export const floorsCleared = (h: Pick<Hero, "spire">) => Math.max(0, h.spire - 1);

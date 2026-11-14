@@ -1250,19 +1250,41 @@ export function zoneOf(stage: number) {
 
 /** Past the campaign the Road and Conquest keep stretching with a gentle rift bonus. */
 export const RIFT_STAGE = 50;
-export const riftFactor = (stage: number) => 1 + Math.max(0, stage - RIFT_STAGE) * 0.02;
+/** The campaign's rift step: +2% health and damage per stage past RIFT_STAGE. */
+export const RIFT_RATE = 0.02;
+export const riftFactor = (stage: number, step = RIFT_RATE) =>
+  1 + Math.max(0, stage - RIFT_STAGE) * step;
+
+/**
+ * A gate's own late-game curve: how hard health and damage compound past HARD_STAGE and
+ * RIFT_STAGE. Left out, a foe follows the campaign's own wall (see LATE_GAME_TOUGHNESS); the
+ * Conquest Gate passes its own gentler curve, because that gate is meant to be climbed forever.
+ */
+export interface LateCurve {
+  /** Health/damage compounding per stage past HARD_STAGE. */
+  toughness: number;
+  /** Health/damage compounding per stage past RIFT_STAGE. */
+  rift: number;
+}
 
 /**
  * Enemy stats follow the hero's own growth instead of an exponential wall: health and damage
  * climb with the stage at a steady pace, so a hero whose gear keeps up clears the campaign
  * comfortably while bosses stay meaningfully harder.
  */
-export function stageFoe(stage: number, mult = 1, type?: EnemyType, name?: string): Foe {
+export function stageFoe(
+  stage: number,
+  mult = 1,
+  type?: EnemyType,
+  name?: string,
+  late?: LateCurve,
+): Foe {
   const boss = stage % 10 === 0;
   const t: EnemyType = type ?? (boss ? "dragon" : zoneOf(stage).type);
-  const rift = riftFactor(stage);
+  const rift = riftFactor(stage, late?.rift);
   const b = boss ? 1 : 0;
-  const tough = boss ? 1 + (foeToughness(stage) - 1) * 0.4 : foeToughness(stage);
+  const toughRaw = foeToughness(stage, late?.toughness);
+  const tough = boss ? 1 + (toughRaw - 1) * 0.4 : toughRaw;
   // The first levels are deliberately gentle (see earlyEase); from stage 18 this is exactly 1.
   const ease = earlyEase(stage);
   return {
@@ -1285,10 +1307,11 @@ export const LATE_GAME_TOUGHNESS = 1.015;
 /** Monsters get tougher as you progress: +0.6% health/damage per stage after stage 5 (bosses get 40% of that, they already spike).
  *  From stage 31 the curve steepens hard: +1.5% compounding each stage (~+2.1× by stage 80 and
  *  ~+5.1× by stage 140), so the late campaign is a real wall the hero answers with levels,
- *  enhancements, gems and talents rather than free progression. */
-export function foeToughness(stage: number) {
+ *  enhancements, gems and talents rather than free progression.
+ *  `late` lets a gate bring its own wall instead (see LateCurve); the Conquest Gate does. */
+export function foeToughness(stage: number, late = LATE_GAME_TOUGHNESS) {
   const steady = 1 + Math.max(0, stage - 5) * 0.006;
-  return steady * Math.pow(LATE_GAME_TOUGHNESS, Math.max(0, stage - HARD_STAGE));
+  return steady * Math.pow(late, Math.max(0, stage - HARD_STAGE));
 }
 
 /** The opening levels are the tutorial: until this level foes are softer so a new hero keeps moving. */

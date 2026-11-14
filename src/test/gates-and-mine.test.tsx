@@ -8,6 +8,7 @@ import { fmt } from "@/game/ui";
 import { heroStats, newHero, stageFoe } from "@/game/data";
 import { forecastFight } from "@/game/battle-advice";
 import { prepareFoe } from "@/game/foe-scaling";
+import { floorRequirement } from "@/game/floor-rating";
 import { getState, setHero } from "@/game/store";
 import { conquestKeyActive } from "@/game/conquest";
 import { MINE_MAX_LEVEL, mineLevel, minePerHour, mineUpgradeCost } from "@/game/mine";
@@ -87,7 +88,7 @@ describe("the reworked gates", () => {
     expect(screen.getByRole("button", { name: /Blitz/ })).toBeInTheDocument();
   });
 
-  it("recommends a Battle Rating for the floor being fought, and the pill reads the real fight", () => {
+  it("shows the Battle Rating the floor requires, and the pill reads the real fight", () => {
     const hero = newHero("Rater", "warrior");
     hero.stage = 12;
     hero.level = 9;
@@ -95,14 +96,36 @@ describe("the reworked gates", () => {
     setHero(hero);
     render(<Campaign onClose={() => {}} start={vi.fn()} />);
 
-    // The gate previews the very foe the fight will start (prepareFoe), so the number and the
-    // colour come from one forecast of that fight.
+    // The gate previews the very foe the fight will start (prepareFoe), so the colour comes from a
+    // real forecast of that fight, and the requirement is the same floor's reference-player
+    // requirement (see floor-rating.ts) rather than a number that moves with the viewer's gear.
     const foe = prepareFoe(stageFoe(12), hero);
     const forecast = forecastFight(heroStats(hero), foe);
+    const required = floorRequirement("campaign", 12, hero.level, hero.paragon);
 
-    const line = screen.getByText(/Recommended rating/i);
-    expect(line).toHaveTextContent(fmt(forecast.recommended));
+    const line = screen.getByText(/Required rating/i);
+    expect(line).toHaveTextContent(fmt(required));
     expect(screen.getByTitle(/compares to your battle rating/i)).toHaveTextContent(forecast.verdict);
+    // The whole ladder is on screen, one row per stage up to the frontier and a few ahead.
+    expect(screen.getByText(/Rating by floor/i)).toBeInTheDocument();
+  });
+
+  it("lists the rating every Conquest floor asks, and lets a floor be picked from it", () => {
+    const hero = newHero("Climber", "warrior");
+    hero.level = 40;
+    hero.spire = 45;
+    setHero(hero);
+    render(<Campaign spire onClose={() => {}} start={vi.fn()} />);
+
+    // One row per floor up to the frontier, then five floors still to come (floor 1 … floor 50).
+    expect(screen.getAllByRole("button", { name: /^Floor \d+/ })).toHaveLength(50);
+    const floor30 = screen.getByRole("button", { name: /^Floor 30/ });
+    expect(floor30).toHaveTextContent(fmt(floorRequirement("conquest", 30, hero.level, hero.paragon)));
+    // Floors past the frontier are listed but cannot be picked yet.
+    expect(screen.getByRole("button", { name: /^Floor 50/ })).toBeDisabled();
+
+    fireEvent.click(floor30);
+    expect(screen.getByLabelText("Floor to fight")).toHaveValue(30);
   });
 
   it("pays the Conquest Gate's tokens on every floor and sells gems for tokens only", () => {

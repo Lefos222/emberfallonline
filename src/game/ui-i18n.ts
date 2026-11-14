@@ -2272,5 +2272,12 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Choose a dungeon": ["Διάλεξε μπουντρούμι", "Wybierz loch"],
   "Best floors": ["Καλύτερα πατώματα", "Najlepsze piętra"],
   "Every floor your party clears earns a Spire Chest. Opening one pays gold and materials scaled by your best floor.": ["Κάθε όροφος που καθαρίζει η παρέα σου κερδίζει ένα Μπαούλο του Πύργου. Το άνοιγμά του δίνει χρυσό και υλικά ανάλογα με τον καλύτερό σου όροφο.", "Każde piętro oczyszczone przez drużynę daje Skrzynię Iglicy. Jej otwarcie daje złoto i materiały zależne od twojego najlepszego piętra."],
+  // ---- Gate rating ladder (GateUI.tsx, panels.tsx) ----
+  "Required rating": ["Απαιτούμενη βαθμολογία", "Wymagana ocena"],
+  "Rating by floor": ["Βαθμολογία ανά όροφο", "Ocena na piętro"],
+  "Battle Rating each floor asks of you": ["Βαθμολογία μάχης που ζητά κάθε όροφος", "Ocena walki, której wymaga każde piętro"],
+  "Clear the floor below it first": ["Καθάρισε πρώτα τον όροφο από κάτω", "Najpierw oczyść piętro poniżej"],
+  "you meet it": ["το καλύπτεις", "spełniasz ją"],
+  "short": ["λείπουν", "brakuje"],
   // @@ROWS@@
 };

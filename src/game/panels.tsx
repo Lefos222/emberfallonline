@@ -18,9 +18,10 @@ import {
   CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, campaignFightRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, catchUpXpFactor, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import {
-  addConquestTokens, CONQUEST_XP_RATE, conquestDropFloor, conquestKeyActive, conquestRewardMultiplier,
-  conquestTokens, floorTokens,
+  addConquestTokens, CONQUEST_XP_RATE, conquestDropFloor, conquestFoe, conquestKeyActive,
+  conquestRewardMultiplier, conquestTokens, floorTokens,
 } from "./conquest";
+import { floorRequirement, floorTargets, type GateKind } from "./floor-rating";
 import { CAMPAIGN_STAMINA, staminaBlocker, staminaLeft } from "./stamina";
 import { ConquestTokens } from "./ConquestGate";
 import { CampaignBlitz } from "./CampaignBlitz";
@@ -28,8 +29,8 @@ import { LevelProgress } from "./LevelCurve";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, InfoTip, ItemCard, ItemSlot, Panel, fmt } from "./ui";
 import { ConquestCoin } from "./CoinIcon";
-import { DangerPill, StageStepper, StaminaMeter, VERDICT_STYLE } from "./GateUI";
-import { prepareFoe } from "./foe-scaling";
+import { DangerPill, FloorLadder, StageStepper, StaminaMeter, VERDICT_STYLE } from "./GateUI";
+import { prepareFoe, type ScalingMode } from "./foe-scaling";
 import { forecastFight } from "./battle-advice";
 import { GemIcon, MatIcon, StoneIcon } from "./MatIcon";
 import { Vault, vaultTiles, type VaultPick } from "./Vault";
@@ -54,6 +55,8 @@ export type StartBattle = (opts: {
   stamina?: number;
   /** A Blood Arena duel: it spends one of the five fights allowed every twelve hours (see arena-limits.ts). */
   arena?: boolean;
+  /** A Conquest floor fights at the gate's own scaling, so the climb rises floor by floor (see ScalingMode). */
+  scaling?: ScalingMode;
   onResult: (won: boolean, xpMultiplier?: number) => { lines: string[]; loot?: Item | null } | Promise<{ lines: string[]; loot?: Item | null }>;
 }) => void;
 
@@ -266,12 +269,13 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   const [tab, setTab] = useState<"battle" | "extras">("battle");
   if (!hero) return null;
   const max = spire ? hero.spire : hero.stage;
-  const mult = spire ? 1.35 : 1;
+  /** Which gate's ladder this is: the Conquest Gate answers to its own floor curve (see conquest.ts). */
+  const gate: GateKind = spire ? "conquest" : "campaign";
   // Enemies level up with the hero (see scaledFoe): old stages never become a free tutorial.
   // Every fight the gate starts is prepared the same way the battle itself prepares it (see
   // prepareFoe): the world levels up with the hero, then every monster keeps pace with what the
   // hero trained. The preview is the fight the player actually gets.
-  const foe = prepareFoe(stageFoe(stage, mult), hero);
+  const foe = prepareFoe(spire ? conquestFoe(stage) : stageFoe(stage), hero, spire ? "gate" : "world");
   // A cleared campaign stage is a replay: it still pays, but at a reduced share (see campaignFightRewards).
   const rw = spire ? stageRewards(stage, 2) : campaignFightRewards(stage, hero.stage);
   const replay = !spire && "replay" in rw && Boolean(rw.replay);
@@ -280,10 +284,21 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
   const keyMult = keyOn ? 2 : 1;
   const s = heroStats(hero);
   const foePower = foeRating(foe);
-  // One forecast of the real fight (see battle-advice.ts) drives both the verdict pill and the
-  // recommended rating, so the number and the colour can never disagree.
+  // One forecast of the real fight (see battle-advice.ts) drives the verdict pill, so the pill and
+  // the fight can never disagree.
   const forecast = forecastFight(s, foe);
   const danger = VERDICT_STYLE[forecast.verdict];
+  // What this floor asks of a hero at the player's level, and the whole ladder around it (see
+  // floor-rating.ts): the reference player's own forecast, so the number does not move when the
+  // hero buys a new piece of gear — the requirement belongs to the floor, not to the viewer.
+  const required = floorRequirement(gate, stage, hero.level, hero.paragon);
+  const covered = s.power >= required;
+  const ladder = floorTargets(
+    gate,
+    Array.from({ length: max + 5 }, (_, i) => i + 1),
+    hero,
+    s.power,
+  );
   const zone = zoneOf(stage);
   // Campaign Gate battles cost 20 stamina, spent on entry win or lose (see stamina.ts).
   const staminaCost = spire ? 0 : CAMPAIGN_STAMINA;
@@ -304,6 +319,8 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
       title: spire ? `Endless Conquest · Floor ${stage}` : `${zone.name} · Stage ${stage}`,
       auto: autoThisFight,
       stamina: staminaCost || undefined,
+      // The battle prepares the foe exactly as this preview did, so the shown fight is the real one.
+      scaling: spire ? "gate" : undefined,
       right: { ...foe, name: tName(foe.name) },
       onResult: async (won, xpMultiplier = 1) => {
         if (!won) return { lines: ["Defeated… grow stronger and return."] };
@@ -402,10 +419,15 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
                 ))}
                 <span className="ml-auto flex items-center gap-1 text-muted-foreground"><Trophy className="h-3.5 w-3.5 text-r4" />{t("You")} <b className="text-gold">{fmt(s.power)}</b></span>
               </div>
-              {/* What this floor asks of a hero: the rating at which the very same fight reads Fair. */}
+              {/* What this floor asks of a hero: the rating at which the very same fight reads Fair for
+                  the game's reference player at this level (see floorRequirement). */}
               <div className="mt-1 border-t border-border/40 pt-1 text-[11px] text-muted-foreground">
-                {t("Recommended rating")}{" "}
-                <b className={s.power >= forecast.recommended ? "text-r1" : "text-hp"}>{fmt(forecast.recommended)}</b>
+                {t("Required rating")}{" "}
+                <b className={covered ? "text-r1" : "text-hp"}>{fmt(required)}</b>
+                <span className="text-muted-foreground">
+                  {" · "}
+                  {covered ? t("you meet it") : `${t("short")} ${fmt(required - s.power)}`}
+                </span>
               </div>
             </div>
           </div>
@@ -436,6 +458,14 @@ export function Campaign({ onClose, start, spire }: { onClose: () => void; start
                       : t("Conquest battles cost no stamina")}
                   </p>}
             </div>
+            <FloorLadder
+              rows={ladder}
+              current={stage}
+              frontier={max}
+              onPick={jump}
+              rating={s.power}
+              noun={spire ? t("Floor") : t("Stage")}
+            />
           </div>
         </div>
       )}
