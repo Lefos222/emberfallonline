@@ -13,7 +13,13 @@ import {
   awakeningOf, chooseAspect, echoFoe, forgeSigil, latticeCost, latticeMax, latticeRank, masterAspect, maxDepth,
   refineSigil, setCounts, sigilMax, sigilMult, sigilRefineCost, spendTrial, stageBlocker, trialShards, trialsLeft,
   winTrial, type AspectKind, type SigilSet, type SigilSlot,
+  STARS, RAIMENT, abyssFoe, abyssRewards, axpToNext, buyStar, clearAbyss, forgeRaiment, pointsFree, starRank, toggleRaiment,
 } from "./awakening";
+import { BOOST_PRICES, surgeUntil, type BoostKind } from "./economy";
+import { buyBoost } from "./economy-services";
+import { CharacterModel } from "./CharacterModel";
+import { RAIMENT_LOOK } from "./appearance";
+import { MatIcon } from "./MatIcon";
 import sanctum from "@/assets/awakening/sanctum.webp";
 import shardImg from "@/assets/awakening/dawnshard.webp";
 import bulwark from "@/assets/awakening/aspect-bulwark.webp";
@@ -50,11 +56,11 @@ export function Shards({ n }: { n: number }) {
   );
 }
 
-type Tab = "path" | "lattice" | "aspect" | "sigils" | "trials";
+type Tab = "path" | "abyss" | "stars" | "raiment" | "lattice" | "aspect" | "sigils" | "trials" | "boost";
 
 /** The Awakening sanctum: the post-90 game. */
 export function AwakeningPanel({ onClose, start }: { onClose: () => void; start: StartBattle }) {
-  const { hero } = useGame();
+  const { hero, gender } = useGame();
   const [tab, setTab] = useState<Tab>("path");
   const [note, setNote] = useState("");
   if (!hero) return null;
@@ -71,16 +77,22 @@ export function AwakeningPanel({ onClose, start }: { onClose: () => void; start:
         <img src={sanctum} alt="" className="mb-3 h-40 w-full rounded object-cover" />
         <p className="text-center font-display text-lg text-gold">{tr("Awakening opens at level 90.")}</p>
         <p className="mt-1 text-center text-sm text-muted-foreground">{tr("Reach level 90 to awaken your hero: five stages, the Soul Lattice, class Aspects, Awakened Sigils and Echo Trials wait here.")}</p>
+        <div className="mt-4"><Boosts setNote={setNote} /></div>
+        {note && <div className="slot mt-2 p-2 text-center text-sm text-gold">{note}</div>}
       </Panel>
     );
   }
 
   const tabs: { id: Tab; name: string }[] = [
     { id: "path", name: tr("Awakening path") },
+    { id: "abyss", name: tr("Endless Abyss") },
+    { id: "stars", name: tr("Constellation") },
+    { id: "raiment", name: tr("Raiment") },
     { id: "lattice", name: tr("Soul Lattice") },
     { id: "aspect", name: tr("Aspect") },
     { id: "sigils", name: tr("Sigils") },
     { id: "trials", name: tr("Echo Trials") },
+    { id: "boost", name: tr("Speed-ups") },
   ];
   const locked = (need: number) => a.stage < need && (
     <p className="slot p-4 text-center text-sm text-muted-foreground">{tr("Unlocks at Awakening stage {n}.", { n: need })}</p>
@@ -95,7 +107,10 @@ export function AwakeningPanel({ onClose, start }: { onClose: () => void; start:
             <div className="font-display text-xl text-gold">{a.stage ? tr(STAGES[a.stage - 1].name) : tr("Unawakened")}</div>
             <div className="text-xs text-muted-foreground">{tr("Stage")} {a.stage}/{STAGES.length}</div>
           </div>
-          <Shards n={a.shards} />
+          <div className="text-right">
+            <Shards n={a.shards} />
+            <div className="text-xs text-muted-foreground">{tr("Awakening level")} {a.alv ?? 0} · {fmt(a.axp ?? 0)}/{fmt(axpToNext(a.alv ?? 0))}</div>
+          </div>
         </div>
       </div>
       <GameTabs label={tr("Awakening")} tabs={tabs} value={tab} onChange={(t) => { setTab(t); setNote(""); }} />
@@ -224,6 +239,84 @@ export function AwakeningPanel({ onClose, start }: { onClose: () => void; start:
       ))}
 
       {tab === "trials" && (locked(1) || <Trials start={start} setNote={setNote} />)}
+      {tab === "boost" && <Boosts setNote={setNote} />}
+
+      {tab === "abyss" && (locked(1) || (() => {
+        const floor = (a.abyss ?? 0) + 1;
+        const foe = abyssFoe(floor, hero.level + hero.paragon);
+        const rw = abyssRewards(floor);
+        return (
+          <div className="grid gap-3 sm:grid-cols-[auto,1fr]">
+            <Sprite rect={foe.sprite} className="mx-auto h-44 w-44" />
+            <div className="slot p-3">
+              <div className="font-display text-lg text-gold">{tr("Endless Abyss")} · {tr("Floor")} {floor}</div>
+              <p className="text-xs text-muted-foreground">{tr("An unlimited campaign below the sanctum. Every floor is harder than the last; every tenth is guarded. Each fight costs dungeon stamina.")}</p>
+              <div className="my-2 text-sm">{tr("Deepest floor")}: <b className="text-gold">{a.abyss ?? 0}</b></div>
+              <div className="text-xs text-muted-foreground">{tr("Health")} {fmt(foe.hp)} · {tr("Attack")} {fmt(foe.atk)}</div>
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                {tr("Reward")}: {rw.shards} ✦ · {rw.axp} {tr("Awakening XP")}
+                {(Object.entries(rw.mats) as [Mat, number][]).map(([k, v]) => <span key={k} className="inline-flex items-center gap-1"><MatIcon mat={k} size={16} />{v}</span>)}
+              </div>
+              <button className="btn-gold mt-2 w-full py-1.5" onClick={() => start({
+                title: `Endless Abyss · Floor ${floor}`, right: foe, dungeon: true,
+                onResult: async (won) => {
+                  if (!won) return { lines: [tr("The Abyss holds. Grow stronger and descend again.")] };
+                  let lines: string[] = [];
+                  update((h) => { const r = clearAbyss(h, floor); if (r) lines = [tr("+{n} Dawnshards", { n: r.shards }), `+${r.axp} ${tr("Awakening XP")}`, ...(Object.entries(r.mats) as [Mat, number][]).map(([k, v]) => `+${v} ${MATS[k].name}`)]; });
+                  return { lines };
+                },
+              })}>{tr("Descend")}</button>
+            </div>
+          </div>
+        );
+      })())}
+
+      {tab === "stars" && (locked(1) || (
+        <div>
+          <p className="mb-2 text-xs text-muted-foreground">{tr("Every Awakening level grants one point. Awakening XP comes from every won fight at level 90+, the Endless Abyss and Echo Trials. The ladders are long: this is where Battle Rating keeps growing.")}</p>
+          <div className="mb-2 text-sm">{tr("Free points")}: <b className="text-gold">{pointsFree(a)}</b></div>
+          <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
+            {STARS.map((st) => {
+              const r = starRank(a, st.id), free = pointsFree(a);
+              return (
+                <div key={st.id} className="slot p-3">
+                  <div className="font-display text-gold">{tr(st.name)}</div>
+                  <div className="text-xs text-muted-foreground">{tr("Rank")} {r}/{st.max}</div>
+                  <div className="my-1 text-sm">+{Math.round(st.per * r * 100) / 100}{STAT_LABEL[st.stat]}</div>
+                  <div className="flex gap-1">
+                    <button className="btn-ghost flex-1 px-2 py-1 text-xs" disabled={!free || r >= st.max} onClick={() => run((h) => buyStar(h, st.id, 1), "Star brightened")}>+1</button>
+                    <button className="btn-ghost flex-1 px-2 py-1 text-xs" disabled={!free || r >= st.max} onClick={() => run((h) => buyStar(h, st.id, 10), "Star brightened")}>+10</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {tab === "raiment" && (locked(1) || (() => {
+        const tier = a.raiment ?? 0, next = RAIMENT[tier];
+        return (
+          <div className="grid gap-3 sm:grid-cols-[auto,1fr]">
+            <CharacterModel cls={hero.cls} gender={gender} look={RAIMENT_LOOK} className="mx-auto h-64 w-48" />
+            <div className="slot p-3">
+              <div className="font-display text-lg text-gold">{tier ? tr(RAIMENT[tier - 1].name) : tr("Awakened Raiment")}</div>
+              <p className="text-xs text-muted-foreground">{tr("Your class's awakened outfit. Each forging raises every main stat; once forged, your hero wears its look everywhere.")}</p>
+              <div className="my-2 text-sm">{tr("Tier")} {tier}/{RAIMENT.length}{tier ? ` · +${RAIMENT[tier - 1].pct}% ${tr("all main stats")}` : ""}</div>
+              {next ? (
+                <>
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    {tr("Next")}: {tr(next.name)} (+{next.pct}%) · {next.shards} ✦
+                    {(Object.entries(next.mats) as [Mat, number][]).map(([k, v]) => <span key={k} className="inline-flex items-center gap-1"><MatIcon mat={k} size={16} />{matCount(hero, k)}/{v}</span>)}
+                  </div>
+                  <button className="btn-gold mt-2 w-full py-1.5" onClick={() => run(forgeRaiment, "Raiment forged")}>{tr("Forge")}</button>
+                </>
+              ) : <div className="text-gold">{tr("Fully forged")}</div>}
+              {tier > 0 && <button className="btn-ghost mt-2 w-full py-1 text-xs" onClick={() => run((h) => { toggleRaiment(h); return null; }, "Look changed")}>{a.showRaiment === false ? tr("Show Raiment look") : tr("Hide Raiment look")}</button>}
+            </div>
+          </div>
+        );
+      })())}
     </Panel>
   );
 }
@@ -262,6 +355,41 @@ function Trials({ start, setNote }: { start: StartBattle; setNote: (s: string) =
         </label>
         <div className="mt-1 text-xs text-muted-foreground">{tr("Health")} {fmt(foe.hp)} · {tr("Attack")} {fmt(foe.atk)} · {tr("Reward")}: {trialShards(d)} ✦</div>
         <button className="btn-gold mt-2 w-full py-1.5" disabled={left <= 0} onClick={go}>{tr("Challenge the Echo")}</button>
+      </div>
+    </div>
+  );
+}
+
+const BOOSTS: { id: BoostKind; name: string; desc: string; awake?: boolean }[] = [
+  { id: "xp_surge", name: "XP Surge", desc: "+50% battle XP for two hours (stacks its time)." },
+  { id: "stamina_refill", name: "Stamina Refill", desc: "Refills today's dungeon stamina." },
+  { id: "shard_cache", name: "Dawnshard Cache", desc: "+150 Dawnshards.", awake: true },
+  { id: "trial_reset", name: "Echo Reset", desc: "Resets today's Echo Trials.", awake: true },
+];
+
+/** Diamond speed-ups: they only save time — everything they give can be earned by playing. */
+function Boosts({ setNote }: { setNote: (s: string) => void }) {
+  const { hero } = useGame();
+  const [busy, setBusy] = useState(false);
+  if (!hero) return null;
+  const until = surgeUntil(hero);
+  return (
+    <div>
+      <p className="mb-2 text-xs text-muted-foreground">{tr("Diamonds only make the road faster. Everything here can also be earned by playing.")}</p>
+      {until > Date.now() && <div className="mb-2 text-sm text-gold">{tr("XP Surge active until {time}", { time: new Date(until).toLocaleTimeString() })}</div>}
+      <div className="grid gap-2 sm:grid-cols-2">
+        {BOOSTS.map((b) => {
+          const off = b.awake && hero.level < AWAKEN_LEVEL;
+          return (
+            <div key={b.id} className="slot flex items-center justify-between gap-2 p-3">
+              <div><div className="font-display text-gold">{tr(b.name)}</div><div className="text-xs text-muted-foreground">{tr(b.desc)}</div></div>
+              <button className="btn-gold shrink-0 px-3 py-1 text-xs" disabled={busy || off}
+                onClick={async () => { setBusy(true); try { await buyBoost(b.id); setNote(tr("Speed-up bought")); } catch (e) { setNote(tr((e as Error).message)); } finally { setBusy(false); } }}>
+                💎 {BOOST_PRICES[b.id]}
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

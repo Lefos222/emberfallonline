@@ -2116,6 +2116,10 @@ export type Database = {
         Args: { _hero: string; _item: Json; _price: number; _req: string }
         Returns: Json
       }
+      awakening_boost: {
+        Args: { _hero: string; _kind: string; _req: string }
+        Returns: Json
+      }
       award_verified_social: {
         Args: {
           _external: string

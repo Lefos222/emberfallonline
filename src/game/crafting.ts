@@ -3,7 +3,7 @@ import { scaledGold } from "./gold";
 import { locAll, locList, locValues } from "./i18n";
 
 // ---------- Materials ----------
-export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "fateStone" | "frostCrystal" | "voidCrystal" | "sunCrystal" | "dragonScale" | "abyssalShard" | "titanHeart" | "wyrmBone" | "moonsilver" | "shadowSilk" | "phoenixAsh";
+export type Mat = "ore" | "essence" | "starshard" | "bossCore" | "fragment" | "sigil" | "hide" | "bloom" | "crystal" | "fateStone" | "frostCrystal" | "voidCrystal" | "sunCrystal" | "dragonScale" | "abyssalShard" | "titanHeart" | "wyrmBone" | "moonsilver" | "shadowSilk" | "phoenixAsh" | "aetherEmber" | "voidsteel" | "celestialPearl" | "eclipsedHeart";
 export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity: number }> = locAll({
   ore: { name: "Ember Ore", desc: "Common ore used in crafting and gem cutting.", src: "Every won battle (more in higher regions)", rarity: 0 },
   essence: { name: "Soul Essence", desc: "Distilled souls used in crafting and gem fusion.", src: "Tougher fights, elites, bosses", rarity: 2 },
@@ -16,6 +16,10 @@ export const MATS: Record<Mat, { name: string; desc: string; src: string; rarity
   crystal: { name: "Arcane Crystal", desc: "Crystallised mana. Refines into Starshards.", src: "Elites and Dungeon Gate bosses", rarity: 2 },
   fateStone: { name: "Fate Stone", desc: "A rare rune-cut stone that refines gear at the Forge. Refinement is its own track — a won roll adds a rank, never an enchantment level, and a piece can be refined again and again (see fate.ts).", src: "Rare battle drops, Auction House shop", rarity: 4 },
   frostCrystal: { name: "Frost Crystal", desc: "Ice-bound crystal. Needed for Epic armour.", src: "Bosses, Wheel of Fortune, Black Market", rarity: 3 },
+  aetherEmber: { name: "Aether Ember", desc: "A flame that burns beyond the veil. Forges Awakened Raiment.", src: "The Endless Abyss (Awakening)", rarity: 5 },
+  voidsteel: { name: "Voidsteel Ingot", desc: "Metal tempered in the Abyss. Forges Awakened Raiment.", src: "Every fifth floor of the Endless Abyss", rarity: 5 },
+  celestialPearl: { name: "Celestial Pearl", desc: "A very rare pearl of starlight. Needed for the highest Raiment and Sigils.", src: "Rare drop from any boss (3%), Abyss guardians", rarity: 5 },
+  eclipsedHeart: { name: "Eclipsed Heart", desc: "The rarest crystal in the realm.", src: "Very rare boss drop (1%), every 25th Abyss floor", rarity: 6 },
   voidCrystal: { name: "Void Crystal", desc: "Crystal from beyond the veil. Needed for Legendary armour.", src: "Bosses, Wheel of Fortune, Black Market", rarity: 4 },
   sunCrystal: { name: "Sun Crystal", desc: "A shard of captured sunlight. Needed for Mythic armour.", src: "Dungeon bosses, Wheel of Fortune", rarity: 5 },
   dragonScale: { name: "Dragon Scale", desc: "A smouldering scale torn from a dungeon tyrant. Needed for Synthesis Set X.", src: "Dungeon Gate boss challenges only", rarity: 4 },

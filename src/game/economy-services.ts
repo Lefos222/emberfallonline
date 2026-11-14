@@ -63,3 +63,17 @@ export async function spinWheel() {
   });
   localStorage.removeItem(`ef-pending:${id}:${op}`);
 }
+
+/** Buy a Diamond speed-up; the server takes the Diamonds and writes the boost into the save. */
+export async function buyBoost(kind: import("./economy").BoostKind) {
+  const id = getState().heroId;
+  if (!id) throw new Error("Select a character first.");
+  const op = `boost:${kind}`;
+  const req = requestKey(localStorage, id, op, () => crypto.randomUUID());
+  await withServerHero(async (heroId) => {
+    const { data, error } = await supabase.rpc("awakening_boost", { _hero: heroId, _kind: kind, _req: req });
+    if (error) { if (error.code) localStorage.removeItem(`ef-pending:${id}:${op}`); throw new Error(error.message); }
+    adoptServerSave(heroId, returnedSave(data));
+  });
+  localStorage.removeItem(`ef-pending:${id}:${op}`);
+}

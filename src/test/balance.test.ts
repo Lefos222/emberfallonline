@@ -121,10 +121,12 @@ function seeded(seed: number) {
 }
 
 describe("eleven fights a level, then a smooth climb", () => {
-  it("makes every level 10% harder than the old curve", () => {
+  it("makes every level 10% harder than the old curve, and 3% more per level past 30", () => {
     expect(LEVEL_COST_MULTIPLIER).toBe(1.1);
-    for (const lv of [1, 10, 19, 20, 30, 40, 60, 80, 120])
+    for (const lv of [1, 10, 19, 20, 30])
       expect(fightsToLevel(lv)).toBe(Math.round(baseFightsToLevel(lv) * 1.1));
+    for (const lv of [40, 60, 80, 120])
+      expect(fightsToLevel(lv)).toBe(Math.round(baseFightsToLevel(lv) * 1.1 * (1 + (lv - 30) * 0.03)));
   });
   it("costs exactly eleven fights a level up to level 19", () => {
     expect(EASY_FIGHTS).toBe(10);
@@ -147,10 +149,10 @@ describe("eleven fights a level, then a smooth climb", () => {
     // Level 30→31 used to demand 2.8 million XP; it is now dozens of fights (46, +10% = 51).
     expect(fightsToLevel(30)).toBe(51);
     // Past level 40 the curve steepens a touch (69 → 76 and 149 → 164 with the +10%).
-    expect(fightsToLevel(40)).toBe(76);
-    expect(fightsToLevel(80)).toBe(164);
+    expect(fightsToLevel(40)).toBe(99);
+    expect(fightsToLevel(80)).toBe(410);
     expect(xpToNext({ level: 30, paragon: 0 })).toBeLessThan(300_000);
-    for (const lv of [25, 30, 40, 50, 60, 80, 100]) expect(fightsToLevel(lv)).toBeLessThan(220);
+    for (const lv of [25, 30, 40, 50, 60, 80, 89]) expect(fightsToLevel(lv)).toBeLessThan(520);
   });
   it("adds a little more work to every level past 40, without ever walling the climb", () => {
     // Level 40 itself keeps the old bill; past it each level asks for a hair more.
@@ -163,14 +165,14 @@ describe("eleven fights a level, then a smooth climb", () => {
     }
     // The steepening never makes one level more than a third longer than the last.
     for (let lv = 40; lv < MAX_LEVEL; lv++)
-      expect(fightsToLevel(lv + 1)).toBeLessThanOrEqual(fightsToLevel(lv) * 1.05);
+      expect(fightsToLevel(lv + 1)).toBeLessThanOrEqual(fightsToLevel(lv) * 1.08);
   });
 
   it("still takes thousands of wins to reach level 80 — weeks, not a weekend", () => {
     let total = 0;
     for (let lv = 1; lv < 80; lv++) total += fightsToLevel(lv);
-    expect(total).toBeGreaterThan(4_000);
-    expect(total).toBeLessThan(7_000);
+    expect(total).toBeGreaterThan(9_000);
+    expect(total).toBeLessThan(14_000);
   });
   it("counts the fights left in the current level from saved XP", () => {
     const hero = newHero("Balanced", "warrior");

@@ -25,6 +25,16 @@ export interface AwakeningState {
   trialDay?: string;
   trials: number;
   best: number;
+  /** Awakening level and its XP; every level grants one Constellation point. */
+  alv?: number;
+  axp?: number;
+  /** Constellation ranks bought with Awakening points. */
+  stars?: Record<string, number>;
+  /** Highest Endless Abyss floor cleared. */
+  abyss?: number;
+  /** Forged Awakened Raiment tier (0-6) and whether its look is shown. */
+  raiment?: number;
+  showRaiment?: boolean;
 }
 
 export const awakeningOf = (h: Pick<Hero, "awakening">): AwakeningState => {
@@ -39,6 +49,12 @@ export const awakeningOf = (h: Pick<Hero, "awakening">): AwakeningState => {
     trialDay: a?.trialDay,
     trials: Math.max(0, Math.floor(a?.trials ?? 0)),
     best: Math.max(0, Math.floor(a?.best ?? 0)),
+    alv: Math.max(0, Math.floor(a?.alv ?? 0)),
+    axp: Math.max(0, Math.floor(a?.axp ?? 0)),
+    stars: { ...(a?.stars ?? {}) },
+    abyss: Math.max(0, Math.floor(a?.abyss ?? 0)),
+    raiment: Math.max(0, Math.min(RAIMENT.length, Math.floor(a?.raiment ?? 0))),
+    showRaiment: a?.showRaiment ?? true,
   };
 };
 const put = (h: Hero, a: AwakeningState) => { h.awakening = a; };
@@ -48,10 +64,10 @@ export const canAwaken = (h: Pick<Hero, "level">) => h.level >= AWAKEN_LEVEL;
 export interface Stage { name: string; level: number; shards: number; gold: number; unlock: string }
 export const STAGES: Stage[] = [
   { name: "First Light", level: 90, shards: 0, gold: 1_500_000, unlock: "Soul Lattice and Echo Trials" },
-  { name: "Kindled Soul", level: 100, shards: 250, gold: 3_000_000, unlock: "Class Aspects" },
-  { name: "Ember Sovereign", level: 110, shards: 700, gold: 6_000_000, unlock: "Awakened Sigils" },
-  { name: "Dawnborne", level: 120, shards: 1500, gold: 10_000_000, unlock: "Deeper Echo Trials and Lattice rank 30" },
-  { name: "Eternal Flame", level: 130, shards: 3000, gold: 16_000_000, unlock: "Sigil refinement +20 and the Eternal aura" },
+  { name: "Kindled Soul", level: 100, shards: 600, gold: 4_000_000, unlock: "Class Aspects" },
+  { name: "Ember Sovereign", level: 110, shards: 1800, gold: 8_000_000, unlock: "Awakened Sigils" },
+  { name: "Dawnborne", level: 120, shards: 4000, gold: 14_000_000, unlock: "Deeper Echo Trials and Lattice rank 30" },
+  { name: "Eternal Flame", level: 130, shards: 8000, gold: 22_000_000, unlock: "Sigil refinement +20 and the Eternal aura" },
 ];
 /** Each stage reached adds this much physical/magic attack, defence and health. */
 export const STAGE_PCT = 3;
@@ -157,7 +173,7 @@ export const SET_BONUS: Record<SigilSet, { two: Partial<BonusFx>; four: Partial<
   eclipse: { two: { pen: 4, mpen: 4 }, four: { critDmg: 25, crit: 4 }, desc2: "+4% Armor and Magic Pen", desc4: "+25% Crit Damage, +4% Crit Chance" },
   tempest: { two: { dodge: 3, acc: 5 }, four: { atkPct: 8, matkPct: 8 }, desc2: "+3% Dodge, +5% Accuracy", desc4: "+8% Physical and Magic Attack" },
 };
-export const SIGIL_FORGE: { shards: number; mats: Partial<Record<Mat, number>> } = { shards: 120, mats: { voidCrystal: 4, sunCrystal: 2, frostCrystal: 6 } };
+export const SIGIL_FORGE: { shards: number; mats: Partial<Record<Mat, number>> } = { shards: 120, mats: { voidCrystal: 4, sunCrystal: 2, frostCrystal: 6, aetherEmber: 15 } };
 export const sigilMax = (stage: number) => (stage >= 5 ? 20 : 15);
 export const sigilRefineCost = (lv: number, level: number) => ({ shards: 20 + lv * 12, gold: scaledGold(50_000 * (lv + 1), level) });
 /** Every refinement adds 10% of the slot's base. */
@@ -214,12 +230,95 @@ export function spendTrial(h: Hero, now = Date.now()): boolean {
 }
 export function winTrial(h: Hero, depth: number): number {
   const a = awakeningOf(h); const n = trialShards(depth);
-  a.shards += n; a.best = Math.max(a.best, depth); put(h, a); return n;
+  a.shards += n; a.best = Math.max(a.best, depth); put(h, a); grantAxp(h, 150 + depth * 20); return n;
 }
 
 /** Dawnshards for an ordinary won fight at level 90+. */
 export const fightShards = (boss: boolean) => (boss ? 3 : 1);
 export function addShards(h: Hero, n: number) { if (!canAwaken(h)) return; const a = awakeningOf(h); a.shards += Math.max(0, Math.floor(n)); put(h, a); }
+
+// ---------------- Awakening levels & Constellation ----------------
+/** XP for the next Awakening level: an uncapped curve that keeps asking a little more. */
+export const axpToNext = (alv: number) => Math.round(400 * Math.pow(alv + 1, 1.45));
+export function grantAxp(h: Hero, n: number): number {
+  if (!canAwaken(h)) return 0;
+  const a = awakeningOf(h);
+  let xp = (a.axp ?? 0) + Math.max(0, Math.floor(n)), lv = a.alv ?? 0, ups = 0;
+  while (xp >= axpToNext(lv)) { xp -= axpToNext(lv); lv += 1; ups += 1; }
+  a.axp = xp; a.alv = lv; put(h, a); return ups;
+}
+export interface Star { id: string; name: string; stat: keyof BonusFx; per: number; max: number }
+/** Constellation stars: one Awakening point per rank, deliberately long ladders. */
+export const STARS: Star[] = [
+  { id: "wrath", name: "Star of Wrath", stat: "atkPct", per: 0.3, max: 250 },
+  { id: "sorcery", name: "Star of Sorcery", stat: "matkPct", per: 0.3, max: 250 },
+  { id: "titan", name: "Star of the Titan", stat: "hpPct", per: 0.35, max: 250 },
+  { id: "bastion", name: "Star of the Bastion", stat: "defPct", per: 0.3, max: 250 },
+  { id: "omen", name: "Star of Omens", stat: "critDmg", per: 0.5, max: 200 },
+  { id: "fate", name: "Star of Fate", stat: "crit", per: 0.05, max: 100 },
+];
+export const starRank = (a: AwakeningState, id: string) => Math.max(0, Math.floor(a.stars?.[id] ?? 0));
+export const pointsSpent = (a: AwakeningState) => STARS.reduce((n, s) => n + Math.min(s.max, starRank(a, s.id)), 0);
+export const pointsFree = (a: AwakeningState) => Math.max(0, (a.alv ?? 0) - pointsSpent(a));
+export function buyStar(h: Hero, id: string, n = 1): string | null {
+  const a = awakeningOf(h); const s = STARS.find((x) => x.id === id);
+  if (!s) return "Unknown star";
+  const r = starRank(a, id), k = Math.min(n, pointsFree(a), s.max - r);
+  if (r >= s.max) return "Star complete";
+  if (k <= 0) return "No Awakening points";
+  a.stars = { ...(a.stars ?? {}), [id]: r + k }; put(h, a); return null;
+}
+
+// ---------------- Endless Abyss ----------------
+/** The Abyss is an unlimited campaign: every floor is a little deeper than the last. */
+export function abyssFoe(floor: number, level: number): Foe & { sprite: SpriteRect } {
+  const f = stageFoe(Math.min(MAX_LEVEL, level + 2), 1.3);
+  const guard = floor % 10 === 0;
+  const k = Math.pow(1.045, floor) * (guard ? 1.6 : 1);
+  return { ...f, boss: guard, name: guard ? `Abyss Guardian · Floor ${floor}` : `Abyss Wraith · Floor ${floor}`, hp: Math.round(f.hp * 1.4 * k), atk: Math.round(f.atk * Math.pow(k, 0.6)), def: Math.round(f.def * Math.pow(k, 0.5)), sprite: ECHO_SPRITE };
+}
+export function abyssRewards(floor: number): { shards: number; axp: number; mats: Partial<Record<Mat, number>> } {
+  const mats: Partial<Record<Mat, number>> = { aetherEmber: 1 + Math.floor(floor / 10) };
+  if (floor % 5 === 0) mats.voidsteel = 1 + Math.floor(floor / 25);
+  if (floor % 10 === 0) mats.celestialPearl = 1;
+  if (floor % 25 === 0) mats.eclipsedHeart = 1;
+  return { shards: 4 + Math.floor(floor / 4), axp: 80 + floor * 12, mats };
+}
+export function clearAbyss(h: Hero, floor: number): ReturnType<typeof abyssRewards> | null {
+  const a = awakeningOf(h);
+  if ((a.abyss ?? 0) + 1 !== floor) return null;
+  const r = abyssRewards(floor);
+  a.abyss = floor; a.shards += r.shards; put(h, a);
+  h.mats = { ...(h.mats ?? {}) };
+  for (const [k, v] of Object.entries(r.mats) as [Mat, number][]) h.mats[k] = matCount(h, k) + v;
+  grantAxp(h, r.axp);
+  return r;
+}
+
+// ---------------- Awakened Raiment ----------------
+export interface RaimentTier { name: string; pct: number; shards: number; mats: Partial<Record<Mat, number>> }
+/** Six tiers of the class's Awakened Raiment: one painted look, ever stronger forgings. */
+export const RAIMENT: RaimentTier[] = [
+  { name: "Ashen Raiment", pct: 4, shards: 150, mats: { aetherEmber: 20 } },
+  { name: "Emberwoven Raiment", pct: 9, shards: 400, mats: { aetherEmber: 60, voidsteel: 8 } },
+  { name: "Voidsteel Raiment", pct: 15, shards: 900, mats: { aetherEmber: 140, voidsteel: 25, celestialPearl: 2 } },
+  { name: "Starbound Raiment", pct: 22, shards: 1800, mats: { aetherEmber: 280, voidsteel: 60, celestialPearl: 6 } },
+  { name: "Eclipse Raiment", pct: 30, shards: 3500, mats: { aetherEmber: 500, voidsteel: 120, celestialPearl: 12, eclipsedHeart: 2 } },
+  { name: "Eternal Raiment", pct: 40, shards: 6000, mats: { aetherEmber: 900, voidsteel: 220, celestialPearl: 25, eclipsedHeart: 6 } },
+];
+export function forgeRaiment(h: Hero): string | null {
+  const a = awakeningOf(h); const t = RAIMENT[a.raiment ?? 0];
+  if (a.stage < 1) return "Awaken first";
+  if (!t) return "Fully forged";
+  if (a.shards < t.shards) return "Not enough Dawnshards";
+  for (const [k, v] of Object.entries(t.mats) as [Mat, number][]) if (matCount(h, k) < v) return "Not enough materials";
+  a.shards -= t.shards; h.mats = { ...(h.mats ?? {}) };
+  for (const [k, v] of Object.entries(t.mats) as [Mat, number][]) h.mats[k] = matCount(h, k) - v;
+  a.raiment = (a.raiment ?? 0) + 1; put(h, a); return null;
+}
+export function toggleRaiment(h: Hero) { const a = awakeningOf(h); a.showRaiment = !a.showRaiment; put(h, a); }
+/** True when the hero's body should show the Awakened Raiment look. */
+export const wearsRaiment = (h: Pick<Hero, "awakening">) => (h.awakening?.raiment ?? 0) > 0 && h.awakening?.showRaiment !== false;
 
 // ---------------- Stats ----------------
 export function awakeningFx(h: Hero): BonusFx {
@@ -237,6 +336,9 @@ export function awakeningFx(h: Hero): BonusFx {
     for (const [k, v] of Object.entries(SLOT_BASE[s])) fx[k as keyof BonusFx] = (v as number) * m;
     addFx(out, fx);
   }
+  for (const st of STARS) { const r = Math.min(st.max, starRank(a, st.id)); if (r) addFx(out, { [st.stat]: st.per * r }); }
+  const rt = RAIMENT[(a.raiment ?? 0) - 1];
+  if (rt) addFx(out, { atkPct: rt.pct, matkPct: rt.pct, hpPct: rt.pct, defPct: rt.pct, mdefPct: rt.pct });
   const c = setCounts(a);
   for (const set of SIGIL_SETS) { if (c[set] >= 2) addFx(out, SET_BONUS[set].two); if (c[set] >= 4) addFx(out, SET_BONUS[set].four); }
   return out;

@@ -68,13 +68,13 @@ import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
 import { SpireHub } from "./SpireVentures";
 import { AwakeningPanel } from "./Awakening";
-import { addShards, canAwaken, fightShards } from "./awakening";
+import { addShards, canAwaken, fightShards, grantAxp } from "./awakening";
 import { GameGuide } from "./GameGuide";
 import { playGuideSound, playLevelUpSound, playBattleEndSound } from "./guide-sound";
 import { prepareFoe } from "./foe-scaling";
 import { RelicTrials } from "./RelicTrials";
 import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
-import { battleMats, matsLine, addMats } from "./crafting";
+import { battleMats, matsLine, addMats, MATS } from "./crafting";
 import { addStones, rollStoneDrop } from "./enchant";
 import { addFateStones, rollFateStone } from "./fate";
 import { ItemCard, Panel, useEscapeClose } from "./ui";
@@ -381,8 +381,17 @@ export function Game() {
       const hz = getState().hero;
       if (hz && canAwaken(hz)) {
         const n = fightShards(!!battle.right.boss);
-        update((h) => addShards(h, n));
+        update((h) => { addShards(h, n); grantAxp(h, battle.right.boss ? 90 : 30); });
         r.lines.push(t("+{n} Dawnshards", { n }));
+      }
+    }
+    // Bosses very rarely leave the realm's rarest materials behind (see crafting.ts MATS).
+    if (won && battle.right.boss) {
+      const roll = Math.random();
+      const rare = roll < 0.01 ? "eclipsedHeart" : roll < 0.04 ? "celestialPearl" : null;
+      if (rare) {
+        update((h) => addMats(h, { [rare]: 1 }));
+        r.lines.push(t("Rare find: {name}!", { name: MATS[rare].name }));
       }
     }
     // A won fight sometimes leaves a chest on the field: gold is the common find, gems the rare one.

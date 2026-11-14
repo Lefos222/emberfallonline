@@ -6,7 +6,7 @@ type ScalingHero = Pick<Hero, "attrs" | "level"> & Partial<Pick<Hero, "paragon">
 /** Monsters keep pace with a hero's training: +0.18% per trained attribute point. */
 export const FOE_ATTR_SCALE = 0.0018;
 /** ...at most doubling their health and damage from attributes alone. */
-export const FOE_ATTR_CAP = 1;
+export const FOE_ATTR_CAP = 1.3;
 
 /** Monsters also keep pace with the hero's level: +3% for every level above their own fight. */
 export const FOE_LEVEL_SCALE = 0.03;

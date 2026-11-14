@@ -379,6 +379,20 @@
       "when": 1794689714972,
       "tag": "0053_admin_dashboard_gold_thresholds",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1794693843696,
+      "tag": "0054_awakening_speed_boosts",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1794693921501,
+      "tag": "0055_awakening_boost_stamina_fix",
+      "breakpoints": true
     }
   ]
 }

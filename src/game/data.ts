@@ -789,8 +789,15 @@ export const LEVEL_COST_MULTIPLIER = 1.1;
  *  141 at 80) with no cliff, so a level is a session's work and the road to 80 is about five
  *  thousand wins — weeks of play, never one impossible bill. */
 export function fightsToLevel(level: number) {
-  return Math.round(baseFightsToLevel(level) * LEVEL_COST_MULTIPLIER);
+  const lv = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
+  const mid = lv > MID_RAMP_LEVEL ? 1 + (lv - MID_RAMP_LEVEL) * MID_RAMP_PER_LEVEL : 1;
+  return Math.round(baseFightsToLevel(level) * LEVEL_COST_MULTIPLIER * mid);
 }
+
+/** From this level every level asks MID_RAMP_PER_LEVEL more fights than the plain curve, so the
+ *  road to Awakening (level 90) is a season of play, roughly twice the old climb. */
+export const MID_RAMP_LEVEL = 30;
+export const MID_RAMP_PER_LEVEL = 0.03;
 
 /** The fight bill before LEVEL_COST_MULTIPLIER: ten a level below 20, then the smooth climb. */
 export function baseFightsToLevel(level: number) {

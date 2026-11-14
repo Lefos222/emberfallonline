@@ -232,7 +232,7 @@ export function synthBlocker(h: Hero, tier: number, slot: SynthSlot): string | n
 
 const MATS_NAME: Record<Mat, string> = {
   frostCrystal: "Frost Crystal", voidCrystal: "Void Crystal", sunCrystal: "Sun Crystal",
-  dragonScale: "Dragon Scale", abyssalShard: "Abyssal Shard", titanHeart: "Titan Heart", wyrmBone: "Wyrm Bone", moonsilver: "Moonsilver", shadowSilk: "Shadow Silk", phoenixAsh: "Phoenix Ash",
+  dragonScale: "Dragon Scale", abyssalShard: "Abyssal Shard", titanHeart: "Titan Heart", wyrmBone: "Wyrm Bone", moonsilver: "Moonsilver", shadowSilk: "Shadow Silk", phoenixAsh: "Phoenix Ash", aetherEmber: "Aether Ember", voidsteel: "Voidsteel Ingot", celestialPearl: "Celestial Pearl", eclipsedHeart: "Eclipsed Heart",
   ore: "Ember Ore", essence: "Soul Essence", starshard: "Starshard", bossCore: "Boss Core",
   fragment: "Armor Fragment", sigil: "Elite Sigil", hide: "Beast Hide", bloom: "Emberbloom",
   crystal: "Arcane Crystal", fateStone: "Fate Stone",

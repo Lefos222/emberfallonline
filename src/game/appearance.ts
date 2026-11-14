@@ -23,6 +23,13 @@ const VARIANT_ART = import.meta.glob("../assets/armour/**/*.webp", {
 
 type Gender = "male" | "female";
 
+/** The look value that stands for the Awakened Raiment (never a rolled drop index). */
+export const RAIMENT_LOOK = -1;
+const AWAKENED_ART: Record<string, string> = Object.fromEntries(
+  Object.entries(import.meta.glob("../assets/armour-awakened/*.webp", { eager: true, query: "?url", import: "default" }) as Record<string, string>)
+    .map(([k, url]) => [/(\w+-\w+)\.webp$/.exec(k)?.[1] ?? k, url]),
+);
+
 interface Variant { url: string; index: number; legacy: boolean }
 
 /** Every painted variant each class and gender can roll, current art first then legacy art. */
@@ -72,9 +79,11 @@ export function gearLook(h: { equipment?: GearRecord }, gender: Gender): number 
  * looted or forged chest pieces roll a look, so the two never fight over the hero.
  */
 export function heroAppearance(
-  h: Pick<Hero, "equipment" | "synth">,
+  h: Pick<Hero, "equipment" | "synth"> & Partial<Pick<Hero, "awakening">>,
   gender: Gender,
 ): { synth: number | null; look: number | null } {
+  // Forged Awakened Raiment overrides every other look while it is shown (see awakening.ts).
+  if ((h.awakening?.raiment ?? 0) > 0 && h.awakening?.showRaiment !== false) return { synth: null, look: RAIMENT_LOOK };
   const synth = appearanceTier(h);
   return synth ? { synth, look: null } : { synth: null, look: gearLook(h, gender) };
 }
@@ -84,6 +93,7 @@ export function heroAppearance(
  * whose art has not shipped resolves to undefined and the model keeps the class art.
  */
 export function armourArt(cls: HeroClass, gender: Gender, look: number): string | undefined {
+  if (look === RAIMENT_LOOK) return AWAKENED_ART[`${cls}-${gender}`];
   if (!Number.isFinite(look) || look < 0) return undefined;
   return VARIANTS[`${cls}-${gender}`]?.[Math.floor(look)];
 }

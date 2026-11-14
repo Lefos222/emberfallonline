@@ -125,7 +125,7 @@ export interface MaterialPrices {
 
 /** The materials the diamond shop sells. Fate Stones are earned in battle and bought for gold at the
  *  Auction House, so they are deliberately not a diamond good. Prices include this release's rise. */
-export type DiamondMat = Exclude<Mat, "fateStone" | "frostCrystal" | "voidCrystal" | "sunCrystal" | "dragonScale" | "abyssalShard" | "titanHeart" | "wyrmBone" | "moonsilver" | "shadowSilk" | "phoenixAsh">;
+export type DiamondMat = Exclude<Mat, "fateStone" | "frostCrystal" | "voidCrystal" | "sunCrystal" | "dragonScale" | "abyssalShard" | "titanHeart" | "wyrmBone" | "moonsilver" | "shadowSilk" | "phoenixAsh" | "aetherEmber" | "voidsteel" | "celestialPearl" | "eclipsedHeart">;
 
 export const MATERIAL_PRICES: Record<DiamondMat, MaterialPrices> = {
   ore: { one: 6, five: 22 },
@@ -299,8 +299,21 @@ export function premiumVipLevel(hero: unknown): number {
 /** 1.05, 1.10 or 1.15 while VIP is active; 1 otherwise. Applied to battle XP only. */
 export function vipXpMultiplier(hero: unknown): number {
   const level = premiumVipLevel(hero);
-  return 1 + vipXpBonusPct(level) / 100;
+  return (1 + vipXpBonusPct(level) / 100) * surgeMultiplier(hero);
 }
+
+/** A Diamond XP Surge (server-owned `srv.premium.surgeUntil`) adds half again to battle XP for two hours. */
+export const SURGE_MULT = 1.5;
+export function surgeUntil(hero: unknown): number {
+  const v = (hero as { srv?: { premium?: { surgeUntil?: string } } } | null)?.srv?.premium?.surgeUntil;
+  const t = v ? Date.parse(v) : NaN;
+  return Number.isFinite(t) ? t : 0;
+}
+export const surgeMultiplier = (hero: unknown, now = Date.now()) => (surgeUntil(hero) > now ? SURGE_MULT : 1);
+
+/** Diamond speed-ups sold by the `awakening_boost` RPC; its SQL price table mirrors this one. */
+export const BOOST_PRICES = { xp_surge: 150, shard_cache: 200, trial_reset: 50, stamina_refill: 80 } as const;
+export type BoostKind = keyof typeof BOOST_PRICES;
 
 export function vipDailyGold(hero: unknown): number {
   const level = premiumVipLevel(hero);

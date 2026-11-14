@@ -9,6 +9,7 @@ import arenaCrypt from "@/assets/arena-crypt.jpg";
 import arenaLair from "@/assets/arena-lair.jpg";
 import arenaRift from "@/assets/arena-rift.jpg";
 import arenaSpire from "@/assets/arena-spire.jpg";
+import arenaAbyss from "@/assets/arena-abyss.jpg";
 import arenaColosseum from "@/assets/arena-colosseum.jpg";
 import arenaDepths from "@/assets/arena-depths.jpg";
 import { Sprite } from "./Sprite";
@@ -48,6 +49,7 @@ export function autoPick(kit: TSkill[], blocked: (k: TSkill) => boolean, foes: U
 
 export function arenaFor(title: string | undefined, boss?: boolean) {
   const t = (title ?? "").toLowerCase();
+  if (/abyss|echo/.test(t)) return arenaAbyss;
   if (/spire|warden|rift path/.test(t)) return arenaSpire;
   if (/duel|arena|clash|pvp/.test(t)) return arenaColosseum;
   if (/expedition|relic|depth|dungeon|elite/.test(t)) return arenaDepths;

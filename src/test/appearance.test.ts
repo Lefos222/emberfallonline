@@ -28,7 +28,8 @@ describe("armour appearance", () => {
         }
         expect(urls.size).toBe(count);
         expect(armourArt(cls, gender, count)).toBeUndefined();
-        expect(armourArt(cls, gender, -1)).toBeUndefined();
+        expect(armourArt(cls, gender, -1)).toMatch(/armour-awakened/);
+        expect(armourArt(cls, gender, -2)).toBeUndefined();
       }
     }
   });
