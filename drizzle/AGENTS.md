@@ -1,0 +1,1 @@
+- Anticheat gold review thresholds live in the single-row `anticheat_settings` table (read by `_ac_gold_cap`, edited via admin-only `admin_set_gold_thresholds`); the hourly flag stays 4x the per-save limit. Why: the admin tunes flags without a migration.
