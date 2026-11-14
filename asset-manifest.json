@@ -48,6 +48,34 @@
     {
       "path": "src/assets/gathering-astral.jpg",
       "feature": "Profession Lodge location crop"
+    },
+    {
+      "path": "src/assets/minigame-runes.png",
+      "feature": "Minigame Hall card icon for Rune Memory"
+    },
+    {
+      "path": "src/assets/minigame-archery.png",
+      "feature": "Minigame Hall card icon for Archery Range"
+    },
+    {
+      "path": "src/assets/minigame-dice.png",
+      "feature": "Minigame Hall card icon for Tavern Dice"
+    },
+    {
+      "path": "src/assets/minigame-rune-wall.jpg",
+      "feature": "Rune Memory board backdrop"
+    },
+    {
+      "path": "src/assets/minigame-archery-range.jpg",
+      "feature": "Archery Range field backdrop"
+    },
+    {
+      "path": "src/assets/minigame-target.png",
+      "feature": "Archery Range moving target"
+    },
+    {
+      "path": "src/assets/minigame-tavern-table.jpg",
+      "feature": "Tavern Dice table backdrop"
     }
   ]
 }
