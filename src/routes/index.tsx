@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { InstallAppButton } from "@/components/InstallAppButton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { VERSION } from "@/game/version";
@@ -344,9 +345,9 @@ function Home() {
 
       {/* Play on your phone */}
       <section id="mobile" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16">
-        <h2 className="text-center font-display text-3xl text-gold">Play on your phone</h2>
+        <h2 className="text-center font-display text-3xl text-gold">Play on phone or desktop</h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
-          EmberFall runs right in your phone's browser with touch controls — sign in with the same account and your castle is waiting.
+          EmberFall runs right in your phone's browser with touch controls, and installs as its own app on Windows, Mac and Android — sign in with the same account and your castle is waiting.
         </p>
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
           {[
@@ -360,6 +361,7 @@ function Home() {
             </div>
           ))}
         </div>
+        <div className="mt-6"><InstallAppButton /></div>
       </section>
 
       {/* How to begin */}

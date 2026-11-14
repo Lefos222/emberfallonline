@@ -67,6 +67,8 @@ import { Arena } from "./Arena";
 import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
 import { SpireHub } from "./SpireVentures";
+import { AwakeningPanel } from "./Awakening";
+import { addShards, canAwaken, fightShards } from "./awakening";
 import { GameGuide } from "./GameGuide";
 import { playGuideSound, playLevelUpSound, playBattleEndSound } from "./guide-sound";
 import { prepareFoe } from "./foe-scaling";
@@ -85,7 +87,7 @@ import { VERSION } from "./version";
 const useGameOverflow = () => getState().hero?.overflow?.length ?? 0;
 
 /** Buildings whose battle leaves the panel open underneath, so the player lands back in it. */
-const BATTLE_PANELS = ["portal", "spire", "dungeon", "worldmap", "guild", "party"] as const;
+const BATTLE_PANELS = ["portal", "spire", "dungeon", "worldmap", "guild", "party", "awakening"] as const;
 
 export function Game() {
   const t = useT();
@@ -375,6 +377,13 @@ export function Game() {
       update((h) => addRenown(h, gained));
       reportGuildBattle();
       r.lines.push(t("+{n} Renown", { n: gained }));
+      // Heroes of level 90+ earn Dawnshards from every won fight (see awakening.ts).
+      const hz = getState().hero;
+      if (hz && canAwaken(hz)) {
+        const n = fightShards(!!battle.right.boss);
+        update((h) => addShards(h, n));
+        r.lines.push(t("+{n} Dawnshards", { n }));
+      }
     }
     // A won fight sometimes leaves a chest on the field: gold is the common find, gems the rare one.
     if (won) {
@@ -694,6 +703,7 @@ export function Game() {
             />
           )}
           {open === "gems" && <GemWorkshop onClose={() => setOpen(null)} />}
+          {open === "awakening" && <AwakeningPanel onClose={() => setOpen(null)} start={start} />}
           {open === "tower" && <MagicTower onClose={() => setOpen(null)} />}
           {open === "temple" && <Temple onClose={() => setOpen(null)} />}
           {open === "market" && <AuctionHousePanel onClose={() => setOpen(null)} />}

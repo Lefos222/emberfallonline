@@ -28,6 +28,7 @@ import { normalizeSynth, synthFx } from "./synthesis";
 import { enlightenmentFx, soulFx } from "./enlightenment";
 import { renownFx } from "./renown";
 import { runeFx } from "./runes";
+import { awakeningFx } from "./awakening";
 import { friendshipHealthPct } from "./friendship";
 import { potionFx } from "./potions";
 import { guildBuffFx } from "./guild-extras";
@@ -647,6 +648,8 @@ export interface Hero {
   renownRanks?: Record<string, number>;
   /** Gold-bought mounts and the ridden one (Diamond mounts live in srv.mounts; see mounts.ts). */
   mounts?: { owned?: string[]; active?: string };
+  /** Post-90 Awakening progress (see awakening.ts). */
+  awakening?: import("./awakening").AwakeningState;
   /** Carved rune ranks by rune id (see runes.ts). */
   runes?: Record<string, number>;
   /** The VIP Black Market's current stock (see black-market.ts). */
@@ -950,7 +953,7 @@ function computeStats(
   const dr = opts.talents ? boosted(drillFx(h)) : null;
   const gf2 = opts.talents ? boosted(guildFx(h)) : null;
   // Synthesis armour joins the same percentage pipeline as the other long-term tracks.
-  const sy = opts.talents ? synthFx(h) : zeroFx();
+  const sy = opts.talents ? addFx(synthFx(h), awakeningFx(h)) : zeroFx();
   // Enlightenment and Soul infusions are the post-20 permanent tracks (see enlightenment.ts).
   const en = opts.talents ? enlightenmentFx(h) : zeroFx();
   const so = opts.talents ? soulFx(h) : zeroFx();
@@ -1562,6 +1565,15 @@ export const BUILDINGS = [
     desc: "Login rewards & activities",
     soon: false,
     shortcut: true,
+  },
+  {
+    id: "awakening",
+    name: "Awakening",
+    x: 19,
+    y: 37,
+    r: 4.5,
+    desc: "Lv 90+ · stages, lattice, aspects & sigils",
+    soon: false,
   },
   {
     id: "worldmap",
