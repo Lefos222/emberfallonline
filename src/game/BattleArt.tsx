@@ -2,6 +2,13 @@ import { CharacterModel } from './CharacterModel';
 import enemies from '@/assets/battle-enemies.png';
 import type { Unit } from './combat';
 import type { Move } from './skillAnim';
+import slashFx from '@/assets/fx/slash.webp';
+import arcaneFx from '@/assets/fx/arcane.webp';
+import fireFx from '@/assets/fx/fire.webp';
+import healFx from '@/assets/fx/heal.webp';
+
+/** Painted impact art layered under the stroke effect for the most common blows. */
+const FX_PAINT: Record<string, string> = { slash: slashFx, arcane: arcaneFx, fire: fireFx, meteor: fireFx, heal: healFx };
 
 export function BattleCharacter({ u }: { u: Unit }) {
   if (u.cls) return <div className={`battle-character flex h-full w-full items-end justify-center ${u.side === 'foe' ? 'battle-mirror' : ''}`}>
@@ -19,7 +26,8 @@ export function BattleCharacter({ u }: { u: Unit }) {
 
 /** Impact artwork drawn on the target when a blow lands. */
 export function CombatEffect({ kind }: { kind: string }) {
-  return <svg className={`combat-effect effect-${kind}`} viewBox="0 0 200 240" aria-hidden="true">
+  const paint = FX_PAINT[kind];
+  return <>{paint && <img src={paint} alt="" aria-hidden="true" draggable={false} className="combat-effect combat-paint" />}<svg className={`combat-effect effect-${kind}`} viewBox="0 0 200 240" aria-hidden="true">
     {kind === 'arrow' ? <path d="M15 190L175 50M142 50H175V83M20 170L38 188M30 160L48 178" /> :
       kind === 'slash' ? <path d="M25 200Q60 90 180 30Q130 140 25 200Z" /> :
       kind === 'ice' ? <path d="M100 30V210M25 70L175 170M25 170L175 70M80 50L100 70L120 50M80 190L100 170L120 190" /> :
@@ -30,7 +38,7 @@ export function CombatEffect({ kind }: { kind: string }) {
       kind === 'tether' ? <g><path d="M20 40Q100 120 180 200M40 200Q110 130 180 60M100 90V150M70 120H130" /><circle cx="100" cy="120" r="26" /></g> :
       kind === 'mark' ? <g><circle cx="100" cy="120" r="60" /><path d="M100 40V70M100 170V200M20 120H50M150 120H180" /><circle cx="100" cy="120" r="12" /></g> :
       <g><path d="M25 175L85 125L60 95L140 65L105 120L145 145L25 175Z" /><circle cx="100" cy="120" r="75" /></g>}
-  </svg>;
+  </svg></>;
 }
 
 /**
@@ -76,8 +84,11 @@ const FX_ART: Record<string, React.ReactNode> = {
 };
 
 /** A player skill's own impact: a unique shape, motion and colour (see skillFx). */
+const SHAPE_PAINT: Record<string, string> = { blade: slashFx, cross: slashFx, fang: slashFx, flame: fireFx, comet: fireFx, rune: arcaneFx, vortex: arcaneFx, star: arcaneFx, ring: arcaneFx, shard: arcaneFx, bolt: arcaneFx, crown: healFx };
 export function SkillImpact({ fx }: { fx: { shape: string; motion: string; hue: string } }) {
-  return (
+  const paint = SHAPE_PAINT[fx.shape];
+  return (<>
+    {paint && <img src={paint} alt="" aria-hidden="true" draggable={false} className={`combat-effect combat-paint fx-${fx.motion}`} />}
     <svg
       className={`combat-effect skill-fx fx-${fx.motion}`}
       style={{ stroke: fx.hue, color: fx.hue }}
@@ -86,5 +97,5 @@ export function SkillImpact({ fx }: { fx: { shape: string; motion: string; hue: 
     >
       {FX_ART[fx.shape]}
     </svg>
-  );
+  </>);
 }

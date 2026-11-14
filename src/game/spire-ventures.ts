@@ -1,6 +1,19 @@
 import { stageFoe, type Foe } from "./data";
 import { BESTIARY, enemySprite, type SpriteRect } from "./world";
 import type { Mat } from "./crafting";
+import bulwarkArt from "@/assets/wardens/bulwark.webp";
+import reaverArt from "@/assets/wardens/reaver.webp";
+import wardenArt from "@/assets/wardens/warden.webp";
+import weaverArt from "@/assets/wardens/weaver.webp";
+import colossusArt from "@/assets/wardens/colossus.webp";
+import seerArt from "@/assets/wardens/seer.webp";
+
+/** Each Spire warden's own painted full-body figure (768x1024, transparent). */
+const WARDEN_ART: Record<string, string> = { bulwark: bulwarkArt, reaver: reaverArt, warden: wardenArt, weaver: weaverArt, colossus: colossusArt, seer: seerArt };
+export function wardenSprite(id: string): SpriteRect | null {
+  const url = WARDEN_ART[id];
+  return url ? { url, x: 0, y: 0, w: 768, h: 1024, sheetW: 768, sheetH: 1024 } : null;
+}
 
 /**
  * Spire ventures: the solo activities of the Spire beside its party dungeons. Warden Hunts are
@@ -50,7 +63,7 @@ export function wardenFoe(w: Warden, level: number): Foe & { sprite: SpriteRect 
   const f = stageFoe(Math.max(12, level + 6), 1.5);
   const r = rng(`sprite:${w.id}`);
   const row = Math.floor(r() * BESTIARY.length), col = 6 + Math.floor(r() * 6);
-  return { ...f, name: w.name, boss: true, hp: Math.round(f.hp * w.hp), atk: Math.round(f.atk * w.atk), def: Math.round(f.def * w.def), sprite: enemySprite(row, col) };
+  return { ...f, name: w.name, boss: true, hp: Math.round(f.hp * w.hp), atk: Math.round(f.atk * w.atk), def: Math.round(f.def * w.def), sprite: wardenSprite(w.id) ?? enemySprite(row, col) };
 }
 export const wardenGold = (level: number) => 400 + level * 40;
 export const wardenXp = (level: number) => level * 90;

@@ -3,7 +3,7 @@ import bossSheet from "@/assets/bosses.jpg.asset.json";
 import { stageFoe, stageRewards, type Foe, type Hero } from "./data";
 
 /** A rectangle on one of the uploaded 1920x1072 art sheets. */
-export interface SpriteRect { url: string; x: number; y: number; w: number; h: number }
+export interface SpriteRect { url: string; x: number; y: number; w: number; h: number; sheetW?: number; sheetH?: number }
 const SHEET_W = 1920, SHEET_H = 1072;
 export { SHEET_W, SHEET_H };
 
