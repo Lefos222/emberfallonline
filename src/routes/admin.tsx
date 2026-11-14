@@ -28,6 +28,7 @@ type Character = {
   banned: boolean; ban_reason: string | null; is_admin: boolean;
 };
 type AccountBan = { id: string; user_id: string; email: string | null; reason: string; at: string; lifted: string | null; heroes: string };
+type Account = { user_id: string; email: string | null; created: string; last_sign_in: string | null; signup_ip: string | null; last_ip: string | null; heroes: string; banned: boolean; ban_reason: string | null; is_admin: boolean };
 type Players = { characters: Character[]; bans: AccountBan[] };
 
 // The admin RPCs from 0050_admin_player_bans.sql are not in the generated types until they regenerate.
@@ -42,12 +43,13 @@ function AdminPage() {
   const [err, setErr] = useState("");
   const [actionErr, setActionErr] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
-  const [banning, setBanning] = useState<Character | null>(null);
+  const [banning, setBanning] = useState<{ user_id: string; name: string; email: string | null } | null>(null);
+  const [accounts, setAccounts] = useState<Account[] | null>(null);
   const [reason, setReason] = useState("");
   const [filter, setFilter] = useState("");
 
   const load = useCallback(async () => {
-    const [mod, pl] = await Promise.all([supabase.rpc("admin_moderation"), rpc("admin_players", { _limit: 300 })]);
+    const [mod, pl, ac] = await Promise.all([supabase.rpc("admin_moderation"), rpc("admin_players", { _limit: 300 }), rpc("admin_accounts", { _limit: 1000 })]);
     if (mod.error) {
       setErr(mod.error.message === "Forbidden" ? "This page is only for the game admin." : "Sign in with the admin account to view this page.");
       return;
@@ -55,6 +57,8 @@ function AdminPage() {
     setData(mod.data as unknown as Data);
     if (pl.error) setActionErr(`Could not load characters: ${pl.error.message}`);
     else setPlayers(pl.data as Players);
+    if (ac.error) setActionErr(`Could not load accounts: ${ac.error.message}`);
+    else setAccounts(ac.data as Account[]);
   }, []);
 
   useEffect(() => { void load(); }, [load]);
@@ -72,6 +76,9 @@ function AdminPage() {
   const chars = (players?.characters ?? []).filter((c) =>
     !q || [c.name, c.email, c.ip, c.last_ip].some((v) => v?.toLowerCase().includes(q)));
 
+  const accs = (accounts ?? []).filter((a) =>
+    !q || [a.email, a.heroes, a.signup_ip, a.last_ip].some((v) => v?.toLowerCase().includes(q)));
+
   return (
     <main className="mx-auto min-h-screen max-w-6xl bg-background p-6 text-foreground">
       <div className="mb-6 flex items-center justify-between">
@@ -83,6 +90,51 @@ function AdminPage() {
       {!data && !err && <p>Loading…</p>}
       {data && (
         <div className="space-y-8">
+          <section className="game-panel rounded p-4">
+            <h2 className="mb-3 font-display text-xl text-gold">All accounts ({accounts?.length ?? 0})</h2>
+            {!accounts ? <p className="text-sm text-muted-foreground">Loading…</p> : accs.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No accounts found.</p>
+            ) : (
+              <div className="max-h-[32rem] overflow-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="text-xs uppercase text-muted-foreground">
+                    <tr className="border-b border-border/60">
+                      <th className="py-1">Email</th><th>Signed up</th><th>Last sign-in</th><th>IP</th><th>Characters</th><th>Status</th><th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {accs.map((a) => (
+                      <tr key={a.user_id} className="border-b border-border/40 align-top">
+                        <td className="break-all py-1">{a.email ?? "—"}</td>
+                        <td>{when(a.created)}</td>
+                        <td>{a.last_sign_in ? when(a.last_sign_in) : "—"}</td>
+                        <td className="font-mono text-xs">
+                          {a.signup_ip ?? "—"}
+                          {a.last_ip && a.last_ip !== a.signup_ip && <span className="block text-muted-foreground">last: {a.last_ip}</span>}
+                        </td>
+                        <td>{a.heroes || "—"}</td>
+                        <td>{a.banned ? <span className="text-blood" title={a.ban_reason ?? ""}>Banned</span> : a.is_admin ? "Admin" : "Active"}</td>
+                        <td className="text-right">
+                          {a.is_admin ? null : a.banned ? (
+                            <button className="btn-ghost px-2 py-0.5 text-xs" disabled={busy !== null}
+                              onClick={() => void act(a.user_id, "admin_unban_user", { _user_id: a.user_id })}>
+                              {busy === a.user_id ? "…" : "Unban"}
+                            </button>
+                          ) : (
+                            <button className="btn-blood px-2 py-0.5 text-xs" disabled={busy !== null}
+                              onClick={() => { setBanning({ user_id: a.user_id, name: a.heroes || a.email || "account", email: a.email }); setReason(""); }}>
+                              Ban
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
           <section className="game-panel rounded p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-xl text-gold">New characters ({players?.characters.length ?? 0})</h2>

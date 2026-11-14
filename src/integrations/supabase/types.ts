@@ -2027,6 +2027,7 @@ export type Database = {
         Returns: Json
       }
       add_friend: { Args: { _hero: string; _name: string }; Returns: string }
+      admin_accounts: { Args: { _limit?: number }; Returns: Json }
       admin_ban_user: {
         Args: { _reason?: string; _user_id: string }
         Returns: undefined
