@@ -26,6 +26,36 @@ export type Database = {
         }
         Relationships: []
       }
+      account_bans: {
+        Row: {
+          banned_by: string | null
+          created_at: string
+          id: string
+          lifted_at: string | null
+          lifted_by: string | null
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          banned_by?: string | null
+          created_at?: string
+          id?: string
+          lifted_at?: string | null
+          lifted_by?: string | null
+          reason?: string
+          user_id: string
+        }
+        Update: {
+          banned_by?: string | null
+          created_at?: string
+          id?: string
+          lifted_at?: string | null
+          lifted_by?: string | null
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       activity_claims: {
         Row: {
           created_at: string
@@ -1507,6 +1537,33 @@ export type Database = {
         }
         Relationships: []
       }
+      hero_origins: {
+        Row: {
+          created_at: string
+          hero_id: string
+          hero_name: string
+          ip: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hero_id: string
+          hero_name?: string
+          ip?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hero_id?: string
+          hero_name?: string
+          ip?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       heroes: {
         Row: {
           arena_rating: number
@@ -1878,6 +1935,8 @@ export type Database = {
         Args: { _level: number; _paragon: number; _power: number; _save: Json }
         Returns: string
       }
+      _admin_last_ip: { Args: { _user_id: string }; Returns: string }
+      _am_banned: { Args: never; Returns: boolean }
       _apply_reward: { Args: { rw: Json; s: Json }; Returns: Json }
       _arena_team_json: { Args: { _team: string }; Returns: Json }
       _arena_window: { Args: never; Returns: string }
@@ -1949,6 +2008,8 @@ export type Database = {
       _quest_target: { Args: { _kind: string }; Returns: number }
       _raid_boss_hp: { Args: { _guild: string }; Returns: number }
       _raid_window: { Args: { _at?: string }; Returns: string }
+      _request_ip: { Args: never; Returns: string }
+      _rotating_kinds: { Args: never; Returns: string[] }
       _scroll_price: { Args: { _kind: string }; Returns: number }
       _settle_guild_war: { Args: { _war: string }; Returns: undefined }
       _today: { Args: never; Returns: string }
@@ -1966,7 +2027,14 @@ export type Database = {
         Returns: Json
       }
       add_friend: { Args: { _hero: string; _name: string }; Returns: string }
+      admin_ban_user: {
+        Args: { _reason?: string; _user_id: string }
+        Returns: undefined
+      }
       admin_moderation: { Args: never; Returns: Json }
+      admin_players: { Args: { _limit?: number }; Returns: Json }
+      admin_restore_quarantine: { Args: { _id: string }; Returns: string }
+      admin_unban_user: { Args: { _user_id: string }; Returns: undefined }
       anticheat_acknowledge: { Args: { _id: string }; Returns: undefined }
       anticheat_restore: { Args: { _id: string }; Returns: string }
       apply_guild: {
@@ -2283,6 +2351,7 @@ export type Database = {
         Args: { _accept: boolean; _application: string; _hero: string }
         Returns: undefined
       }
+      my_ban: { Args: never; Returns: Json }
       my_guild_ids: { Args: never; Returns: string[] }
       my_hero_ids: { Args: never; Returns: string[] }
       player_castle_raid: {

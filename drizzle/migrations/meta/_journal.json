@@ -344,6 +344,13 @@
       "when": 1794411400000,
       "tag": "0048_daily_progress_track",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1794615021857,
+      "tag": "0049_admin_player_bans",
+      "breakpoints": true
     }
   ]
 }
