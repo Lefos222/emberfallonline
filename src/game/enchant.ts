@@ -5,7 +5,7 @@ import { scaledGold } from "./gold";
  * enchantment roll. Two stones of a grade plus gold forge one of the next grade, and the Auction
  * House shop sells every grade for gold.
  *
- * Grade 1 (the plain diamond-shaped stone that used to sit in `hero.mats.enchantStone`) was
+ * Grade 1 (the plain diamond-shaped stone that used to sit in `hero.mats["enchantStone"]`) was
  * removed from the game: every source that used to pay it now pays a Lv 2 stone instead, and
  * `migrateEnchantStones` folds any leftover stacks from older saves into grade 2.
  */
@@ -92,7 +92,7 @@ export const totalStones = (h: StoneState) =>
   heldStoneLevels(h).reduce((sum, lvl) => sum + stoneCount(h, lvl), 0);
 
 /**
- * Fold the removed grade-1 stone into grade 2. Older saves kept it in `mats.enchantStone`, and a
+ * Fold the removed grade-1 stone into grade 2. Older saves kept it in `mats["enchantStone"]`, and a
  * few server RPCs (the Wheel, Spire chests, guild raids) still mint that key, so this runs on every
  * save load and turns those stacks into the lowest stone that still exists.
  */
@@ -101,10 +101,10 @@ export function migrateEnchantStones(h: {
   enchantStones?: Record<string, number>;
 }) {
   const mats = h.mats as Record<string, number | undefined> | undefined;
-  const legacy = Math.max(0, Math.floor(mats?.enchantStone ?? 0));
+  const legacy = Math.max(0, Math.floor(mats?.["enchantStone"] ?? 0));
   const stray = Math.max(0, Math.floor(h.enchantStones?.["1"] ?? 0));
   const lift = legacy + stray;
-  if (legacy && mats) delete mats.enchantStone;
+  if (legacy && mats) delete mats["enchantStone"];
   if (!lift && !stray) return;
   const stones = { ...(h.enchantStones ?? {}) };
   delete stones["1"];
