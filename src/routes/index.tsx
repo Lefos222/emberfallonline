@@ -342,6 +342,26 @@ function Home() {
         </div>
       </section>
 
+      {/* Play on your phone */}
+      <section id="mobile" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16">
+        <h2 className="text-center font-display text-3xl text-gold">Play on your phone</h2>
+        <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+          EmberFall runs right in your phone's browser with touch controls — sign in with the same account and your castle is waiting.
+        </p>
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          {[
+            ["1. Open the site", "Visit EmberFall Online in Safari or Chrome on your phone."],
+            ["2. Add to home screen", "iPhone: Share → Add to Home Screen. Android: menu → Install app."],
+            ["3. Tap the icon", "It opens full-screen straight into your castle, with the same cloud save."],
+          ].map(([h, b]) => (
+            <div key={h} className="game-panel rounded-lg p-5">
+              <div className="font-display text-lg text-gold">{h}</div>
+              <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* How to begin */}
       <section className="mx-auto max-w-6xl px-4 py-16">
         <h2 className="text-center font-display text-3xl text-gold">How to begin</h2>

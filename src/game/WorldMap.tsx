@@ -41,7 +41,12 @@ import {
   vaultClaimed,
   type Bounty,
   type BountyKind,
+  openTreeChest,
+  treeChestOpened,
+  treeChestReady,
+  treeChestReward,
 } from "./worldtree";
+import treeChestArt from "@/assets/world-tree-chest.webp";
 import {
   castleRaidNode,
   castleRaidsLeft,
@@ -251,6 +256,16 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
     });
     if (paid) setNote(`Bounty paid: +${paid.toLocaleString("en-GB")} gold.`);
     else setError("That bounty is not finished yet.");
+  };
+
+  const chestReward = treeChestReward(heroLevel);
+  const chestReady = treeChestReady(hero, heroLevel);
+  const chestOpened = treeChestOpened(hero);
+  const openChest = () => {
+    let paid: ReturnType<typeof openTreeChest> = null;
+    update((h) => { paid = openTreeChest(h, heroLevel); });
+    if (paid) setNote(`Tree Chest opened: +${chestReward.gold.toLocaleString("en-GB")} gold, materials and a Fate Stone.`);
+    else setError("Claim all three bounties first.");
   };
 
   const focus = (x: number, y: number, z = cam.z) =>
@@ -701,6 +716,17 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                   </div>
                 );
               })}
+              <div className="mt-2 flex items-center gap-2 rounded border border-gold/50 bg-gold/5 px-2 py-1.5">
+                <img src={treeChestArt} alt="" width={44} height={44} loading="lazy" className="h-11 w-11 shrink-0 object-contain" />
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-gold">{t("Tree Chest")}</p>
+                  <p className="text-[11px] text-muted-foreground">{t("Claim all three bounties to open it: gold, materials and a Fate Stone.")}</p>
+                  <p className="text-[11px] text-gold">+{chestReward.gold.toLocaleString("en-GB")} {t("gold")}</p>
+                </div>
+                {chestOpened
+                  ? <span className="ml-auto text-[11px] text-muted-foreground">{t("Opened")}</span>
+                  : <button className="btn-gold ml-auto px-2 py-0.5 text-[11px]" disabled={!chestReady} onClick={openChest}>{t("Open")}</button>}
+              </div>
             </div>
           )}
 

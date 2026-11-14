@@ -13,7 +13,7 @@ import type { CraftState } from "./crafting";
 /** Success a Fate Stone adds to the plain refinement roll. */
 export const FATE_SUCCESS_BONUS = 0.25;
 /** Base gold price of one Fate Stone in the Auction House shop, before level scaling and house discount. */
-export const FATE_STONE_PRICE = 120000;
+export const FATE_STONE_PRICE = 60000;
 
 /** Fate Stones one refinement step costs: one, plus another every three refinement ranks. */
 export const fateStoneCost = (it: Item) => 1 + Math.floor(refineRank(it) / 3);

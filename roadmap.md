@@ -35,3 +35,4 @@
 - [ ] Quality-of-life changes; art for anything missing
 - [x] Nov 11, 15:18: Softer XP after level 30; inventory drag and drop; Arena Clash every 6h (parties 1-4); Minigame Hall with fishing + 3 new games.
 - [x] Official Emberfall Online site: login, game showcase, Play button before the castle
+- [x] Nov 14: Cheaper Fate Stones + uncapped Fate counter; quest-complete chime; World Tree Tree Chest; admin stats + editable gold thresholds; installable phone app + mobile section.

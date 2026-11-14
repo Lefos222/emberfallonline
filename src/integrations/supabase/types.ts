@@ -154,6 +154,33 @@ export type Database = {
           },
         ]
       }
+      anticheat_settings: {
+        Row: {
+          gold_base: number
+          gold_per_level: number
+          gold_per_paragon: number
+          id: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          gold_base?: number
+          gold_per_level?: number
+          gold_per_paragon?: number
+          id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          gold_base?: number
+          gold_per_level?: number
+          gold_per_paragon?: number
+          id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       anticheat_state: {
         Row: {
           hero_id: string
@@ -2032,9 +2059,15 @@ export type Database = {
         Args: { _reason?: string; _user_id: string }
         Returns: undefined
       }
+      admin_get_settings: { Args: never; Returns: Json }
       admin_moderation: { Args: never; Returns: Json }
       admin_players: { Args: { _limit?: number }; Returns: Json }
       admin_restore_quarantine: { Args: { _id: string }; Returns: string }
+      admin_set_gold_thresholds: {
+        Args: { _base: number; _per_level: number; _per_paragon: number }
+        Returns: Json
+      }
+      admin_stats: { Args: never; Returns: Json }
       admin_unban_user: { Args: { _user_id: string }; Returns: undefined }
       anticheat_acknowledge: { Args: { _id: string }; Returns: undefined }
       anticheat_restore: { Args: { _id: string }; Returns: string }

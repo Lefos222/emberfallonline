@@ -1785,6 +1785,16 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "rd win": ["η νίκη", "zwycięstwo"],
   Refine: ["Εκλέπτυνση", "Oczyść"],
   Refinement: ["Βελτίωση", "Ulepszenie"],
+  Open: ["Άνοιγμα", "Otwórz"],
+  Opened: ["Ανοίχτηκε", "Otwarta"],
+  "Tree Chest": ["Σεντούκι του Δέντρου", "Skrzynia Drzewa"],
+  "Claim all three bounties to open it: gold, materials and a Fate Stone.": ["Εξαργύρωσε και τις τρεις αμοιβές για να το ανοίξεις: χρυσός, υλικά και μια Πέτρα Μοίρας.", "Odbierz wszystkie trzy nagrody, by ją otworzyć: złoto, materiały i Kamień Losu."],
+  "Fate counter": ["Μετρητής Μοίρας", "Licznik Losu"],
+  "no limit": ["χωρίς όριο", "bez limitu"],
+  "Fate Stones never touch the +60 enchantment. Each win adds one to the Fate counter, with no limit — but every few ranks the next refine costs more stones.": [
+    "Οι Πέτρες Μοίρας δεν αγγίζουν ποτέ τη γοητεία +60. Κάθε επιτυχία προσθέτει ένα στον Μετρητή Μοίρας, χωρίς όριο — αλλά κάθε λίγους βαθμούς η επόμενη βελτίωση κοστίζει περισσότερες πέτρες.",
+    "Kamienie Losu nigdy nie zmieniają zaczarowania +60. Każdy sukces dodaje jeden do Licznika Losu, bez limitu — ale co kilka rang kolejne ulepszenie kosztuje więcej kamieni.",
+  ],
   "% stats per rank": ["% στατιστικών ανά βαθμό", "% statystyk za rangę"],
   "Refining is its own track — a won roll adds a refinement rank, never an enchantment level, and a piece can be refined again and again.":
     [

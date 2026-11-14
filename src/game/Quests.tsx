@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Check, Gift, Lock } from "lucide-react";
 import { Gold, Panel, fmt } from "./ui";
 import { update, useGame } from "./store";
+import { playQuestCompleteSound } from "./guide-sound";
 import type { QuestKind } from "./level-quests";
 import { QUESTS_FLOORS_LEVEL, claimLevelQuest, levelQuestRows } from "./level-quests";
 
@@ -133,6 +134,7 @@ export function QuestsPanel({ onClose }: { onClose: () => void }) {
               onClick={() =>
                 update((h) => {
                   const err = claimLevelQuest(h, quest.id);
+                  if (!err) playQuestCompleteSound();
                   setMsg(
                     err
                       ? { ok: false, t: err }

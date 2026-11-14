@@ -588,7 +588,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
     }
   };
   /** What the next step costs, shown on the forge's own row. */
-  const stepCost = !sel ? null : enhanceMaxed(sel) ? null : mode === "fate"
+  const stepCost = !sel ? null : (mode !== "fate" && enhanceMaxed(sel)) ? null : mode === "fate"
     ? <span className="flex items-center gap-1"><MatIcon mat="fateStone" size={18} /> {fmt(fateStoneCount(hero))}/{fateStoneCost(sel)}  {t("Fate Stone")}{fateStoneCost(sel) === 1 ? "" : "s"}</span>
     : mode === "stone"
       ? <span className="flex items-center gap-1"><StoneIcon level={stoneLvl} size={18} /> {fmt(stoneCount(hero, stoneLvl))}/{enchantStoneCost(sel)}  {t("Lv")} {stoneLvl}</span>
@@ -657,8 +657,13 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                 <section className="slot p-3">
                   <div className="flex flex-wrap items-end justify-between gap-2">
                     <div>
+                      {mode === "fate" ? <>
+                      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{t("Fate counter")}</div>
+                      <div className="font-display text-2xl leading-none text-gold"><b>{t("Fate")} +{refineRank(sel)}</b> <span className="text-sm text-muted-foreground">{t("no limit")}</span></div>
+                    </> : <>
                       <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{t("Enchantment")}</div>
                       <div className="font-display text-2xl leading-none text-gold"><b>+{sel.enh}</b> <span className="text-sm text-muted-foreground">/ +{ENHANCE_MAX}</span></div>
+                    </>}
                     </div>
                     {(mode === "fate" || !enhanceMaxed(sel)) && (mode === "gold" && !goldEnhanceAllowed(sel)
                       ? <span className="text-xs text-hp">{t("Enchantment Stones required")}</span>
@@ -687,7 +692,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                         <span className="text-muted-foreground">+{refineRank(sel)} · +{Math.round(REFINE_STAT_BONUS * 100)}{t("% stats per rank")}</span>
                       </div>
                       <p className="mb-1 text-[11px] text-muted-foreground">
-                        {t("Refining is its own track — a won roll adds a refinement rank, never an enchantment level, and a piece can be refined again and again.")}
+                        {t("Fate Stones never touch the +60 enchantment. Each win adds one to the Fate counter, with no limit — but every few ranks the next refine costs more stones.")}
                       </p>
                       <p className="text-[11px] text-muted-foreground">
                         {t("Held")} <b className="text-gold">×{fmt(fateStoneCount(hero))}</b> {t("— a refinement spends")} {fateStoneCost(sel)}{t(", win or lose. Fate Stones drop from rare battles and are sold in the Auction House shop.")}

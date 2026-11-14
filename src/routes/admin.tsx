@@ -81,7 +81,7 @@ function AdminPage() {
 
   return (
     <div className="h-dvh overflow-y-auto bg-background">
-    <main className="mx-auto min-h-screen max-w-6xl bg-background p-6 text-foreground">
+    <main className="mx-auto min-h-screen max-w-6xl bg-background p-3 sm:p-6 text-foreground">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="font-display text-3xl text-gold">Moderation</h1>
         <Link to="/" className="btn-ghost px-3 py-1 text-sm">Back to the game</Link>
@@ -91,6 +91,7 @@ function AdminPage() {
       {!data && !err && <p>Loading…</p>}
       {data && (
         <div className="space-y-8">
+          <AdminDashboard />
           <section className="game-panel rounded p-4">
             <h2 className="mb-3 font-display text-xl text-gold">All accounts ({accounts?.length ?? 0})</h2>
             {!accounts ? <p className="text-sm text-muted-foreground">Loading…</p> : accs.length === 0 ? (
@@ -274,5 +275,108 @@ function Section({ title, empty, children }: { title: string; empty: string; chi
       <h2 className="mb-2 font-display text-xl text-gold">{title}</h2>
       {children.length ? <div className="overflow-x-auto"><table className="w-full text-left text-sm"><tbody>{children}</tbody></table></div> : <p className="text-sm text-muted-foreground">{empty}</p>}
     </section>
+  );
+}
+
+type Stats = {
+  accounts: number; new_accounts_7d: number; characters: number; active_24h: number; active_7d: number;
+  banned_accounts: number; gold_flags_7d: number; avg_level: number | null; total_gold: number;
+  classes: Record<string, number>;
+  top: { name: string; cls: string; level: number; power: number; gold: number }[];
+  flags: { hero: string; reason: string; at: string }[];
+};
+type Settings = { gold_base: number; gold_per_level: number; gold_per_paragon: number; updated_at: string };
+const n = (v: number | null | undefined) => Math.round(Number(v ?? 0)).toLocaleString();
+
+/** Player stats plus the editable gold thresholds the cheat check uses. */
+function AdminDashboard() {
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [cfg, setCfg] = useState<Settings | null>(null);
+  const [form, setForm] = useState({ base: "", lvl: "", par: "" });
+  const [msg, setMsg] = useState("");
+  const [lvl, setLvl] = useState(50);
+  const load = useCallback(async () => {
+    const [st, se] = await Promise.all([rpc("admin_stats"), rpc("admin_get_settings")]);
+    if (!st.error) setStats(st.data as Stats);
+    if (!se.error && se.data) {
+      const c = se.data as Settings; setCfg(c);
+      setForm({ base: String(c.gold_base), lvl: String(c.gold_per_level), par: String(c.gold_per_paragon) });
+    }
+  }, []);
+  useEffect(() => { void load(); }, [load]);
+  const save = async () => {
+    setMsg("");
+    const { error } = await rpc("admin_set_gold_thresholds", { _base: Number(form.base), _per_level: Number(form.lvl), _per_paragon: Number(form.par) });
+    if (error) { setMsg(error.message); return; }
+    setMsg("Saved."); await load();
+  };
+  const cap = (Number(form.base) || 0) + (Number(form.lvl) || 0) * lvl;
+  const tiles: [string, string][] = stats ? [
+    ["Accounts", n(stats.accounts)], ["New this week", n(stats.new_accounts_7d)], ["Characters", n(stats.characters)],
+    ["Played today", n(stats.active_24h)], ["Played this week", n(stats.active_7d)], ["Banned accounts", n(stats.banned_accounts)],
+    ["Gold flags (7 days)", n(stats.gold_flags_7d)], ["Average level", String(stats.avg_level ?? 0)], ["Gold in the world", n(stats.total_gold)],
+  ] : [];
+  return (
+    <>
+      <section className="game-panel rounded p-4">
+        <h2 className="mb-3 font-display text-xl text-gold">Player stats</h2>
+        {!stats ? <p className="text-sm text-muted-foreground">Loading…</p> : (
+          <>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+              {tiles.map(([k, v]) => (
+                <div key={k} className="slot p-3"><div className="text-xs text-muted-foreground">{k}</div><div className="font-display text-xl text-gold">{v}</div></div>
+              ))}
+              {Object.entries(stats.classes).map(([k, v]) => (
+                <div key={k} className="slot p-3"><div className="text-xs capitalize text-muted-foreground">{k}s</div><div className="font-display text-xl text-gold">{n(v)}</div></div>
+              ))}
+            </div>
+            <h3 className="mb-2 mt-4 font-display text-gold">Strongest heroes</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="text-xs uppercase text-muted-foreground"><tr><th>Name</th><th>Class</th><th>Level</th><th>Battle Rating</th><th>Gold</th></tr></thead>
+                <tbody>{stats.top.map((h) => (
+                  <tr key={h.name} className="border-b border-border/40"><td className="py-1">{h.name}</td><td className="capitalize">{h.cls}</td><td>{h.level}</td><td>{n(h.power)}</td><td>{n(h.gold)}</td></tr>
+                ))}</tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </section>
+
+      <section className="game-panel rounded p-4">
+        <h2 className="mb-1 font-display text-xl text-gold">Gold thresholds</h2>
+        <p className="mb-3 text-sm text-muted-foreground">
+          A character gets a review flag (never a ban) when one save gains more gold than this limit, or an hour gains more than 4× it.
+          Limit = base + per level × level + per Ascension × Ascension.
+        </p>
+        {!cfg ? <p className="text-sm text-muted-foreground">Loading…</p> : (
+          <div className="space-y-3">
+            <div className="grid gap-2 sm:grid-cols-3">
+              {([["base", "Base gold"], ["lvl", "Per level"], ["par", "Per Ascension"]] as const).map(([k, label]) => (
+                <label key={k} className="text-sm">{label}
+                  <input type="number" min={0} className="slot mt-1 block w-full px-2 py-1" value={form[k]}
+                    onChange={(e) => setForm({ ...form, [k]: e.target.value })} />
+                </label>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <label>Preview at level <input type="number" min={1} max={140} className="slot ml-1 w-20 px-2 py-1" value={lvl} onChange={(e) => setLvl(Number(e.target.value) || 1)} /></label>
+              <span>one save: <b className="text-gold">{n(cap)}</b> · one hour: <b className="text-gold">{n(cap * 4)}</b></span>
+              <button className="btn-gold ml-auto px-4 py-1.5" onClick={() => void save()}>Save thresholds</button>
+            </div>
+            {msg && <p role="status" className="text-sm">{msg}</p>}
+            <p className="text-xs text-muted-foreground">Last changed {when(cfg.updated_at)}</p>
+          </div>
+        )}
+        {stats && stats.flags.length > 0 && (
+          <>
+            <h3 className="mb-2 mt-4 font-display text-gold">Latest gold flags</h3>
+            <ul className="max-h-64 space-y-1 overflow-auto text-sm">
+              {stats.flags.map((f, i) => <li key={i} className="border-b border-border/40 py-1"><b>{f.hero}</b> — {f.reason} <span className="text-xs text-muted-foreground">{when(f.at)}</span></li>)}
+            </ul>
+          </>
+        )}
+      </section>
+    </>
   );
 }

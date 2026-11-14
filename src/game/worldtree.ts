@@ -176,3 +176,35 @@ export function openVault(
   addMats(h, reward.mats);
   return true;
 }
+
+/* ------------------------------ Tree Chest ------------------------------ */
+
+/** The daily Tree Chest opens once all three of today's bounties are paid. */
+export const treeChestId = (day = worldTreeDay()) => `${day}:chest`;
+
+export function treeChestReward(level: number) {
+  return {
+    gold: goldGain(500 + level * 80, level),
+    mats: { hide: 4 + Math.floor(level / 15), bloom: 3 + Math.floor(level / 20), crystal: 2 + Math.floor(level / 25), fateStone: 1 },
+  };
+}
+
+export function treeChestReady(h: Pick<Hero, "worldTree">, level: number) {
+  const ledger = bountyLedger(h);
+  if (ledger.claimed.includes(treeChestId(ledger.day))) return false;
+  return bountyBoard(level, ledger.day).every((b) => ledger.claimed.includes(b.id));
+}
+
+export const treeChestOpened = (h: Pick<Hero, "worldTree">) =>
+  bountyLedger(h).claimed.includes(treeChestId());
+
+/** Open today's Tree Chest. Returns the reward paid, or null when it was not ready. */
+export function openTreeChest(h: Hero, level: number) {
+  if (!treeChestReady(h, level)) return null;
+  const ledger = bountyLedger(h);
+  const reward = treeChestReward(level);
+  h.gold += reward.gold;
+  addMats(h, reward.mats);
+  h.worldTree = { ...h.worldTree, bounties: { ...ledger, claimed: [...ledger.claimed, treeChestId(ledger.day)] } };
+  return reward;
+}

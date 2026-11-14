@@ -73,10 +73,9 @@ describe("fate stones", () => {
   });
 
   it("sell in the Auction House shop at the house discount", () => {
-    expect(fateStoneShopPrice(1)).toBe(Math.round(120000 * 0.27));
-    // Priced between the mid and high enchantment grades: a rare shortcut, never the cheap road.
-    expect(fateStoneShopPrice(1)).toBeGreaterThan(stoneShopPrice(5, 1));
-    expect(fateStoneShopPrice(1)).toBeLessThan(stoneShopPrice(6, 1));
+    // Halved from 120,000 base: Fate Stones are meant to be bought often.
+    expect(fateStoneShopPrice(1)).toBe(Math.round(60000 * 0.27));
+    expect(stoneShopPrice(5, 1)).toBeGreaterThan(0);
     const h = newHero("Buyer", "mage");
     h.gold = fateStoneShopPrice(h.level);
     expect(buyFateStone(h)).toBeNull();

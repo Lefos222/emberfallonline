@@ -27,3 +27,30 @@ export const playGuideSound = () => play(pagesSound.url);
 export const playLevelUpSound = () => play(levelUpSound.url, 0.6);
 /** Played when a battle ends, won or lost. */
 export const playBattleEndSound = () => play(winLoseSound.url, 0.5);
+
+/** A short rising chime when a quest is completed and claimed (synthesised, no file needed). */
+export function playQuestCompleteSound() {
+  if (typeof window === "undefined") return;
+  const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!Ctx) return;
+  try {
+    const ctx = new Ctx();
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((f, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "triangle";
+      o.frequency.value = f;
+      const t0 = ctx.currentTime + i * 0.09;
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(0.18, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.5);
+      o.connect(g).connect(ctx.destination);
+      o.start(t0);
+      o.stop(t0 + 0.55);
+    });
+    setTimeout(() => ctx.close().catch(() => {}), 1200);
+  } catch {
+    /* Sound never breaks the game. */
+  }
+}
