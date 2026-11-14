@@ -3,6 +3,7 @@ import { BESTIARY, enemySprite, type SpriteRect } from "./world";
 import type { Mat } from "./crafting";
 import bulwarkArt from "@/assets/wardens/bulwark.webp";
 import reaverArt from "@/assets/wardens/reaver.webp";
+import riftKeeperArt from "@/assets/wardens/rift-keeper.png";
 import wardenArt from "@/assets/wardens/warden.webp";
 import weaverArt from "@/assets/wardens/weaver.webp";
 import colossusArt from "@/assets/wardens/colossus.webp";
@@ -84,7 +85,7 @@ export function riftFoe(kind: "ambush" | "keeper", room: number, level: number):
   const f = stageFoe(Math.max(11, level + 3 + room), keeper ? 1.7 : 1.2 + room * 0.08);
   const r = rng(`riftfoe:${spireDay()}:${room}`);
   const row = Math.floor(r() * BESTIARY.length), col = Math.floor(r() * 12);
-  return { ...f, boss: keeper, name: keeper ? `Rift Keeper ${BESTIARY[row][col]}` : `Rift ${BESTIARY[row][col]}`, sprite: enemySprite(row, col) };
+  return { ...f, boss: keeper, name: keeper ? `Rift Keeper` : `Rift ${BESTIARY[row][col]}`, sprite: keeper ? { url: riftKeeperArt, x: 0, y: 0, w: 1024, h: 1024, sheetW: 1024, sheetH: 1024 } : enemySprite(row, col) };
 }
 /** Gold for clearing a rift room; the Shrine of Fortune adds a quarter to every later room. */
 export const riftGold = (level: number, room: number, kind: RoomKind, fortune: boolean) =>

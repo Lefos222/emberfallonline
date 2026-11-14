@@ -8,6 +8,9 @@ import arenaField from "@/assets/arena-field.jpg";
 import arenaCrypt from "@/assets/arena-crypt.jpg";
 import arenaLair from "@/assets/arena-lair.jpg";
 import arenaRift from "@/assets/arena-rift.jpg";
+import arenaSpire from "@/assets/arena-spire.jpg";
+import arenaColosseum from "@/assets/arena-colosseum.jpg";
+import arenaDepths from "@/assets/arena-depths.jpg";
 import { Sprite } from "./Sprite";
 import { SkillIcon } from "./SkillIcon";
 import { BattleCharacter, CombatEffect, SkillImpact, WeaponArc } from "./BattleArt";
@@ -45,6 +48,9 @@ export function autoPick(kit: TSkill[], blocked: (k: TSkill) => boolean, foes: U
 
 export function arenaFor(title: string | undefined, boss?: boolean) {
   const t = (title ?? "").toLowerCase();
+  if (/spire|warden|rift path/.test(t)) return arenaSpire;
+  if (/duel|arena|clash|pvp/.test(t)) return arenaColosseum;
+  if (/expedition|relic|depth|dungeon|elite/.test(t)) return arenaDepths;
   if (boss || /boss|dungeon|wyrm|challenge/.test(t)) return arenaLair;
   if (/bone|crypt|elite/.test(t)) return arenaCrypt;
   if (/fiend|rift|conquest|arena/.test(t)) return arenaRift;
