@@ -7,7 +7,7 @@ import {
 } from "@/game/campaign-blitz";
 import { BLITZ_GOLD_SHARE, BLITZ_XP_SHARE, blitzDurationMs, blitzRunning, finishBlitzRun } from "@/game/blitz-run";
 import { blitz, blitzDay, blitzesLeft, blitzesUsed, BLITZ_PER_DAY } from "@/game/conquest";
-import { CAMPAIGN_GOLD_RATE, newHero, stageRewards, type Hero } from "@/game/data";
+import { CAMPAIGN_GOLD_RATE, newHero, stageRewards, xpPerFight, type Hero } from "@/game/data";
 
 const NOW = Date.UTC(2026, 0, 1, 12, 0, 0);
 
@@ -36,15 +36,13 @@ describe("campaign blitz", () => {
 
   it("sends the hero on a ten-minute run and pays it when it lands", () => {
     const h = hero(4); // stages 1..3 cleared
-    const rw = campaignBlitzRewards(3);
-    const total = [1, 2, 3].reduce(
-      (a, s) => ({ xp: a.xp + stageRewards(s).xp, gold: a.gold + stageRewards(s).gold }),
-      { xp: 0, gold: 0 },
-    );
-    // Version 1.00: blitzes pay only 30% of those stages' XP. 1.11: only 40% of their gold,
-    // and campaign gold itself pays CAMPAIGN_GOLD_RATE of the stage table.
+    const rw = campaignBlitzRewards(3, h.level);
+    const total = [1, 2, 3].reduce((a, s) => ({ gold: a.gold + stageRewards(s).gold }), { gold: 0 });
+    // Version 1.00: blitzes pay only 30% of the fights' XP (the hero's level pay, never the
+    // stage table's). 1.11: only 40% of their gold, and campaign gold itself pays
+    // CAMPAIGN_GOLD_RATE of the stage table.
     const expected = {
-      xp: Math.round(total.xp * BLITZ_XP_SHARE),
+      xp: Math.round(xpPerFight(h.level) * 3 * BLITZ_XP_SHARE),
       gold: Math.round(total.gold * CAMPAIGN_GOLD_RATE * BLITZ_GOLD_SHARE),
     };
     expect(rw).toEqual({ stages: 3, ...expected });

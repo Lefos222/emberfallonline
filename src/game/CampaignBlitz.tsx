@@ -28,7 +28,7 @@ export function CampaignBlitz({ hero }: { hero: Hero }) {
   const usable = Math.min(Math.max(1, target || 1), Math.max(1, cap));
   const left = blitzesLeft(hero);
   const blocked = campaignBlitzBlocker(hero, usable);
-  const preview = blocked ? null : campaignBlitzRewards(usable);
+  const preview = blocked ? null : campaignBlitzRewards(usable, hero.level);
   const jump = (n: number) => {
     setTarget(n);
     setMsg(null);

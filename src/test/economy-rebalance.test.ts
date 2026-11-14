@@ -65,8 +65,8 @@ describe("gear enhancement climbs to +60", () => {
 
 describe("campaign replays", () => {
   it("pays a stage in full once and a replay at a reduced share", () => {
-    const first = campaignFightRewards(10, 10);
-    const replay = campaignFightRewards(10, 11);
+    const first = campaignFightRewards(10, 10, 10);
+    const replay = campaignFightRewards(10, 10, 11);
     expect(first.replay).toBe(false);
     expect(replay.replay).toBe(true);
     expect(replay.xp).toBe(Math.round(first.xp * CAMPAIGN_REPLAY_XP));

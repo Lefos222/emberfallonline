@@ -671,10 +671,10 @@ export const UI_TEXT: Record<string, ContentRow> = {
       "Θραύσματα Ψυχής — πέφτουν τυχαία από μάχες, ξοδεύονται σε μόνιμες ενσωματώσεις",
       "Odłamki Duszy — wypadają losowo z walk, wydawane na stałe wtopienia",
     ],
-  "XP a fight at your own level pays before scrolls and catch-up bonuses":
+  "XP a fight at your own level pays before scroll buffs":
     [
-      "XP που δίνει μια μάχη στο επίπεδό σου πριν από παπύρους και μπόνους κάλυψης",
-      "PD, które daje walka na twoim poziomie, przed zwojami i bonusami doganiania",
+      "XP που δίνει μια μάχη στο επίπεδό σου πριν από παπύρους",
+      "PD, które daje walka na twoim poziomie, przed zwojami",
     ],
   "Each extra hole costs more than the last; every piece can hold up to":
     [

@@ -12,7 +12,6 @@ import {
   startBlitzRun,
 } from "@/game/blitz-run";
 import { newHero, type Hero } from "@/game/data";
-import { XP_GAIN_SHARE } from "@/game/logic";
 
 const NOW = Date.UTC(2026, 0, 1, 12, 0, 0);
 const hero = (): Hero => newHero("Runner", "warrior");
@@ -75,8 +74,8 @@ describe("blitz runs", () => {
     const receipt = settleBlitzRun(h, NOW + run);
     expect(receipt).toMatchObject({ gate: "campaign", target: 1, xp: 100, gold: 50, tokens: 0 });
     expect(h.gold).toBe(gold + 50);
-    // The xp paid into the bar (a level now costs far more), after the global 4% cut in grant().
-    expect(h.xp).toBe(Math.round(100 * XP_GAIN_SHARE));
+    // The run's XP lands in the bar in full — the amount the receipt shows.
+    expect(h.xp).toBe(100);
     expect(h.blitzRun).toBeUndefined();
   });
 
