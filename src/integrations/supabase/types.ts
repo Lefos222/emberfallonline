@@ -2391,6 +2391,7 @@ export type Database = {
       }
       my_ban: { Args: never; Returns: Json }
       my_guild_ids: { Args: never; Returns: string[] }
+      my_hero_count: { Args: never; Returns: number }
       my_hero_ids: { Args: never; Returns: string[] }
       player_castle_raid: {
         Args: { _hero: string; _req: string; _target: string; _won: boolean }
