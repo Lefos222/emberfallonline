@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ENHANCE_MAX, MAX_LEVEL, RARITIES, heroStats, makeItem, newHero, type Slot } from "@/game/data";
-import { STARS, RAIMENT, clearAbyss, forgeRaiment, buyStar, grantAxp, axpToNext } from "@/game/awakening";
+import { STARS, RAIMENT, clearAbyss, forgeRaiment, buyStar, grantAxp, axpToNext, fightRewards, winTrial } from "@/game/awakening";
 import { acPowerCap } from "@/game/anticheat-limits";
 import { ASPECT_MAX, LATTICE, SIGIL_SLOTS, STAGES, addShards, advanceStage, awakeningOf, spendTrial, TRIALS_PER_DAY, type AwakeningState } from "@/game/awakening";
 
@@ -59,5 +59,30 @@ describe("awakening", () => {
     h.mats = { ...(h.mats ?? {}), aetherEmber: 20 };
     expect(forgeRaiment(h)).toBeNull();
     expect(h.awakening?.raiment).toBe(1);
+  });
+
+  it("a won fight outside the sanctum pays Dawnshards but no Awakening XP", () => {
+    const h = newHero("A", "warrior"); h.level = 92;
+    const before = awakeningOf(h);
+    expect(fightRewards(h, false)).toBe(1);
+    const after = awakeningOf(h);
+    expect(after.shards).toBe(before.shards + 1);
+    // The track stayed put: an ordinary win never raises an Awakening level.
+    expect(after.alv ?? 0).toBe(before.alv ?? 0);
+    expect(after.axp ?? 0).toBe(before.axp ?? 0);
+    expect(fightRewards(h, true)).toBe(3);
+  });
+
+  it("the sanctum's own fights raise Awakening XP without paying character XP", () => {
+    const h = newHero("A", "mage"); h.level = 90;
+    const xp = h.xp, level = h.level;
+    winTrial(h, 3);
+    const a = awakeningOf(h);
+    expect((a.axp ?? 0) + (a.alv ?? 0)).toBeGreaterThan(0);
+    clearAbyss(h, 1);
+    expect(awakeningOf(h).axp ?? 0).toBeGreaterThan(a.axp ?? 0);
+    // No War Gates experience comes back the other way.
+    expect(h.xp).toBe(xp);
+    expect(h.level).toBe(level);
   });
 });

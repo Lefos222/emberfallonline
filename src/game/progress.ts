@@ -32,6 +32,30 @@ export interface ProgressState {
   eventBoss?: Record<string, number>;
   /** Relic collection: pieces recovered from the class trials, by piece id (see relics.ts). */
   relics?: { found?: Record<string, number>; clears?: Record<string, number> };
+  /** Post-90 Awakening track: Awakening level, Abyss floor, Echo depth, stages, stars and Raiment
+   *  (see awakening.ts). Achievement families read it straight from the save. */
+  awakening?: import("./awakening").AwakeningState;
+  /** Enlightenment level and soul infusion ranks (see enlightenment.ts). */
+  enlightenment?: number;
+  soulInfusions?: Record<string, number>;
+  /** The Farm's own level (see farm.ts). */
+  farm?: { level?: number };
+  /** Fishing Pier totals (see minigames.ts). */
+  fishing?: { caught?: number };
+  /** Minigame Hall plays per UTC day, keyed by game id (see minigames.ts). */
+  minigames?: { plays?: Record<string, number> };
+  /** Gold-mounted steeds owned; Diamond mounts are server-owned and never counted here. */
+  mounts?: { owned?: string[] };
+  /** Carved rune ranks by rune id (see runes.ts). */
+  runes?: Record<string, number>;
+  /** Titles the hero has claimed (see titles.ts). */
+  titleClaimed?: string[];
+  /** World Tree vaults already broken (see worldtree.ts). */
+  worldTree?: { caches?: string[] };
+  /** Best floor reached in each Spire dungeon, by dungeon id (see spire-party.ts). */
+  spireFloors?: Record<string, number>;
+  /** Renown training ranks by track id (see renown.ts). */
+  renownRanks?: Record<string, number>;
 }
 
 export const emptyRecord = (): CombatRecord => ({ battles: 0, wins: 0, losses: 0, bosses: 0, arenaWins: 0, enhances: 0, bestEnh: 0 });
@@ -53,9 +77,9 @@ export function recordEnhance(h: ProgressState, newEnh: number) {
 }
 
 // ---------- Achievements ----------
-export type AchCategory = "Endless" | "Combat" | "Bosses" | "Progression" | "Crafting" | "Arena" | "Collection" | "Conquest" | "Enchanting" | "Bestiary" | "Exploration" | "Guild" | "Training" | "Astrals" | "Gems" | "Synthesis" | "Relics" | "Treasure" | "Wealth";
+export type AchCategory = "Endless" | "Combat" | "Bosses" | "Progression" | "Awakening" | "Crafting" | "Arena" | "Collection" | "Conquest" | "Enchanting" | "Bestiary" | "Exploration" | "Guild" | "Training" | "Astrals" | "Gems" | "Synthesis" | "Relics" | "Treasure" | "Life" | "Wealth";
 /** Every category in the order the Throne Hall lists them. */
-export const ACH_CATEGORIES: AchCategory[] = ["Endless", "Combat", "Bosses", "Progression", "Crafting", "Arena", "Collection", "Astrals", "Gems", "Synthesis", "Relics", "Conquest", "Enchanting", "Bestiary", "Exploration", "Guild", "Training", "Treasure", "Wealth"];
+export const ACH_CATEGORIES: AchCategory[] = ["Endless", "Combat", "Bosses", "Progression", "Awakening", "Crafting", "Arena", "Collection", "Astrals", "Gems", "Synthesis", "Relics", "Conquest", "Enchanting", "Bestiary", "Exploration", "Guild", "Training", "Treasure", "Life", "Wealth"];
 export interface Achievement { id: string; cat: AchCategory; name: string; desc: string; goal: number; gold: number; title?: string; value: (h: ProgressState) => number }
 
 const rec = (h: ProgressState) => ({ ...emptyRecord(), ...(h.record ?? {}) });
@@ -85,6 +109,20 @@ const synthWorn = (h: ProgressState) => Object.keys(h.synth?.worn ?? {}).length;
 /** Relic pieces recovered at least once, and total trial wins (see relics.ts). */
 const relicPieces = (h: ProgressState) => Object.values(h.relics?.found ?? {}).filter((n) => n > 0).length;
 const relicClears = (h: ProgressState) => sum(h.relics?.clears);
+/** The sanctum's own counters, read straight from the saved Awakening state (see awakening.ts). */
+const awakening = (h: ProgressState) => h.awakening ?? {};
+const awakLvl = (h: ProgressState) => Math.max(0, Math.floor(awakening(h).alv ?? 0));
+const abyssFloor = (h: ProgressState) => Math.max(0, Math.floor(awakening(h).abyss ?? 0));
+const echoDepth = (h: ProgressState) => Math.max(0, Math.floor(awakening(h).best ?? 0));
+const awakStage = (h: ProgressState) => Math.max(0, Math.floor(awakening(h).stage ?? 0));
+const awakStars = (h: ProgressState) => sum(awakening(h).stars);
+const awakLattice = (h: ProgressState) => sum(awakening(h).lattice);
+const raimentTier = (h: ProgressState) => Math.max(0, Math.floor(awakening(h).raiment ?? 0));
+/** Pastimes and side tracks: the Minigame Hall, the Farm, mounts, titles, the World Tree, the Spire. */
+const minigamePlays = (h: ProgressState) => sum(h.minigames?.plays);
+const mountsOwned = (h: ProgressState) => (h.mounts?.owned ?? []).length;
+const treesCleared = (h: ProgressState) => (h.worldTree?.caches ?? []).length;
+const spireDungeons = (h: ProgressState) => Object.values(h.spireFloors ?? {}).filter((n) => n > 0).length;
 
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 
@@ -224,6 +262,30 @@ export const ACHIEVEMENTS: Achievement[] = [
   ...endless("Endless", "Gain Ascension levels", (h) => h.paragon, "easc", "Ascended", [100, 150, 200, 300, 500], 5000, "Beyond Ascension"),
   ...endless("Endless", "Defeat monsters", (h) => sum(h.kills), "ekills", "Hunter", [1000, 2500, 5000, 10000, 25000], 5, "Apex Hunter"),
   ...endless("Endless", "Learn barracks drill ranks", (h) => sum(h.drills), "edrills", "Drilled", [100, 200, 300, 500], 500, "Living Weapon"),
+
+  // ---- Awakening: the post-90 sanctum and everything inside it (see awakening.ts) ----
+  ...tiers({ cat: "Awakening", desc: "Reach Awakening level", value: awakLvl }, "awaklvl", ["First Dawn", "Kindled Soul", "Star Sovereign", "Eternal Dawn"], [1, 10, 25, 50], [4000, 25000, 90000, 250000], [undefined, undefined, "Star Sovereign", "Eternal Dawn"]),
+  ...tiers({ cat: "Awakening", desc: "Clear Endless Abyss floors", value: abyssFloor }, "abyss", ["Abyss Walker", "Abyss Diver", "Abyss Breaker", "Abyss Sovereign"], [1, 10, 30, 75], [2500, 12000, 45000, 150000], [undefined, undefined, "Abyss Breaker", "Abyss Sovereign"]),
+  ...tiers({ cat: "Awakening", desc: "Reach Echo Trial depth", value: echoDepth }, "echo", ["Echo Listener", "Echo Hunter", "Echo Sovereign"], [5, 20, 50], [3000, 20000, 80000], [undefined, "Echo Hunter", "Echo Sovereign"]),
+  ...tiers({ cat: "Awakening", desc: "Advance Awakening stages", value: awakStage }, "awakstage", ["Awakened", "Dawnborne", "Eternal Flame"], [1, 3, 5], [5000, 40000, 150000], ["Awakened", "Dawnborne", "Eternal Flame"]),
+  ...tiers({ cat: "Awakening", desc: "Spend Constellation points", value: awakStars }, "constell", ["Constellation Seeker", "Constellation Keeper", "Constellation Architect"], [10, 100, 400], [3000, 30000, 120000], [undefined, "Constellation Keeper", "Constellation Architect"]),
+  ...tiers({ cat: "Awakening", desc: "Attune Soul Lattice ranks", value: awakLattice }, "lattice", ["Lattice Novice", "Lattice Adept", "Lattice Master"], [10, 80, 240], [2500, 25000, 100000], [undefined, "Lattice Adept", "Lattice Master"]),
+  ...tiers({ cat: "Awakening", desc: "Forge Awakened Raiment tiers", value: raimentTier }, "raiment", ["Ashen Raiment", "Starbound Raiment", "Eternal Raiment"], [1, 4, 6], [6000, 50000, 200000], [undefined, undefined, "Raiment Eternal"]),
+
+  // ---- Life: the pastimes beside the war (Minigame Hall, Farm, mounts, titles) ----
+  ...tiers({ cat: "Life", desc: "Catch fish at the Fishing Pier", value: (h) => Math.max(0, Math.floor(h.fishing?.caught ?? 0)) }, "fish", ["First Cast", "Angler", "Master Angler"], [10, 100, 500], [800, 6000, 30000], [undefined, "Angler", "Master Angler"]),
+  ...tiers({ cat: "Life", desc: "Play games in the Minigame Hall", value: minigamePlays }, "minigames", ["Pastime", "Hall Regular", "Hall Champion"], [10, 50, 200], [600, 5000, 25000], [undefined, undefined, "Hall Champion"]),
+  ...tiers({ cat: "Life", desc: "Raise the Farm's own level", value: (h) => Math.max(0, Math.floor(h.farm?.level ?? 0)) }, "farmlvl", ["Tiller", "Steward", "Farm Sovereign"], [5, 10, 16], [2000, 12000, 60000], [undefined, undefined, "Farm Sovereign"]),
+  ...tiers({ cat: "Life", desc: "Own mounts", value: mountsOwned }, "mounts", ["Rider", "Stable Master", "Mount Collector"], [1, 4, 7], [1500, 15000, 60000], [undefined, "Stable Master", "Mount Collector"]),
+  ...tiers({ cat: "Life", desc: "Claim titles", value: (h) => (h.titleClaimed ?? []).length }, "titles", ["Titled", "Decorated", "Living Legend"], [3, 10, 25], [2000, 15000, 80000], [undefined, "Decorated", "Living Legend"]),
+
+  // ---- Side tracks of the late game, each on its own ladder ----
+  ...tiers({ cat: "Training", desc: "Raise your Enlightenment level", value: (h) => Math.max(0, Math.floor(h.enlightenment ?? 0)) }, "enlighten", ["Clear Mind", "Illuminated", "Transcendent"], [5, 15, 30], [3000, 20000, 90000], [undefined, "Illuminated", "Transcendent"]),
+  ...tiers({ cat: "Training", desc: "Learn Soul infusion ranks", value: (h) => sum(h.soulInfusions) }, "soulinf", ["Soul Touched", "Soul Forged", "Soul Ascendant"], [5, 25, 60], [2500, 18000, 80000], [undefined, "Soul Forged", "Soul Ascendant"]),
+  ...tiers({ cat: "Training", desc: "Learn Renown training ranks", value: (h) => sum(h.renownRanks) }, "renownranks", ["Renown Seeker", "Renown Master"], [10, 60], [3000, 40000], [undefined, "Renown Master"]),
+  ...tiers({ cat: "Collection", desc: "Carve rune ranks", value: (h) => sum(h.runes) }, "runeranks", ["Rune Carver", "Rune Master"], [5, 40], [2500, 30000], [undefined, "Rune Master"]),
+  ...tiers({ cat: "Exploration", desc: "Break seals in the World Tree vaults", value: treesCleared }, "treecaches", ["Vault Breaker", "World Tree Ally", "World Tree Champion"], [1, 10, 25], [1500, 10000, 50000], [undefined, "World Tree Ally", "World Tree Champion"]),
+  ...tiers({ cat: "Exploration", desc: "Climb the Spire Gate's dungeons", value: spireDungeons }, "spiredungeons", ["Spire Delver", "Spire Wayfarer"], [1, 5], [2000, 15000], [undefined, "Spire Wayfarer"]),
 ];
 
 export const achProgress = (h: ProgressState, a: Achievement) => Math.min(a.goal, Math.max(0, a.value(h)));
@@ -231,6 +293,24 @@ export const achProgress = (h: ProgressState, a: Achievement) => Math.min(a.goal
 export const ACH_GOLD_SCALE = 0.2;
 export const achGold = (a: Achievement) => Math.max(1, Math.round(a.gold * ACH_GOLD_SCALE));
 export const isClaimable = (h: ProgressState, a: Achievement) => achProgress(h, a) >= a.goal && !(h.achClaimed ?? []).includes(a.id);
+/**
+ * The order every achievement list shows (Throne Hall, profile): everything the hero can claim
+ * right now comes first, so a finished achievement never sits below a screen of unfinished ones;
+ * then the families nearest their goal, then the far-off ones, with claimed rungs last.
+ */
+export function sortAchievements(h: ProgressState, list: Achievement[] = ACHIEVEMENTS): Achievement[] {
+  const claimed = new Set(h.achClaimed ?? []);
+  const rank = (a: Achievement) => (isClaimable(h, a) ? 0 : claimed.has(a.id) ? 2 : 1);
+  const ratio = (a: Achievement) => achProgress(h, a) / Math.max(1, a.goal);
+  return [...list].sort((a, b) => {
+    const byRank = rank(a) - rank(b);
+    if (byRank) return byRank;
+    // Within the open achievements the nearest to completion leads; claimed ones keep a stable,
+    // goal-ordered tail so the list does not reshuffle as the hero progresses.
+    const byOrder = rank(a) === 1 ? ratio(b) - ratio(a) : a.goal - b.goal;
+    return byOrder || a.name.localeCompare(b.name);
+  });
+}
 /** Titles unlocked by claimed achievements. */
 export const earnedTitles = (h: Pick<ProgressState, "achClaimed">) =>
   ACHIEVEMENTS.filter((a) => a.title && (h.achClaimed ?? []).includes(a.id)).map((a) => a.title!);

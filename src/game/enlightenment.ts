@@ -119,8 +119,8 @@ export function buySoulInfusion(h: Hero, id: string): string | null {
 }
 
 /** Chance a won battle drops Soul Shards. Bosses drop far more often and in larger stacks. */
-export const SOUL_SHARD_CHANCE = 0.2;
-export const SOUL_SHARD_BOSS_CHANCE = 0.5;
+export const SOUL_SHARD_CHANCE = 0.1;
+export const SOUL_SHARD_BOSS_CHANCE = 0.3;
 
 /** Roll soul shards from a won battle. Returns the count (0 = no drop). */
 export function rollSoulShards(boss: boolean, rand: () => number = Math.random): number {

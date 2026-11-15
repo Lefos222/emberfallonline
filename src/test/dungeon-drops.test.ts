@@ -10,9 +10,9 @@ describe("dungeon drop nerf", () => {
     expect(dungeonDrops(() => 0.49)).toBe(true);
     expect(dungeonDrops(() => 0.5)).toBe(false);
   });
-  it("materials land on about a third of dungeon wins", () => {
-    expect(DUNGEON_DROP_CHANCE * WAR_MATERIAL_CHANCE).toBeCloseTo(0.35, 5);
-    expect(warDropKind(() => 0.69)).toBe("materials");
+  it("materials land on a quarter of dungeon wins", () => {
+    expect(DUNGEON_DROP_CHANCE * WAR_MATERIAL_CHANCE).toBeCloseTo(0.25, 5);
+    expect(warDropKind(() => 0.49)).toBe("materials");
   });
   it("a D1 boss pays one frost crystal, deeper ranks add one crystal each", () => {
     expect(bossCrystals(1, () => 0.99)).toEqual({ frostCrystal: 1 });
