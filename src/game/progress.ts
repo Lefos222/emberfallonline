@@ -109,8 +109,13 @@ const synthWorn = (h: ProgressState) => Object.keys(h.synth?.worn ?? {}).length;
 /** Relic pieces recovered at least once, and total trial wins (see relics.ts). */
 const relicPieces = (h: ProgressState) => Object.values(h.relics?.found ?? {}).filter((n) => n > 0).length;
 const relicClears = (h: ProgressState) => sum(h.relics?.clears);
-/** The sanctum's own counters, read straight from the saved Awakening state (see awakening.ts). */
-const awakening = (h: ProgressState) => h.awakening ?? {};
+/** The sanctum's own counters, read straight from the saved Awakening state (see awakening.ts).
+ *  Declared locally so this module keeps no type dependency on the sanctum. */
+type AwakeningSave = {
+  alv?: number; abyss?: number; best?: number; stage?: number;
+  stars?: Record<string, number>; lattice?: Record<string, number>; raiment?: number;
+};
+const awakening = (h: ProgressState): AwakeningSave => h.awakening ?? {};
 const awakLvl = (h: ProgressState) => Math.max(0, Math.floor(awakening(h).alv ?? 0));
 const abyssFloor = (h: ProgressState) => Math.max(0, Math.floor(awakening(h).abyss ?? 0));
 const echoDepth = (h: ProgressState) => Math.max(0, Math.floor(awakening(h).best ?? 0));
