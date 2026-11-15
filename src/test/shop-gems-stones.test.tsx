@@ -101,7 +101,7 @@ describe("enchantment stone grades", () => {
     expect(stoneCount(h, 2)).toBe(2);
   });
 
-  it("drops stones from won battles, always for a boss", () => {
+  it("drops stones from won battles, most often for a boss", () => {
     // Math.random pinned low: the drop roll and the grade swing both pass.
     const always = () => 0;
     expect(rollStoneDrop(20, false, false, always)).not.toBeNull();

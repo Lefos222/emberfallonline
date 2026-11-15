@@ -1,7 +1,7 @@
 import type { Mat } from "./crafting";
 
-/** War Gates item roll: one material bundle OR one equipment item. Currency/XP stay separate. */
-export const WAR_MATERIAL_CHANCE = 0.7;
+/** War Gates item roll: one material bundle OR one equipment item (now an even split). Currency/XP stay separate. */
+export const WAR_MATERIAL_CHANCE = 0.5;
 export const warDropKind = (rand = Math.random): "materials" | "gear" => rand() < WAR_MATERIAL_CHANCE ? "materials" : "gear";
 /** Dungeon Gate runs only drop an item bundle this often; the rest of the time a win pays XP and gold alone. */
 export const DUNGEON_DROP_CHANCE = 0.5;

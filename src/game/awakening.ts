@@ -236,6 +236,18 @@ export function winTrial(h: Hero, depth: number): number {
 /** Dawnshards for an ordinary won fight at level 90+. */
 export const fightShards = (boss: boolean) => (boss ? 3 : 1);
 export function addShards(h: Hero, n: number) { if (!canAwaken(h)) return; const a = awakeningOf(h); a.shards += Math.max(0, Math.floor(n)); put(h, a); }
+/**
+ * What a won fight OUTSIDE the sanctum pays a level-90 hero: Dawnshards, and nothing else.
+ * Awakening XP is deliberately absent — Awakening levels belong to the sanctum's own fights
+ * (`winTrial` and `clearAbyss`, plus the Rites/Abyss content), so the two progression tracks
+ * can never leak into each other. Why: a hero can be level 150 with Awakening level 0.
+ */
+export function fightRewards(h: Hero, boss: boolean): number {
+  if (!canAwaken(h)) return 0;
+  const n = fightShards(boss);
+  addShards(h, n);
+  return n;
+}
 
 // ---------------- Awakening levels & Constellation ----------------
 /** XP for the next Awakening level: an uncapped curve that keeps asking a little more. */

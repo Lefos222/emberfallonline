@@ -64,8 +64,9 @@ describe("fate stones", () => {
 
   it("drop rarely, more often from bosses", () => {
     expect(rollFateStone(false, false, () => 0.99)).toBe(0);
-    expect(rollFateStone(false, false, () => 0.04)).toBe(1);
-    expect(rollFateStone(false, true, () => 0.15)).toBe(1);
+    expect(rollFateStone(false, false, () => 0.04)).toBe(0);
+    expect(rollFateStone(false, false, () => 0.02)).toBe(1);
+    expect(rollFateStone(false, true, () => 0.09)).toBe(1);
     // A boss can pay two: the first roll grants it, the second rolls the extra stone.
     const seq = [0.1, 0.2];
     let i = 0;

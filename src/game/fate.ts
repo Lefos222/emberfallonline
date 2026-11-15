@@ -45,7 +45,7 @@ export function spendFateStones(h: FateState, n = 1): boolean {
  * bosses, so it stays a treat rather than a routine payout.
  */
 export function rollFateStone(boss = false, elite = false, rand = Math.random): number {
-  const chance = boss ? 0.3 : elite ? 0.16 : 0.05;
+  const chance = boss ? 0.2 : elite ? 0.1 : 0.03;
   if (rand() >= chance) return 0;
   return boss && rand() < 0.4 ? 2 : 1;
 }

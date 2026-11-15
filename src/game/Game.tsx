@@ -37,7 +37,7 @@ import gateConquest from "@/assets/gate-conquest.webp";
 import spireChest from "@/assets/spire-chest.webp";
 import { readAudioSettings, saveAudioSettings, soundtrackUrl, type AudioSettings } from "./audio";
 import { SettingsPanel } from "./Settings";
-import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Item } from "./data";
+import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Hero, type Item } from "./data";
 import { CHESTS, addChests, rewardChestReady, rollBattleChest } from "./chests";
 import { vipXpMultiplier } from "./economy";
 import { confirmCardPurchase, reconcilePendingPurchases } from "./premium-shop";
@@ -45,7 +45,8 @@ import { openVipActivities } from "./vip-activities";
 import { authHandoffPending, getState, update, useGame } from "./store";
 import { itemName, useLang, useT , tr} from "./i18n";
 import { recordBattle } from "./progress";
-import { BOSS_CRYSTALS } from "./logic";
+import { BOSS_CRYSTALS, addLoot, makeDrop } from "./logic";
+import { keepFinds, rollBonusGearRarity } from "./battle-finds";
 import { battleEssenceGain, enlightenmentUnlocked, rollSoulShards } from "./enlightenment";
 import {
   DUNGEON_STAMINA,
@@ -68,7 +69,7 @@ import { ThroneHall } from "./ThroneHall";
 import { Challenges } from "./Challenges";
 import { SpireHub } from "./SpireVentures";
 import { AwakeningPanel } from "./Awakening";
-import { addShards, canAwaken, fightShards, grantAxp } from "./awakening";
+import { canAwaken, fightRewards } from "./awakening";
 import { GameGuide } from "./GameGuide";
 import { playGuideSound, playLevelUpSound, playBattleEndSound } from "./guide-sound";
 import { prepareFoe } from "./foe-scaling";
@@ -377,11 +378,13 @@ export function Game() {
       update((h) => addRenown(h, gained));
       reportGuildBattle();
       r.lines.push(t("+{n} Renown", { n: gained }));
-      // Heroes of level 90+ earn Dawnshards from every won fight (see awakening.ts).
+      // Heroes of level 90+ earn Dawnshards from every won fight (see awakening.ts). Awakening XP
+      // is deliberately NOT paid here: Awakening levels belong to the sanctum's own fights (Echo
+      // Trials, the Endless Abyss and its Rites), so no battle outside can raise one.
       const hz = getState().hero;
       if (hz && canAwaken(hz)) {
-        const n = fightShards(!!battle.right.boss);
-        update((h) => { addShards(h, n); grantAxp(h, battle.right.boss ? 90 : 30); });
+        let n = 0;
+        update((h) => { n = fightRewards(h, !!battle.right.boss); });
         r.lines.push(t("+{n} Dawnshards", { n }));
       }
     }
@@ -394,12 +397,40 @@ export function Game() {
         r.lines.push(t("Rare find: {name}!", { name: MATS[rare].name }));
       }
     }
-    // A won fight sometimes leaves a chest on the field: gold is the common find, gems the rare one.
+    // A plain grey, green or blue piece of gear can turn up after any won fight outside the arena
+    // (see battle-finds.ts) — the everyday gear players gear up with between the big drops.
+    if (won && !/arena/i.test(battle.title)) {
+      const rarity = rollBonusGearRarity();
+      if (rarity !== null) {
+        let found: Item | null = null;
+        update((h) => {
+          found = makeDrop(h.cls, h.level + Math.floor(h.paragon / 2), rarity);
+          addLoot(h, found);
+        });
+        const piece = found as Item | null;
+        if (piece) r.lines.push(t("Bonus find: {name}", { name: itemName(piece.name) }));
+      }
+    }
+    // Bonus finds — chests, Soul Shards, enchantment stones, Fate Stones and XP Scrolls — are each
+    // rolled, then at most MAX_BONUS_FINDS of the ones that hit are kept (see battle-finds.ts), so a
+    // won fight reads as a couple of drops instead of a pile.
     if (won) {
-      const drop = rollBattleChest();
-      if (drop) {
-        update((h) => addChests(h, drop, 1));
-        r.lines.push(t("{name} found — open it in the Armory vault", { name: CHESTS[drop].name }));
+      const boss = !!battle.right.boss;
+      const live = getState().hero;
+      const finds: { apply: (h: Hero) => void; line: string }[] = [];
+      const chest = rollBattleChest();
+      if (chest) finds.push({ apply: (h) => addChests(h, chest, 1), line: t("{name} found — open it in the Armory vault", { name: CHESTS[chest].name }) });
+      const shards = rollSoulShards(boss);
+      if (shards > 0) finds.push({ apply: (h) => { h.soulShards = (h.soulShards ?? 0) + shards; }, line: t("+{n} Soul Shards ✦", { n: shards }) });
+      const stone = rollStoneDrop((live?.level ?? 1) + (live?.paragon ?? 0), boss);
+      if (stone) finds.push({ apply: (h) => addStones(h, stone.level, stone.n), line: t("+{n} Lv {level} Enchantment Stone", { n: stone.n, level: stone.level }) });
+      const fate = rollFateStone(boss, !!battle.right.elite);
+      if (fate > 0) finds.push({ apply: (h) => addFateStones(h, fate), line: t("+{n} Fate Stones", { n: fate }) });
+      const scrolls = rollXpScroll(boss);
+      if (scrolls > 0) finds.push({ apply: (h) => addXpScrolls(h, scrolls), line: t("+1 XP Scroll") });
+      for (const f of keepFinds(finds)) {
+        update(f.apply);
+        r.lines.push(f.line);
       }
     }
     update((h) =>
@@ -436,40 +467,6 @@ export function Game() {
         h.battleEssence = (h.battleEssence ?? 0) + essence;
       });
       r.lines.push(t("+{n} Battle Essence", { n: essence }));
-    }
-    if (won) {
-      const shards = rollSoulShards(!!battle.right.boss);
-      if (shards > 0) {
-        update((h) => {
-          h.soulShards = (h.soulShards ?? 0) + shards;
-        });
-        r.lines.push(t("+{n} Soul Shards ✦", { n: shards }));
-      }
-    }
-    // Won fights sometimes leave an enchantment stone behind: bosses always, elites often (see enchant.ts).
-    if (won) {
-      const live = getState().hero;
-      const stone = rollStoneDrop((live?.level ?? 1) + (live?.paragon ?? 0), !!battle.right.boss);
-      if (stone) {
-        update((h) => addStones(h, stone.level, stone.n));
-        r.lines.push(t("+{n} Lv {level} Enchantment Stone", { n: stone.n, level: stone.level }));
-      }
-    }
-    // A won fight can very rarely leave a Fate Stone behind for the Forge's refinement (see fate.ts).
-    if (won) {
-      const fate = rollFateStone(!!battle.right.boss, !!battle.right.elite);
-      if (fate > 0) {
-        update((h) => addFateStones(h, fate));
-        r.lines.push(t("+{n} Fate Stones", { n: fate }));
-      }
-    }
-    // Any won fight can drop an XP Scroll, read later from the bag (see xp-scrolls.ts).
-    if (won) {
-      const scrolls = rollXpScroll(!!battle.right.boss);
-      if (scrolls > 0) {
-        update((h) => addXpScrolls(h, scrolls));
-        r.lines.push(t("+1 XP Scroll"));
-      }
     }
     // A won dungeon run can leave a Stamina Potion behind — rare, but the only source (see stamina.ts).
     if (won && battle.dungeon) {

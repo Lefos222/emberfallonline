@@ -1,8 +1,8 @@
 import type { Hero } from "./data";
 
 /** XP Scrolls: a rare drop from won battles, read from the bag for a lump of experience. */
-export const XP_SCROLL_DROP = 0.06;
-export const XP_SCROLL_BOSS_DROP = 0.25;
+export const XP_SCROLL_DROP = 0.04;
+export const XP_SCROLL_BOSS_DROP = 0.15;
 
 export function rollXpScroll(boss: boolean, rand: () => number = Math.random): number {
   return rand() < (boss ? XP_SCROLL_BOSS_DROP : XP_SCROLL_DROP) ? 1 : 0;

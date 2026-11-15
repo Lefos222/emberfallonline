@@ -166,8 +166,9 @@ describe("materials carried in the bag", () => {
     expect(h.mats.crystal).toBe(2);
   });
   it("battles drop a small bundle of spare materials", () => {
-    const m = battleMats(30, false, () => 0.5);
+    const m = battleMats(30, false, () => 0.4);
     expect(m.hide).toBe(1); expect(m.ore).toBe(1);
+    expect(battleMats(30, false, () => 0.6)).toEqual({ ore: 1 });
   });
   it("material payouts barely grow with level", () => {
     const sum = (m: Partial<Record<string, number>>) => Object.values(m).reduce<number>((a, n) => a + (n ?? 0), 0);

@@ -440,7 +440,7 @@ const chapters: GuideChapter[] = [
       ),
       step(
         "Grow the Constellation",
-        "Every won fight at level 90 and above, every Abyss floor and every Echo Trial gives Awakening XP. Each Awakening level gives one point, and the six stars — Wrath, Sorcery, Titan, Bastion, Omens and Fate — are long ladders you feed with those points.",
+        "Awakening XP is earned only inside the sanctum: every Abyss floor and every Echo Trial pays it, and only those fights ever raise an Awakening level — ordinary battles outside pay Dawnshards but never Awakening XP, while the sanctum never pays ordinary character XP. Each Awakening level gives one point, and the six stars — Wrath, Sorcery, Titan, Bastion, Omens and Fate — are long ladders you feed with those points.",
       ),
       step(
         "Forge the Awakened Raiment",

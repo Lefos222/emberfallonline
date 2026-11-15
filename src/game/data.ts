@@ -331,12 +331,15 @@ export function rarityCap(level: number): number {
 }
 
 /**
- * Rarity rolls are deliberately stingy: most drops are common or uncommon at every level, and
- * rare-or-better loot lands about half as often as the old curve paid it out.
+ * Rarity rolls keep Epic and above scarce, but grey (Common), green (Uncommon) and blue (Rare) gear
+ * is the everyday loot: about 12% blue and 30% green before luck. A lucky bump (LUCKY_BUMP_CHANCE)
+ * can lift a grey or green roll one grade, never past blue, so a plain fight sometimes surprises.
  */
-export function rollRarity(stage: number, luck: number, minRarity = 0, level = stage): number {
-  const r = Math.random() * 100 - Math.min(10, stage * 0.05 + luck * 0.025);
-  const rolled = r < 0.12 ? 5 : r < 0.7 ? 4 : r < 2.8 ? 3 : r < 8.6 ? 2 : r < 31 ? 1 : 0;
+export const LUCKY_BUMP_CHANCE = 0.12;
+export function rollRarity(stage: number, luck: number, minRarity = 0, level = stage, rand: () => number = Math.random): number {
+  const r = rand() * 100 - Math.min(10, stage * 0.05 + luck * 0.025);
+  let rolled = r < 0.12 ? 5 : r < 0.7 ? 4 : r < 2.8 ? 3 : r < 15 ? 2 : r < 45 ? 1 : 0;
+  if (rolled < 2 && rand() < LUCKY_BUMP_CHANCE) rolled++;
   return Math.min(rarityCap(level), Math.max(rolled, minRarity));
 }
 

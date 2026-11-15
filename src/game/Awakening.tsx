@@ -273,7 +273,7 @@ export function AwakeningPanel({ onClose, start }: { onClose: () => void; start:
 
       {tab === "stars" && (locked(1) || (
         <div>
-          <p className="mb-2 text-xs text-muted-foreground">{tr("Every Awakening level grants one point. Awakening XP comes from every won fight at level 90+, the Endless Abyss and Echo Trials. The ladders are long: this is where Battle Rating keeps growing.")}</p>
+          <p className="mb-2 text-xs text-muted-foreground">{tr("Every Awakening level grants one point, and Awakening XP comes only from the sanctum's own fights: every Endless Abyss floor and every Echo Trial. Battles outside never raise an Awakening level, and the sanctum never pays ordinary character XP. The ladders are long: this is where Battle Rating keeps growing.")}</p>
           <div className="mb-2 text-sm">{tr("Free points")}: <b className="text-gold">{pointsFree(a)}</b></div>
           <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
             {STARS.map((st) => {

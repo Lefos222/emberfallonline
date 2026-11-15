@@ -1,8 +1,8 @@
 import { tr } from "./i18n";
 import { useState } from "react";
 import { Check, Gift, Skull } from "lucide-react";
-import { ACHIEVEMENTS, ACH_CATEGORIES, SET_BONUSES, achGold, achProgress, activeSets, emptyRecord, isClaimable, type AchCategory } from "./progress";
-import { CLASSES, heroSkills, heroStats, powerBreakdown, xpToNext } from "./data";
+import { ACHIEVEMENTS, ACH_CATEGORIES, SET_BONUSES, achGold, achProgress, activeSets, emptyRecord, isClaimable, sortAchievements, type AchCategory } from "./progress";
+import { CLASSES, heroSkills, heroStats, powerBreakdown, xpToNext, type Hero } from "./data";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
 import { LevelProgress } from "./LevelCurve";
@@ -19,18 +19,31 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
   const [tab, setTab] = useState<"overview" | "skills" | "passives" | "ach" | "history">("skills");
   const [achCat, setAchCat] = useState<AchCategory | "All">("All");
+  /** True while the list shows only what can be claimed right now. */
+  const [readyOnly, setReadyOnly] = useState(false);
   if (!hero) return null;
   const s = heroStats(hero);
   const trees = TREES[hero.cls];
   const claimable = ACHIEVEMENTS.filter((a) => isClaimable(hero, a)).length;
   const rec = { ...emptyRecord(), ...(hero.record ?? {}) };
-  const claim = (id: string) => update((h) => {
-    const a = ACHIEVEMENTS.find((x) => x.id === id);
-    if (!a || !isClaimable(h, a)) return; // one-time: re-checked against latest save
+  /** Everything the current filter shows, finished achievements first (see sortAchievements). */
+  const shown = sortAchievements(hero, ACHIEVEMENTS.filter((a) => (achCat === "All" || a.cat === achCat) && (!readyOnly || isClaimable(hero, a))));
+  /** Credit one claim on a save that is already being updated. */
+  const credit = (h: Hero, a: (typeof ACHIEVEMENTS)[number]) => {
+    if (!isClaimable(h, a)) return; // one-time: re-checked against latest save
     h.achClaimed = [...(h.achClaimed ?? []), a.id];
     h.gold += achGold(a);
     // Achievements occasionally pay a bonus skill point alongside their Insight reward.
     if (Math.random() < BONUS_POINT_CHANCE) h.bonusPts = (h.bonusPts ?? 0) + 1;
+  };
+  const claim = (id: string) => update((h) => {
+    const a = ACHIEVEMENTS.find((x) => x.id === id);
+    if (a) credit(h, a);
+  });
+  /** Collect every finished achievement in one go — the ready pile is now at the top, so it all
+   *  sits together. Each claim still re-checks itself against the save inside the same update. */
+  const claimReady = () => update((h) => {
+    for (const a of sortAchievements(h)) credit(h, a);
   });
 
   return (
@@ -45,32 +58,46 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
 
       {tab === "ach" ? (
         <div>
-          <div className="mb-2 flex flex-wrap gap-1" role="group" aria-label={tr("Achievement categories")}>
+          <div className="mb-2 flex flex-wrap items-center gap-1" role="group" aria-label={tr("Achievement categories")}>
+            <button onClick={() => setReadyOnly((v) => !v)} aria-pressed={readyOnly}
+              className={`btn-ghost px-2 py-0.5 text-xs ${readyOnly ? "ring-1 ring-gold text-gold" : claimable ? "text-gold" : "text-muted-foreground"}`}>
+              {tr("Ready to claim")} <span className="text-[10px]">{claimable}</span>
+            </button>
             {(["All", ...ACH_CATEGORIES] as const).map((c) => {
               const n = c === "All" ? ACHIEVEMENTS.length : ACHIEVEMENTS.filter((a) => a.cat === c).length;
               return (
                 <button key={c} onClick={() => setAchCat(c)} aria-pressed={achCat === c}
                   className={`btn-ghost px-2 py-0.5 text-xs ${achCat === c ? "ring-1 ring-gold text-gold" : "text-muted-foreground"}`}>
-                  {c} <span className="text-[10px]">{n}</span>
+                  {tr(c)} <span className="text-[10px]">{n}</span>
                 </button>
               );
             })}
           </div>
+          {/* Finished achievements always lead the list (see sortAchievements), and one button
+              collects the whole ready pile at once instead of a click per rung. */}
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span>{tr("Ready to claim")}: <b className="text-gold">{claimable}</b> · {tr("shown")}: <b className="text-gold">{shown.length}</b></span>
+            <button className="btn-gold flex items-center gap-1 px-3 py-1 text-sm" disabled={!claimable} onClick={claimReady}>
+              <Gift className="h-4 w-4" />{tr("Claim all ready")}
+            </button>
+          </div>
+          {shown.length === 0 && <p className="py-8 text-center text-muted-foreground">{tr("Nothing ready to claim — win a few fights and come back.")}</p>}
         <div className="grid gap-2 md:grid-cols-2">
-          {ACHIEVEMENTS.filter((a) => achCat === "All" || a.cat === achCat).map((a) => {
+          {shown.map((a) => {
             const p = achProgress(hero, a);
             const done = (hero.achClaimed ?? []).includes(a.id);
+            const ready = isClaimable(hero, a);
             return (
-              <div key={a.id} className={`slot p-3 ${done ? "opacity-70" : ""}`}>
+              <div key={a.id} className={`slot p-3 ${done ? "opacity-70" : ""} ${ready ? "ring-1 ring-gold" : ""}`}>
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <div className="font-bold">{a.name} <span className="text-xs text-muted-foreground">· {a.cat}</span></div>
+                    <div className="font-bold">{a.name} <span className="text-xs text-muted-foreground">· {tr(a.cat)}</span></div>
                     <div className="text-xs text-muted-foreground">{a.desc}: {fmt(p)} / {fmt(a.goal)}</div>
                     <div className="text-xs"><Gold n={achGold(a)} />{a.title && <span className="ml-2 text-gold">{tr("Title:")} {a.title}</span>}</div>
                   </div>
                   {done ? <Check className="h-5 w-5 text-gold" aria-label={tr("Claimed")} /> : (
-                    <button className="btn-gold flex items-center gap-1 px-3 py-1 text-sm" disabled={!isClaimable(hero, a)} onClick={() => claim(a.id)}
-                      title={isClaimable(hero, a) ? "Claim reward" : "Not completed yet"}><Gift className="h-4 w-4" />{tr("Claim")}</button>
+                    <button className="btn-gold flex items-center gap-1 px-3 py-1 text-sm" disabled={!ready} onClick={() => claim(a.id)}
+                      title={ready ? "Claim reward" : "Not completed yet"}><Gift className="h-4 w-4" />{tr("Claim")}</button>
                   )}
                 </div>
                 <div className="mt-2 h-1.5 overflow-hidden rounded bg-muted"><div className="h-full bg-gold" style={{ width: `${(p / a.goal) * 100}%` }} /></div>

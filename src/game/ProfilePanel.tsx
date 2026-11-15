@@ -14,6 +14,7 @@ import {
   achProgress,
   emptyRecord,
   isClaimable,
+  sortAchievements,
   type AchCategory,
 } from "./progress";
 import { FRAMES, frameClass } from "./profile-frames";
@@ -198,21 +199,22 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
               return (
                 <button key={c} onClick={() => setAchCat(c)} aria-pressed={achCat === c}
                   className={`btn-ghost px-2 py-0.5 text-xs ${achCat === c ? "ring-1 ring-gold text-gold" : "text-muted-foreground"}`}>
-                  {c} <span className="text-[10px]">{n}</span>
+                  {tr(c)} <span className="text-[10px]">{n}</span>
                 </button>
               );
             })}
           </div>
           <div className="grid gap-2 md:grid-cols-2">
-            {ACHIEVEMENTS.filter((a) => achCat === "All" || a.cat === achCat).map((a) => {
+            {/* Finished achievements lead here too (see sortAchievements). */}
+            {sortAchievements(hero, ACHIEVEMENTS.filter((a) => achCat === "All" || a.cat === achCat)).map((a) => {
               const p = achProgress(hero, a);
               const done = (hero.achClaimed ?? []).includes(a.id);
               const canClaim = isClaimable(hero, a);
               return (
-                <div key={a.id} className={`slot p-3 ${done ? "opacity-70" : ""}`}>
+                <div key={a.id} className={`slot p-3 ${done ? "opacity-70" : ""} ${canClaim ? "ring-1 ring-gold" : ""}`}>
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-bold">{a.name} <span className="text-[10px] text-muted-foreground">· {a.cat}</span></div>
+                      <div className="truncate text-sm font-bold">{a.name} <span className="text-[10px] text-muted-foreground">· {tr(a.cat)}</span></div>
                       <div className="text-[11px] text-muted-foreground">{a.desc}: {fmt(p)} / {fmt(a.goal)}</div>
                       <div className="text-[11px]"><span className="text-gold">{fmt(achGold(a))}  {tr("gold")}</span>{a.title && <span className="ml-2 text-gold">{tr("Title:")} {a.title}</span>}</div>
                     </div>

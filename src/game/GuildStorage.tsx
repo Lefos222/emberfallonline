@@ -12,12 +12,22 @@ import { MatIcon, GemIcon } from "./MatIcon";
 import { GoldChestIcon, GemChestIcon } from "./CoinIcon";
 import { CHESTS, type ChestKind } from "./chests";
 
-/** Shared guild storage: three pages of 256 slots, moved only through server-checked RPCs. */
+/**
+ * Personal guild storage: three pages of 256 slots per player, moved only through server-checked
+ * RPCs. Each player sees only what their own characters stored (the database policy in
+ * 0056_personal_guild_vault.sql enforces it; ownStash keeps the screen personal as well).
+ */
 export const VAULT_PAGES = 3;
 export const VAULT_SLOTS = 256;
 
 type Stack = { id: string; stack: "mat" | "gem" | "chest"; key: string; qty: number };
-interface Entry { id: string; page: number; slot: number; item: Item | Stack; depositor_name: string }
+interface Entry { id: string; page: number; slot: number; item: Item | Stack; depositor_name: string; deposited_by?: string }
+
+/** Only the entries stored by one of the player's own characters. */
+export function ownStash<T extends { deposited_by?: string | null }>(rows: T[], myHeroIds: Iterable<string>): T[] {
+  const mine = new Set(myHeroIds);
+  return rows.filter((r) => !!r.deposited_by && mine.has(r.deposited_by));
+}
 const isStack = (x: unknown): x is Stack => !!x && typeof x === "object" && "stack" in x;
 const stackName = (st: Stack) => st.stack === "mat" ? MATS[st.key as Mat]?.name ?? st.key : st.stack === "gem" ? gemName(st.key) : CHESTS[st.key as ChestKind]?.name ?? st.key;
 function StackTile({ st, selected, onClick, size = 36 }: { st: Stack; selected?: boolean; onClick?: () => void; size?: number }) {
@@ -43,7 +53,8 @@ async function vaultCall(op: string, rpc: "guild_vault_deposit" | "guild_vault_w
 }
 
 export function GuildStorage({ guildId }: { guildId: string }) {
-  const { hero } = useGame();
+  const { hero, heroId, chars } = useGame();
+  const myIds = [heroId, ...(chars ?? []).map((c) => c.id)].filter((x): x is string => !!x).sort().join(",");
   const [page, setPage] = useState(1);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [sel, setSel] = useState<Entry | null>(null);
@@ -53,9 +64,11 @@ export function GuildStorage({ guildId }: { guildId: string }) {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from("guild_vault").select("id, page, slot, item, depositor_name").eq("guild_id", guildId);
-    if (!error) setEntries((data ?? []) as unknown as Entry[]);
-  }, [guildId]);
+    const ids = myIds ? myIds.split(",") : [];
+    if (!ids.length) { setEntries([]); return; }
+    const { data, error } = await supabase.from("guild_vault").select("id, page, slot, item, depositor_name, deposited_by").eq("guild_id", guildId).in("deposited_by", ids);
+    if (!error) setEntries(ownStash((data ?? []) as unknown as Entry[], ids));
+  }, [guildId, myIds]);
   useEffect(() => { void load(); const t = setInterval(load, 15000); return () => clearInterval(t); }, [load]);
   if (!hero) return null;
   const run = async (fn: () => Promise<void>, ok: string) => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { heroStats, makeItem, newHero } from "@/game/data";
-import { ACHIEVEMENTS, isClaimable, recordBattle, setFx } from "@/game/progress";
+import { ACHIEVEMENTS, isClaimable, recordBattle, setFx, sortAchievements } from "@/game/progress";
 
 describe("progress", () => {
   it("records wins, bosses and keeps history newest first", () => {
@@ -32,6 +32,38 @@ describe("progress", () => {
     expect(isClaimable(h, byId("quests_1"))).toBe(false); // needs 4
     expect(ACHIEVEMENTS.some((a) => a.cat === "Endless")).toBe(true);
   });
+  it("the Awakening families read the sanctum's saved track", () => {
+    const h = newHero("Tester", "warrior");
+    h.level = 90;
+    h.awakening = { ...(h.awakening ?? {}), stage: 1, alv: 12, abyss: 4, best: 6, raiment: 1, stars: { wrath: 8 } } as never;
+    const byId = (id: string) => ACHIEVEMENTS.find((a) => a.id === id)!;
+    expect(ACHIEVEMENTS.filter((a) => a.cat === "Awakening").length).toBeGreaterThan(5);
+    expect(isClaimable(h, byId("awaklvl_1"))).toBe(true); // Awakening level 1
+    expect(isClaimable(h, byId("awaklvl_2"))).toBe(true); // Awakening level 10
+    expect(isClaimable(h, byId("awaklvl_3"))).toBe(false); // 25 not reached
+    expect(isClaimable(h, byId("abyss_1"))).toBe(true); // one floor cleared
+    expect(isClaimable(h, byId("echo_1"))).toBe(true); // depth 5+
+    expect(isClaimable(h, byId("raiment_1"))).toBe(true);
+    expect(ACHIEVEMENTS.some((a) => a.cat === "Life")).toBe(true);
+  });
+
+  it("finished achievements lead every list", () => {
+    const h = newHero("Tester", "archer");
+    // One tiny goal met, everything else untouched.
+    recordBattle(h, { title: "A", won: true, rewards: [] });
+    const order = sortAchievements(h);
+    const firstReady = order.findIndex((a) => isClaimable(h, a));
+    const firstOpen = order.findIndex((a) => !isClaimable(h, a) && (a.value(h) < a.goal));
+    expect(firstReady).toBe(0);
+    expect(firstReady).toBeLessThan(firstOpen);
+    // Claiming it drops it behind everything still open, and the next ready one takes the lead.
+    const claimed = order[0];
+    h.achClaimed = [claimed.id];
+    const after = sortAchievements(h);
+    expect(after[0].id).not.toBe(claimed.id);
+    expect(after[after.length - 1].id).toBe(claimed.id);
+  });
+
   it("2 matching set pieces grant +4% attack and raise stats", () => {
     const h = newHero("Tester", "warrior");
     const w = makeItem("warrior", 10, 2, "weapon"); w.name = "Moonlit Blade";

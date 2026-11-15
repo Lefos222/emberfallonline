@@ -148,8 +148,8 @@ export function combineAllStones(h: StoneState & { gold: number; level?: number 
 export const stoneGradeFor = (level: number) => clampStone(1 + Math.floor(Math.max(0, level) / 12));
 
 /**
- * Stones a won battle sometimes leaves behind. Bosses always drop (and drop higher), elites often,
- * ordinary fights now and then. About a third of the time a stone comes one grade above the norm.
+ * Stones a won battle sometimes leaves behind. Bosses drop more often (and higher), elites
+ * sometimes, ordinary fights now and then. About a third of the time a stone comes one grade above the norm.
  */
 export function rollStoneDrop(
   level: number,
@@ -157,7 +157,7 @@ export function rollStoneDrop(
   elite = false,
   rand = Math.random,
 ): { level: number; n: number } | null {
-  const chance = boss ? 1 : elite ? 0.62 : 0.37;
+  const chance = boss ? 0.6 : elite ? 0.35 : 0.18;
   if (rand() >= chance) return null;
   const swing = rand() < 0.33 ? 1 : 0;
   const grade = clampStone(stoneGradeFor(level) + (boss ? 2 : elite ? 1 : 0) + swing);

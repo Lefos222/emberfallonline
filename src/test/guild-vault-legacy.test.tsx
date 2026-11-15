@@ -7,14 +7,20 @@ import { setHero } from "@/game/store";
 // (the grade-1 Enchantment Stone became a separate `enchantStones` field). The vault reads those
 // rows straight from Supabase, so the panel must render them instead of crashing the merchant tab.
 vi.mock("@/integrations/supabase/client", () => {
-  const rows = [{ id: "v1", page: 1, slot: 0, item: { id: "s1", stack: "mat", key: "enchantStone", qty: 5 }, depositor_name: "Warden" }];
+  const rows = [{ id: "v1", page: 1, slot: 0, item: { id: "s1", stack: "mat", key: "enchantStone", qty: 5 }, depositor_name: "Warden", deposited_by: "h1" }];
   const result = Promise.resolve({ data: rows, error: null });
   const builder: Record<string, unknown> = {
     select: () => builder,
     eq: () => builder,
+    in: () => builder,
     then: (resolve: (v: unknown) => unknown) => result.then(resolve),
   };
   return { supabase: { from: () => builder, rpc: () => result } };
+});
+
+vi.mock("@/game/store", async (importOriginal) => {
+  const m = await importOriginal<typeof import("@/game/store")>();
+  return { ...m, useGame: () => ({ ...m.useGame(), heroId: "h1", chars: [] }) };
 });
 
 const { GuildStorage } = await import("@/game/GuildStorage");

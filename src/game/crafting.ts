@@ -78,16 +78,18 @@ export function scrapItem(h: CraftState, itemId: string): string | null {
 
 
 /**
- * Materials earned from a won battle: a small bundle (two units plus the occasional extra) that
- * barely grows with level, because material payouts must not inflate with the grind. Elites and
- * bosses add one premium ingredient each instead of multiplying the whole bundle.
+ * Materials earned from a won battle: a small bundle (one ore, hide half the time, the occasional
+ * extra) that barely grows with level, because material payouts must not inflate with the grind.
+ * Elites and bosses add one premium ingredient each instead of multiplying the whole bundle.
  */
 export function battleMats(level: number, boss: boolean, rand = Math.random, elite = false): Mats {
-  const out: Mats = { ore: 1 + Math.min(1, Math.floor(level / 50)), hide: 1 + (boss ? 1 : 0) };
-  if (boss || rand() < 0.3) out.essence = 1;
-  if (boss || rand() < 0.15) out.starshard = 1;
-  if (boss || elite || rand() < 0.12) out.fragment = 1;
-  if (rand() < 0.2) out.bloom = 1;
+  const out: Mats = { ore: 1 + Math.min(1, Math.floor(level / 50)) };
+  if (boss) out.hide = 2;
+  else if (rand() < 0.5) out.hide = 1;
+  if (boss || rand() < 0.15) out.essence = 1;
+  if (boss || rand() < 0.08) out.starshard = 1;
+  if (boss || elite || rand() < 0.06) out.fragment = 1;
+  if (rand() < 0.1) out.bloom = 1;
   if (elite) out.sigil = 1;
   if (boss) { out.bossCore = 1; out.crystal = 1; }
   return out;
