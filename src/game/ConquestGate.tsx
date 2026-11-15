@@ -294,7 +294,7 @@ function MarketTab({ hero }: { hero: Hero }) {
     return (
       <button key={o.id} className="slot flex items-center justify-between gap-2 p-2.5 text-left text-xs"
         disabled={tokens < o.cost}
-        title={short > 0 ? `${fmt(short)} more tokens needed` : (isChest ? "Goes to your vault — open it from the Armory" : `${MATS[o.mat!].desc} (${MATS[o.mat!].src})`)}
+        title={short > 0 ? `${fmt(short)} more tokens needed` : isChest ? "Goes to your vault — open it from the Armory" : o.stone ? "Enchantment Stones for the Forge" : `${MATS[o.mat!].desc} (${MATS[o.mat!].src})`}
         onClick={() => buy(o)}>
         <span className="flex min-w-0 items-center gap-2">
           {o.chest === "gold" ? <GoldChestIcon size={22} /> : o.chest === "gem" ? <GemChestIcon size={22} /> : o.stone ? <StoneIcon level={o.stone} size={20} /> : <MatIcon mat={o.mat!} size={20} />}
