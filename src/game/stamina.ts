@@ -55,7 +55,7 @@ export function staminaBlocker(h: StaminaState, cost = CAMPAIGN_STAMINA, now = D
 
 /** Spend the stamina of one battle or dungeon run. */
 export function spendStamina(h: Hero, cost = CAMPAIGN_STAMINA, now = Date.now()) {
-  h.stamina = { ...(h.stamina ?? {}), day: staminaDay(now), used: staminaUsed(h, now) + Math.max(0, cost) };
+  h.stamina = { ...(h.stamina ?? {}), day: staminaDay(now), used: staminaUsed(h, now) + Math.max(0, cost), potions: potionUses(h, now) };
 }
 
 /** Stamina Potions the hero is carrying. */

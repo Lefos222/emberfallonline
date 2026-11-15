@@ -20,7 +20,7 @@ import {
   drinkStaminaPotion,
 } from "@/game/stamina";
 
-describe("daily stamina", () => {
+ describe("daily stamina", () => {
   it("pays 500 a day: twenty-five campaign battles at 20 or fifty dungeon runs at 10", () => {
     expect(STAMINA_PER_DAY).toBe(500);
     expect(CAMPAIGN_STAMINA).toBe(20);
@@ -88,6 +88,44 @@ describe("daily stamina", () => {
     expect(potionUsesLeft(h)).toBe(0);
     expect(drinkStaminaPotion(h)).toMatch(/already drunk 5 Stamina Potions/);
     expect(potionCount(h)).toBe(10 - POTION_PER_DAY);
+  });
+
+  it("does not carry yesterday's five drinks into today's first battle", () => {
+    const h = newHero("Walker", "warrior");
+    const now = Date.parse("2026-11-15T12:00:00Z");
+    h.stamina = { day: staminaDay(now - 86400000), used: 300, potions: 5 };
+    addPotions(h, 2);
+    spendStamina(h, 100, now);
+    expect(potionUsesLeft(h, now)).toBe(5);
+    expect(drinkStaminaPotion(h, now)).toBeNull();
+    expect(staminaLeft(h, now)).toBe(450);
+    expect(potionCount(h)).toBe(1);
+    expect(potionUsesLeft(h, now)).toBe(4);
+  });
+
+  it.each([CAMPAIGN_STAMINA, DUNGEON_STAMINA])("resets yesterday's drink count on a battle costing %i", (cost) => {
+    const h = newHero("Walker", "warrior");
+    const now = Date.parse("2026-11-15T12:00:00Z");
+    h.stamina = { day: staminaDay(now - 86400000), used: 300, potions: 5 };
+    addPotions(h, 1);
+    spendStamina(h, cost, now);
+    expect(potionUsesLeft(h, now)).toBe(5);
+    expect(drinkStaminaPotion(h, now)).toBeNull();
+    expect(staminaLeft(h, now)).toBe(500);
+    expect(potionUsesLeft(h, now)).toBe(4);
+  });
+
+  it("adding potions, failed drinking, and today's battles do not consume the allowance", () => {
+    const h = newHero("Walker", "warrior");
+    const now = Date.parse("2026-11-15T12:00:00Z");
+    h.stamina = { day: staminaDay(now), used: 0, potions: 2 };
+    addPotions(h, 2);
+    expect(potionUsesLeft(h, now)).toBe(3);
+    expect(drinkStaminaPotion(h, now)).toBe("Stamina is already full");
+    expect(potionUsesLeft(h, now)).toBe(3);
+    expect(potionCount(h)).toBe(2);
+    spendStamina(h, 100, now);
+    expect(potionUsesLeft(h, now)).toBe(3);
   });
 
   it("drops a potion only on a rare roll", () => {
