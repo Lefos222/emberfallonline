@@ -481,7 +481,7 @@ export function Game() {
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-background">
+    <div className="game-cursor fixed inset-0 overflow-hidden bg-background">
       <audio key={sound.track} ref={audio} src={soundtrackUrl(sound.track)} loop preload="auto" />
       {!authReady || !userId ? (
         <div className="flex h-full items-center justify-center gap-2 font-display text-lg">

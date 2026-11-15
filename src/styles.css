@@ -501,6 +501,23 @@ body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
 .castle-view:active { cursor: grabbing; }
 .castle-hint { display: none; }
 
+/* Inside the game the pointer is the small painted sword (src/assets/cursor-sword.png): its
+   tip is the hotspot, so a click lands where the point is. These rules are unlayered, so
+   they beat Tailwind's cursor utilities (which live in a layer) on every element the game
+   draws, and the few rules below put back the cursors that carry real meaning: the drag
+   hand on the castle map, the crosshair on a fight target, the caret in a text field and
+   the not-allowed mark on a disabled control. */
+.game-cursor,
+.game-cursor * { cursor: url("./assets/cursor-sword.png") 4 4, default; }
+.game-cursor .castle-view { cursor: grab; }
+.game-cursor .castle-view:active { cursor: grabbing; }
+.game-cursor .cursor-crosshair { cursor: crosshair; }
+.game-cursor .cursor-grab { cursor: grab; }
+.game-cursor .cursor-grabbing { cursor: grabbing; }
+.game-cursor input,
+.game-cursor textarea { cursor: text; }
+.game-cursor :disabled { cursor: not-allowed; }
+
 @media (max-width: 1023px) {
   .hud-top { flex-wrap: wrap; gap: 0.375rem; }
   .castle-hint { display: block; animation: hint-fade 7s ease forwards; }
