@@ -10,7 +10,8 @@ import { forecastFight } from "@/game/battle-advice";
 import { prepareFoe } from "@/game/foe-scaling";
 import { floorRequirement } from "@/game/floor-rating";
 import { getState, setHero } from "@/game/store";
-import { conquestKeyActive } from "@/game/conquest";
+import { conquestKeyActive, conquestTokens } from "@/game/conquest";
+import { stoneCount } from "@/game/enchant";
 import { MINE_MAX_LEVEL, mineLevel, minePerHour, mineUpgradeCost } from "@/game/mine";
 
 describe("the Gold Mine building", () => {
@@ -139,6 +140,27 @@ describe("the reworked gates", () => {
     fireEvent.click(screen.getByRole("tab", { name: /Gem Stock/i }));
     expect(screen.getByText(/Conquest Tokens only/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Buy · 25/ })).toBeDisabled();
+  });
+
+  it("opens the token market on the enchantment-stone offer and buys it", () => {
+    // The stone offer carries no material (the old `enchantStone` mat is gone), so the market must
+    // read its label, note and hint from the stone grade instead of `MATS[o.mat]`.
+    const hero = newHero("Stonebuyer", "warrior");
+    hero.spire = 21;
+    hero.conquest = { tokens: 1000 };
+    hero.enchantStones = {};
+    setHero(hero);
+    render(<ConquestTokens hero={hero} />);
+
+    fireEvent.click(screen.getByRole("tab", { name: /Token Market/i }));
+    const offer = screen.getByText(/Lv 2 Enchantment Stone ×2/);
+    expect(offer).toBeInTheDocument();
+    expect(screen.getByTitle("Enchantment Stones for the Forge")).toBeInTheDocument();
+
+    fireEvent.click(offer.closest("button")!);
+    const after = getState().hero!;
+    expect(stoneCount(after, 2)).toBe(2);
+    expect(conquestTokens(after)).toBe(1000 - 240);
   });
 
   it("lets the conquest blitz add today's Conquest Key for doubled rewards", () => {
