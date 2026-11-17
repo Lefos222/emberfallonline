@@ -1061,7 +1061,7 @@ html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
 @keyframes fx-haze-drift { from { opacity: .3; transform: scale(1.02); } to { opacity: .58; transform: scale(1.07) translate3d(0, -1.5%, 0); } }
 .battle-fx-flash { position: fixed; inset: 0; pointer-events: none; z-index: 13; mix-blend-mode: screen; opacity: 0; animation: fx-flash .4s ease-out forwards; }
 @keyframes fx-flash { 0% { opacity: 0; } 10% { opacity: .4; } 100% { opacity: 0; } }
-.fx-shake { animation: fx-shake .42s cubic-bezier(.36,.07,.19,.97) both; }
+.fx-shake { animation: fx-shake .42s cubic-bezier(.36,.07,.19,.97); }
 @keyframes fx-shake {
   0%, 100% { transform: translate3d(0, 0, 0); }
   14% { transform: translate3d(calc(var(--fx-shake, 8px) * -.9), calc(var(--fx-shake, 8px) * .35), 0) rotate(-.3deg); }
