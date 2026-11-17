@@ -60,10 +60,10 @@ describe("premium ledger", () => {
   });
 
   it("applies the VIP shop discount to a quote", () => {
-    expect(spendQuote({ kind: "chest", itemId: "gold" }, 0).price).toBe(66);
-    expect(spendQuote({ kind: "chest", itemId: "gold" }, 3).price).toBe(57);
-    expect(spendQuote({ kind: "material", itemId: "fragment", qty: 5 }, 0).price).toBe(44);
-    expect(spendQuote({ kind: "vip", itemId: "1" }, 0).price).toBe(129);
+    expect(spendQuote({ kind: "chest", itemId: "gold" }, 0).price).toBe(73);
+    expect(spendQuote({ kind: "chest", itemId: "gold" }, 3).price).toBe(63);
+    expect(spendQuote({ kind: "material", itemId: "fragment", qty: 5 }, 0).price).toBe(49);
+    expect(spendQuote({ kind: "vip", itemId: "1" }, 0).price).toBe(142);
   });
 
   it("debits diamonds and grants the exact missing Armor Fragments", () => {
@@ -73,11 +73,11 @@ describe("premium ledger", () => {
       { kind: "material", itemId: "fragment", qty: 5 },
       "4f6b6a2e-1a2b-4c3d-8e9f-0123456789ab",
     );
-    expect(walletBalance(next)).toBe(56);
+    expect(walletBalance(next)).toBe(51);
     expect(next.mats?.fragment).toBe(5);
     const history = next.srv?.premium?.history ?? [];
     expect(history.at(-1)?.kind).toBe("spend");
-    expect(history.at(-1)?.amount).toBe(44);
+    expect(history.at(-1)?.amount).toBe(49);
   });
 
   it("refuses a spend the wallet cannot cover and leaves the save untouched", () => {
@@ -101,7 +101,7 @@ describe("premium ledger", () => {
       "00000000-0000-4000-8000-000000000001",
     );
     expect(premiumState(next).vip.level).toBe(1);
-    expect(walletBalance(next)).toBe(871);
+    expect(walletBalance(next)).toBe(858);
   });
 
   it("shortens a blitz for members", () => {

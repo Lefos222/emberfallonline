@@ -1,7 +1,8 @@
 # Roadmap (current request)
-- [ ] Nov 17, 15:28: Raise all Diamond costs 10% and enforce one-month VIP expiry, preserving existing purchases.
-- [ ] Nov 17, 15:29: Enable confirmed Stripe test payments, create products and verify idempotent paid delivery before live sales.
-- [ ] Nov 17, 15:31: Import existing products; VIP is nonrenewing, adds 30 days preserving higher active tiers; seller Greece.
+- [x] Nov 17, 15:28: Raise all Diamond costs 10% and enforce one-month VIP expiry, preserving existing purchases.
+- [x] Nov 17, 15:29: Enable Stripe test payments, create products; completed test-card purchases are recorded delivered without touching real saves; atomic delivery and spend checks.
+- [x] Nov 17, 15:31: Import existing products; VIP is nonrenewing, adds 30 days preserving higher active tiers; seller Greece.
+- [ ] Nov 17: Live checkout activation and real-money delivery verification await the owner's payment account claim, live onboarding and publishing.
 - [x] Nov 17, 15:18: Awakening shops, two earned currencies, three campaign fronts, rotating event and daily/weekly contracts; matching art and checks (seven-credit budget).
 - [ ] Nov 17, 15:18: Live Awakening win → currency → shop purchase check; blocked because the requesting account's only hero is level 31 (Awakening requires 90); never change player progression for testing.
 - [x] Nov 17: Snowy castle artwork through December 31, 2026; original returns January 1, 2027 UTC without save changes.

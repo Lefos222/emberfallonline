@@ -109,7 +109,7 @@ export const WHEEL_SEGMENTS: WheelSegment[] = [
 ];
 
 export const WHEEL_SEG_DEG = 360 / WHEEL_SEGMENTS.length;
-export const WHEEL_PRICE = 100;
+export const WHEEL_PRICE = 110;
 
 /** Total chance (out of 100) of landing on any good segment. */
 export const wheelGoodChance = () =>

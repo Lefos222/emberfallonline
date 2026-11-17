@@ -5,12 +5,12 @@ import type { Hero } from "@/game/data";
 
 describe("Diamond services", () => {
   it("prices the gender card at 500 and the name card at 700", () => {
-    expect(SERVICE_PRICES.gender_card).toBe(500);
-    expect(SERVICE_PRICES.name_card).toBe(700);
+    expect(SERVICE_PRICES.gender_card).toBe(550);
+    expect(SERVICE_PRICES.name_card).toBe(770);
   });
   it("charges 50 for a shop restock and 50 for an extra arena duel", () => {
-    expect(SERVICE_PRICES.shop_refresh).toBe(50);
-    expect(SERVICE_PRICES.arena_duel).toBe(50);
+    expect(SERVICE_PRICES.shop_refresh).toBe(55);
+    expect(SERVICE_PRICES.arena_duel).toBe(55);
   });
   it("an extra duel returns one fight after all five are spent", () => {
     const now = Date.now();

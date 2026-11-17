@@ -20,11 +20,11 @@ export const MOUNTS: Mount[] = [
   { id: "bay", name: "Bay Warhorse", desc: "A steady road horse from the castle stables.", blitzPct: 5, gold: 20000, img: bay },
   { id: "wolf", name: "Dire Wolf", desc: "Runs the forest paths faster than any horse.", blitzPct: 8, gold: 60000, img: wolf },
   { id: "boar", name: "Iron Boar", desc: "An armoured boar that charges through every gate.", blitzPct: 10, gold: 150000, img: boar },
-  { id: "stallion", name: "Royal Stallion", desc: "A gold-barded white stallion of the royal line.", blitzPct: 12, diamonds: 300, img: stallion },
-  { id: "drake", name: "Crimson Drake", desc: "A fire drake that crosses the realm in a breath.", blitzPct: 15, diamonds: 600, img: drake },
-  { id: "stag", name: "Frost Spirit Stag", desc: "A spectral stag that walks between snowflakes.", blitzPct: 18, diamonds: 900, img: stag },
-  { id: "nightmare", name: "Nightmare", desc: "A shadow steed whose hooves burn the road.", blitzPct: 21, diamonds: 1300, img: nightmare },
-  { id: "griffin", name: "Golden Griffin", desc: "The swiftest mount in Emberfall, master of the skies.", blitzPct: 25, diamonds: 2000, img: griffin },
+  { id: "stallion", name: "Royal Stallion", desc: "A gold-barded white stallion of the royal line.", blitzPct: 12, diamonds: 330, img: stallion },
+  { id: "drake", name: "Crimson Drake", desc: "A fire drake that crosses the realm in a breath.", blitzPct: 15, diamonds: 660, img: drake },
+  { id: "stag", name: "Frost Spirit Stag", desc: "A spectral stag that walks between snowflakes.", blitzPct: 18, diamonds: 990, img: stag },
+  { id: "nightmare", name: "Nightmare", desc: "A shadow steed whose hooves burn the road.", blitzPct: 21, diamonds: 1430, img: nightmare },
+  { id: "griffin", name: "Golden Griffin", desc: "The swiftest mount in Emberfall, master of the skies.", blitzPct: 25, diamonds: 2200, img: griffin },
 ];
 
 export const mountPrice = (m: Mount, level: number) => (m.gold ? scaledGold(m.gold, level) : 0);

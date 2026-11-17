@@ -1,200 +1,54 @@
-import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
-import z from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { Hero } from "./data";
-import { DIAMOND_PACKS, VIP_PLANS, diamondPackTotal } from "./economy";
-import { applyCardPurchase, applyDiamondSpend, cardPurchaseApplied } from "./premium-ledger";
-import {
-  createCheckoutSession,
-  forgetRequest,
-  paymentsConfigured,
-  readCheckoutSession,
-  readHeroSave,
-  recordRequest,
-  writeHeroSave,
-} from "./premium.server";
-
-/** Every paid path lives here, on the server:
- *
- *  - `startCheckout` builds a Stripe Checkout Session from the catalogue price. The client never
- *    sends a price, only which pack or membership it wants.
- *  - `confirmCheckout` reads the session back from Stripe, checks it is paid and belongs to the
- *    signed-in player's character, then credits the wallet once per session id.
- *  - `spendDiamonds` validates a Diamond purchase (materials, stones, chests, gold, VIP months)
- *    against the same catalogue before debiting the server-owned balance. */
-
-const origin = (): string => {
-  const request = getRequest();
-  const fromHeader = request?.headers.get("origin");
-  if (fromHeader) return fromHeader.replace(/\/$/, "");
-  const host =
-    request?.headers.get("x-forwarded-host") ?? request?.headers.get("host") ?? "localhost:3000";
-  const proto =
-    request?.headers.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  return `${proto}://${host}`;
-};
-
-export const paymentStatus = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async () => ({ configured: paymentsConfigured() }));
-
-export const startCheckout = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z
-      .object({
-        kind: z.enum(["diamonds", "vip"]),
-        itemId: z.string().min(1).max(40),
-        heroId: z.string().uuid(),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    // The character must belong to the caller; RLS answers that for the authenticated client.
-    const { data: hero, error } = await context.supabase
-      .from("heroes")
-      .select("id")
-      .eq("id", data.heroId)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!hero) throw new Error("Select a character before buying anything.");
-
-    let cents = 0;
-    let name = "";
-    if (data.kind === "diamonds") {
-      const pack = DIAMOND_PACKS.find((p) => p.id === data.itemId);
-      if (!pack) throw new Error("Unknown Diamond pack.");
-      cents = pack.priceCents;
-      name = `${pack.name} — ${diamondPackTotal(pack).toLocaleString()} Diamonds`;
-    } else {
-      const plan = VIP_PLANS.find((p) => String(p.level) === data.itemId);
-      if (!plan) throw new Error("Unknown VIP membership.");
-      cents = plan.priceCents;
-      name = `VIP ${plan.level} — ${plan.name} (${plan.days} days)`;
-    }
-
-    const session = await createCheckoutSession({
-      mode: "payment",
-      "payment_method_types[0]": "card",
-      success_url: `${origin()}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin()}/?checkout=cancelled`,
-      client_reference_id: context.userId,
-      "line_items[0][quantity]": 1,
-      "line_items[0][price_data][currency]": "usd",
-      "line_items[0][price_data][unit_amount]": cents,
-      "line_items[0][price_data][product_data][name]": name,
-      "metadata[userId]": context.userId,
-      "metadata[heroId]": data.heroId,
-      "metadata[kind]": data.kind,
-      "metadata[itemId]": data.itemId,
-    });
-
-    if (!session.url) throw new Error("The payment provider did not return a checkout page.");
-    return { url: session.url, sessionId: session.id };
-  });
-
-export const confirmCheckout = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ sessionId: z.string().min(4).max(200) }).parse(input))
-  .handler(async ({ data, context }) => {
-    const session = await readCheckoutSession(data.sessionId);
-    const meta = session.metadata ?? {};
-    if (meta["userId"] !== context.userId)
-      throw new Error("This payment belongs to another account.");
-    if (session.payment_status !== "paid" || session.status !== "complete") {
-      throw new Error("The payment has not completed yet. Finish it and try again.");
-    }
-    const heroId = meta["heroId"];
-    if (!heroId) throw new Error("This payment is missing its character.");
-
-    const row = await readHeroSave(heroId);
-    if (!row) throw new Error("That character no longer exists.");
-    if (row.userId !== context.userId) throw new Error("This payment belongs to another account.");
-
-    if (cardPurchaseApplied(row.save, session.id)) return { save: row.save, already: true };
-
-    let next: Hero;
-    if (meta["kind"] === "vip") {
-      const plan = VIP_PLANS.find((p) => String(p.level) === meta["itemId"]);
-      if (!plan) throw new Error("Unknown VIP membership in this payment.");
-      if (session.amount_total !== null && session.amount_total < plan.priceCents) {
-        throw new Error("This payment does not cover the membership.");
-      }
-      next = applyCardPurchase(row.save, {
-        ref: session.id,
-        kind: "vip",
-        vipLevel: plan.level,
-        days: plan.days,
-      });
-    } else if (meta["kind"] === "diamonds") {
-      const pack = DIAMOND_PACKS.find((p) => p.id === meta["itemId"]);
-      if (!pack) throw new Error("Unknown Diamond pack in this payment.");
-      if (session.amount_total !== null && session.amount_total < pack.priceCents) {
-        throw new Error("This payment does not cover the pack.");
-      }
-      next = applyCardPurchase(row.save, {
-        ref: session.id,
-        kind: "diamonds",
-        diamonds: diamondPackTotal(pack),
-      });
-    } else {
-      throw new Error("Unknown purchase in this payment.");
-    }
-
-    await writeHeroSave(heroId, next);
-    return { save: next, already: false };
-  });
-
-export const spendDiamonds = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z
-      .object({
-        kind: z.enum(["material", "gem", "chest", "gold", "vip", "item"]),
-        itemId: z.string().min(1).max(60),
-        qty: z.number().int().min(1).max(999).optional(),
-        requestId: z.string().uuid(),
-        heroId: z.string().uuid(),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    const { data: row, error } = await context.supabase
-      .from("heroes")
-      .select("save")
-      .eq("id", data.heroId)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!row?.save) throw new Error("Select a character before buying anything.");
-
-    const save = row.save as unknown as Hero;
-    const next = applyDiamondSpend(
-      save,
-      { kind: data.kind, itemId: data.itemId, qty: data.qty },
-      data.requestId,
-    );
-    const price = Math.max(
-      0,
-      (save.srv?.premium?.balance ?? 0) - (next.srv?.premium?.balance ?? 0),
-    );
-
-    // Record the request before writing: a duplicate id means this exact spend already landed.
-    const fresh = await recordRequest(
-      data.requestId,
-      data.heroId,
-      `${data.kind}:${data.itemId}${data.qty ? `:${data.qty}` : ""}`,
-      price,
-    );
-    if (!fresh) {
-      const current = await readHeroSave(data.heroId);
-      return { save: current?.save ?? save, already: true };
-    }
-    try {
-      await writeHeroSave(data.heroId, next);
-    } catch (writeError) {
-      await forgetRequest(data.requestId);
-      throw writeError;
-    }
-    return { save: next, already: false };
-  });
+import {createServerFn} from '@tanstack/react-start';
+import {getRequest} from '@tanstack/react-start/server';
+import z from 'zod';
+import {requireSupabaseAuth} from '@/integrations/supabase/auth-middleware';
+import {createStripeClient,getStripeErrorMessage} from '@/lib/stripe.server';
+import {cardProduct,deliverSession,resolveOrCreateCustomer,paymentWebhook} from './payment-delivery.server';
+import {applyDiamondSpend} from './premium-ledger';
+import type {Hero} from './data';
+export const paymentStatus=createServerFn({method:'GET'}).middleware([requireSupabaseAuth]).handler(async()=>({configured: Boolean(process.env['STRIPE_SANDBOX_API_KEY'] || process.env['STRIPE_LIVE_API_KEY'])}));
+export const startCheckout=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(input=>z.object({kind:z.enum(['diamonds','vip']),itemId:z.string().min(1).max(40),heroId:z.string().uuid(),environment:z.enum(['sandbox','live'])}).parse(input)).handler(async({data,context})=>{
+ try {
+  const {data:hero,error}=await context.supabase.from('heroes').select('id').eq('id',data.heroId).maybeSingle();
+  if(error || !hero) throw new Error('Select your character before buying.');
+  const product=cardProduct(data.kind,data.itemId);
+  const stripe=createStripeClient(data.environment);
+  const prices=await stripe.prices.list({lookup_keys:[`emberfall_${data.kind}_${data.itemId}`],active:true,limit:1});
+  const price=prices.data[0]; if(!price || price.unit_amount!==product.cents || price.currency!=='usd') throw new Error('This product price is not ready.');
+  const stripeProduct=await stripe.products.retrieve(typeof price.product==='string'?price.product:price.product.id);
+  const {data:{user}}=await context.supabase.auth.getUser();
+  const customer=await resolveOrCreateCustomer(stripe,{userId:context.userId,email:user?.email});
+  const origin=new URL(getRequest().url).origin;
+  const session=await stripe.checkout.sessions.create({ui_mode:'embedded_page',mode:'payment',customer,line_items:[{price:price.id,quantity:1}],return_url:`${origin}/play?checkout=success&session_id={CHECKOUT_SESSION_ID}`,payment_intent_data:{description:stripeProduct.name},managed_payments:{enabled:true},metadata:{userId:context.userId,heroId:data.heroId,kind:data.kind,itemId:data.itemId,managed_payments:'true'}} as import('stripe').default.Checkout.SessionCreateParams);
+  const {supabaseAdmin:admin}=await import('@/integrations/supabase/client.server');
+  const {error:orderError}=await admin.from('payment_orders').insert({environment:data.environment,session_id:session.id,user_id:context.userId,hero_id:data.heroId,kind:data.kind,item_id:data.itemId,amount_cents:product.cents,diamonds:product.diamonds,vip_level:product.vipLevel});
+  if(orderError) {await stripe.checkout.sessions.expire(session.id); throw new Error('The order could not be saved; nothing was charged.');}
+  if(!session.client_secret) throw new Error('Payment form is not ready.');
+  return {clientSecret:session.client_secret,sessionId:session.id};
+ } catch(error) { return {error:getStripeErrorMessage(error)}; }
+});
+export const confirmCheckout=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(input=>z.object({sessionId:z.string().min(4).max(200),environment:z.enum(['sandbox','live'])}).parse(input)).handler(async({data,context})=>{
+ try {return await deliverSession(data.sessionId,data.environment,context.userId);} catch(error) {return {error:getStripeErrorMessage(error)};}
+});
+export const pendingCheckouts=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(input=>z.object({environment:z.enum(['sandbox','live'])}).parse(input)).handler(async({data,context})=>{
+ const {data:rows,error}=await context.supabase.from('payment_orders').select('session_id,hero_id').eq('environment',data.environment).eq('user_id',context.userId).eq('status','pending').order('created_at',{ascending:false}).limit(20);
+ if(error) return {error:error.message}; return {orders:rows ?? []};
+});
+export const spendDiamonds=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(input=>z.object({kind:z.enum(['material','gem','chest','gold','vip','item']),itemId:z.string().min(1).max(60),qty:z.number().int().min(1).max(999).optional(),requestId:z.string().uuid(),heroId:z.string().uuid()}).parse(input)).handler(async({data,context})=>{
+ try {
+  const {data:row,error}=await context.supabase.from('heroes').select('save').eq('id',data.heroId).maybeSingle();
+  if(error || !row) throw new Error('Select your character before buying.');
+  const save=row.save as unknown as Hero;
+  const {supabaseAdmin:admin}=await import('@/integrations/supabase/client.server');
+  const item=`${data.kind}:${data.itemId}:${data.qty ?? 1}`;
+  const {data:old}=await context.supabase.from('purchases').select('hero_id,item').eq('request_id',data.requestId).maybeSingle();
+  if(old) {if(old.hero_id!==data.heroId || old.item!==item) throw new Error('Request belongs to another purchase'); return {save,already:true};}
+  const next=applyDiamondSpend(save,{kind:data.kind,itemId:data.itemId,qty:data.qty},data.requestId);
+  const price=(save.srv?.premium?.balance ?? 0)-(next.srv?.premium?.balance ?? 0);
+  const {data:result,error:commitError}=await admin.rpc('premium_commit_spend',{_hero:data.heroId,_owner:context.userId,_req:data.requestId,_before:save as never,_after:next as never,_price:price,_item:item});
+  if(commitError) throw new Error(commitError.message);
+  return result as unknown as {save:Hero;already:boolean};
+ } catch(error) {return {error:error instanceof Error?error.message:'The purchase could not be completed.'};}
+});
+// The public route invokes the handler in-process, never through a server-function RPC stub.
+export {paymentWebhook};

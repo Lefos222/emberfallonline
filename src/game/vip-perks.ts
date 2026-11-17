@@ -31,8 +31,8 @@ export const VIP_PERKS: VipPerk[] = [
   {
     level: 1,
     name: "Supporter",
-    diamonds: 129,
-    moneyCents: 699,
+    diamonds: 142,
+    moneyCents: 769,
     dailyGold: 1500,
     xpBonusPct: 10,
     goldBonusPct: 5,
@@ -42,8 +42,8 @@ export const VIP_PERKS: VipPerk[] = [
   {
     level: 2,
     name: "Adventurer",
-    diamonds: 319,
-    moneyCents: 1499,
+    diamonds: 351,
+    moneyCents: 1649,
     dailyGold: 4000,
     xpBonusPct: 20,
     goldBonusPct: 10,
@@ -53,8 +53,8 @@ export const VIP_PERKS: VipPerk[] = [
   {
     level: 3,
     name: "Champion",
-    diamonds: 649,
-    moneyCents: 2499,
+    diamonds: 714,
+    moneyCents: 2749,
     dailyGold: 8000,
     xpBonusPct: 35,
     goldBonusPct: 15,

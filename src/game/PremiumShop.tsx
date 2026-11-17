@@ -1,3 +1,4 @@
+import { CardCheckout, PaymentTestModeBanner } from "./CardCheckout";
 import { useState } from "react";
 import { SocialRewards } from "./SocialRewards";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,7 @@ function DiamondPrice({
 
 export function PremiumShop({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
+  const [checkout,setCheckout]=useState<{clientSecret:string;sessionId:string}|null>(null);
   const [tab, setTab] = useState<Tab>("diamonds");
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
@@ -110,6 +112,8 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
       });
   };
 
+  const openCard=async(kind:"diamonds"|"vip",id:string)=>{setBusy(`card:${id}`);setNotice(null);try {setCheckout(await (kind==="diamonds"?buyDiamondPack(id):buyVipWithCard(Number(id))));} catch(error){setNotice({ok:false,text:error instanceof Error?error.message:"Payment unavailable"});} finally {setBusy(null);}};
+
   return (
     <Panel
       title={tr("Premium Shop")}
@@ -118,6 +122,8 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
       onClose={onClose}
       wide
     >
+      <PaymentTestModeBanner />
+      {checkout ? <CardCheckout session={checkout} onClose={()=>setCheckout(null)} /> : <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <GameTabs
           label={tr("Premium Shop")}
@@ -182,7 +188,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                   <Button
                     disabled={busy !== null}
                     onClick={() =>
-                      void run(key, () => buyDiamondPack(pack.id), "Diamonds credited.", true)
+                      void openCard("diamonds",pack.id)
                     }
                   >
                     {busy === key ? tr("Opening checkout…") : tr("Buy with card")}
@@ -249,12 +255,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                       size="sm"
                       disabled={busy !== null}
                       onClick={() =>
-                        void run(
-                          cardKey,
-                          () => buyVipWithCard(plan.level),
-                          "VIP activated for 30 days.",
-                          true,
-                        )
+                        void openCard("vip",String(plan.level))
                       }
                     >
                       {busy === cardKey
@@ -471,6 +472,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
 
       <p className="mt-4 text-[11px] text-muted-foreground">
          {tr("Every paid purchase goes through Stripe and is verified on the server; every Diamond spend is priced and debited by the server.")} <Diamonds n={p.balance} />  {tr("in your wallet.")} </p>
+      </>}
     </Panel>
   );
 }

@@ -6,7 +6,7 @@ import { vipBlitzFactor, vipLevelOf } from "./vip-perks";
 
 /**
  * A blitz is a run, not an instant payout: starting one sends the hero up the climb. The
- * rewards land when the run ends, every battle is locked while it lasts, and 25 Diamonds
+ * rewards land when the run ends, every battle is locked while it lasts, and 28 Diamonds
  * finish it on the spot. A shallow run takes 20 minutes; a run that sweeps a deep climb
  * takes up to 50, so the long ones cost the hero real time.
  */
@@ -44,13 +44,13 @@ export const BLITZ_XP_SHARE = 0.3;
 export const BLITZ_GOLD_SHARE = 0.4;
 
 /** Diamonds a player pays to end a running blitz immediately. */
-export const BLITZ_SKIP_DIAMONDS = 25;
+export const BLITZ_SKIP_DIAMONDS = 28;
 
 export type BlitzGate = "campaign" | "conquest";
 export type BlitzRun = NonNullable<Hero["blitzRun"]>;
 
 export const BLITZ_RUNNING =
-  "A blitz is already running — wait for it to finish, or finish it now for 25 Diamonds.";
+  "A blitz is already running — wait for it to finish, or finish it now for 28 Diamonds.";
 
 /** The blitz still on the save: running, or finished and waiting to be paid out. */
 export const blitzRun = (h: Pick<Hero, "blitzRun">) => h.blitzRun ?? null;

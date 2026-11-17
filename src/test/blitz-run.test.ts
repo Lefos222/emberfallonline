@@ -29,7 +29,7 @@ describe("blitz runs", () => {
     expect(shallow).toBeGreaterThan(BLITZ_MIN_MS);
     expect(deep).toBeGreaterThan(shallow);
     expect(deep).toBeLessThan(BLITZ_MAX_MS);
-    expect(BLITZ_SKIP_DIAMONDS).toBe(25);
+    expect(BLITZ_SKIP_DIAMONDS).toBe(28);
   });
 
   it("starts a run whose length depends on its depth", () => {
@@ -59,7 +59,7 @@ describe("blitz runs", () => {
     expect(battleLockedByBlitz(h, NOW)).toBeNull();
     startBlitzRun(h, { gate: "campaign", target: 1, xp: 100, gold: 50 }, NOW);
     expect(battleLockedByBlitz(h, NOW)).toMatch(/19:5\d|20:00/);
-    expect(battleLockedByBlitz(h, NOW)).toMatch(/25 Diamonds/);
+    expect(battleLockedByBlitz(h, NOW)).toMatch(/28 Diamonds/);
     expect(battleLockedByBlitz(h, NOW + blitzDurationMs(1))).toBeNull();
   });
 

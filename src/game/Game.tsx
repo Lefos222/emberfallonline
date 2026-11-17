@@ -147,7 +147,9 @@ export function Game() {
         if (sessionId) {
           const result = await confirmCardPurchase(sessionId);
           setCheckoutNotice(
-            result.already
+            result.test
+              ? "Test purchase verified. Your real game balance is unchanged."
+              : result.already
               ? "That payment was already credited to your account."
               : "Payment confirmed — your purchase is in your account.",
           );

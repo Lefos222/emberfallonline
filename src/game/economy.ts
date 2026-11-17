@@ -18,8 +18,7 @@ import {
  *  never disagree. The server-owned wallet at `srv.premium` is only ever written by server code:
  *  a confirmed Stripe payment, or the premium RPC (`skip_blitz`).
  *
- *  This release rebalances the whole premium economy: every price rises 10%, and VIP rises a
- *  little more (25%) because its perks grew — a one-month membership with faster blitzes, bigger
+ *  This release rebalances the whole premium economy: all existing prices rise a further 10%, including VIP — a one-month membership with faster blitzes, bigger
  *  gold, shop discounts, two VIP-only activities and two VIP-only world events. */
 
 /** The shop-wide price rise applied to every Diamond good and real-money pack. */
@@ -37,23 +36,23 @@ export interface DiamondPack {
   tag?: string;
 }
 
-/** Five money tiers: $10.99, $21.99, $32.99, $54.99 and $109.99 — last year's prices plus 10%. */
+/** Five money tiers with a further 10% increase; currency quantities are unchanged. */
 export const DIAMOND_PACKS: DiamondPack[] = [
-  { id: "pouch", name: "Diamond Pouch", priceCents: 1099, diamonds: 1200, bonus: 0 },
+  { id: "pouch", name: "Diamond Pouch", priceCents: 1209, diamonds: 1200, bonus: 0 },
   {
     id: "satchel",
     name: "Diamond Satchel",
-    priceCents: 2199,
+    priceCents: 2419,
     diamonds: 2500,
     bonus: 200,
     tag: "Popular",
   },
-  { id: "chest", name: "Diamond Chest", priceCents: 3299, diamonds: 4000, bonus: 400 },
-  { id: "vault", name: "Diamond Vault", priceCents: 5499, diamonds: 7000, bonus: 800 },
+  { id: "chest", name: "Diamond Chest", priceCents: 3629, diamonds: 4000, bonus: 400 },
+  { id: "vault", name: "Diamond Vault", priceCents: 6049, diamonds: 7000, bonus: 800 },
   {
     id: "treasury",
     name: "Diamond Treasury",
-    priceCents: 10999,
+    priceCents: 12099,
     diamonds: 15000,
     bonus: 2000,
     tag: "Best value",
@@ -71,10 +70,10 @@ export interface GoldPack {
 
 /** Gold bought with diamonds (+10% on this release's prices). */
 export const GOLD_PACKS: GoldPack[] = [
-  { id: "pouch", name: "Gold Pouch", diamonds: 55, gold: 10000 },
-  { id: "coffer", name: "Gold Coffer", diamonds: 242, gold: 50000 },
-  { id: "royal", name: "Royal Treasury", diamonds: 825, gold: 200000 },
-  { id: "imperial", name: "Imperial Treasury", diamonds: 2200, gold: 600000 },
+  { id: "pouch", name: "Gold Pouch", diamonds: 61, gold: 10000 },
+  { id: "coffer", name: "Gold Coffer", diamonds: 267, gold: 50000 },
+  { id: "royal", name: "Royal Treasury", diamonds: 908, gold: 200000 },
+  { id: "imperial", name: "Imperial Treasury", diamonds: 2420, gold: 600000 },
 ];
 
 export interface VipPlan {
@@ -128,15 +127,15 @@ export interface MaterialPrices {
 export type DiamondMat = Exclude<Mat, "fateStone" | "frostCrystal" | "voidCrystal" | "sunCrystal" | "dragonScale" | "abyssalShard" | "titanHeart" | "wyrmBone" | "moonsilver" | "shadowSilk" | "phoenixAsh" | "aetherEmber" | "voidsteel" | "celestialPearl" | "eclipsedHeart">;
 
 export const MATERIAL_PRICES: Record<DiamondMat, MaterialPrices> = {
-  ore: { one: 6, five: 22 },
-  hide: { one: 6, five: 22 },
-  bloom: { one: 6, five: 22 },
-  essence: { one: 11, five: 44 },
-  fragment: { one: 11, five: 44 },
-  crystal: { one: 11, five: 44 },
-  starshard: { one: 28, five: 110 },
-  sigil: { one: 28, five: 110 },
-  bossCore: { one: 55, five: 220 },
+  ore: { one: 7, five: 25 },
+  hide: { one: 7, five: 25 },
+  bloom: { one: 7, five: 25 },
+  essence: { one: 13, five: 49 },
+  fragment: { one: 13, five: 49 },
+  crystal: { one: 13, five: 49 },
+  starshard: { one: 31, five: 121 },
+  sigil: { one: 31, five: 121 },
+  bossCore: { one: 61, five: 242 },
 };
 
 /** Display order for the materials tab. */
@@ -153,7 +152,7 @@ export const MATERIAL_ORDER: DiamondMat[] = [
 ];
 
 /** Stones: tier 1 is the 6-diamond "small thing"; tiers 2 and 3 stay affordable. */
-export const GEM_TIER_PRICES = [6, 17, 44] as const;
+export const GEM_TIER_PRICES = [7, 19, 49] as const;
 export const GEM_SHOP_TIERS = GEM_TIER_PRICES.length;
 
 export interface ChestOffer {
@@ -167,13 +166,13 @@ export const CHEST_OFFERS: ChestOffer[] = [
   {
     kind: "gold",
     name: "Gold Chest",
-    diamonds: 66,
+    diamonds: 73,
     description: "Open it in the Armory for gold, Ember Ore and Armor Fragments.",
   },
   {
     kind: "gem",
     name: "Gem Chest",
-    diamonds: 165,
+    diamonds: 182,
     description: "Open it in the Armory for two cut gems, Soul Essence and an Arcane Crystal.",
   },
 ];
@@ -190,42 +189,42 @@ export const DIAMOND_SHOP: DiamondItem[] = [
   {
     id: "wings_celestial",
     name: "Celestial Wings",
-    diamonds: 1320,
+    diamonds: 1452,
     kind: "cosmetic",
     description: "Exclusive radiant wing appearance",
   },
   {
     id: "outfit_royal",
     name: "Royal Outfit",
-    diamonds: 990,
+    diamonds: 1089,
     kind: "cosmetic",
     description: "Exclusive regal character outfit",
   },
   {
     id: "aura_ember",
     name: "Ember Aura",
-    diamonds: 660,
+    diamonds: 726,
     kind: "cosmetic",
     description: "A smouldering aura surrounds your character",
   },
   {
     id: "frame_diamond",
     name: "Diamond Frame",
-    diamonds: 880,
+    diamonds: 968,
     kind: "cosmetic",
     description: "Prestigious portrait frame",
   },
   {
     id: "title_immortal",
     name: "Immortal Title",
-    diamonds: 550,
+    diamonds: 605,
     kind: "cosmetic",
     description: 'The "Immortal" title',
   },
   {
     id: "scroll_bundle",
     name: "War Scroll Bundle",
-    diamonds: 440,
+    diamonds: 484,
     kind: "scrolls",
     description: "5 Damage, 5 Defence and 5 Experience Scrolls",
   },
@@ -312,7 +311,7 @@ export function surgeUntil(hero: unknown): number {
 export const surgeMultiplier = (hero: unknown, now = Date.now()) => (surgeUntil(hero) > now ? SURGE_MULT : 1);
 
 /** Diamond speed-ups sold by the `awakening_boost` RPC; its SQL price table mirrors this one. */
-export const BOOST_PRICES = { xp_surge: 150, shard_cache: 200, trial_reset: 50, stamina_refill: 80 } as const;
+export const BOOST_PRICES = { xp_surge: 165, shard_cache: 220, trial_reset: 55, stamina_refill: 88 } as const;
 export type BoostKind = keyof typeof BOOST_PRICES;
 
 export function vipDailyGold(hero: unknown): number {

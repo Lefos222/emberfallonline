@@ -157,7 +157,7 @@ export function WheelPanel({ onClose }: { onClose: () => void }) {
     } catch (e) { setNote({ ok: false, t: e instanceof Error ? e.message : String(e) }); setBusy(false); }
   };
   return (
-    <Panel title={tr("Wheel of Fortune")} subtitle={tr("100 Diamonds per spin")} art="diamond" onClose={onClose}>
+    <Panel title={tr("Wheel of Fortune")} subtitle={`${WHEEL_PRICE} ${tr("Diamonds")} ${tr("per spin")}`} art="diamond" onClose={onClose}>
       <NoteLine n={note} />
       <div className="relative mx-auto aspect-square w-full max-w-[22rem]">
         <img ref={wheelRef} src={wheelImg} alt={tr("Wheel of Fortune")} className="h-full w-full object-contain drop-shadow-[0_0_24px_hsl(var(--gold)/0.35)]" style={{ transform: `rotate(${angle.current}deg)` }} />
@@ -166,7 +166,7 @@ export function WheelPanel({ onClose }: { onClose: () => void }) {
       </div>
       <div className="mt-3 flex flex-col items-center gap-2">
         <p className="flex items-center gap-1 text-sm"><ArtIcon name="diamond" size={16} />{fmt(balance)} {tr("Diamonds")}</p>
-        <Button disabled={busy || balance < WHEEL_PRICE} onClick={() => void spin()}>{busy ? tr("Spinning…") : tr("Spin · 100 Diamonds")}</Button>
+        <Button disabled={busy || balance < WHEEL_PRICE} onClick={() => void spin()}>{busy ? tr("Spinning…") : `${tr("Spin")} · ${WHEEL_PRICE} ${tr("Diamonds")}`}</Button>
         <p className="text-center text-xs text-muted-foreground">{tr("Prizes: gold, XP, ore and essence, hide and bloom, Frost Crystals, Starshards, Enchantment Stones and Armor Fragments. The six ★ slices are the big prizes and land only")} {wheelGoodChance()}% {tr("of spins together.")}</p>
         <details className="w-full text-xs">
           <summary className="cursor-pointer text-center text-gold">{tr("Show the odds")}</summary>

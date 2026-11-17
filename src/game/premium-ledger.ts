@@ -10,7 +10,7 @@ import {
   vipPlanFor,
   type DiamondMat,
 } from "./economy";
-import { VIP_DAYS, vipPrice } from "./vip-perks";
+import { VIP_DAYS, vipPrice, vipLevelFromPremium } from "./vip-perks";
 
 /** Server-side ledger for the premium wallet.
  *
@@ -44,7 +44,7 @@ export const walletBalance = (save: Hero) => {
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
 };
 
-const history = (save: Hero) => premiumOf(save).history!;
+const history = (save: Hero) => premiumOf(save).history ?? [];
 
 /** True once a Stripe session has already been credited, so a refresh cannot double-pay it. */
 export function cardPurchaseApplied(save: Hero, ref: string): boolean {
@@ -179,7 +179,7 @@ export function applyDiamondSpend(
   requestId: string,
   now = Date.now(),
 ): Hero {
-  const vipLevel = Number(save.srv?.premium?.vip?.level ?? 0);
+  const vipLevel = vipLevelFromPremium(save.srv?.premium);
   const quote = spendQuote(req, vipLevel);
   const next = clone(save);
   const balance = walletBalance(next);
@@ -209,17 +209,20 @@ export function applyDiamondSpend(
       break;
     }
     case "gold": {
-      const pack = GOLD_PACKS.find((p) => p.id === req.itemId)!;
+      const pack = GOLD_PACKS.find((p) => p.id === req.itemId);
+      if (!pack) throw new Error("Unknown gold pack.");
       next.gold += pack.gold;
       break;
     }
     case "vip": {
-      const plan = vipPlanFor(Number(req.itemId))!;
+      const plan = vipPlanFor(Number(req.itemId));
+      if (!plan) throw new Error("Unknown VIP plan.");
       extendMembership(next, plan.level, plan.days, now);
       break;
     }
     case "item": {
-      const item = DIAMOND_SHOP.find((i) => i.id === req.itemId)!;
+      const item = DIAMOND_SHOP.find((i) => i.id === req.itemId);
+      if (!item) throw new Error("Unknown shop item.");
       if (item.kind === "cosmetic") {
         const owned = next.srv?.cosmetics ?? [];
         if (owned.includes(item.id)) throw new Error("Already owned.");

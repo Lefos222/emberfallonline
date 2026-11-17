@@ -32,7 +32,7 @@ export const claimVipDaily = () => premiumCall("vip-daily", "claim_vip_daily", {
 export const payBlitzSkip = () => premiumCall("blitz-skip", "skip_blitz", {});
 
 /** Diamond services priced and debited by the server's `premium_service` RPC. */
-export const SERVICE_PRICES = { gender_card: 500, name_card: 700, shop_refresh: 50, arena_duel: 50, black_market_refresh: 50 } as const;
+export const SERVICE_PRICES = { gender_card: 550, name_card: 770, shop_refresh: 55, arena_duel: 55, black_market_refresh: 55 } as const;
 export type ServiceKind = keyof typeof SERVICE_PRICES | "black_market_refresh" | `mount_${string}`;
 
 export async function buyService(kind: ServiceKind, value?: string) {

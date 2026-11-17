@@ -9,6 +9,13 @@ import type { ContentRow } from "./content-i18n";
  * here yet simply stays English instead of showing a placeholder.
  */
 export const UI_TEXT: Record<string, ContentRow> = {
+  "per spin": ["ανά περιστροφή", "za obrót"],
+  "Spin": ["Περιστροφή", "Zakręć"],
+  "Test payments only — no real charges or game rewards.": ["Μόνο δοκιμαστικές πληρωμές — χωρίς πραγματικές χρεώσεις ή ανταμοιβές.", "Tylko płatności testowe — bez prawdziwych opłat i nagród."],
+  "Live payments are not open yet.": ["Οι πραγματικές πληρωμές δεν είναι ακόμη διαθέσιμες.", "Prawdziwe płatności nie są jeszcze dostępne."],
+  "Test purchase verified. Your real game balance is unchanged.": ["Η δοκιμαστική αγορά επιβεβαιώθηκε. Το πραγματικό υπόλοιπό σας δεν άλλαξε.", "Zakup testowy potwierdzony. Prawdziwe saldo gry pozostaje bez zmian."],
+  "Check payment": ["Έλεγχος πληρωμής", "Sprawdź płatność"],
+  "Payment confirmed — your purchase is in your account.": ["Η πληρωμή επιβεβαιώθηκε — η αγορά είναι στον λογαριασμό σας.", "Płatność potwierdzona — zakup jest na Twoim koncie."],
   "Ember Marks": ["Σήματα Χόβολης", "Znaki Żaru"],
   "Eclipse Seals": ["Σφραγίδες Έκλειψης", "Pieczęcie Zaćmienia"],
   "Ashen Citadel": ["Σταχτιά Ακρόπολη", "Popielna Cytadela"],

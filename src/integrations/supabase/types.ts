@@ -1752,6 +1752,57 @@ export type Database = {
           },
         ]
       }
+      payment_orders: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          delivered_at: string | null
+          diamonds: number
+          environment: string
+          hero_id: string
+          item_id: string
+          kind: string
+          paid_at: string | null
+          session_id: string
+          status: string
+          user_id: string
+          vip_level: number
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          delivered_at?: string | null
+          diamonds?: number
+          environment: string
+          hero_id: string
+          item_id: string
+          kind: string
+          paid_at?: string | null
+          session_id: string
+          status?: string
+          user_id: string
+          vip_level?: number
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          delivered_at?: string | null
+          diamonds?: number
+          environment?: string
+          hero_id?: string
+          item_id?: string
+          kind?: string
+          paid_at?: string | null
+          session_id?: string
+          status?: string
+          user_id?: string
+          vip_level?: number
+        }
+        Relationships: []
+      }
       purchases: {
         Row: {
           created_at: string
@@ -2403,8 +2454,24 @@ export type Database = {
       my_guild_ids: { Args: never; Returns: string[] }
       my_hero_count: { Args: never; Returns: number }
       my_hero_ids: { Args: never; Returns: string[] }
+      payment_deliver: {
+        Args: { _env: string; _paid_at: string; _session: string }
+        Returns: Json
+      }
       player_castle_raid: {
         Args: { _hero: string; _req: string; _target: string; _won: boolean }
+        Returns: Json
+      }
+      premium_commit_spend: {
+        Args: {
+          _after: Json
+          _before: Json
+          _hero: string
+          _item: string
+          _owner: string
+          _price: number
+          _req: string
+        }
         Returns: Json
       }
       premium_service: {

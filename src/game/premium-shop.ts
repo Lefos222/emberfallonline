@@ -1,7 +1,8 @@
+import { getStripeEnvironment } from "@/lib/stripe";
 import type { ChestKind } from "./chests";
 import type { GemType } from "./crafting";
 import type { DiamondMat } from "./economy";
-import { confirmCheckout, spendDiamonds, startCheckout } from "./payments.functions";
+import { confirmCheckout, pendingCheckouts, spendDiamonds, startCheckout } from "./payments.functions";
 import { requestKey, returnedSave } from "./services-contract";
 import { adoptServerSave, getState, withServerHero } from "./store";
 
@@ -64,6 +65,7 @@ async function spend(
     const result = await spendDiamonds({
       data: { kind, itemId, qty, requestId: req, heroId: id },
     });
+    if ("error" in result) throw new Error(result.error);
     adoptServerSave(id, returnedSave(result));
   });
   localStorage.removeItem(`ef-pending:${id}:${op}`);
@@ -73,7 +75,8 @@ async function spend(
 export async function confirmCardPurchase(sessionId: string) {
   const id = heroId();
   const result = await withServerHero(async () => {
-    const value = await confirmCheckout({ data: { sessionId } });
+    const value = await confirmCheckout({ data: { sessionId, environment: getStripeEnvironment() } });
+    if ("error" in value) throw new Error(value.error);
     adoptServerSave(id, returnedSave(value));
     return value;
   });
@@ -84,11 +87,10 @@ export async function confirmCardPurchase(sessionId: string) {
 /** Re-check every pending session (the player may have closed the tab before returning). */
 export async function reconcilePendingPurchases(): Promise<number> {
   let credited = 0;
-  for (const pending of readPending()) {
-    if (Date.now() - pending.at > 24 * 3_600_000) {
-      forgetSession(pending.id);
-      continue;
-    }
+  let remote: PendingSession[] = [];
+  try { const result = await pendingCheckouts({data:{environment:getStripeEnvironment()}}); if (result.orders) remote=result.orders.filter(o=>o.hero_id===heroId()).map(o=>({id:o.session_id,at:Date.now()})); } catch {}
+  for (const pending of [...readPending(), ...remote]) {
+
     try {
       const result = await confirmCardPurchase(pending.id);
       if (result && !result.already) credited += 1;
@@ -99,23 +101,14 @@ export async function reconcilePendingPurchases(): Promise<number> {
   return credited;
 }
 
-async function startCard(kind: "diamonds" | "vip", itemId: string): Promise<string | null> {
-  try {
-    const session = await startCheckout({ data: { kind, itemId, heroId: heroId() } });
-    rememberSession(session.sessionId);
-    // A hosted Checkout page cannot be framed, so open it as its own page/tab.
-    const opened = window.open(session.url, "_blank", "noopener,noreferrer");
-    if (!opened) window.location.assign(session.url);
-    return null;
-  } catch (error) {
-    return message(error);
-  }
+export async function startCard(kind: "diamonds" | "vip", itemId: string) {
+ const result=await startCheckout({data:{kind,itemId,heroId:heroId(),environment:getStripeEnvironment()}});
+ if ("error" in result) throw new Error(result.error);
+ rememberSession(result.sessionId);
+ return result;
 }
-
-/** Buy a Diamond pack with a card (Stripe Checkout, server-verified). */
-export const buyDiamondPack = (id: string) => startCard("diamonds", id);
-/** Buy one month of VIP with a card. */
-export const buyVipWithCard = (level: number) => startCard("vip", String(level));
+export const buyDiamondPack = (id: string) => startCard("diamonds",id);
+export const buyVipWithCard = (level: number) => startCard("vip",String(level));
 
 export const buyGoldPack = (id: string): Promise<string | null> =>
   spend("gold", id).then(() => null, message);

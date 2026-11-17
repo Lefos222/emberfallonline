@@ -16,7 +16,7 @@ import { VIP_DAYS, vipBlitzFactor, vipPrice } from "../game/vip-perks";
 
 describe("premium economy configuration", () => {
   it("prices the five Diamond packs 10% above the old tiers", () => {
-    expect(DIAMOND_PACKS.map((p) => p.priceCents)).toEqual([1099, 2199, 3299, 5499, 10999]);
+    expect(DIAMOND_PACKS.map((p) => p.priceCents)).toEqual([1209, 2419, 3629, 6049, 12099]);
     for (const p of DIAMOND_PACKS) {
       expect(Number.isInteger(p.priceCents)).toBe(true);
       expect(p.diamonds).toBeGreaterThan(0);
@@ -31,11 +31,11 @@ describe("premium economy configuration", () => {
       expect(p.gold).toBeGreaterThan(0);
     }
     expect(GOLD_PACKS.map((p) => p.id)).toEqual(["pouch", "coffer", "royal", "imperial"]);
-    expect(GOLD_PACKS.map((p) => p.diamonds)).toEqual([55, 242, 825, 2200]);
+    expect(GOLD_PACKS.map((p) => p.diamonds)).toEqual([61, 267, 908, 2420]);
   });
 
   it("keeps small stones at six diamonds", () => {
-    expect(GEM_TIER_PRICES[0]).toBe(6);
+    expect(GEM_TIER_PRICES[0]).toBe(7);
     expect(GEM_TIER_PRICES[1]).toBeGreaterThan(GEM_TIER_PRICES[0]);
     expect(GEM_TIER_PRICES[2]).toBeGreaterThan(GEM_TIER_PRICES[1]);
   });
@@ -70,7 +70,7 @@ describe("premium economy configuration", () => {
       expect(plan.shopDiscountPct).toBeGreaterThan(prev.shopDiscountPct);
     }
     // The membership carries the extra VIP premium over the shop-wide rise.
-    expect(VIP_PLANS[0].diamonds).toBe(129);
+    expect(VIP_PLANS[0].diamonds).toBe(142);
   });
 
   it("discounts Diamond prices and shortens blitzes for members", () => {
