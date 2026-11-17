@@ -31,6 +31,8 @@ import { beginScrollBattle, trackActivity } from "./services";
 import { battleLockedByBlitz, settleBlitzRun } from "./blitz-run";
 import { scrollFighter } from "./scrolls";
 import castle from "@/assets/castle.jpg.asset.json";
+import winterCastle from "@/assets/castle-winter.webp.asset.json";
+import { useWinterCastle } from "./castle-season";
 import gateCampaign from "@/assets/gate-campaign.webp";
 import gateDungeon from "@/assets/gate-dungeon.webp";
 import gateConquest from "@/assets/gate-conquest.webp";
@@ -775,6 +777,7 @@ function castleClamp(el: HTMLDivElement | null, x: number, y: number) {
 /** The castle with its building hotspots; exported so the label layout can be checked. */
 export function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
   const t = useT();
+  const winter = useWinterCastle();
   const lang = useLang();
   const [hover, setHover] = useState<string | null>(null);
   const map = useRef<HTMLDivElement>(null);
@@ -888,7 +891,7 @@ export function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
         style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}
       >
         <img
-          src={castle.url}
+          src={winter ? winterCastle.url : castle.url}
           alt={tr("Blood moon castle")}
           className="absolute inset-0 h-full w-full select-none"
           draggable={false}

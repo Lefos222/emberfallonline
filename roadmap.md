@@ -1,4 +1,5 @@
 # Roadmap (current request)
+- [x] Nov 17: Snowy castle artwork through December 31, 2026; original returns January 1, 2027 UTC without save changes.
 - [x] Nov 11, 08:23: Restore the pre-quest-update World Tree screen; preserve map, raid systems and saved progress.
 - [x] Nov 11, 01:28: Health/resource values inside combat balls; remove duplicate bottom Guide shortcut.
 - [x] Nov 11, 01:28: Four active and four passive additions per class; rank-scaled mage party healing.
