@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from "react";
-import { Play, SkipForward } from "lucide-react";
+import { useEffect, useState } from "react";
+import { SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AstrionLogo } from "./Logo";
 
-/** Called inside a user gesture so browsers allow the studio sound. */
+/** Best-effort autoplay; browsers may keep audio suspended without a gesture. */
 function playIntroSound() {
   try {
     const ctx = new AudioContext();
-    void ctx.resume();
+    void ctx.resume().catch(() => {});
     const out = ctx.createGain();
     out.gain.value = 0.25;
     out.connect(ctx.destination);
@@ -29,28 +29,19 @@ function playIntroSound() {
 
 /** Reusable studio sequence at every game opening, independent of player saves. */
 export function AstrionIntro({ onDone }: { onDone: () => void }) {
-  const [started, setStarted] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const stopAudio = useRef<(() => void) | undefined>(undefined);
-  const start = () => {
-    if (started) return;
-    stopAudio.current = playIntroSound();
-    setStarted(true);
-  };
-  useEffect(() => () => stopAudio.current?.(), []);
   useEffect(() => {
-    if (!started) return;
+    const stopAudio = playIntroSound();
     const fade = window.setTimeout(() => setLeaving(true), 3400);
     const done = window.setTimeout(onDone, 4000);
-    return () => { window.clearTimeout(fade); window.clearTimeout(done); };
-  }, [started, onDone]);
+    return () => { window.clearTimeout(fade); window.clearTimeout(done); stopAudio(); };
+  }, [onDone]);
   return (
-    <div role="dialog" aria-label="Astrion Entertainment intro" aria-modal="true" className={`astrion astr-intro ${started ? "astr-intro-playing" : ""} ${leaving ? "astr-intro-out" : ""}`}>
-      {started && <div className="astr-intro-ring" aria-hidden="true" />}
+    <div role="dialog" aria-label="Astrion Entertainment intro" aria-modal="true" className={`astrion astr-intro astr-intro-playing ${leaving ? "astr-intro-out" : ""}`}>
+      <div className="astr-intro-ring" aria-hidden="true" />
       <div className="astr-intro-logo"><AstrionLogo size={150} /></div>
       <div className="astr-intro-name">ASTRION <span className="astr-accent">ENTERTAINMENT</span></div>
       <div className="astr-intro-sub astr-muted">presents</div>
-      {!started && <Button autoFocus className="astr-intro-start" onClick={start}><Play /> Enter game</Button>}
       <Button variant="ghost" className="astr-intro-skip" onClick={onDone}><SkipForward /> Skip intro</Button>
     </div>
   );
