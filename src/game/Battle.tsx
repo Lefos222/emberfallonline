@@ -145,7 +145,7 @@ export function Battle({ left, right, auto = false, onEnd, title, gate = false }
           cls: a?.cls,
           skill: named,
           kind: e.kind,
-          element: effectFor(named) ?? (a?.cls === "archer" ? "arrow" : a?.cls === "mage" ? "arcane" : "slash"),
+          element: e.kind === "heal" ? "heal" : e.kind === "block" || e.kind === "absorb" ? "shield" : effectFor(named) ?? (a?.cls === "archer" ? "arrow" : a?.cls === "mage" ? "arcane" : "slash"),
         });
         setFloats((f) => [...f, { id, tgt: target, text: e.text, kind: e.kind }]);
         setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 1100);
