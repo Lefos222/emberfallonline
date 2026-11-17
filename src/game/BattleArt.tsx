@@ -88,6 +88,7 @@ const SHAPE_PAINT: Record<string, string> = { blade: slashFx, cross: slashFx, fa
 export function SkillImpact({ fx }: { fx: { shape: string; motion: string; hue: string } }) {
   const paint = SHAPE_PAINT[fx.shape];
   return (<>
+    <i className={"fx-bloom fx-bloom-" + fx.motion} aria-hidden="true" style={{ color: fx.hue }} />
     {paint && <img src={paint} alt="" aria-hidden="true" draggable={false} className={`combat-effect combat-paint fx-${fx.motion}`} />}
     <svg
       className={`combat-effect skill-fx fx-${fx.motion}`}
