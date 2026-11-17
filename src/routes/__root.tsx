@@ -1,3 +1,4 @@
+import { AstrionBadge } from "@/astrion/Badge";
 import { t } from "@/game/i18n";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -134,6 +135,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <AstrionBadge />
     </QueryClientProvider>
   );
 }
