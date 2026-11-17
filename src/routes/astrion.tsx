@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Gamepad2, Zap, Users, Menu, X, ArrowRight, Sparkles, Mail } from "lucide-react";
+import { Gamepad2, Zap, Users, Menu, X, ArrowRight, Sparkles } from "lucide-react";
 import { GAMES } from "@/astrion/games";
 import { AstrionLogo } from "@/astrion/Logo";
 
@@ -189,7 +189,7 @@ function AstrionPage() {
           <p className="mx-auto mt-4 max-w-lg astr-muted">Start your adventure in EmberFall Online today, and keep an eye out for our next worlds.</p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <a href="/" className="astr-btn inline-flex items-center gap-2 rounded-full px-8 py-3 font-semibold"><Gamepad2 size={18} /> Play EmberFall</a>
-            <a href="#games" className="astr-ghost inline-flex items-center gap-2 rounded-full px-8 py-3 font-semibold"><Mail size={18} /> See all games</a>
+            <a href="#games" className="astr-ghost inline-flex items-center gap-2 rounded-full px-8 py-3 font-semibold"><Sparkles size={18} /> See all games</a>
           </div>
         </div>
       </section>
