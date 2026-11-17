@@ -41,6 +41,31 @@ function AstrionPage() {
         <a href="#games" className="astr-btn mt-8 inline-block rounded-full px-8 py-3 font-semibold">Browse games</a>
       </section>
 
+      <section className="mx-auto grid max-w-6xl gap-4 px-6 sm:grid-cols-3">
+        {[
+          ["Instant play", "Every game runs in your browser on PC and phone. Nothing to install."],
+          ["Free to start", "Make an account and jump straight in. Progress saves to the cloud."],
+          ["Built with players", "We are a small team that listens, updates often and adds new worlds."],
+        ].map(([t, d]) => (
+          <div key={t} className="astr-card rounded-2xl p-5">
+            <h3 className="text-lg font-bold astr-accent">{t}</h3>
+            <p className="mt-2 text-sm astr-muted">{d}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="mx-auto mt-16 max-w-6xl px-6">
+        <div className="astr-card grid overflow-hidden rounded-3xl md:grid-cols-2">
+          <img src={GAMES[0].cover} alt={GAMES[0].title} className="h-full min-h-56 w-full object-cover" />
+          <div className="p-8">
+            <p className="text-xs uppercase tracking-widest astr-accent">Featured game</p>
+            <h2 className="mt-2 text-3xl font-bold">{GAMES[0].title}</h2>
+            <p className="mt-3 astr-muted">A fantasy MMORPG with castles, guild wars, dungeons, live arena events and a long road to level 90 and beyond.</p>
+            <a href={GAMES[0].href} className="astr-btn mt-6 inline-block rounded-full px-6 py-2.5 font-semibold">Play {GAMES[0].title}</a>
+          </div>
+        </div>
+      </section>
+
       <section id="games" className="mx-auto max-w-6xl px-6 py-12">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <h2 className="text-3xl font-bold">Games catalogue</h2>
@@ -54,6 +79,7 @@ function AstrionPage() {
           </div>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {list.length === 0 && <p className="astr-muted">No games here yet.</p>}
           {list.map((g) => (
             <article key={g.id} className="astr-card overflow-hidden rounded-2xl">
               {g.cover ? (
