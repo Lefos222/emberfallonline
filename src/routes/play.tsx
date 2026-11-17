@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { Game } from "@/game/Game";
-import { AstrionIntro, INTRO_KEY } from "@/astrion/Intro";
+import { AstrionIntro } from "@/astrion/Intro";
 
 export const Route = createFileRoute("/play")({
   staticData: { sitemap: true },
@@ -20,12 +20,11 @@ export const Route = createFileRoute("/play")({
 
 function Play() {
   const [mounted, setMounted] = useState(false);
-  const [intro, setIntro] = useState(false);
+  const [intro, setIntro] = useState(true);
   useEffect(() => {
     setMounted(true);
-    if (!sessionStorage.getItem(INTRO_KEY)) { sessionStorage.setItem(INTRO_KEY, "1"); setIntro(true); }
   }, []);
   const done = useCallback(() => setIntro(false), []);
   if (!mounted) return <div className="min-h-screen bg-background" />;
-  return <>{intro && <AstrionIntro onDone={done} />}<Game /></>;
+  return intro ? <AstrionIntro onDone={done} /> : <Game />;
 }

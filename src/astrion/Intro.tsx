@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Play, SkipForward } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { AstrionLogo } from "./Logo";
 
-/** Synthesised shimmer + low swell so the intro needs no audio file. */
+/** Called inside a user gesture so browsers allow the studio sound. */
 function playIntroSound() {
   try {
-    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const ctx = new Ctx();
+    const ctx = new AudioContext();
+    void ctx.resume();
     const out = ctx.createGain();
     out.gain.value = 0.25;
     out.connect(ctx.destination);
@@ -20,29 +22,36 @@ function playIntroSound() {
       g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(0.35, s + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, s + 1.6);
       o.connect(g).connect(out); o.start(s); o.stop(s + 1.7);
     });
-    setTimeout(() => ctx.close(), 3500);
-  } catch { /* audio unavailable */ }
+    const timer = window.setTimeout(() => { void ctx.close(); }, 4000);
+    return () => { window.clearTimeout(timer); if (ctx.state !== "closed") void ctx.close(); };
+  } catch { return () => {}; }
 }
 
-/** Studio intro shown once per browser session before an Astrion game. Click or key to skip. */
+/** Reusable studio sequence at every game opening, independent of player saves. */
 export function AstrionIntro({ onDone }: { onDone: () => void }) {
+  const [started, setStarted] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const stopAudio = useRef<(() => void) | undefined>(undefined);
+  const start = () => {
+    if (started) return;
+    stopAudio.current = playIntroSound();
+    setStarted(true);
+  };
+  useEffect(() => () => stopAudio.current?.(), []);
   useEffect(() => {
-    playIntroSound();
-    const a = setTimeout(() => setLeaving(true), 3200);
-    const b = setTimeout(onDone, 3900);
-    const skip = () => { setLeaving(true); setTimeout(onDone, 500); };
-    window.addEventListener("keydown", skip);
-    return () => { clearTimeout(a); clearTimeout(b); window.removeEventListener("keydown", skip); };
-  }, [onDone]);
+    if (!started) return;
+    const fade = window.setTimeout(() => setLeaving(true), 3400);
+    const done = window.setTimeout(onDone, 4000);
+    return () => { window.clearTimeout(fade); window.clearTimeout(done); };
+  }, [started, onDone]);
   return (
-    <div className={`astrion astr-intro ${leaving ? "astr-intro-out" : ""}`} onClick={() => { setLeaving(true); setTimeout(onDone, 500); }}>
-      <div className="astr-intro-ring" />
+    <div role="dialog" aria-label="Astrion Entertainment intro" aria-modal="true" className={`astrion astr-intro ${started ? "astr-intro-playing" : ""} ${leaving ? "astr-intro-out" : ""}`}>
+      {started && <div className="astr-intro-ring" aria-hidden="true" />}
       <div className="astr-intro-logo"><AstrionLogo size={150} /></div>
       <div className="astr-intro-name">ASTRION <span className="astr-accent">ENTERTAINMENT</span></div>
       <div className="astr-intro-sub astr-muted">presents</div>
+      {!started && <Button autoFocus className="astr-intro-start" onClick={start}><Play /> Enter game</Button>}
+      <Button variant="ghost" className="astr-intro-skip" onClick={onDone}><SkipForward /> Skip intro</Button>
     </div>
   );
 }
-
-export const INTRO_KEY = "astrion.introSeen";
