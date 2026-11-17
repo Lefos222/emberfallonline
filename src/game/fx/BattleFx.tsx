@@ -296,7 +296,7 @@ export const BattleFxLayer = forwardRef<BattleFxHandle, { scene?: string; boss?:
             field.emit({
               count: 1,
               x: Math.random() * w,
-              y: h * (0.55 + Math.random() * 0.45),
+              y: h * (0.3 + Math.random() * 0.5),
               angle: -Math.PI / 2,
               spread: 0.6,
               speed: [0, 14],
