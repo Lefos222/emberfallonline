@@ -16,6 +16,7 @@ import { Sprite } from "./Sprite";
 import { SkillIcon } from "./SkillIcon";
 import { BattleCharacter, CombatEffect, SkillImpact, WeaponArc } from "./BattleArt";
 import { effectFor, moveFor, skillFx, type Move } from "./skillAnim";
+import { BattleFxLayer, type BattleFxHandle } from "./fx/BattleFx";
 import { SCROLLS } from "./scrolls";
 import { saveFastFights, readFastFights } from "./battle-prefs";
 import { Button } from "@/components/ui/button";
@@ -98,6 +99,7 @@ export function Battle({ left, right, auto = false, onEnd, title, gate = false }
     killsBefore.current = { ...getState().hero?.kills };
     collected.current = true;
   }, [right]);
+  const fx = useRef<BattleFxHandle>(null);
   const fid = useRef(0);
   const s = state.current;
   const hero = heroUnit(s);
@@ -116,7 +118,15 @@ export function Battle({ left, right, auto = false, onEnd, title, gate = false }
     setAnim({ [actorId]: "anim-" + move + "#" + ++fid.current });
     setMoves((m) => ({ ...m, [actorId]: move }));
     const kind = projectileFor(move, effectFor(sk) ?? undefined);
+    fx.current?.charge({ actor: actorId, cls: a?.cls, skill: sk, element: effectFor(sk) ?? undefined });
     if (kind && a) setProj({ kind, dir: a.side === "hero" ? "ltr" : "rtl", key: ++fid.current, cls: classOf(a.cls, move) });
+    if (kind && a) fx.current?.travel({
+      actor: a.id,
+      targets: events.filter((ev) => !!ev.tgt).map((ev) => ev.tgt as string),
+      cls: a.cls,
+      skill: sk,
+      element: effectFor(sk) ?? undefined,
+    });
     await wait(kind ? 420 : 280);
     setProj(null);
     for (const e of events) {
@@ -130,6 +140,13 @@ export function Battle({ left, right, auto = false, onEnd, title, gate = false }
           : e.kind === "block" || e.kind === "absorb" ? "shield"
           : effectFor(named) ?? (a?.cls === "archer" ? "arrow" : a?.cls === "mage" ? "arcane" : "slash");
         if (["dmg", "crit", "heal", "block", "absorb", "status"].includes(e.kind)) setEffects(m => ({ ...m, [target]: effect + "#" + id }));
+        fx.current?.impact({
+          targets: [target],
+          cls: a?.cls,
+          skill: named,
+          kind: e.kind,
+          element: e.kind === "heal" ? "heal" : e.kind === "block" || e.kind === "absorb" ? "shield" : effectFor(named) ?? (a?.cls === "archer" ? "arrow" : a?.cls === "mage" ? "arcane" : "slash"),
+        });
         setFloats((f) => [...f, { id, tgt: target, text: e.text, kind: e.kind }]);
         setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 1100);
         if (["dmg", "crit", "block"].includes(e.kind)) setAnim((m) => ({ ...m, [target]: (e.kind === "block" ? "anim-block" : "anim-hit") + "#" + id }));
@@ -275,6 +292,7 @@ export function Battle({ left, right, auto = false, onEnd, title, gate = false }
     <div className="battle-screen fixed inset-0 z-40 flex flex-col overflow-hidden bg-background anim-pop">
       <img src={bg} alt="" width={1920} height={1088} className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 vignette" />
+      <BattleFxLayer ref={fx} scene={title} boss={!!right.boss} />
 
       {/* Top bar: title + turn order */}
       <div className="safe-top relative z-10 flex flex-col items-center gap-2">
@@ -401,7 +419,7 @@ function UnitView({ u, anim, effect, move, victory, floats, active, targetable, 
       >
         {targetable && <div className={`absolute inset-x-4 bottom-0 h-6 rounded-full blur-md ${selected ? "bg-gold" : "bg-r1/70 animate-pulse"}`} />}
         {active && <div className="absolute inset-x-8 bottom-1 h-4 rounded-full bg-gold/50 blur-md" />}
-        <div key={anim ?? "idle"} className={`h-full w-full ${anim?.split("#")[0] ?? ""}`}>
+        <div key={anim ?? "idle"} data-unit={u.id} className={`h-full w-full ${anim?.split("#")[0] ?? ""}`}>
           {u.cls ? <div className={`h-full w-full ${victory ? "battle-victory" : "anim-idle"}`}><BattleCharacter u={u} /></div> : u.sprite ? <div className="flex h-full w-full items-end anim-idle"><Sprite rect={u.sprite} className="battle-sprite w-full" /></div> : <div className="battle-sprite h-full w-full anim-idle"><BattleCharacter u={u} /></div>}
           {move && <WeaponArc key={"arc" + move} move={move} />}
           {effect && (effect.startsWith("sk:") ? <SkillImpact key={effect} fx={skillFx(effect.slice(3).split("#")[0]) ?? { shape: "blade", motion: "burst", hue: "var(--gold)" }} /> : <CombatEffect key={effect} kind={effect.split("#")[0]} />)}
