@@ -1,4 +1,6 @@
 # Roadmap (current request)
+- [x] Nov 17, 15:18: Awakening shops, two earned currencies, three campaign fronts, rotating event and daily/weekly contracts; matching art and checks (seven-credit budget).
+- [ ] Nov 17, 15:18: Live Awakening win → currency → shop purchase check; blocked because the requesting account's only hero is level 31 (Awakening requires 90); never change player progression for testing.
 - [x] Nov 17: Snowy castle artwork through December 31, 2026; original returns January 1, 2027 UTC without save changes.
 - [x] Nov 11, 08:23: Restore the pre-quest-update World Tree screen; preserve map, raid systems and saved progress.
 - [x] Nov 11, 01:28: Health/resource values inside combat balls; remove duplicate bottom Guide shortcut.

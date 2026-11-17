@@ -7,6 +7,7 @@ import { scaledGold } from "./gold";
 import type { StartBattle } from "./panels";
 import type { Hero } from "./data";
 import { Sprite } from "./Sprite";
+import { AwakeningFrontiers, FrontierWallet } from './AwakeningFrontiers';
 import {
   ASPECTS, ASPECT_MAX, ASPECT_NAMES, ASPECT_SWAP, AWAKEN_LEVEL, ECHO_SPRITE, LATTICE, SET_BONUS, SET_NAME, SIGIL_FORGE,
   SIGIL_SETS, SIGIL_SLOTS, SLOT_BASE, SLOT_NAME, STAGES, STAGE_PCT, advanceStage, aspectMult, aspectRankCost, attuneNode,
@@ -56,7 +57,7 @@ export function Shards({ n }: { n: number }) {
   );
 }
 
-type Tab = "path" | "abyss" | "stars" | "raiment" | "lattice" | "aspect" | "sigils" | "trials" | "boost";
+type Tab = "path" | "abyss" | "stars" | "raiment" | "lattice" | "aspect" | "sigils" | "trials" | "boost" | "campaign" | "events" | "shops" | "contracts";
 
 /** The Awakening sanctum: the post-90 game. */
 export function AwakeningPanel({ onClose, start }: { onClose: () => void; start: StartBattle }) {
@@ -86,6 +87,10 @@ export function AwakeningPanel({ onClose, start }: { onClose: () => void; start:
   const tabs: { id: Tab; name: string }[] = [
     { id: "path", name: tr("Awakening path") },
     { id: "abyss", name: tr("Endless Abyss") },
+    { id: "campaign", name: tr("Frontier campaigns") },
+    { id: "events", name: tr("Hunts and incursions") },
+    { id: "shops", name: tr("Shops") },
+    { id: "contracts", name: tr("Contracts") },
     { id: "stars", name: tr("Constellation") },
     { id: "raiment", name: tr("Raiment") },
     { id: "lattice", name: tr("Soul Lattice") },
@@ -113,8 +118,10 @@ export function AwakeningPanel({ onClose, start }: { onClose: () => void; start:
           </div>
         </div>
       </div>
+      <div className="mb-3"><FrontierWallet /></div>
       <GameTabs label={tr("Awakening")} tabs={tabs} value={tab} onChange={(t) => { setTab(t); setNote(""); }} />
       {note && <div className="slot mb-3 p-2 text-center text-sm text-gold">{note}</div>}
+      {(tab === 'campaign' || tab === 'events' || tab === 'shops' || tab === 'contracts') && (locked(1) || <AwakeningFrontiers start={start} setNote={setNote} mode={tab} />)}
 
       {tab === "path" && (
         <div className="grid gap-2">

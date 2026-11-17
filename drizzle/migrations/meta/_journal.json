@@ -393,6 +393,13 @@
       "when": 1794693921501,
       "tag": "0055_awakening_boost_stamina_fix",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1794928844077,
+      "tag": "0056_awakening_frontiers",
+      "breakpoints": true
     }
   ]
 }

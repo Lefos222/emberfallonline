@@ -510,6 +510,7 @@ export interface Hero {
   /** Server-owned wallet and cosmetics. Written only by SECURITY DEFINER RPCs and the payment
    *  server, never by the client save. */
   srv?: {
+    awakeningExpansion?: import('./awakening-frontiers').FrontierState;
     friendship?: { roses?: number; points?: number };
     premium?: {
       balance?: number;
