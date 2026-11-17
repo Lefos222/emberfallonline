@@ -1,4 +1,4 @@
-import emberfallCover from "@/assets/arena-colosseum.jpg";
+import emberfallCover from "@/assets/cover-emberfall.jpg";
 
 /** Astrion Entertainment catalogue. Add a new entry here to list a new game. */
 export type AstrionGame = {
