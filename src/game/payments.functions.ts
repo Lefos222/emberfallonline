@@ -5,9 +5,12 @@ import {requireSupabaseAuth} from '@/integrations/supabase/auth-middleware';
 import {createStripeClient,getStripeErrorMessage} from '@/lib/stripe.server';
 import {cardProduct,deliverSession,resolveOrCreateCustomer,paymentWebhook} from './payment-delivery.server';
 import {applyDiamondSpend} from './premium-ledger';
+import {CARD_PAYMENTS_FLAG,CARD_PAYMENTS_PAUSED_MESSAGE,cardPaymentsEnabledFrom} from './payments-switch';
 import type {Hero} from './data';
-export const paymentStatus=createServerFn({method:'GET'}).middleware([requireSupabaseAuth]).handler(async()=>({configured: Boolean(process.env['STRIPE_SANDBOX_API_KEY'] || process.env['STRIPE_LIVE_API_KEY'])}));
+export const paymentStatus=createServerFn({method:'GET'}).middleware([requireSupabaseAuth]).handler(async()=>({configured: Boolean(process.env['STRIPE_SANDBOX_API_KEY'] || process.env['STRIPE_LIVE_API_KEY']),cardPayments: cardPaymentsEnabledFrom(process.env[CARD_PAYMENTS_FLAG])}));
 export const startCheckout=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(input=>z.object({kind:z.enum(['diamonds','vip']),itemId:z.string().min(1).max(40),heroId:z.string().uuid(),environment:z.enum(['sandbox','live'])}).parse(input)).handler(async({data,context})=>{
+ // No card purchase can be opened while the switch is off, whatever the client asks for.
+ if(!cardPaymentsEnabledFrom(process.env[CARD_PAYMENTS_FLAG])) return {error:CARD_PAYMENTS_PAUSED_MESSAGE};
  try {
   const {data:hero,error}=await context.supabase.from('heroes').select('id').eq('id',data.heroId).maybeSingle();
   if(error || !hero) throw new Error('Select your character before buying.');

@@ -4,6 +4,8 @@ import {SERVICE_PRICES} from '@/game/economy-services';
 import {MOUNTS} from '@/game/mounts';
 import {WHEEL_PRICE} from '@/game/wheel';
 import {applyCardPurchase,applyDiamondSpend} from '@/game/premium-ledger';
+import {CARD_PAYMENTS_FLAG,CARD_PAYMENTS_PAUSED_BUTTON,CARD_PAYMENTS_PAUSED_MESSAGE,cardPaymentsEnabledFrom} from '@/game/payments-switch';
+import {UI_TEXT} from '@/game/ui-i18n';
 import {newHero} from '@/game/data';
 describe('November premium rules',()=>{
  it('raises costs by 10% rounded up, without reducing purchased Diamonds',()=>{
@@ -27,5 +29,19 @@ describe('November premium rules',()=>{
  it('does not give expired VIP discounts',()=>{
   const h=newHero('Buyer','warrior');h.srv={premium:{balance:100,vip:{level:3,until:'2020-01-01T00:00:00Z'}}};
   expect(applyDiamondSpend(h,{kind:'chest',itemId:'gold'},'request').srv?.premium?.balance).toBe(27);
+ });
+ it('keeps card checkout closed unless the flag is exactly 1',()=>{
+  expect(CARD_PAYMENTS_FLAG).toBe('CARD_PAYMENTS_ENABLED');
+  expect(cardPaymentsEnabledFrom(undefined)).toBe(false);
+  expect(cardPaymentsEnabledFrom('')).toBe(false);
+  expect(cardPaymentsEnabledFrom('0')).toBe(false);
+  expect(cardPaymentsEnabledFrom('true')).toBe(false);
+  expect(cardPaymentsEnabledFrom('1')).toBe(true);
+ });
+ it('states the pause in Greek and Polish as well as English',()=>{
+  for(const phrase of [CARD_PAYMENTS_PAUSED_MESSAGE,CARD_PAYMENTS_PAUSED_BUTTON]){
+   expect(UI_TEXT[phrase],`missing translation row for "${phrase}"`).toHaveLength(2);
+   expect(UI_TEXT[phrase]?.[0]).not.toBe(phrase);
+  }
  });
 });

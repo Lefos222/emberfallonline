@@ -13,6 +13,8 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Spin": ["Περιστροφή", "Zakręć"],
   "Test payments only — no real charges or game rewards.": ["Μόνο δοκιμαστικές πληρωμές — χωρίς πραγματικές χρεώσεις ή ανταμοιβές.", "Tylko płatności testowe — bez prawdziwych opłat i nagród."],
   "Live payments are not open yet.": ["Οι πραγματικές πληρωμές δεν είναι ακόμη διαθέσιμες.", "Prawdziwe płatności nie są jeszcze dostępne."],
+  "Card purchases are paused — Diamonds still work.": ["Οι αγορές με κάρτα είναι σε παύση — τα Διαμάντια λειτουργούν κανονικά.", "Zakupy kartą są wstrzymane — Diamenty działają normalnie."],
+  "Card checkout paused": ["Η αγορα με κάρτα είναι σε παύση", "Płatność kartą wstrzymana"],
   "Test purchase verified. Your real game balance is unchanged.": ["Η δοκιμαστική αγορά επιβεβαιώθηκε. Το πραγματικό υπόλοιπό σας δεν άλλαξε.", "Zakup testowy potwierdzony. Prawdziwe saldo gry pozostaje bez zmian."],
   "Check payment": ["Έλεγχος πληρωμής", "Sprawdź płatność"],
   "Payment confirmed — your purchase is in your account.": ["Η πληρωμή επιβεβαιώθηκε — η αγορά είναι στον λογαριασμό σας.", "Płatność potwierdzona — zakup jest na Twoim koncie."],

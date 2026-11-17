@@ -1,5 +1,7 @@
 import { CardCheckout, PaymentTestModeBanner } from "./CardCheckout";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { paymentStatus } from "./payments.functions";
+import { CARD_PAYMENTS_PAUSED_BUTTON, CARD_PAYMENTS_PAUSED_MESSAGE } from "./payments-switch";
 import { SocialRewards } from "./SocialRewards";
 import { Button } from "@/components/ui/button";
 import { ArtIcon } from "./ArtIcon";
@@ -84,6 +86,19 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<Tab>("diamonds");
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
+  // Card checkout is closed until the server says the switch is on.
+  const [cardOpen, setCardOpen] = useState(false);
+  useEffect(() => {
+    let live = true;
+    void paymentStatus()
+      .then((status) => {
+        if (live) setCardOpen(status.cardPayments);
+      })
+      .catch(() => setCardOpen(false));
+    return () => {
+      live = false;
+    };
+  }, []);
 
   if (!hero) return null;
   const p = premiumState(hero);
@@ -112,7 +127,7 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
       });
   };
 
-  const openCard=async(kind:"diamonds"|"vip",id:string)=>{setBusy(`card:${id}`);setNotice(null);try {setCheckout(await (kind==="diamonds"?buyDiamondPack(id):buyVipWithCard(Number(id))));} catch(error){setNotice({ok:false,text:error instanceof Error?error.message:"Payment unavailable"});} finally {setBusy(null);}};
+  const openCard=async(kind:"diamonds"|"vip",id:string)=>{if(!cardOpen){setNotice({ok:false,text:tr(CARD_PAYMENTS_PAUSED_MESSAGE)});return;}setBusy(`card:${id}`);setNotice(null);try {setCheckout(await (kind==="diamonds"?buyDiamondPack(id):buyVipWithCard(Number(id))));} catch(error){setNotice({ok:false,text:error instanceof Error?error.message:"Payment unavailable"});} finally {setBusy(null);}};
 
   return (
     <Panel
@@ -123,6 +138,11 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
       wide
     >
       <PaymentTestModeBanner />
+      {!cardOpen && (
+        <p role="status" className="mb-3 rounded-md border border-gold/40 bg-gold/5 px-3 py-2 text-xs text-muted-foreground">
+          {tr(CARD_PAYMENTS_PAUSED_MESSAGE)}
+        </p>
+      )}
       {checkout ? <CardCheckout session={checkout} onClose={()=>setCheckout(null)} /> : <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <GameTabs
@@ -186,12 +206,16 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                   )}
                   <p className="mt-auto font-display text-lg text-gold">{money(pack.priceCents)}</p>
                   <Button
-                    disabled={busy !== null}
+                    disabled={busy !== null || !cardOpen}
                     onClick={() =>
                       void openCard("diamonds",pack.id)
                     }
                   >
-                    {busy === key ? tr("Opening checkout…") : tr("Buy with card")}
+                    {busy === key
+                      ? tr("Opening checkout…")
+                      : cardOpen
+                        ? tr("Buy with card")
+                        : tr(CARD_PAYMENTS_PAUSED_BUTTON)}
                   </Button>
                 </article>
               );
@@ -253,14 +277,16 @@ export function PremiumShop({ onClose }: { onClose: () => void }) {
                     <Button
                       className="w-full"
                       size="sm"
-                      disabled={busy !== null}
+                      disabled={busy !== null || !cardOpen}
                       onClick={() =>
                         void openCard("vip",String(plan.level))
                       }
                     >
                       {busy === cardKey
                         ? tr("Opening checkout…")
-                        : `Pay with card · ${money(plan.priceCents)}`}
+                        : cardOpen
+                          ? `Pay with card · ${money(plan.priceCents)}`
+                          : tr(CARD_PAYMENTS_PAUSED_BUTTON)}
                     </Button>
                     <Button
                       className="w-full"
