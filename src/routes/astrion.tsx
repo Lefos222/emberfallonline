@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Gamepad2, Zap, Users, Menu, X, ArrowRight, Sparkles } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Gamepad2, Zap, Users, Menu, X, ArrowRight, Sparkles, ArrowLeft, ArrowUp } from "lucide-react";
 import { GAMES } from "@/astrion/games";
 import { AstrionLogo } from "@/astrion/Logo";
 
@@ -40,16 +40,22 @@ function AstrionPage() {
   const [open, setOpen] = useState(false);
   const list = GAMES.filter((g) => filter === "all" || g.status === filter);
   useReveal();
+  const [scrolled, setScrolled] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const back = () => { if (window.history.length > 1) window.history.back(); else window.location.href = "/"; };
   const live = GAMES.filter((g) => g.status === "live").length;
   return (
-    <div className="astrion font-sans">
+    <div ref={root} className="astrion font-sans" onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 500)}>
       <div className="astr-stars" aria-hidden />
       <header className="astr-nav sticky top-0 z-20">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+          <button onClick={back} aria-label="Go back" className="astr-ghost rounded-full p-2"><ArrowLeft size={18} /></button>
           <a href="/astrion" className="flex items-center gap-3">
             <AstrionLogo />
             <span className="font-display text-lg font-bold tracking-widest">ASTRION<span className="astr-accent"> ENTERTAINMENT</span></span>
           </a>
+          </div>
           <nav className="hidden gap-7 text-sm astr-muted md:flex">
             {NAV.map(([h, l]) => <a key={h} href={h} className="astr-link">{l}</a>)}
           </nav>
@@ -194,6 +200,7 @@ function AstrionPage() {
         </div>
       </section>
 
+      <button aria-label="Back to top" onClick={() => root.current?.scrollTo({ top: 0, behavior: "smooth" })} className={`astr-btn astr-top ${scrolled ? "astr-show" : ""}`}><ArrowUp size={20} /></button>
       <footer className="border-t px-6 py-10 text-sm astr-muted" style={{ borderColor: "var(--astr-border)" }}>
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex items-center gap-3"><AstrionLogo size={28} /><span>© {new Date().getFullYear()} Astrion Entertainment. All rights reserved.</span></div>
