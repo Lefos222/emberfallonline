@@ -24,8 +24,10 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "EmberFall Online — Official Site" },
       { property: "og:description", content: "A dark-fantasy browser MMORPG: castles, guilds, bosses, Arena Clash and endless gear." },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: castle.url },
+      // Absolute so link previews work: the castle painting is served from this origin.
+      { property: "og:image", content: "https://emberfallonline.lovable.app/__l5e/assets-v1/ade9cabd-4b02-49f7-b6ef-4a1ff6e8fefa/castle.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://emberfallonline.lovable.app/__l5e/assets-v1/ade9cabd-4b02-49f7-b6ef-4a1ff6e8fefa/castle.jpg" },
     ],
   }),
   component: Home,
