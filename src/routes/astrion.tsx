@@ -35,7 +35,7 @@ function AstrionPage() {
       </header>
 
       <section className="mx-auto max-w-6xl px-6 py-20 text-center">
-        <AstrionLogo size={96} />
+        <div className="flex justify-center"><AstrionLogo size={96} /></div>
         <h1 className="mt-6 text-4xl font-bold md:text-6xl">Worlds you can play <span className="astr-accent">in your browser</span></h1>
         <p className="mx-auto mt-5 max-w-xl text-lg astr-muted">We are a small indie team that makes browser experiences. No downloads — just open a tab and play.</p>
         <a href="#games" className="astr-btn mt-8 inline-block rounded-full px-8 py-3 font-semibold">Browse games</a>
