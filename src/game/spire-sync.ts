@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { SpireBattle, SpireMember } from "./spire-party";
+import { collectCreature } from "./encounter-collection";
+import { update } from "./store";
 
 /**
  * The living room of a Spire party: one Supabase Realtime broadcast channel per party code.
@@ -46,15 +48,36 @@ export function openParty(code: string, onMessage: (m: PartyMsg) => void, onRead
   if (!code) return SILENT;
   try {
     const client = supabase as unknown as Realtime;
-    if (typeof client.channel !== "function") return SILENT;
+    const seen = new Set<string>();
+    const defeated = new Set<string>();
+    const collectMessage = (message: PartyMsg) => {
+      if (message.kind === "begin") { seen.clear(); defeated.clear(); return; }
+      if (message.kind !== "tick") return;
+      const fight = message.battle;
+      const fresh = fight.foes.filter(f => !seen.has(f.uid) || (f.hp <= 0 && !defeated.has(f.uid)));
+      if (!fresh.length) return;
+      update(h => {
+        for (const foe of fresh) {
+          const dead = foe.hp <= 0 && !defeated.has(foe.uid);
+          collectCreature(h, { ...foe, level: fight.floor }, dead);
+          seen.add(foe.uid);
+          if (dead) defeated.add(foe.uid);
+        }
+      });
+    };
+    if (typeof client.channel !== "function") return { live: false, send: collectMessage, close: () => {} };
     const channel = client.channel(`spire-party-${code}`, { config: { broadcast: { self: false } } });
     channel.on("broadcast", { event: "msg" }, (payload) => {
       const body = payload?.payload as PartyMsg | undefined;
-      if (body && typeof body === "object" && typeof body.kind === "string") onMessage(body);
+      if (body && typeof body === "object" && typeof body.kind === "string") {
+        collectMessage(body);
+        onMessage(body);
+      }
     });
     const link: PartyLink = {
       live: true,
       send: (m) => {
+        collectMessage(m);
         try {
           channel.send({ type: "broadcast", event: "msg", payload: m });
         } catch {

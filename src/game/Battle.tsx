@@ -19,6 +19,8 @@ import { effectFor, moveFor, skillFx, type Move } from "./skillAnim";
 import { SCROLLS } from "./scrolls";
 import { saveFastFights, readFastFights } from "./battle-prefs";
 import { Button } from "@/components/ui/button";
+import { collectCreature, settleCreatureDefeats } from "./encounter-collection";
+import { getState, update } from "./store";
 import {
   current, drinkPotion, paceGateBattle, enemyAct, formation, heroUnit, initBattle, playerAct, resourceName, skillReady, STATUS_LABEL, upcoming, validTargets,
   type BattleState, type CEvent, type FighterInput, type TSkill, type Unit,
@@ -60,7 +62,7 @@ export function arenaFor(title: string | undefined, boss?: boolean) {
 }
 
 export function Battle({ left, right, auto = false, onEnd, title, gate = false }: {
-  left: Fighter; right: Fighter; auto?: boolean; onEnd: (won: boolean) => void; title?: string;
+  left: Fighter; right: Fighter; auto?: boolean; onEnd: (won: boolean) => void | Promise<void>; title?: string;
   /** A War Gate monster fight: paced to about 10-15 s. */
   gate?: boolean;
 }) {
@@ -86,6 +88,16 @@ export function Battle({ left, right, auto = false, onEnd, title, gate = false }
   const [err, setErr] = useState<string | null>(null);
   const busy = useRef(false);
   const ended = useRef(false);
+  const collected = useRef(false);
+  const killsBefore = useRef<Record<string, number>>({});
+  useEffect(() => {
+    if (collected.current) return;
+    update(h => {
+      for (const foe of formation(right)) collectCreature(h, foe);
+    });
+    killsBefore.current = { ...getState().hero?.kills };
+    collected.current = true;
+  }, [right]);
   const fid = useRef(0);
   const s = state.current;
   const hero = heroUnit(s);
@@ -133,7 +145,11 @@ export function Battle({ left, right, auto = false, onEnd, title, gate = false }
     if (ended.current || !s.over) return;
     ended.current = true;
     rerender();
-    setTimeout(() => onEnd(s.over === "won"), fast ? 600 : 1100);
+    setTimeout(() => {
+      void Promise.resolve(onEnd(s.over === "won")).then(() => {
+        update(h => settleCreatureDefeats(h, s.units.filter(u => u.side === "foe" && u.hp <= 0), killsBefore.current));
+      });
+    }, fast ? 600 : 1100);
   }
 
   /** Pacing is a device preference: the next fight starts the way this one was left. */
@@ -354,7 +370,7 @@ export function Battle({ left, right, auto = false, onEnd, title, gate = false }
 }
 
 function UnitView({ u, anim, effect, move, victory, floats, active, targetable, selected, onClick, small }: {
-  u: Unit; anim?: string; effect?: string; move?: Move; victory?: boolean; floats: Float[]; active?: boolean; targetable?: boolean; selected?: boolean; onClick?: () => void; small?: boolean;
+  u: Unit; anim?: string; effect?: string; move?: Move; victory?: boolean; floats?: Float[]; active?: boolean; targetable?: boolean; selected?: boolean; onClick?: () => void; small?: boolean;
 }) {
   const dead = u.hp <= 0;
   const h = u.boss ? "battle-figure boss-figure" : small ? "battle-figure small-figure" : "battle-figure";
@@ -390,7 +406,7 @@ function UnitView({ u, anim, effect, move, victory, floats, active, targetable, 
           {move && <WeaponArc key={"arc" + move} move={move} />}
           {effect && (effect.startsWith("sk:") ? <SkillImpact key={effect} fx={skillFx(effect.slice(3).split("#")[0]) ?? { shape: "blade", motion: "burst", hue: "var(--gold)" }} /> : <CombatEffect key={effect} kind={effect.split("#")[0]} />)}
         </div>
-        {floats.filter((f) => f.tgt === u.id).map((f, i) => (
+        {floats?.filter((f) => f.tgt === u.id).map((f, i) => (
           <div key={f.id} className={`pointer-events-none absolute left-1/2 anim-float whitespace-nowrap font-display font-black drop-shadow-[0_2px_2px_black] ${
             f.kind === "crit" ? "text-4xl text-gold" : f.kind === "heal" ? "text-2xl text-r1" : f.kind === "miss" || f.kind === "skip" ? "text-xl text-muted-foreground" : f.kind === "block" || f.kind === "absorb" ? "text-2xl text-r2" : f.kind === "status" || f.kind === "info" ? "text-sm text-r4" : "text-3xl text-foreground"
           }`} style={{ top: `${15 + (i % 3) * 10}%` }}>{f.text}</div>
@@ -412,7 +428,7 @@ function projectileFor(move: Move, effect?: string): string | null {
 /** The wind-up style: the actor's class, or for monsters the class their move resembles. */
 function classOf(cls: string | null | undefined, move: Move): string {
   if (cls === "mage" || cls === "archer" || cls === "warrior") return cls;
-  if (["draw", "rapid", "aim"].includes(move)) return "archer";
+  if (["draw", "rapid", "aim"].includes(move)) return "mage";
   if (["cast", "thrust", "nova", "rise", "channel", "siphon"].includes(move)) return "mage";
   return "warrior";
 }
