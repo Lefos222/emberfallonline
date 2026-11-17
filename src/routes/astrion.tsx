@@ -201,7 +201,7 @@ function AstrionPage() {
       </section>
 
       <button aria-label="Back to top" onClick={() => root.current?.scrollTo({ top: 0, behavior: "smooth" })} className={`astr-btn astr-top ${scrolled ? "astr-show" : ""}`}><ArrowUp size={20} /></button>
-      <footer className="border-t px-6 py-10 text-sm astr-muted" style={{ borderColor: "var(--astr-border)" }}>
+      <footer className="border-t px-6 pb-20 pt-10 md:pb-10 md:pr-20 text-sm astr-muted" style={{ borderColor: "var(--astr-border)" }}>
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex items-center gap-3"><AstrionLogo size={28} /><span>© {new Date().getFullYear()} Astrion Entertainment. All rights reserved.</span></div>
           <nav className="flex gap-6">{NAV.map(([h, l]) => <a key={h} href={h} className="astr-link">{l}</a>)}</nav>
