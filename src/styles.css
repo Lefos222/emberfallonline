@@ -321,6 +321,10 @@
 @utility anim-pop { animation: pop-in 0.25s ease-out; }
 @utility anim-ember { animation: ember linear infinite; }
 
+@keyframes snowfall { 0% { transform: translate3d(0, -5vh, 0); } 50% { transform: translate3d(20px, 50vh, 0); } 100% { transform: translate3d(-10px, 105vh, 0); } }
+@utility anim-snow { animation: snowfall linear infinite; }
+.snowflake { top: 0; border-radius: 9999px; background: oklch(0.98 0.01 240); box-shadow: 0 0 6px oklch(0.98 0.01 240 / 70%); }
+
 @keyframes cast-glow { 0%,100% { filter: none; transform: translateY(0); } 40% { filter: brightness(1.6) drop-shadow(0 0 24px var(--r3)); transform: translateY(-8px); } }
 @keyframes block-flash { 0%,100% { filter: none; } 30% { filter: brightness(1.8) drop-shadow(0 0 18px var(--r2)); transform: translateX(-4px); } }
 @utility anim-cast { animation: cast-glow 0.5s ease-out; }

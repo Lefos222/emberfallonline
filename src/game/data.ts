@@ -552,6 +552,8 @@ export interface Hero {
   buildings?: Record<string, number>;
   /** The Gold Mine: its upgrade level and the gold its cart has banked since the hero last collected (see mine.ts). */
   mine?: MineState;
+  /** Christmas snow chest: snowballs held and when the chest was last opened (see snow-chest.ts). */
+  snow?: { balls: number; chestAt?: number };
   /** The banner this hero planted on the world map; every lord can read it (see worldcastles.ts). */
   worldCastle?: { x: number; y: number; at: string; fort?: number };
   /** World Tree: today's bounty ledger and the sealed vaults already broken (see worldtree.ts). */
