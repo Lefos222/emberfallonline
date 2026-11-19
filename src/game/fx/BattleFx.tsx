@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { ParticleField } from "./particles";
 import { preloadFx, texture } from "./textures";
 import { ambienceFor, sceneFor, styleFor } from "./choreo";
@@ -45,8 +45,6 @@ export const BattleFxLayer = forwardRef<BattleFxHandle, { scene?: string; boss?:
     const lastRef = useRef(0);
     const moteRef = useRef(0);
     const ambienceRef = useRef(ambienceFor(sceneFor(props.scene, props.boss)));
-    const flashKeyRef = useRef(0);
-    const [flash, setFlash] = useState<{ key: number; color: string } | null>(null);
 
     const rectOf = (id?: string): Rect | null => {
       if (!id) return null;
@@ -57,22 +55,9 @@ export const BattleFxLayer = forwardRef<BattleFxHandle, { scene?: string; boss?:
       return { x: r.left + r.width / 2, y: r.top + r.height * 0.56, w: r.width, h: r.height };
     };
 
-    const shake = (px: number) => {
-      if (px <= 0 || prefersReduced()) return;
-      const screen = document.querySelector(".battle-screen") as HTMLElement | null;
-      if (!screen) return;
-      screen.style.setProperty("--fx-shake", px + "px");
-      screen.classList.remove("fx-shake");
-      void screen.offsetWidth;
-      screen.classList.add("fx-shake");
-      window.setTimeout(() => screen.classList.remove("fx-shake"), 420);
-    };
-
-    const pop = (color: string) => {
-      if (prefersReduced()) return;
-      flashKeyRef.current += 1;
-      setFlash({ key: flashKeyRef.current, color });
-    };
+    // Screen shake and full-screen skill flashes are disabled by request.
+    const shake = (_px: number) => {};
+    const pop = (_color: string) => {};
 
     const charge = (o: CueOpts) => {
       const f = fieldRef.current;
@@ -327,9 +312,7 @@ export const BattleFxLayer = forwardRef<BattleFxHandle, { scene?: string; boss?:
 
     return (
       <>
-        <div className="battle-fx-haze" aria-hidden="true" />
         <canvas ref={canvasRef} className="battle-fx-layer" aria-hidden="true" />
-        {flash && <div key={flash.key} className="battle-fx-flash" style={{ backgroundColor: flash.color }} aria-hidden="true" />}
       </>
     );
   },
