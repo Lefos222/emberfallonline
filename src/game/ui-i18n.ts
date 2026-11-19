@@ -9,6 +9,21 @@ import type { ContentRow } from "./content-i18n";
  * here yet simply stays English instead of showing a placeholder.
  */
 export const UI_TEXT: Record<string, ContentRow> = {
+  // The Wartune-style windows: Inventory, Blacksmith and Astral.
+  "Equipment": ["Εξοπλισμός", "Ekwipunek"],
+  "Enchant": ["Γοητεία", "Zaklinanie"],
+  "Luck Stone": ["Πέτρα Τύχης", "Kamień Szczęścia"],
+  "Required Gold": ["Απαιτούμενο Χρυσάφι", "Wymagane Złoto"],
+  "Success Rate": ["Πιθανότητα Επιτυχίας", "Szansa Powodzenia"],
+  "More Info": ["Περισσότερα", "Więcej informacji"],
+  "Intellect": ["Νοημοσύνη", "Intelekt"],
+  "Penetration": ["Διείσδυση", "Przebicie"],
+  "Lvl.": ["Επ.", "Poz."],
+  "Attributes": ["Ιδιότητες", "Atrybuty"],
+  "Change Title": ["Αλλαγή Τίτλου", "Zmień tytuł"],
+  "Title Info": ["Πληροφορίες Τίτλου", "Informacje o tytule"],
+  "Astro": ["Άστρο", "Astralnia"],
+  "Double click or move the Astrals onto your character.": ["Διπλό κλικ ή σύρετε τα Άστρα πάνω στον χαρακτήρα σας.", "Kliknij dwukrotnie lub przeciągnij Astry na swoją postać."],
   "per spin": ["ανά περιστροφή", "za obrót"],
   "Spin": ["Περιστροφή", "Zakręć"],
   "Test payments only — no real charges or game rewards.": ["Μόνο δοκιμαστικές πληρωμές — χωρίς πραγματικές χρεώσεις ή ανταμοιβές.", "Tylko płatności testowe — bez prawdziwych opłat i nagród."],
