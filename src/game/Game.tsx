@@ -9,7 +9,7 @@ import mountIcon from "@/assets/mounts/griffin.webp";
 import runeIcon from "@/assets/runes/flame.webp";
 import wheelIcon from "@/assets/wheel-of-fortune.webp";
 import { useNavigate } from "@tanstack/react-router";
-import { Loader2 } from "lucide-react";
+import { EmberfallLogo } from "./EmberfallLogo";
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
 import { LootGrid } from "./LootGrid";
@@ -488,9 +488,11 @@ export function Game() {
     <div className="game-cursor fixed inset-0 overflow-hidden bg-background">
       <audio key={sound.track} ref={audio} src={soundtrackUrl(sound.track)} loop preload="auto" />
       {!authReady || !userId ? (
-        <div className="flex h-full items-center justify-center gap-2 font-display text-lg">
-          <Loader2 className="h-5 w-5 animate-spin" />
-           {tr("Loading…")} </div>
+        <div className="flex h-full flex-col items-center justify-center gap-4 px-4">
+          <EmberfallLogo width={460} />
+          <div className="ef-loadbar"><span /></div>
+          <p className="font-display text-xs uppercase tracking-[0.35em] text-gold/80">{tr("Loading…")}</p>
+        </div>
       ) : !hero ? (
         <CharacterSelect />
       ) : (
