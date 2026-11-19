@@ -11,6 +11,23 @@ import type { ContentRow } from "./content-i18n";
 export const UI_TEXT: Record<string, ContentRow> = {
   // The Wartune-style windows: Inventory, Blacksmith and Astral.
   "Equipment": ["Εξοπλισμός", "Ekwipunek"],
+  // Inventory and Blacksmith conveniences.
+  "Upgrades": ["Αναβαθμίσεις", "Ulepszenia"],
+  "Better than what you wear": ["Καλύτερο από αυτό που φοράς", "Lepsze niż to, co nosisz"],
+  "Bag space": ["Χώρος τσάντας", "Miejsce w torbie"],
+  "No pieces match this filter.": ["Κανένα κομμάτι δεν ταιριάζει με αυτό το φίλτρο.", "Żaden przedmiot nie pasuje do tego filtra."],
+  "Sell junk gear": ["Πούλησε άχρηστο εξοπλισμό", "Sprzedaj zbędny ekwipunek"],
+  "Sell all Common and Uncommon pieces without enchantment for": ["Πούλησε όλα τα Κοινά και Ασυνήθιστα κομμάτια χωρίς γοητεία για", "Sprzedaj wszystkie Zwykłe i Niezwykłe przedmioty bez zaklęcia za"],
+  "This cannot be undone.": ["Αυτό δεν αναιρείται.", "Tego nie można cofnąć."],
+  "pieces": ["κομμάτια", "przedmioty"],
+  "Cost": ["Κόστος", "Koszt"],
+  "Pick a piece to work on.": ["Διάλεξε ένα κομμάτι για επεξεργασία.", "Wybierz przedmiot do obróbki."],
+  "Pick a piece from your bag": ["Διάλεξε ένα κομμάτι από την τσάντα σου", "Wybierz przedmiot z torby"],
+  "This piece is at the highest enchantment (+60).": ["Αυτό το κομμάτι έχει τη μέγιστη γοητεία (+60).", "Ten przedmiot ma najwyższe zaklęcie (+60)."],
+  "Not enough gold for the next step.": ["Δεν φτάνει το χρυσάφι για το επόμενο βήμα.", "Za mało złota na następny krok."],
+  "Not enough Enchantment Stones for the next step.": ["Δεν φτάνουν οι Πέτρες Γοητείας για το επόμενο βήμα.", "Za mało Kamieni Zaczarowania na następny krok."],
+  "Not enough Fate Stones for the next refine.": ["Δεν φτάνουν οι Πέτρες Μοίρας για την επόμενη εκλέπτυνση.", "Za mało Kamieni Losu na następne doszlifowanie."],
+  "No Enchantment Stones in your pouch.": ["Δεν έχεις Πέτρες Γοητείας στο πουγκί σου.", "Brak Kamieni Zaczarowania w sakiewce."],
   "Enchant": ["Γοητεία", "Zaklinanie"],
   "Luck Stone": ["Πέτρα Τύχης", "Kamień Szczęścia"],
   "Required Gold": ["Απαιτούμενο Χρυσάφι", "Wymagane Złoto"],

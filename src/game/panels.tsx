@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import {
   SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, goldEnhanceAllowed, ENHANCE_MAX, REFINE_STAT_BONUS, refineRank, heroStats, invCap, bagSize, matSlots, MAT_STACK, bagRowCost, MAX_BAG_ROWS, sellValue,
+  itemStats, itemScore,
   CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, campaignFightRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import {
@@ -40,6 +41,7 @@ import { MAX_SOCKETS, MATS, REFINE, addMats, gemName, gemStatText, matCount, par
 import { STONE_FAIL_SAVE_CHANCE, STONE_LEVELS, combineAllStones, combineGold, combineStones, heldStoneLevels, spendStones, stoneBonus, stoneCount, stoneName } from "./enchant";
 import { FATE_SUCCESS_BONUS, fateRefineChance, fateStoneCost, fateStoneCount, spendFateStones } from "./fate";
 import worldMap from "@/assets/world-map.jpg";
+import anvilArt from "@/assets/forge-anvil.svg";
 import type { Fighter } from "./Battle";
 import { scrollXp } from "./scrolls";
 import { AdvancedTraining, BarracksUpgrade, DrillTracks, StatTrainings } from "./Barracks";
@@ -79,6 +81,9 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<"equipment" | "profile">("equipment");
   const [page, setPage] = useState(0);
+  /** Show only the pieces that beat what is worn — the fastest way to find an upgrade. */
+  const [upOnly, setUpOnly] = useState(false);
+  const [sellAsk, setSellAsk] = useState(false);
   if (!hero) return null;
   const s = heroStats(hero);
   const selItem = sel ? (sel.equipped ? Object.values(hero.equipment).find((i) => i?.id === sel.id) : hero.inventory.find((i) => i.id === sel.id)) : undefined;
@@ -107,6 +112,13 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
     if (it) { unequip(it); setSel(null); }
   };
   const sell = (it: Item) => update((h) => { h.inventory = h.inventory.filter((i) => i.id !== it.id); h.gold += sellValue(it); });
+  /** A piece worth wearing: its slot has room, or it scores above the weakest piece worn there. */
+  const isUpgrade = (it: Item) => { const worn = wornCompare(hero, it); return !worn || itemScore(it) > itemScore(worn); };
+  const bagUsed = hero.inventory.length + matSlots(hero);
+  const bagCap = bagSize(hero);
+  /** The pieces the one-tap sell would take: Common or Uncommon and never enchanted. */
+  const junk = hero.inventory.filter((i) => i.rarity <= 1 && i.enh === 0);
+  const junkGold = junk.reduce((a, i) => a + sellValue(i), 0);
 
   const leftStats: [string, string][] = [
     [t("Strength"), String(hero.attrs.str)],
@@ -129,7 +141,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
   ];
   // The bag grid is paged like the game's own inventory: gear first, then materials and the vault.
   const PAGE_SIZE = 24;
-  const bagView = hero.inventory.filter((it) => (filter === "all" || it.slot === filter) && (!q || it.name.toLowerCase().includes(q.toLowerCase())));
+  const bagView = hero.inventory.filter((it) => (filter === "all" || it.slot === filter) && (!upOnly || isUpgrade(it)) && (!q || it.name.toLowerCase().includes(q.toLowerCase())));
   if (sort === "rarity") bagView.sort((a, b) => b.rarity - a.rarity || b.ilvl - a.ilvl);
   if (sort === "level") bagView.sort((a, b) => b.ilvl - a.ilvl);
   const bagCells: ReactNode[] = bagView.map((it) => (
@@ -137,9 +149,10 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
       onDragStart={(e) => e.dataTransfer.setData("text/ef-bag", it.id)}
       onContextMenu={(e) => { e.preventDefault(); equip(it); setSel(null); }}>
       <ItemSlot item={it} size={36} selected={sel?.id === it.id} onClick={() => setSel({ id: it.id, equipped: false })} />
+      {isUpgrade(it) && <span className="wt-up" title={t("Better than what you wear")}>▲</span>}
     </div>
   ));
-  if (filter === "all" && !q) {
+  if (filter === "all" && !q && !upOnly) {
     if (roseCount(hero) > 0) bagCells.push(<div key="roses" className="wt-cell"><RoseItem compact /></div>);
     vaultTiles(hero, vpick, (p) => { setVpick(p); setSel(null); }).forEach((tile, i) => bagCells.push(<div key={"vault" + i} className="wt-cell">{tile}</div>));
     (Object.keys(MATS) as Mat[]).forEach((m) => {
@@ -159,7 +172,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
       }
     });
   }
-  const bagFilled = filter !== "all" || q ? bagCells.length : Math.max(bagCells.length, invCap(hero));
+  const bagFilled = filter !== "all" || q || upOnly ? bagCells.length : Math.max(bagCells.length, invCap(hero));
   const pageCount = Math.max(1, Math.ceil(bagFilled / PAGE_SIZE));
   const pageSafe = Math.min(page, pageCount - 1);
   const pageCells = Array.from({ length: PAGE_SIZE }, (_, i) => bagCells[pageSafe * PAGE_SIZE + i] ?? <div key={"ph" + i} className="wt-cell" />);
@@ -212,7 +225,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
                   </div>
                 ))}
               </div>
-              <div className="wt-nebula relative mx-auto h-[290px] w-full max-w-[260px]">
+              <div className="wt-nebula wt-stage relative mx-auto h-[290px] w-full max-w-[260px]">
                 <CharacterPose cls={hero.cls} gender={gender} className="relative z-10 h-full w-full" {...heroAppearance(hero, gender)} />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -252,7 +265,11 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
           <div>
             <div className="flex items-end justify-between">
               <span className="wt-heading border-0 pb-0">{t("Bag")}</span>
-              <span className="text-[11px] text-white/70">{hero.inventory.length + matSlots(hero)}/{bagSize(hero)}</span>
+              <span className="text-[11px] text-white/70">{bagUsed}/{bagCap}</span>
+            </div>
+            {/* How much room is left, so a full bag never comes as a surprise. */}
+            <div className="wt-cap mt-1" role="meter" aria-valuemin={0} aria-valuemax={bagCap} aria-valuenow={bagUsed} aria-label={t("Bag space")} title={t("Bag space")}>
+              <span className={bagUsed >= bagCap ? "is-full" : ""} style={{ width: `${Math.min(100, Math.round((bagUsed / Math.max(1, bagCap)) * 100))}%` }} />
             </div>
             <div className="wt-pages mt-1" role="tablist" aria-label={t("Bag")}>
               {Array.from({ length: pageCount }, (_, i) => (
@@ -269,13 +286,16 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             <div className="wt-grid mt-1" onDragOver={(e) => { if (e.dataTransfer.types.includes("text/ef-worn")) e.preventDefault(); }} onDrop={dropOnBag}>
               {pageCells}
             </div>
+            {!bagCells.length && !upOnly && filter === "all" && !q && (
+              <p className="mt-1 text-[10px] text-white/50">{t("Your bag is empty.")}</p>
+            )}
+            {!bagView.length && (upOnly || filter !== "all" || q) && (
+              <p className="mt-1 text-[10px] text-white/50">{t("No pieces match this filter.")}</p>
+            )}
             <div className="mt-1.5 flex flex-wrap items-center gap-1">
-              <button className="wt-btn px-2 py-1 text-[10px]" onClick={() => update((h) => {
-                const junk = h.inventory.filter((i) => i.rarity <= 1 && i.enh === 0);
-                h.gold += junk.reduce((a, i) => a + sellValue(i), 0);
-                h.inventory = h.inventory.filter((i) => !(i.rarity <= 1 && i.enh === 0));
-              })}>
-                <Trash2 className="mr-1 inline h-3 w-3" />{t("Sell")}
+              <button className="wt-btn px-2 py-1 text-[10px]" disabled={!junk.length} title={t("Sell junk gear")}
+                onClick={() => setSellAsk(true)}>
+                <Trash2 className="mr-1 inline h-3 w-3" />{t("Sell")} {junk.length > 0 && <span className="ml-1 inline-flex items-center gap-1"><b>{junk.length}</b><Gold n={junkGold} /></span>}
               </button>
               <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} aria-label={t("Sort bag")}
                 className="rounded border border-gold/40 bg-[#24100b] px-1 py-1 text-[10px] text-foreground">
@@ -285,6 +305,12 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
                 className="ml-auto w-20 rounded border border-gold/40 bg-[#24100b] px-1.5 py-1 text-[10px]" />
             </div>
             <div className="mt-1 flex flex-wrap gap-1 text-[10px]">
+              {/* One tap narrows the bag to the pieces that would actually improve the hero. */}
+              <button onClick={() => { setUpOnly(!upOnly); setPage(0); }} aria-pressed={upOnly}
+                title={t("Better than what you wear")}
+                className={`rounded px-1.5 py-0.5 font-bold ${upOnly ? "bg-r1 text-background" : "border border-r1/50 text-r1"}`}>
+                ▲ {t("Upgrades")}
+              </button>
               {(["all", ...SLOTS] as const).map((f) => (
                 <button key={f} onClick={() => { setFilter(f); setPage(0); }}
                   className={`rounded px-1.5 py-0.5 ${filter === f ? "bg-gold text-background" : "border border-gold/30 text-white/70"}`}>
@@ -326,6 +352,29 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
             <p className="mt-2 text-[11px] text-white/60">
               {hero.level < CONQUEST_LEVEL ? `Conquest unlocks at level ${CONQUEST_LEVEL}` : hero.level < MAX_LEVEL ? `Ascension begins at level ${MAX_LEVEL}` : `Ascending — each level grants +2% to all stats`}
             </p>
+          </div>
+        </div>
+      )}
+      {sellAsk && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" role="alertdialog" aria-modal="true"
+          aria-label={t("Sell junk gear")} onClick={() => setSellAsk(false)}>
+          <div className="game-panel anim-pop w-full max-w-sm p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-1 flex items-center gap-2 font-display text-lg text-gold"><Trash2 className="h-4 w-4" />{t("Sell junk gear")}</div>
+            <p className="text-sm text-white/80">
+              {t("Sell all Common and Uncommon pieces without enchantment for")} <Gold n={junkGold} />
+            </p>
+            <p className="mt-1 text-[11px] text-white/60"><b>{junk.length}</b> {t("pieces")} · {t("This cannot be undone.")}</p>
+            <div className="mt-3 flex gap-2">
+              <button className="btn-ghost flex-1 py-1.5 text-sm" onClick={() => setSellAsk(false)}>{t("Cancel")}</button>
+              <button className="btn-gold flex-1 py-1.5 text-sm" onClick={() => {
+                update((h) => {
+                  const take = h.inventory.filter((i) => i.rarity <= 1 && i.enh === 0);
+                  h.gold += take.reduce((a, i) => a + sellValue(i), 0);
+                  h.inventory = h.inventory.filter((i) => !(i.rarity <= 1 && i.enh === 0));
+                });
+                setSellAsk(false);
+              }}>{t("Sell")} <Gold n={junkGold} /></button>
+            </div>
           </div>
         </div>
       )}
@@ -697,6 +746,23 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
   const canPay = !!sel && (mode === "fate" ? fateStoneCount(hero) < fateStoneCost(sel)
     : mode === "stone" ? stoneCount(hero, stoneLvl) < enchantStoneCost(sel)
       : hero.gold < enhanceCost(sel, hero.level));
+  /** The stats the piece carries now and the ones the next step would give it, shown before the roll. */
+  const nowStats = sel ? itemStats(sel) : null;
+  const nextStats = sel && !(mode !== "fate" && enhanceMaxed(sel))
+    ? mode === "fate" ? itemStats({ ...sel, refine: refineRank(sel) + 1 }) : itemStats({ ...sel, enh: sel.enh + 1 })
+    : null;
+  const gain = nowStats && nextStats
+    ? ([["ATK", nowStats.atk, nextStats.atk], ["DEF", nowStats.def, nextStats.def], ["HP", nowStats.hp, nextStats.hp]] as const)
+        .filter(([, a, b]) => Math.round(b) > Math.round(a))
+        .map(([k, a, b]) => `${k} ${fmt(a)} → ${fmt(b)}`).join(" · ")
+    : "";
+  /** Why the great button is dark — one plain line instead of a hunt through the panel. */
+  const blockReason = !sel ? t("Pick a piece to work on.")
+    : mode !== "fate" && enhanceMaxed(sel) ? t("This piece is at the highest enchantment (+60).")
+      : !canPay ? null
+        : mode === "gold" ? t("Not enough gold for the next step.")
+          : mode === "stone" ? t("Not enough Enchantment Stones for the next step.")
+            : t("Not enough Fate Stones for the next refine.");
   return (
     <WtWindow
       title={t("Blacksmith")}
@@ -704,7 +770,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
       tabs={[
         { id: "gear" as const, name: t("Enchant") },
         { id: "stones" as const, name: t("Enchantment stones") },
-        { id: "refine" as const, name: t("Refine") },
+        { id: "refine" as const, name: t("Materials") },
       ]}
       value={tab}
       onChange={setTab}
@@ -729,15 +795,23 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
               <WtFrame label={t("Equipment")} size={104}>
                 {sel ? <ItemSlot item={sel} size={78} noHover /> : <Hammer className="h-8 w-8 text-white/25" />}
               </WtFrame>
-              <div className="wt-emblem" aria-hidden="true" />
+              <img src={anvilArt} alt="" aria-hidden="true" className="wt-emblem-img" />
               <WtFrame label={mode === "fate" ? t("Fate Stone") : t("Luck Stone")} size={104}>
                 {mode === "fate" ? <MatIcon mat="fateStone" size={62} /> : <StoneIcon level={stoneLvl} size={62} />}
               </WtFrame>
             </div>
+            {/* Which piece the smith has on the anvil, named under the wells. */}
+            <div className="mt-1 text-center text-[11px] text-white/75">
+              {sel ? (
+                <>{itemName(sel.name)}{sel.enh > 0 && <b className="text-gold"> +{sel.enh}</b>}
+                  {refineRank(sel) > 0 && <span className="text-gold"> · {t("Fate")} +{refineRank(sel)}</span>}</>
+              ) : t("Pick a piece from your bag")}
+            </div>
 
-            <div className="mx-auto mt-3 max-w-sm">
-              <div className="wt-statrow"><span>{t("Required Gold")}</span><b>{sel ? stepCost : "—"}</b></div>
+            <div className="mx-auto mt-2 max-w-sm">
+              <div className="wt-statrow"><span>{mode === "gold" ? t("Required Gold") : t("Cost")}</span><b>{sel ? stepCost : "—"}</b></div>
               <div className="wt-statrow"><span>{t("Success Rate")}</span><b>{sel ? `${Math.round(chance * 100)}%` : "—"}</b></div>
+              <div className="wt-statrow"><span>{t("Next step")}</span><b className="text-r1">{gain || "—"}</b></div>
             </div>
 
             <div className="mx-auto mt-2 grid max-w-sm grid-cols-3 gap-1" role="group" aria-label={t("Enhancement method")}>
@@ -752,6 +826,20 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                 onClick={() => setMode("fate")}>{t("Fate Stone")}</button>
             </div>
 
+            {/* With stones in hand, each grade shows its own odds for this piece before it is spent. */}
+            {mode === "stone" && (
+              <div className="mx-auto mt-2 flex max-w-sm flex-wrap items-center justify-center gap-1 text-[10px]" role="group" aria-label={t("Enchantment stones")}>
+                {heldStones.length === 0 && <span className="text-white/60">{t("No Enchantment Stones in your pouch.")}</span>}
+                {heldStones.map((lvl) => (
+                  <button key={lvl} aria-pressed={lvl === stoneLvl} title={stoneName(lvl)} onClick={() => setStonePick(lvl)}
+                    className={`flex items-center gap-1 rounded border px-2 py-0.5 ${lvl === stoneLvl ? "border-gold bg-gold/20 text-gold" : "border-gold/30 text-white/70"}`}>
+                    <StoneIcon level={lvl} size={14} /> <b>{Math.round((sel ? enhanceStoneChance(sel, lvl) : 0) * 100)}%</b>
+                    <span className="text-white/50">×{fmt(stoneCount(hero, lvl))}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             <WtButton className="mx-auto mt-2 block w-full max-w-sm py-3 text-lg" disabled={!sel || canPay || (mode !== "fate" && enhanceMaxed(sel))} onClick={enhance}>
               <Hammer className="mr-2 inline h-4 w-4" />
               {mode === "fate"
@@ -760,6 +848,7 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                   ? `+${ENHANCE_MAX}`
                   : `${t("Enchant")}${sel ? ` +${sel.enh + 1}` : ""}`}
             </WtButton>
+            {blockReason && <p className="mt-1 text-center text-[10px] text-white/60" role="note">{blockReason}</p>}
 
             <div className="mx-auto mt-2 flex max-w-sm items-center justify-between gap-1">
               <button className="wt-btn px-2 py-1 text-[10px]" aria-expanded={info} onClick={() => setInfo((v) => !v)}>? {t("More Info")}</button>
@@ -783,16 +872,6 @@ export function Forge({ onClose, onCraft }: { onClose: () => void; onCraft?: () 
                         ? t("Fate Stones never touch the +60 enchantment. Each win adds one to the Fate counter, with no limit — but every few ranks the next refine costs more stones.")
                         : t("Any stone works, but rarer gear resists weaker stones — a higher grade lands far more often.")}
                   </p>
-                  {mode === "stone" && heldStones.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {heldStones.map((lvl) => (
-                        <button key={lvl} className={`flex items-center gap-1 rounded border px-2 py-0.5 ${lvl === stoneLvl ? "border-gold text-gold" : "border-gold/30"}`}
-                          title={stoneName(lvl)} onClick={() => setStonePick(lvl)}>
-                          <StoneIcon level={lvl} size={14} /> ×{fmt(stoneCount(hero, lvl))}
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </section>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <section className="wt-inset p-2">
