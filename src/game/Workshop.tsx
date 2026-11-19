@@ -1,4 +1,5 @@
 import { trackActivity } from "./services";
+import towerObservatory from "@/assets/magic-tower-observatory.jpg";
 import { itemName , tr} from "./i18n";
 import { AstralIcon, MatIcon, GemIcon } from "./MatIcon";
 import { CharacterModel } from "./CharacterModel";
@@ -24,7 +25,6 @@ import { SynthesisTab } from "./Synthesis";
 import { EpicArmoursTab } from "./EpicArmours";
 import { heroAppearance } from "./appearance";
 import { GameTabs, Gold, ItemCard, Panel, fmt } from "./ui";
-import { WtWindow } from "./wartune";
 import {
   ASTRAL_BASES,
   ASTRAL_COLORS,
@@ -452,16 +452,12 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
   );
 
   return (
-    <WtWindow
-      title={tr("Astro")}
+    <Panel
+      title={tr("Magic Tower")}
+      subtitle={tr("The Astral Vault · every stone unique, every level endless")}
+      art="astral"
       onClose={onClose}
-      tabs={[
-        { id: "vault" as const, name: tr("ASTRAL VAULT") },
-        { id: "summon" as const, name: tr("Summoning") },
-        { id: "codex" as const, name: tr("Species codex") },
-      ]}
-      value={view}
-      onChange={setView}
+      wide
     >
       {toast}
       <div className="text-foreground">
@@ -481,8 +477,9 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        <div className="mb-3 grid gap-2 lg:grid-cols-[minmax(0,1fr)_250px]">
-        <div className="wt-nebula relative overflow-hidden">
+        <div className="tower-observatory relative mb-4 overflow-hidden rounded-md border border-border">
+          <img src={towerObservatory} alt="" width={1536} height={1024} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="tower-art-shade absolute inset-0" />
           <div className="relative mx-auto h-[300px] w-[300px] sm:h-[340px] sm:w-[340px]">
           <div className="absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2">
             <CharacterModel
@@ -505,7 +502,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
                   key={i}
                   style={style}
                   title={`Wakes at level ${lv}`}
-                  className="wt-astro-slot is-locked"
+                  className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-border bg-background text-center"
                 >
                   <Lock className="h-4 w-4 text-muted-foreground" />
                   <span className="text-[9px] leading-tight text-muted-foreground">{tr("Lv")} {lv}</span>
@@ -513,7 +510,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
               );
             if (a)
               return (
-                <button
+                <Button
                   key={i}
                   style={style}
                   title={`${astralLabel(a)} · ${astralStatText(a)} · click to unseat`}
@@ -522,50 +519,33 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
                       equipAstral(h, null, i);
                     })
                   }
-                  className="wt-astro-slot"
+                  variant="outline" className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-0.5 rounded-full border border-border bg-background p-1 hover:scale-105"
                 >
                   <AstralIcon base={a.base} rarity={a.rarity} size={34} />
                   <span className="max-w-full truncate text-[8px] leading-none">
                     {ASTRAL_BASES[a.base].name}
                   </span>
-                </button>
+                </Button>
               );
             return (
-              <button
+              <Button
                 key={i}
                 style={style}
                 title={`Astral slot ${i + 1}`}
                 onClick={() => setPicking(i)}
-                className="wt-astro-slot"
+                variant="outline" className="absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-dashed border-border bg-card text-muted-foreground hover:border-gold hover:text-gold"
               >
                 <Plus className="h-5 w-5" />
-              </button>
+              </Button>
             );
           })}
         </div>
         </div>
-        <div className="wt-inset p-2">
-          <div className="wt-heading">{tr("Astrals")}</div>
-          <div className="mt-1 grid grid-cols-4 gap-1">
-            {Array.from({ length: 16 }, (_, i) => {
-              const a = list[i];
-              if (!a) return <div key={i} className="wt-astro-cell" />;
-              const seated = slots.includes(a.id);
-              return (
-                <button
-                  key={a.id}
-                  className={"wt-astro-cell is-filled" + (seated ? " is-seated" : "")}
-                  title={`${astralLabel(a)} · ${astralStatText(a)}`}
-                  onClick={() => (seated ? update((h) => { equipAstral(h, null, slots.indexOf(a.id)); }) : seatFirstFree(a.id))}
-                >
-                  <AstralIcon base={a.base} rarity={a.rarity} size={30} />
-                </button>
-              );
-            })}
-          </div>
-          <p className="mt-1 text-[10px] leading-snug text-white/60">{tr("Double click or move the Astrals onto your character.")}</p>
-        </div>
-        </div>
+        <GameTabs label={tr("Magic Tower")} value={view} onChange={setView} tabs={[
+          { id: "vault" as const, name: tr("ASTRAL VAULT") },
+          { id: "summon" as const, name: tr("Summoning") },
+          { id: "codex" as const, name: tr("Species codex") },
+        ]} />
         {view === "summon" && <>
 
 
@@ -809,7 +789,7 @@ export function MagicTower({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       )}
-    </WtWindow>
+    </Panel>
   );
 }
 
