@@ -149,7 +149,7 @@ export function Battle({ left, right, auto = false, onEnd, title, gate = false }
         });
         setFloats((f) => [...f, { id, tgt: target, text: e.text, kind: e.kind }]);
         setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 1100);
-        if (["dmg", "crit", "block"].includes(e.kind)) setAnim((m) => ({ ...m, [target]: (e.kind === "block" ? "anim-block" : "anim-hit") + "#" + id }));
+        if (e.kind === "block") setAnim((m) => ({ ...m, [target]: "anim-block#" + id }));
         await wait(e.kind === "status" ? 120 : 200);
       }
     }

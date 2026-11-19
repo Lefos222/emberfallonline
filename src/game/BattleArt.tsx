@@ -26,6 +26,8 @@ export function BattleCharacter({ u }: { u: Unit }) {
 
 /** Impact artwork drawn on the target when a blow lands. */
 export function CombatEffect({ kind }: { kind: string }) {
+  // Attack pictures over enemies are removed from the game by request.
+  if (kind) return null;
   const paint = FX_PAINT[kind];
   return <>{paint && <img src={paint} alt="" aria-hidden="true" draggable={false} className="combat-effect combat-paint" />}<svg className={`combat-effect effect-${kind}`} viewBox="0 0 200 240" aria-hidden="true">
     {kind === 'arrow' ? <path d="M15 190L175 50M142 50H175V83M20 170L38 188M30 160L48 178" /> :
@@ -86,6 +88,8 @@ const FX_ART: Record<string, React.ReactNode> = {
 /** A player skill's own impact: a unique shape, motion and colour (see skillFx). */
 const SHAPE_PAINT: Record<string, string> = { blade: slashFx, cross: slashFx, fang: slashFx, flame: fireFx, comet: fireFx, rune: arcaneFx, vortex: arcaneFx, star: arcaneFx, ring: arcaneFx, shard: arcaneFx, bolt: arcaneFx, crown: healFx };
 export function SkillImpact({ fx }: { fx: { shape: string; motion: string; hue: string } }) {
+  // Skill pictures over enemies are removed from the game by request.
+  if (fx) return null;
   const paint = SHAPE_PAINT[fx.shape];
   return (<>
     <i className={"fx-bloom fx-bloom-" + fx.motion} aria-hidden="true" style={{ color: fx.hue }} />
