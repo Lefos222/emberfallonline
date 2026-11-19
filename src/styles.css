@@ -482,7 +482,7 @@
   .anim-idle, .anim-cast, .anim-hit, .anim-block, .anim-lunge-r, .anim-lunge-l, .battle-death, .battle-victory, .combat-effect,
   .anim-swing, .anim-overhead, .anim-spin, .anim-leap, .anim-slam, .anim-rage, .anim-thrust, .anim-nova,
   .anim-rise, .anim-channel, .anim-siphon, .anim-draw, .anim-rapid, .anim-aim, .anim-dash, .anim-drink { animation: none; }
-  .combat-effect, .battle-arc { animation: none; opacity: .7; }
+  .combat-effect, .battle-arc, .battle-impact { animation: none; opacity: .7; }
   .talent-node, .talent-burst, .talent-pip-on, .talent-link-on, .spec-mine { animation: none; }
   .pose-unit::before, .pose-unit::after { animation: none; }
 }
@@ -834,6 +834,14 @@ html { font-size: clamp(16px, min(1.48vh, 0.9vw), 30px); }
 .proj-arrow::after, .proj-volley::after { content: ""; position: absolute; right: -8px; top: -5px; border: 7px solid transparent; border-left: 10px solid var(--foreground); border-right: 0; }
 .proj-volley { box-shadow: 0 -14px 0 color-mix(in oklab, var(--gold) 80%, transparent), 0 14px 0 color-mix(in oklab, var(--gold) 80%, transparent), 0 0 10px color-mix(in oklab, var(--gold) 70%, transparent); }
 .proj-wave { width: 54px; height: 120px; border-radius: 0 9999px 9999px 0; border-right: 6px solid var(--foreground); box-shadow: 10px 0 22px -4px color-mix(in oklab, var(--gold) 75%, transparent); animation-duration: .36s; }
+
+/* Painted class skillshot: a small projectile crossing the field behind the fighters. */
+.battle-shot { position: absolute; bottom: 34%; z-index: 0; pointer-events: none; width: clamp(64px, 11vw, 104px); height: auto; filter: drop-shadow(0 0 12px color-mix(in oklab, var(--gold) 45%, transparent)); animation: proj-fly 0.42s cubic-bezier(.4,.1,.6,1) forwards; }
+.shot-ltr { left: 16%; --proj-to: 60vw; }
+.shot-rtl { right: 16%; --proj-to: -60vw; transform: scaleX(-1); }
+/* The burst that lands at the target's feet — small, so it never hides the fighter or the UI. */
+.battle-impact { position: absolute; left: 50%; bottom: 1%; z-index: 1; width: 72%; max-width: 190px; height: auto; translate: -50% 0; pointer-events: none; mix-blend-mode: screen; animation: battle-impact-pop 0.42s ease-out both; }
+@keyframes battle-impact-pop { 0% { opacity: 0; scale: 0.45; } 25% { opacity: 0.95; } 100% { opacity: 0; scale: 1.25; } }
 
 /* Class wind-up at the attacker: mage rune circle, archer bow flash, warrior ground shockwave. */
 .battle-charge { position: absolute; bottom: 30%; z-index: 29; pointer-events: none; border-radius: 9999px; }

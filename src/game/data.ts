@@ -37,6 +37,7 @@ import { feastFx, normalizeFarm, type FarmState } from "./farm";
 import { epicMult } from "./epic-armour";
 import { normalizeMine, type MineState } from "./mine";
 import { migrateEnchantStones } from "./enchant";
+import { MOUNT_LIFETIME_MS } from "./mounts";
 
 export type HeroClass = "warrior" | "mage" | "archer";
 export type Slot = "helmet" | "armour" | "boots" | "belt" | "weapon" | "ring" | "talisman";
@@ -652,8 +653,8 @@ export interface Hero {
   renown?: number;
   /** Renown upgrade ranks by track id (see renown.ts). */
   renownRanks?: Record<string, number>;
-  /** Gold-bought mounts and the ridden one (Diamond mounts live in srv.mounts; see mounts.ts). */
-  mounts?: { owned?: string[]; active?: string };
+  /** Gold-bought mounts, the ridden one and each lease's end (Diamond mounts live in srv.mounts; see mounts.ts). */
+  mounts?: { owned?: string[]; active?: string; until?: Record<string, number> };
   /** Post-90 Awakening progress (see awakening.ts). */
   awakening?: import("./awakening").AwakeningState;
   /** Carved rune ranks by rune id (see runes.ts). */
@@ -919,6 +920,19 @@ export function normalizeHero(h: Hero): Hero {
   normalizeFarm(h);
   // Every character has a Gold Mine: older saves start at level 1 with an empty cart.
   normalizeMine(h);
+  // Mounts are hired for a week at a time, so a save from before the leases gets its clock now.
+  const ownedMounts = [
+    ...(h.mounts?.owned ?? []),
+    ...(((h.srv as { mounts?: string[] } | undefined)?.mounts) ?? []),
+  ];
+  if (ownedMounts.length) {
+    const until = { ...(h.mounts?.until ?? {}) };
+    let started = false;
+    for (const id of ownedMounts) {
+      if (!until[id]) { until[id] = Date.now() + MOUNT_LIFETIME_MS; started = true; }
+    }
+    if (started) h.mounts = { ...(h.mounts ?? {}), until };
+  }
   return h;
 }
 

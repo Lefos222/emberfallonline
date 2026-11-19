@@ -126,6 +126,18 @@ export const bountyReady = (h: Pick<Hero, "worldTree">, bounty: Bounty) => {
 export const bountiesReady = (h: Pick<Hero, "worldTree">, level: number) =>
   bountyBoard(level).filter((bounty) => bountyReady(h, bounty)).length;
 
+/** The bounty kind a world site feeds: rival keeps count as castles, ruins and vaults count for none. */
+export const bountyKindFor = (kind: string, isCastle = false): BountyKind | null => {
+  if (isCastle) return "castle";
+  return (BOUNTY_KINDS as readonly string[]).includes(kind) ? (kind as BountyKind) : null;
+};
+
+/** Count one cleared world raid against today's board (ruins, vaults and landmarks count for none). */
+export function recordRaidBounty(h: Hero, kind: string, isCastle = false) {
+  const bountyKind = bountyKindFor(kind, isCastle);
+  if (bountyKind) recordBounty(h, bountyKind);
+}
+
 /** Count one cleared raid. Call it from inside `update`, after the reward was confirmed. */
 export function recordBounty(h: Hero, kind: BountyKind) {
   const ledger = bountyLedger(h);

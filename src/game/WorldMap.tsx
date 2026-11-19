@@ -33,14 +33,14 @@ import {
 import {
   bountiesReady,
   bountyBoard,
+  bountyKindFor,
   bountyLedger,
   bountyProgress,
   claimBounty,
   openVault,
-  recordBounty,
+  recordRaidBounty,
   vaultClaimed,
   type Bounty,
-  type BountyKind,
   openTreeChest,
   treeChestOpened,
   treeChestReady,
@@ -261,6 +261,12 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
   const chestReward = treeChestReward(heroLevel);
   const chestReady = treeChestReady(hero, heroLevel);
   const chestOpened = treeChestOpened(hero);
+  // The bounty a picked site feeds, so its progress is visible right where the raid starts.
+  const siteBounty = (() => {
+    if (!selected) return undefined;
+    const kind = bountyKindFor(selected.kind, selected.kind === "keep");
+    return kind ? bounties.find((b) => b.kind === kind) : undefined;
+  })();
   const openChest = () => {
     let paid: ReturnType<typeof openTreeChest> = null;
     update((h) => { paid = openTreeChest(h, heroLevel); });
@@ -334,10 +340,11 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
         if (!node) return { lines: ["The battle is won."] };
         try {
           const r = await completeWorldRaid(node);
+          // The bounty ledger is a client save field, and `update` is a silent no-op while a
+          // server operation (the map refresh below) holds the lock — so count the raid first.
+          update((h) => recordRaidBounty(h, site.kind, isCastle));
           if (isCastle) setCastleRaids(spendCastleRaid(heroId));
           refresh();
-          const bountyKind: BountyKind = isCastle ? "castle" : (site.kind as BountyKind);
-          update((h) => recordBounty(h, bountyKind));
           const lines = rewardLines(r.reward);
           return { lines: lines.length ? lines : ["Raid complete."] };
         } catch (e) {
@@ -796,6 +803,12 @@ export function WorldMap({ onClose, start }: { onClose: () => void; start: Start
                     · {selected.lord.name} · {selected.lord.power.toLocaleString()}  {t("power")} </>
                 )}
               </p>
+              {siteBounty && (
+                <p className="mt-1 text-[11px] text-gold/90">
+                  {t("Bounty")} · {siteBounty.title} {Math.min(bountyProgress(hero, siteBounty.kind), siteBounty.need)}/{siteBounty.need}
+                  {ledger.claimed.includes(siteBounty.id) ? ` · ${t("Paid")}` : ""}
+                </p>
+              )}
 
               <div className="mt-2.5">
                 {selected.kind === "cache" ? (

@@ -76,6 +76,10 @@
     {
       "path": "src/assets/minigame-tavern-table.jpg",
       "feature": "Tavern Dice table backdrop"
+    },
+    {
+      "path": "src/assets/fx/skills/",
+      "feature": "Class skillshot projectiles (warrior wave, mage orb, archer arrow), the monster claw and the impact burst that lands on the target"
     }
   ]
 }

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 140" fill="none">
+  <defs>
+    <linearGradient id="claw" x1="0" y1="120" x2="150" y2="20" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff8a6a" stop-opacity="0"/>
+      <stop offset="0.4" stop-color="#ff6a4d" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#ffd0b0" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <path d="M18 124C44 100 66 68 88 24" stroke="url(#claw)" stroke-width="9" stroke-linecap="round"/>
+  <path d="M52 128C76 104 96 72 116 30" stroke="url(#claw)" stroke-width="7" stroke-linecap="round"/>
+  <path d="M88 130C108 108 124 80 140 44" stroke="url(#claw)" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M18 124C44 100 66 68 88 24" stroke="#ffe0cf" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+  <path d="M52 128C76 104 96 72 116 30" stroke="#ffe0cf" stroke-width="1.6" stroke-linecap="round" opacity="0.45"/>
+</svg>

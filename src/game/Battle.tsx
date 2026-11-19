@@ -16,6 +16,7 @@ import { Sprite } from "./Sprite";
 import { SkillIcon } from "./SkillIcon";
 import { BattleCharacter, CombatEffect, SkillImpact, WeaponArc } from "./BattleArt";
 import { effectFor, moveFor, skillFx, type Move } from "./skillAnim";
+import { IMPACT_BURST, shotFor } from "./battle-shots";
 import { BattleFxLayer, type BattleFxHandle } from "./fx/BattleFx";
 import { SCROLLS } from "./scrolls";
 import { saveFastFights, readFastFights } from "./battle-prefs";
@@ -81,7 +82,7 @@ export function Battle({ left, right, auto = false, onEnd, title, gate = false }
   const [effects, setEffects] = useState<Record<string, string>>({});
   const [moves, setMoves] = useState<Record<string, Move>>({});
   // Presentation-only: the thrown spell, loosed arrow or sword wave that crosses the field.
-  const [proj, setProj] = useState<{ kind: string; dir: "ltr" | "rtl"; key: number; cls: string } | null>(null);
+  const [proj, setProj] = useState<{ kind: string; dir: "ltr" | "rtl"; key: number; cls: string; foe: boolean } | null>(null);
   // Fast-forward is remembered for the next fight; auto-battle is always a per-fight choice.
   const [fast, setFast] = useState(() => auto || readFastFights());
   const [autoOn, setAutoOn] = useState(auto);
@@ -119,7 +120,7 @@ export function Battle({ left, right, auto = false, onEnd, title, gate = false }
     setMoves((m) => ({ ...m, [actorId]: move }));
     const kind = projectileFor(move, effectFor(sk) ?? undefined);
     fx.current?.charge({ actor: actorId, cls: a?.cls, skill: sk, element: effectFor(sk) ?? undefined });
-    if (kind && a) setProj({ kind, dir: a.side === "hero" ? "ltr" : "rtl", key: ++fid.current, cls: classOf(a.cls, move) });
+    if (kind && a) setProj({ kind, dir: a.side === "hero" ? "ltr" : "rtl", key: ++fid.current, cls: classOf(a.cls, move), foe: a.side === "foe" });
     if (kind && a) fx.current?.travel({
       actor: a.id,
       targets: events.filter((ev) => !!ev.tgt).map((ev) => ev.tgt as string),
@@ -316,7 +317,7 @@ export function Battle({ left, right, auto = false, onEnd, title, gate = false }
       {/* Battlefield */}
       <div className="relative z-10 flex flex-1 items-end justify-between gap-2 px-4 pb-4 md:px-16">
         {proj && <span key={"c" + proj.key} aria-hidden className={`battle-charge charge-${proj.cls} charge-${proj.dir}`} />}
-        {proj && <span key={proj.key} aria-hidden className={`battle-proj proj-${proj.kind} proj-${proj.dir}`} />}
+        {proj && <img key={proj.key} src={shotFor(proj.cls, proj.foe)} alt="" aria-hidden draggable={false} className={`battle-shot shot-${proj.dir}`} />}
         <UnitView u={hero} anim={anim[hero.id]} effect={effects[hero.id]} move={moves[hero.id]} victory={s.over === "won"} floats={floats} active={actor?.id === hero.id} />
         <div className="flex min-w-0 flex-1 items-end justify-end gap-2 md:gap-6 battle-foes">
           {foes.map((f) => {
@@ -419,6 +420,7 @@ function UnitView({ u, anim, effect, move, victory, floats, active, targetable, 
       >
         {targetable && <div className={`absolute inset-x-4 bottom-0 h-6 rounded-full blur-md ${selected ? "bg-gold" : "bg-r1/70 animate-pulse"}`} />}
         {active && <div className="absolute inset-x-8 bottom-1 h-4 rounded-full bg-gold/50 blur-md" />}
+        {effect && <img key={"hit" + effect} src={IMPACT_BURST} alt="" aria-hidden draggable={false} className="battle-impact" />}
         <div key={anim ?? "idle"} data-unit={u.id} className={`h-full w-full ${anim?.split("#")[0] ?? ""}`}>
           {u.cls ? <div className={`h-full w-full ${victory ? "battle-victory" : "anim-idle"}`}><BattleCharacter u={u} /></div> : u.sprite ? <div className="flex h-full w-full items-end anim-idle"><Sprite rect={u.sprite} className="battle-sprite w-full" /></div> : <div className="battle-sprite h-full w-full anim-idle"><BattleCharacter u={u} /></div>}
           {move && <WeaponArc key={"arc" + move} move={move} />}
@@ -439,7 +441,8 @@ function projectileFor(move: Move, effect?: string): string | null {
   if (["cast", "thrust", "nova", "rise", "channel", "siphon"].includes(move))
     return effect === "ice" ? "frost" : effect === "fire" || effect === "meteor" ? "fire" : effect === "tether" ? "void" : "arcane";
   if (["draw", "rapid", "aim"].includes(move)) return move === "rapid" ? "volley" : "arrow";
-  if (["overhead", "spin", "leap", "slam", "rage"].includes(move)) return "wave";
+  // Steel swings, charges and dashes all throw a blade wave, so every class looses a skillshot.
+  if (["overhead", "spin", "leap", "slam", "rage", "swing", "dash"].includes(move)) return "wave";
   return null;
 }
 

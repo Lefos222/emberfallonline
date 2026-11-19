@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 70" fill="none">
+  <defs>
+    <linearGradient id="trail" x1="0" y1="35" x2="150" y2="35" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9be08a" stop-opacity="0"/>
+      <stop offset="0.7" stop-color="#d9f5a8" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#fff6cf" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="shaft" x1="70" y1="35" x2="170" y2="35" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#c8a45c"/>
+      <stop offset="1" stop-color="#fff1c2"/>
+    </linearGradient>
+  </defs>
+  <path d="M4 35H96" stroke="url(#trail)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M30 26C52 26 66 30 82 35C66 40 52 44 30 44" stroke="#cdeea0" stroke-width="1.6" stroke-linecap="round" opacity="0.55"/>
+  <path d="M72 35H158" stroke="url(#shaft)" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M158 35L138 24M158 35L138 46" stroke="#fff6cf" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M74 35L60 26M74 35L60 44" stroke="#d9c07a" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M84 35L70 28M84 35L70 42" stroke="#d9c07a" stroke-width="2.2" stroke-linecap="round" opacity="0.8"/>
+  <circle cx="158" cy="35" r="4" fill="#fffbe6"/>
+</svg>

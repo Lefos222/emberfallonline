@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none">
+  <defs>
+    <radialGradient id="halo" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(84 80) rotate(90) scale(60)">
+      <stop offset="0" stop-color="#c79bff" stop-opacity="0.85"/>
+      <stop offset="0.55" stop-color="#7a45d6" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#4a1e8f" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="core" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(84 80) rotate(90) scale(30)">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.45" stop-color="#e6ccff"/>
+      <stop offset="1" stop-color="#8b52f0" stop-opacity="0.2"/>
+    </radialGradient>
+  </defs>
+  <circle cx="84" cy="80" r="60" fill="url(#halo)"/>
+  <circle cx="84" cy="80" r="34" stroke="#c9a6ff" stroke-width="2" stroke-dasharray="7 9" opacity="0.85"/>
+  <circle cx="84" cy="80" r="46" stroke="#8f63e8" stroke-width="1.4" opacity="0.6"/>
+  <circle cx="84" cy="80" r="22" fill="url(#core)"/>
+  <path d="M84 52V62M84 98V108M56 80H66M102 80H112M64 60L71 67M104 100L97 93M64 100L71 93M104 60L97 67" stroke="#e9d8ff" stroke-width="2.4" stroke-linecap="round" opacity="0.85"/>
+  <path d="M12 96C30 90 44 86 60 82" stroke="#b98cff" stroke-width="4" stroke-linecap="round" opacity="0.45"/>
+  <path d="M20 108C36 102 46 98 58 94" stroke="#8b52f0" stroke-width="2.4" stroke-linecap="round" opacity="0.4"/>
+</svg>

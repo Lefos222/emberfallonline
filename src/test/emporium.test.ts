@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MOUNTS, buyGoldMount, mountBlitzPct } from "@/game/mounts";
+import { MOUNTS, buyGoldMount, mountBlitzPct, mountDaysLeft, mountRenewPrice, renewMount } from "@/game/mounts";
 import { carveRune, runeFx } from "@/game/runes";
 import { blitzDurationMs } from "@/game/blitz-run";
 import { newHero } from "@/game/data";
@@ -22,6 +22,23 @@ describe("mounts", () => {
     const h = hero(); h.gold = 1e9;
     expect(buyGoldMount(h, "griffin")).not.toBeNull();
     expect(mountBlitzPct(h)).toBe(0);
+  });
+  it("a mount lasts seven days, then must be renewed for gold", () => {
+    const h = hero(); h.gold = 1e9;
+    expect(buyGoldMount(h, "boar")).toBeNull();
+    expect(mountDaysLeft(h, "boar")).toBe(7);
+    expect(mountBlitzPct(h)).toBe(10);
+    // Let the lease lapse.
+    h.mounts = { ...h.mounts, until: { boar: Date.now() - 1 } };
+    expect(mountDaysLeft(h, "boar")).toBe(0);
+    expect(mountBlitzPct(h)).toBe(0);
+    const boar = MOUNTS.find((m) => m.id === "boar")!;
+    const fee = mountRenewPrice(boar, h.level);
+    const before = h.gold;
+    expect(renewMount(h, "boar")).toBeNull();
+    expect(h.gold).toBe(before - fee);
+    expect(mountBlitzPct(h)).toBe(10);
+    expect(mountDaysLeft(h, "boar")).toBe(7);
   });
 });
 
