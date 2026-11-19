@@ -33,7 +33,7 @@ import { scrollFighter } from "./scrolls";
 import castle from "@/assets/castle.jpg.asset.json";
 import winterCastle from "@/assets/castle-winter.webp.asset.json";
 import { useWinterCastle } from "./castle-season";
-import { ChristmasCorner, Snowfall } from "./Christmas";
+import { ChristmasBanner, SnowChestSpot, Snowfall } from "./Christmas";
 import gateCampaign from "@/assets/gate-campaign.webp";
 import gateDungeon from "@/assets/gate-dungeon.webp";
 import gateConquest from "@/assets/gate-conquest.webp";
@@ -927,6 +927,7 @@ export function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
             }}
           />
         ))}
+        {winter && <SnowChestSpot />}
         {/* Each name sits on its own building; `labelShift` keeps neighbours from colliding. */}
         {CASTLE_BUILDINGS.map((b) => (
           <span
@@ -952,7 +953,7 @@ export function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
       </div>
       <div className="vignette pointer-events-none absolute inset-0" />
       {winter && <Snowfall />}
-      {winter && <ChristmasCorner />}
+      {winter && <ChristmasBanner />}
     </div>
   );
 }

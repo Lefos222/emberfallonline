@@ -323,6 +323,10 @@
 
 @keyframes snowfall { 0% { transform: translate3d(0, -5vh, 0); } 50% { transform: translate3d(20px, 50vh, 0); } 100% { transform: translate3d(-10px, 105vh, 0); } }
 @utility anim-snow { animation: snowfall linear infinite; }
+@keyframes banner-life { 0% { opacity: 0; transform: translate(-50%, -12px); } 8%, 85% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -12px); } }
+@utility anim-banner { animation: banner-life 7s ease-in-out forwards; }
+@keyframes chest-bob { 0%,100% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 6px var(--color-gold)); } 50% { transform: translate(-50%, -58%) scale(1.08); filter: drop-shadow(0 0 16px var(--color-gold)); } }
+@utility anim-chest { animation: chest-bob 2.2s ease-in-out infinite; }
 .snowflake { top: 0; border-radius: 9999px; background: oklch(0.98 0.01 240); box-shadow: 0 0 6px oklch(0.98 0.01 240 / 70%); }
 
 @keyframes cast-glow { 0%,100% { filter: none; transform: translateY(0); } 40% { filter: brightness(1.6) drop-shadow(0 0 24px var(--r3)); transform: translateY(-8px); } }

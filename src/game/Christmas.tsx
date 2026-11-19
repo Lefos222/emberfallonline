@@ -35,9 +35,25 @@ function waitLabel(ms: number) {
   return mins >= 60 ? `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, "0")}m` : `${mins}m`;
 }
 
-/** "Christmas is coming" banner plus the snow chest that hands out snowballs for gold. */
-export function ChristmasCorner() {
+/** "Christmas is coming" — shown for a few seconds when the castle opens, then fades away. */
+export function ChristmasBanner() {
+  const [show, setShow] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setShow(false), 7000);
+    return () => clearTimeout(t);
+  }, []);
+  if (!show) return null;
+  return (
+    <div className="anim-banner pointer-events-none absolute left-1/2 top-16 z-20 rounded-lg border border-border bg-card/85 px-5 py-2 text-center shadow-lg backdrop-blur">
+      <p className="text-lg font-semibold text-gold md:text-2xl">❄ Christmas is coming! ❄</p>
+    </div>
+  );
+}
+
+/** A glowing chest standing in the snowy courtyard; tap it to open the Snow Chest window. */
+export function SnowChestSpot() {
   const { hero } = useGame();
+  const [openPanel, setOpenPanel] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [, tick] = useState(0);
   useEffect(() => {
@@ -65,29 +81,50 @@ export function ChristmasCorner() {
 
   return (
     <>
-      <div className="pointer-events-none absolute left-1/2 top-16 z-20 -translate-x-1/2 rounded-lg border border-border bg-card/85 px-5 py-2 text-center shadow-lg backdrop-blur">
-        <p className="text-lg font-semibold text-gold md:text-2xl">❄ Christmas is coming! ❄</p>
-      </div>
-      <div
-        className="absolute bottom-24 left-4 z-20 w-60 rounded-lg border border-border bg-card/90 p-3 text-sm shadow-lg backdrop-blur"
+      <button
+        aria-label="Snow Chest"
+        className={`absolute z-20 text-4xl md:text-5xl ${wait === 0 ? "anim-chest" : "-translate-x-1/2 -translate-y-1/2 opacity-70 grayscale"}`}
+        style={{ left: "50%", top: "82%" }}
         onPointerDown={(e) => e.stopPropagation()}
+        onClick={() => {
+          setMsg(null);
+          setOpenPanel(true);
+        }}
       >
-        <div className="flex items-center gap-2 font-semibold">
-          <Gift className="h-5 w-5 text-gold" /> Snow Chest
+        🎁
+      </button>
+      {openPanel && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => setOpenPanel(false)}
+        >
+          <div
+            className="w-72 rounded-xl border border-border bg-card p-5 text-center shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-center gap-2 text-lg font-semibold">
+              <Gift className="h-5 w-5 text-gold" /> Snow Chest
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Open it every 4 hours for snowballs. Each snowball is worth {fmt(SNOWBALL_GOLD)} gold.
+            </p>
+            <p className="mt-3 text-2xl font-bold">❄ {balls}</p>
+            <div className="mt-4 flex gap-2">
+              <Button onClick={open} disabled={wait > 0} className="flex-1">
+                {wait > 0 ? `Ready in ${waitLabel(wait)}` : "Open chest"}
+              </Button>
+              <Button variant="outline" onClick={redeem} disabled={balls === 0} className="flex-1">
+                Redeem
+              </Button>
+            </div>
+            {msg && <p role="status" className="mt-3 text-sm">{msg}</p>}
+            <Button variant="ghost" size="sm" className="mt-3" onClick={() => setOpenPanel(false)}>
+              Close
+            </Button>
+          </div>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Snowballs: {balls} · each worth {fmt(SNOWBALL_GOLD)} gold
-        </p>
-        <div className="mt-2 flex gap-2">
-          <Button size="sm" onClick={open} disabled={wait > 0} className="flex-1">
-            {wait > 0 ? waitLabel(wait) : "Open"}
-          </Button>
-          <Button size="sm" variant="outline" onClick={redeem} disabled={balls === 0} className="flex-1">
-            Redeem
-          </Button>
-        </div>
-        {msg && <p role="status" className="mt-2 text-xs">{msg}</p>}
-      </div>
+      )}
     </>
   );
 }
