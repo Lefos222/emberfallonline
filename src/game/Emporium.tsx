@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MOUNTS, buyGoldMount, mountPrice, ownsMount, rideMount, mountBlitzPct } from "./mounts";
+import { MOUNTS, buyGoldMount, mountPrice, ownsMount, rideMount, mountBlitzPct, mountDaysLeft, mountRenewPrice, renewMount, startMountClock } from "./mounts";
 import { RUNES, RUNE_MAX, carveRune, runeBlocker, runeCost, runeRank } from "./runes";
 import { blackMarketStock, bmItemPrice, rollBlackMarket } from "./black-market";
 import { DiamondService } from "./DiamondService";
@@ -27,23 +27,35 @@ export function MountsPanel({ onClose }: { onClose: () => void }) {
   return (
     <Panel title={tr("Stables")} subtitle={tr("Mounts shorten every blitz")} art="crown" onClose={onClose} wide>
       <NoteLine n={note} />
-      <p className="mb-3 text-sm text-muted-foreground">{tr("Riding now")}: <span className="text-gold">{mountBlitzPct(hero) ? `−${mountBlitzPct(hero)}% ${tr("blitz time")}` : tr("no mount")}</span></p>
+      <p className="mb-1 text-sm text-muted-foreground">{tr("Riding now")}: <span className="text-gold">{mountBlitzPct(hero) ? `−${mountBlitzPct(hero)}% ${tr("blitz time")}` : tr("no mount")}</span></p>
+      <p className="mb-3 text-xs text-muted-foreground">{tr("Every mount is hired for seven days — renew it with gold when the lease ends.")}</p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {MOUNTS.map((m) => {
           const owned = ownsMount(hero, m.id);
-          const riding = hero.mounts?.active === m.id && owned;
+          const days = mountDaysLeft(hero, m.id);
+          const expired = owned && days === 0;
+          const riding = hero.mounts?.active === m.id && !expired;
           return (
             <article key={m.id} className={`slot ornate-card flex flex-col items-center gap-2 p-3 text-center ${riding ? "ring-2 ring-gold" : ""}`}>
               <img src={m.img} alt={tName(m.name)} loading="lazy" className="mount-art h-32 w-full object-contain" />
               <h3 className="font-display text-lg text-gold">{tName(m.name)}</h3>
               <p className="text-xs text-muted-foreground">{tr(m.desc)}</p>
               <p className="text-sm font-bold">−{m.blitzPct}% {tr("blitz time")}</p>
-              {owned ? (
+              {owned && (
+                <p className={`text-[11px] ${expired ? "text-hp" : "text-muted-foreground"}`}>
+                  {expired ? tr("Lease expired") : `${days} ${tr("days left")}`}
+                </p>
+              )}
+              {expired ? (
+                <Button size="sm" disabled={hero.gold < mountRenewPrice(m, hero.level)} onClick={() => update((h) => { const e = renewMount(h, m.id); setNote(e ? { ok: false, t: tr(e) } : { ok: true, t: `${tName(m.name)} ✓` }); })}>
+                  {tr("Renew")} · {fmt(mountRenewPrice(m, hero.level))} {tr("gold")}
+                </Button>
+              ) : owned ? (
                 <Button size="sm" variant={riding ? "secondary" : "default"} onClick={() => update((h) => rideMount(h, riding ? null : m.id))}>{riding ? tr("Dismount") : tr("Ride")}</Button>
               ) : m.gold ? (
                 <Button size="sm" disabled={hero.gold < mountPrice(m, hero.level)} onClick={() => update((h) => { const e = buyGoldMount(h, m.id); setNote(e ? { ok: false, t: tr(e) } : { ok: true, t: `${tName(m.name)} ✓` }); })}>{fmt(mountPrice(m, hero.level))} {tr("gold")}</Button>
               ) : (
-                <DiamondService kind={`mount_${m.id}`} price={m.diamonds} label="Buy" onDone={() => update((h) => rideMount(h, m.id))} />
+                <DiamondService kind={`mount_${m.id}`} price={m.diamonds} label="Buy" onDone={() => update((h) => { startMountClock(h, m.id); rideMount(h, m.id); })} />
               )}
             </article>
           );

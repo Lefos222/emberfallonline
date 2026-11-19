@@ -11,6 +11,7 @@ import {
   claimVault,
   openVault,
   recordBounty,
+  recordRaidBounty,
   vaultClaimed,
   worldTreeDay,
 } from "@/game/worldtree";
@@ -58,6 +59,24 @@ describe("the world tree bounty board", () => {
     expect(h.gold).toBe(bounty.gold);
     expect(claimBounty(h, bounty)).toBe(0);
     expect(h.gold).toBe(bounty.gold);
+  });
+
+  it("counts a cleared world raid against the bounty it feeds", () => {
+    const h = hero();
+    recordRaidBounty(h, "gold");
+    recordRaidBounty(h, "ore");
+    recordRaidBounty(h, "boss");
+    recordRaidBounty(h, "keep", true);
+    expect(bountyProgress(h, "gold")).toBe(1);
+    expect(bountyProgress(h, "ore")).toBe(1);
+    expect(bountyProgress(h, "boss")).toBe(1);
+    expect(bountyProgress(h, "castle")).toBe(1);
+    // Ruins, vaults and landmarks are not bounties.
+    recordRaidBounty(h, "ruin");
+    recordRaidBounty(h, "cache");
+    recordRaidBounty(h, "landmark");
+    expect(bountyProgress(h, "gold")).toBe(1);
+    expect(bountyProgress(h, "castle")).toBe(1);
   });
 
   it("refuses to pay a bounty that is still short", () => {
