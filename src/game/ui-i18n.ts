@@ -2501,5 +2501,17 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Every fifth floor of the Endless Abyss": ["Κάθε πέμπτος όροφος της Ατέρμονης Αβύσσου", "Co piąte piętro Bezkresnej Otchłani"],
   "Rare drop from any boss (3%), Abyss guardians": ["Σπάνια λεία από κάθε αφεντικό (3%), φύλακες της Αβύσσου", "Rzadki łup z każdego bossa (3%), strażnicy Otchłani"],
   "Very rare boss drop (1%), every 25th Abyss floor": ["Πολύ σπάνια λεία αφεντικού (1%), κάθε 25ος όροφος της Αβύσσου", "Bardzo rzadki łup z bossa (1%), co 25. piętro Otchłani"],
+  "Old Guard Bram": ["Γέρος Φρουρός Μπραμ", "Stary Strażnik Bram"],
+  "Merchant Ysolde": ["Έμπορος Υσόλντ", "Kupiec Ysolde"],
+  "Ember Monk Cael": ["Μοναχός της Θράκας Καέλ", "Mnich Żaru Cael"],
+  "The walls have stood a thousand moons. They'll stand one more.": ["Τα τείχη στέκουν χίλια φεγγάρια. Θα αντέξουν άλλο ένα.", "Mury stoją od tysiąca księżyców. Wytrzymają jeszcze jeden."],
+  "Keep your blade sharp and your boots dry, hero.": ["Κράτα το σπαθί σου κοφτερό και τις μπότες σου στεγνές, ήρωα.", "Trzymaj ostrze ostre, a buty suche, bohaterze."],
+  "I saw the Awakening light flare last night... something stirs.": ["Είδα το φως της Αφύπνισης να λάμπει χθες τη νύχτα... κάτι κινείται.", "Wczoraj w nocy widziałem błysk światła Przebudzenia... coś się porusza."],
+  "Gold buys bread. Blood buys glory. I sell both!": ["Ο χρυσός αγοράζει ψωμί. Το αίμα αγοράζει δόξα. Πουλάω και τα δύο!", "Złoto kupuje chleb. Krew kupuje chwałę. Sprzedaję jedno i drugie!"],
+  "The Auction House never sleeps, and neither do I.": ["Ο Οίκος Δημοπρασιών δεν κοιμάται ποτέ, ούτε κι εγώ.", "Dom Aukcyjny nigdy nie śpi, podobnie jak ja."],
+  "Fine silks, rare gems... for you, only double the price.": ["Εκλεκτά μεταξωτά, σπάνια πετράδια... για σένα, μόνο διπλή τιμή.", "Wybór jedwabi, rzadkie klejnoty... dla ciebie tylko podwójna cena."],
+  "Under the blood moon, every ember remembers its fire.": ["Κάτω από το ματωμένο φεγγάρι, κάθε θράκα θυμάται τη φωτιά της.", "Pod krwawym księżycem każdy żar pamięta swój ogień."],
+  "Seek the Awakening, and you will find yourself.": ["Αναζήτησε την Αφύπνιση και θα βρεις τον εαυτό σου.", "Szukaj Przebudzenia, a odnajdziesz siebie."],
+  "Patience, traveler. Even stone becomes sand.": ["Υπομονή, ταξιδιώτη. Ακόμη και η πέτρα γίνεται άμμος.", "Cierpliwości, wędrowcze. Nawet kamień staje się piaskiem."],
   // @@ROWS@@
 };

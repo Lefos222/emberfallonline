@@ -34,6 +34,7 @@ import castle from "@/assets/castle.jpg.asset.json";
 import winterCastle from "@/assets/castle-winter.webp.asset.json";
 import { useWinterCastle } from "./castle-season";
 import { ChristmasBanner, SnowChestSpot, Snowfall } from "./Christmas";
+import { CastleLife } from "./CastleLife";
 import gateCampaign from "@/assets/gate-campaign.webp";
 import gateDungeon from "@/assets/gate-dungeon.webp";
 import gateConquest from "@/assets/gate-conquest.webp";
@@ -910,6 +911,7 @@ export function CastleMap({ onOpen }: { onOpen: (b: BuildingId) => void }) {
             }}
           />
         ))}
+        <CastleLife canTap={() => !moved.current} />
         {CASTLE_BUILDINGS.map((b) => (
           <button
             key={b.id}
