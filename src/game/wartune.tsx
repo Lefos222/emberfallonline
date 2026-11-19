@@ -32,6 +32,7 @@ export function WtWindow<T extends string>({
       <div className={`wt-window ${className}`} onClick={(e) => e.stopPropagation()}>
         <div className="wt-titlebar">
           <span className="wt-title-plate">{title}</span>
+          <span className="wt-ornament" aria-hidden="true" />
           <button className="wt-close" onClick={onClose} aria-label="Close">
             <X className="h-4 w-4" />
           </button>

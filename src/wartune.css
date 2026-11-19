@@ -66,7 +66,19 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  padding: 0.5rem 2.75rem 0.35rem;
+  padding: 0.5rem 2.75rem 0.6rem;
+}
+/* The gilded filigree that closes the title bar (src/assets/wt-ornament.svg). */
+.wt-ornament {
+  position: absolute;
+  bottom: -0.1rem;
+  left: 50%;
+  height: 0.7rem;
+  width: min(240px, 62%);
+  transform: translateX(-50%);
+  background: url("./assets/wt-ornament.svg") center / contain no-repeat;
+  opacity: 0.9;
+  pointer-events: none;
 }
 .wt-title-plate {
   font-family: var(--font-display);
@@ -393,6 +405,58 @@
 .wt-astro-cell.is-seated {
   border-color: #ffe2ab;
   box-shadow: 0 0 12px rgba(255, 210, 140, 0.55);
+}
+
+/* ---------------- Inventory helpers ---------------- */
+/* The painted night sky behind the hero (src/assets/inventory-stage.svg). */
+.wt-stage {
+  background:
+    url("./assets/inventory-stage.svg") center / cover no-repeat,
+    radial-gradient(circle at 50% 50%, #1a0730 0%, #0b0318 100%);
+}
+/* Bag capacity: a thin bar that warns before the bag fills up. */
+.wt-cap {
+  height: 5px;
+  border: 1px solid rgba(202, 163, 92, 0.45);
+  border-radius: 999px;
+  background: #170c08;
+  overflow: hidden;
+}
+.wt-cap > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #8a6a3c, #f0d08a);
+  transition: width 0.2s ease;
+}
+.wt-cap > span.is-full {
+  background: linear-gradient(90deg, #8a1f14, #ff6a4a);
+}
+/* The green corner mark on a bag piece that beats what is worn. */
+.wt-up {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  display: flex;
+  height: 14px;
+  width: 14px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  border: 1px solid #2a120c;
+  background: linear-gradient(180deg, #6ee07a, #1f7a2c);
+  color: #08180a;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+/* The smith's anvil (src/assets/forge-anvil.svg) between the two wells. */
+.wt-emblem-img {
+  height: 64px;
+  width: 64px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7));
 }
 
 /* ---------------- Loading screen ---------------- */

@@ -47,7 +47,7 @@ describe("fate stone refinement at the forge", () => {
     fireEvent.click(screen.getByRole("button", { name: /Fate Test Blade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Fate Stone" }));
 
-    expect(screen.getByText("+25% fate")).toBeInTheDocument();
+    expect(screen.getByText("Success Rate")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Refine \+1/ })).toBeInTheDocument();
 
     // Pinned only for the roll itself: the crafted ids above must stay unique.

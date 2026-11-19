@@ -59,8 +59,8 @@ describe("advanced barracks training", () => {
 
     fireEvent.click(container.querySelector("button.slot")!);
 
-    expect(screen.getByText(`Fully enhanced · +${ENHANCE_MAX}`)).toBeInTheDocument();
-    expect(screen.getByText(`+${ENHANCE_MAX}`, { selector: "b" })).toBeInTheDocument();
+    expect(screen.getByText("This piece is at the highest enchantment (+60).")).toBeInTheDocument();
+    expect(screen.getByText(`+${ENHANCE_MAX}`, { selector: "button.wt-btn" })).toBeDisabled();
   });
 
   it("prices the next step of an unmaxed piece", () => {
@@ -74,7 +74,7 @@ describe("advanced barracks training", () => {
 
     fireEvent.click(container.querySelector("button.slot")!);
 
-    expect(screen.getByText("Enhance +13")).toBeInTheDocument();
+    expect(screen.getByText("Enchant +13")).toBeInTheDocument();
     expect(screen.getByText(fmt(enhanceCost(blade, hero.level)))).toBeInTheDocument();
   });
 

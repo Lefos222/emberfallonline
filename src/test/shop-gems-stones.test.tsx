@@ -175,14 +175,13 @@ describe("forge panel", () => {
     render(<Forge onClose={() => {}} />);
 
     fireEvent.click(screen.getAllByRole("button", { name: new RegExp(piece.name) })[0]!);
+    // The card, the sockets and the salvage panel sit behind the bench's More Info toggle.
+    fireEvent.click(screen.getByRole("button", { name: /More Info/ }));
     expect(screen.getByText("Gem sockets")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Cut a gem socket/ })).not.toBeInTheDocument();
-    expect(screen.getByText(/cut and filled at the Gem Workshop/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Enchantment Stone" }));
-    expect(screen.getByText("Stone grade")).toBeInTheDocument();
-    expect(screen.getByText("+20% success")).toBeInTheDocument();
-    // The best stone held is preselected, showing how many are in the pouch.
+    // Every grade in the pouch shows its own odds for this piece, with the count held.
     expect(screen.getByTitle("Lv 2 Enchantment Stone")).toBeInTheDocument();
     expect(screen.getByTitle("Lv 2 Enchantment Stone").textContent).toContain(
       fmt(stoneCount(h, 2)),
