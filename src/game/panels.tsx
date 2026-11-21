@@ -35,6 +35,7 @@ import { forecastFight } from "./battle-advice";
 import { GemIcon, MatIcon, StoneIcon } from "./MatIcon";
 import { Vault, vaultTiles, type VaultPick } from "./Vault";
 import { GearCodex } from "./GearCodex";
+import { matSellValue, sellMat, sellStone, stoneSellValue } from "./sell";
 import { MAX_SOCKETS, MATS, REFINE, addMats, gemName, gemStatText, matCount, parseGem, refine, scrapItem, scrapYield, socketCount, sockets, type Mat } from "./crafting";
 import { STONE_FAIL_SAVE_CHANCE, STONE_LEVELS, combineAllStones, combineGold, combineStones, heldStoneLevels, spendStones, stoneBonus, stoneCount, stoneName } from "./enchant";
 import { FATE_SUCCESS_BONUS, fateRefineChance, fateStoneCost, fateStoneCount, spendFateStones } from "./fate";
@@ -76,6 +77,8 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
   const [filter, setFilter] = useState<Slot | "all">("all");
   const [sort, setSort] = useState<"new" | "rarity" | "level">("new");
   const [q, setQ] = useState("");
+  const [spick, setSpick] = useState<{ kind: "mat"; m: Mat } | { kind: "stone"; lv: number } | null>(null);
+  const [sellMsg, setSellMsg] = useState("");
   if (!hero) return null;
   const s = heroStats(hero);
   const selItem = sel ? (sel.equipped ? Object.values(hero.equipment).find((i) => i?.id === sel.id) : hero.inventory.find((i) => i.id === sel.id)) : undefined;
@@ -162,8 +165,11 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
           </div>
         </div>
         <div>
-          <div className="mb-2 flex items-center justify-between">
-            <span className="font-display">{t("Bag")} {hero.inventory.length + matSlots(hero)}/{bagSize(hero)}</span>
+          <div className="bag-header mb-2 flex flex-wrap items-center justify-between gap-2">
+            <span className="flex items-center gap-2 font-display text-lg text-gold"><Backpack className="h-5 w-5" />{t("Bag")}
+              <span className="bag-capacity"><span style={{ width: `${Math.min(100, ((hero.inventory.length + matSlots(hero)) / Math.max(1, bagSize(hero))) * 100)}%` }} /></span>
+              <span className="text-sm text-muted-foreground">{hero.inventory.length + matSlots(hero)}/{bagSize(hero)}</span>
+              <span className="ml-1 text-sm"><Gold n={hero.gold} /></span></span>
             <button className="btn-blood px-3 py-1 text-xs" onClick={() => update((h) => {
               const junk = h.inventory.filter((i) => i.rarity <= 1 && i.enh === 0);
               h.gold += junk.reduce((a, i) => a + sellValue(i), 0);
@@ -193,14 +199,14 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
           )}
           <div className="mb-2 flex flex-wrap items-center gap-1 text-xs">
             {(["all", ...SLOTS] as const).map((f) => (
-              <button key={f} onClick={() => setFilter(f)} className={`rounded px-2 py-0.5 ${filter === f ? "bg-gold text-background" : "bg-secondary"}`}>{f === "all" ? t("All") : SLOT_LABEL[f]}</button>
+              <button key={f} onClick={() => setFilter(f)} className={`bag-filter ${filter === f ? "bag-filter-on" : ""}`}>{f === "all" ? t("All") : SLOT_LABEL[f]}</button>
             ))}
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Search…")} className="ml-auto w-24 rounded bg-secondary px-2 py-0.5" aria-label={t("Search bag")} />
             <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className="rounded bg-secondary px-1 py-0.5" aria-label={t("Sort bag")}>
               <option value="new">{t("Newest")}</option><option value="rarity">{t("Rarity")}</option><option value="level">{t("Item level")}</option>
             </select>
           </div>
-          <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8" onDragOver={(e) => { if (e.dataTransfer.types.includes("text/ef-worn")) e.preventDefault(); }} onDrop={dropOnBag}>
+          <div className="bag-grid grid grid-cols-6 gap-1.5 sm:grid-cols-8" onDragOver={(e) => { if (e.dataTransfer.types.includes("text/ef-worn")) e.preventDefault(); }} onDrop={dropOnBag}>
             {(() => {
               const view = hero.inventory.filter((it) => (filter === "all" || it.slot === filter) && (!q || it.name.toLowerCase().includes(q.toLowerCase())));
               if (sort === "rarity") view.sort((a, b) => b.rarity - a.rarity || b.ilvl - a.ilvl);
@@ -211,21 +217,49 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               cells.push(<div key={it?.id ?? "e" + i} draggable={!!it} title={it ? t("Drag onto your hero to equip · right-click to equip") : undefined}
                 onDragStart={(e) => { if (it) e.dataTransfer.setData("text/ef-bag", it.id); }}
                 onContextMenu={(e) => { if (!it) return; e.preventDefault(); equip(it); setSel(null); }}>
-                <ItemSlot item={it} size={44} selected={!!it && sel?.id === it.id} onClick={() => it && setSel({ id: it.id, equipped: false })} /></div>);
+                <div className="bag-cell"><ItemSlot item={it} size={44} selected={!!it && sel?.id === it.id} onClick={() => { if (it) { setSel({ id: it.id, equipped: false }); setSpick(null); } }} /></div></div>);
               return cells;
             }, filter !== "all" || q ? [] : [...(roseCount(hero)>0?[<RoseItem key="roses" compact />]:[]), ...vaultTiles(hero, vpick, (p) => { setVpick(p); setSel(null); }), ...(Object.keys(MATS) as Mat[]).flatMap((m) => {
               const n = matCount(hero, m); if (n <= 0) return [];
               return Array.from({ length: Math.ceil(n / MAT_STACK) }, (_, k) => {
                 const here = Math.min(MAT_STACK, n - k * MAT_STACK);
                 return <InfoTip key={m + k} title={`${MATS[m].name} ×${fmt(here)}`} lines={[MATS[m].desc, `${t("Found:")} ${MATS[m].src}`]}>
-                  <button type="button" aria-label={`${MATS[m].name}, ${here}`} className={"slot bag-mat rarity-" + Math.min(MATS[m].rarity + 1, 5)} style={{ width: 44, height: 44 }}>
+                  <button type="button" aria-label={`${MATS[m].name}, ${here}`} onClick={() => { setSpick({ kind: "mat", m }); setSel(null); setVpick(null); setSellMsg(""); }}
+                    className={"slot bag-mat bag-cell rarity-" + Math.min(MATS[m].rarity + 1, 5) + (spick?.kind === "mat" && spick.m === m ? " bag-cell-picked" : "")} style={{ width: 44, height: 44 }}>
                     <MatIcon mat={m} size={34} /><span className="bag-mat-count">{here >= 1000 ? `${Math.floor(here / 1000)}k` : here}</span>
                   </button>
                 </InfoTip>;
               });
-            })])}
+            }), ...heldStoneLevels(hero).map((lv) => (
+              <InfoTip key={"stone-" + lv} title={`${stoneName(lv)} ×${fmt(stoneCount(hero, lv))}`} lines={[`+${stoneBonus(lv)}% ${t("enchant chance")}`, `${t("Sells for")} ${fmt(stoneSellValue(lv))} ${t("gold each")}`]}>
+                <button type="button" aria-label={`${stoneName(lv)}, ${stoneCount(hero, lv)}`} onClick={() => { setSpick({ kind: "stone", lv }); setSel(null); setVpick(null); setSellMsg(""); }}
+                  className={"slot bag-mat bag-cell" + (spick?.kind === "stone" && spick.lv === lv ? " bag-cell-picked" : "")} style={{ width: 44, height: 44 }}>
+                  <StoneIcon level={lv} size={30} /><span className="bag-mat-count">{stoneCount(hero, lv)}</span>
+                </button>
+              </InfoTip>
+            ))])}
           </div>
-          <Vault pick={vpick} setPick={setVpick} />
+          {spick && (() => {
+            const have = spick.kind === "mat" ? matCount(hero, spick.m) : stoneCount(hero, spick.lv);
+            const each = spick.kind === "mat" ? matSellValue(spick.m) : stoneSellValue(spick.lv);
+            const name = spick.kind === "mat" ? MATS[spick.m].name : stoneName(spick.lv);
+            const doSell = (n: number) => { let g = 0; update((h) => { g = spick.kind === "mat" ? sellMat(h, spick.m, n) : sellStone(h, spick.lv, n); }); setSellMsg(`${t("Sold for")} ${fmt(g)} ${t("gold")}`); if (n >= have) setSpick(null); };
+            return (
+              <div className="bag-sell-bar anim-pop" role="region" aria-label={t("Sell")}>
+                {spick.kind === "mat" ? <MatIcon mat={spick.m} size={40} /> : <StoneIcon level={spick.lv} size={36} />}
+                <div className="min-w-0 flex-1">
+                  <div className="font-display text-gold">{name} ×{fmt(have)}</div>
+                  <div className="text-xs text-muted-foreground">{fmt(each)} {t("gold each")}</div>
+                </div>
+                <button className="btn-ghost px-2 py-1 text-xs" disabled={have < 1} onClick={() => doSell(1)}>{t("Sell")} 1</button>
+                {have >= 10 && <button className="btn-ghost px-2 py-1 text-xs" onClick={() => doSell(10)}>{t("Sell")} 10</button>}
+                <button className="btn-blood px-3 py-1 text-xs" disabled={have < 1} onClick={() => doSell(have)}>{t("Sell all")} ({fmt(have * each)})</button>
+                <button className="btn-ghost px-2 py-1 text-xs" aria-label={t("Close")} onClick={() => setSpick(null)}>✕</button>
+              </div>
+            );
+          })()}
+          {sellMsg && <p role="status" className="anim-pop mt-1 text-sm text-r1">{sellMsg}</p>}
+          <Vault pick={vpick} setPick={(p) => { setVpick(p); if (p) setSpick(null); }} />
           <GearCodex cls={hero.cls} />
           <div className="mt-4 rounded border border-dashed border-border/60 px-3 py-3 text-center text-xs text-muted-foreground">
              {t("Tap any bag or worn item and it opens on the spot — compare, equip, unequip or sell without scrolling down.")} </div>

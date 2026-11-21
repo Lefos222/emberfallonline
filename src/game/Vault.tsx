@@ -5,7 +5,8 @@ import { CHESTS, chestCount, openChest, ownedChests, type ChestKind } from "./ch
 import { GEMS, GEM_STAT_LABEL, GEM_TIER_NAMES, gemName, gemValue, parseGem } from "./crafting";
 import { GemIcon } from "./MatIcon";
 import { update, useGame } from "./store";
-import { InfoTip } from "./ui";
+import { InfoTip, fmt } from "./ui";
+import { gemSellValue, sellGem } from "./sell";
 
 export type VaultPick = { type: "chest"; kind: ChestKind } | { type: "gem"; key: string };
 
@@ -87,8 +88,12 @@ export function Vault({ pick, setPick }: { pick: VaultPick | null; setPick: (p: 
               {GEM_TIER_NAMES[gemPick.tier - 1]}  {t("tier · best on")} {GEMS[gemPick.type].classes}
             </p>
           </div>
-          <span className="text-xs text-muted-foreground">
-             {t("Socket or fuse it at the Gem Workshop")} </span>
+          <div className="flex flex-wrap gap-1.5">
+            <button className="btn-ghost px-2 py-1 text-xs" onClick={() => { let g = 0; update((h) => { g = sellGem(h, pick.key, 1); }); setMsg(`${t("Sold for")} ${fmt(g)} ${t("gold")}`); if ((hero.gems?.[pick.key] ?? 0) <= 1) setPick(null); }}>
+              {t("Sell")} 1 ({fmt(gemSellValue(pick.key))})</button>
+            <button className="btn-blood px-2 py-1 text-xs" onClick={() => { const n = hero.gems?.[pick.key] ?? 0; let g = 0; update((h) => { g = sellGem(h, pick.key, n); }); setMsg(`${t("Sold for")} ${fmt(g)} ${t("gold")}`); setPick(null); }}>
+              {t("Sell all")} ({fmt((hero.gems?.[pick.key] ?? 0) * gemSellValue(pick.key))})</button>
+          </div>
         </div>
       )}
 

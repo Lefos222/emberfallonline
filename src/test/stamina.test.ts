@@ -21,11 +21,11 @@ import {
 } from "@/game/stamina";
 
  describe("daily stamina", () => {
-  it("pays 500 a day: twenty-five campaign battles at 20 or fifty dungeon runs at 10", () => {
-    expect(STAMINA_PER_DAY).toBe(500);
+  it("pays 300 a day: fifteen campaign battles at 20 or thirty dungeon runs at 10", () => {
+    expect(STAMINA_PER_DAY).toBe(300);
     expect(CAMPAIGN_STAMINA).toBe(20);
     expect(DUNGEON_STAMINA).toBe(10);
-    expect(DUNGEON_RUNS_PER_DAY).toBe(50);
+    expect(DUNGEON_RUNS_PER_DAY).toBe(30);
   });
 
   it("starts full and drains a campaign battle at a time", () => {
@@ -98,7 +98,7 @@ import {
     spendStamina(h, 100, now);
     expect(potionUsesLeft(h, now)).toBe(5);
     expect(drinkStaminaPotion(h, now)).toBeNull();
-    expect(staminaLeft(h, now)).toBe(450);
+    expect(staminaLeft(h, now)).toBe(250);
     expect(potionCount(h)).toBe(1);
     expect(potionUsesLeft(h, now)).toBe(4);
   });
@@ -111,7 +111,7 @@ import {
     spendStamina(h, cost, now);
     expect(potionUsesLeft(h, now)).toBe(5);
     expect(drinkStaminaPotion(h, now)).toBeNull();
-    expect(staminaLeft(h, now)).toBe(500);
+    expect(staminaLeft(h, now)).toBe(300);
     expect(potionUsesLeft(h, now)).toBe(4);
   });
 

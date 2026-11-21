@@ -2525,5 +2525,11 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "Under the blood moon, every ember remembers its fire.": ["Κάτω από το ματωμένο φεγγάρι, κάθε θράκα θυμάται τη φωτιά της.", "Pod krwawym księżycem każdy żar pamięta swój ogień."],
   "Seek the Awakening, and you will find yourself.": ["Αναζήτησε την Αφύπνιση και θα βρεις τον εαυτό σου.", "Szukaj Przebudzenia, a odnajdziesz siebie."],
   "Patience, traveler. Even stone becomes sand.": ["Υπομονή, ταξιδιώτη. Ακόμη και η πέτρα γίνεται άμμος.", "Cierpliwości, wędrowcze. Nawet kamień staje się piaskiem."],
+  "Sold for": ["Πουλήθηκε για", "Sprzedano za"],
+  "Sell all": ["Πούλησε όλα", "Sprzedaj wszystko"],
+  "gold each": ["χρυσός το καθένα", "złota za sztukę"],
+  "Sells for": ["Πωλείται για", "Sprzedaje się za"],
+  "enchant chance": ["πιθανότητα μαγείας", "szansy na zaklęcie"],
+
   // @@ROWS@@
 };
