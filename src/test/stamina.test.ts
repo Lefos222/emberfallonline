@@ -21,11 +21,11 @@ import {
 } from "@/game/stamina";
 
  describe("daily stamina", () => {
-  it("pays 300 a day: fifteen campaign battles at 20 or thirty dungeon runs at 10", () => {
-    expect(STAMINA_PER_DAY).toBe(300);
+  it("pays 200 a day: ten campaign battles at 20 or twenty dungeon runs at 10", () => {
+    expect(STAMINA_PER_DAY).toBe(200);
     expect(CAMPAIGN_STAMINA).toBe(20);
     expect(DUNGEON_STAMINA).toBe(10);
-    expect(DUNGEON_RUNS_PER_DAY).toBe(30);
+    expect(DUNGEON_RUNS_PER_DAY).toBe(20);
   });
 
   it("starts full and drains a campaign battle at a time", () => {
@@ -93,12 +93,12 @@ import {
   it("does not carry yesterday's five drinks into today's first battle", () => {
     const h = newHero("Walker", "warrior");
     const now = Date.parse("2026-11-15T12:00:00Z");
-    h.stamina = { day: staminaDay(now - 86400000), used: 300, potions: 5 };
+    h.stamina = { day: staminaDay(now - 86400000), used: 200, potions: 5 };
     addPotions(h, 2);
     spendStamina(h, 100, now);
     expect(potionUsesLeft(h, now)).toBe(5);
     expect(drinkStaminaPotion(h, now)).toBeNull();
-    expect(staminaLeft(h, now)).toBe(250);
+    expect(staminaLeft(h, now)).toBe(150);
     expect(potionCount(h)).toBe(1);
     expect(potionUsesLeft(h, now)).toBe(4);
   });
@@ -106,12 +106,12 @@ import {
   it.each([CAMPAIGN_STAMINA, DUNGEON_STAMINA])("resets yesterday's drink count on a battle costing %i", (cost) => {
     const h = newHero("Walker", "warrior");
     const now = Date.parse("2026-11-15T12:00:00Z");
-    h.stamina = { day: staminaDay(now - 86400000), used: 300, potions: 5 };
+    h.stamina = { day: staminaDay(now - 86400000), used: 200, potions: 5 };
     addPotions(h, 1);
     spendStamina(h, cost, now);
     expect(potionUsesLeft(h, now)).toBe(5);
     expect(drinkStaminaPotion(h, now)).toBeNull();
-    expect(staminaLeft(h, now)).toBe(300);
+    expect(staminaLeft(h, now)).toBe(200);
     expect(potionUsesLeft(h, now)).toBe(4);
   });
 

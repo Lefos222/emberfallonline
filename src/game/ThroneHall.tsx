@@ -2,27 +2,20 @@ import { tr } from "./i18n";
 import { useState } from "react";
 import { Check, Gift, Skull } from "lucide-react";
 import { ACHIEVEMENTS, ACH_CATEGORIES, SET_BONUSES, achGold, achProgress, activeSets, emptyRecord, isClaimable, sortAchievements, type AchCategory } from "./progress";
-import { CLASSES, heroStats, powerBreakdown, xpToNext, type Hero } from "./data";
+import { BATTLES_PER_LEVEL, CLASSES, heroStats, powerBreakdown, type Hero } from "./data";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
 import { LevelProgress } from "./LevelCurve";
-import { TREES } from "./talents";
 import { RenownTraining } from "./RenownPanel";
-import { SkillTreeContent } from "./SkillTree";
-import { PassiveTreeContent } from "./PassiveTree";
-
-/** Chance an achievement also hands over a bonus skill point. */
-const BONUS_POINT_CHANCE = 0.25;
 
 export function ThroneHall({ onClose }: { onClose: () => void }) {
   const { hero } = useGame();
-  const [tab, setTab] = useState<"overview" | "skills" | "passives" | "ach" | "history">("skills");
+  const [tab, setTab] = useState<"overview" | "ach" | "history">("overview");
   const [achCat, setAchCat] = useState<AchCategory | "All">("All");
   /** True while the list shows only what can be claimed right now. */
   const [readyOnly, setReadyOnly] = useState(false);
   if (!hero) return null;
   const s = heroStats(hero);
-  const trees = TREES[hero.cls];
   const claimable = ACHIEVEMENTS.filter((a) => isClaimable(hero, a)).length;
   const rec = { ...emptyRecord(), ...(hero.record ?? {}) };
   /** Everything the current filter shows, finished achievements first (see sortAchievements). */
@@ -32,8 +25,6 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
     if (!isClaimable(h, a)) return; // one-time: re-checked against latest save
     h.achClaimed = [...(h.achClaimed ?? []), a.id];
     h.gold += achGold(a);
-    // Achievements occasionally pay a bonus skill point alongside their Insight reward.
-    if (Math.random() < BONUS_POINT_CHANCE) h.bonusPts = (h.bonusPts ?? 0) + 1;
   };
   const claim = (id: string) => update((h) => {
     const a = ACHIEVEMENTS.find((x) => x.id === id);
@@ -46,10 +37,8 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
   });
 
   return (
-    <Panel title={tr("Throne Hall")} subtitle={tr("Skill tree, passives, hero training and achievements")} art="crown" onClose={onClose} wide>
+    <Panel title={tr("Throne Hall")} subtitle={tr("Hero training, achievements and battle history")} art="crown" onClose={onClose} wide>
       <GameTabs label={tr("Throne Hall")} value={tab} onChange={setTab} tabs={[
-        { id: "skills", name: "Skill Tree" },
-        { id: "passives", name: "Passives" },
         { id: "overview", name: "Progression" },
         { id: "ach", name: "Achievements", badge: claimable },
         { id: "history", name: "Battle History" },
@@ -135,9 +124,8 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
           <div className="space-y-1">
             <div className="font-display text-2xl">{hero.name}</div>
             <div className="text-muted-foreground">{CLASSES[hero.cls].name}  {tr("· Level")} {hero.level}{hero.paragon > 0 && ` · Ascension ${hero.paragon}`}</div>
-            <div className="text-sm">{tr("XP")} {fmt(hero.xp)} / {fmt(xpToNext(hero))}</div>
+            <div className="text-sm">{tr("Battles")} {Math.min(BATTLES_PER_LEVEL, hero.levelBattles ?? 0)} / {BATTLES_PER_LEVEL}</div>
             <div className="text-sm">{tr("Campaign stage")} {hero.stage}  {tr("· Conquest")} {hero.spire}  {tr("· Wins")} {hero.wins}</div>
-            <div className="text-sm">{tr("Specialization:")} {trees.find((t) => t.id === hero.spec)?.name ?? "none"}</div>
             <div className="pt-2 font-display text-gold">{tr("Battle Rating")} {fmt(s.power)}</div>
             {powerBreakdown(hero).map((p) => <div key={p.label} className="flex justify-between text-sm"><span>{p.label}</span><span>{fmt(p.power)}</span></div>)}
           </div>
@@ -152,11 +140,7 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         </div>
-      ) : tab === "passives" ? (
-        <PassiveTreeContent />
-      ) : (
-        <SkillTreeContent />
-      )}
+      ) : null}
     </Panel>
   );
 }

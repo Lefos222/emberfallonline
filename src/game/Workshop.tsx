@@ -12,6 +12,7 @@ import {
   SLOTS,
   WEAR_SLOTS,
   wornCompare,
+  clampDropLevel,
   makeItem,
   type Hero,
   type Item,
@@ -890,7 +891,7 @@ export function Crafting({ onClose }: { onClose: () => void }) {
     update((h) => {
       const recipe = RECIPES.find((x) => x.id === r.id);
       if (!recipe) return;
-      const out = craft(h, recipe, invCap(h), () => makeItem(h.cls, ilvl + (recipe.bonusLevel ?? 0), recipe.rarity, at), at);
+      const out = craft(h, recipe, invCap(h), () => makeItem(h.cls, clampDropLevel(h.level, ilvl + (recipe.bonusLevel ?? 0)), recipe.rarity, at), at);
       if (typeof out !== "string" && !["rare", "epic", "legend", "mythic"].includes(recipe.id))
         out.name = `${recipe.name} ${at}`;
       if (typeof out === "string") say(false, out);

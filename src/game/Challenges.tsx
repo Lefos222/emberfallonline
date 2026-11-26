@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { scrollXp } from "./scrolls";
 import { Crown, Lock, Skull, Sparkles, Trophy } from "lucide-react";
 import { Swords } from "./PaintedIcons";
-import { foeRating, invCap, heroStats, makeItem, RARITIES, type Item } from "./data";
+import { clampDropLevel, foeRating, invCap, heroStats, makeItem, RARITIES, type Item } from "./data";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
 import { DangerPill, Meter, StaminaMeter, VERDICT_STYLE } from "./GateUI";
@@ -88,7 +88,7 @@ export function Challenges({ onClose, start, onExpeditions, onRelics }: { onClos
           if(materials) addMats(h, cry);
           addWeeklyKill(h);
           if(drops && !materials) {
-          loot = makeDrop(h.cls, h.level + Math.floor(h.paragon / 2) + d * 2, cappedRarity(rw.minRarity, h.level));
+          loot = makeDrop(h.cls, clampDropLevel(h.level, h.level + Math.floor(h.paragon / 2) + d * 2), cappedRarity(rw.minRarity, h.level));
           loot.name = `${TIER_BOSSES[id].name.split(",")[0]}'s ${loot.name.split(" ").slice(1).join(" ")}`;
           const full = h.inventory.length >= invCap(h); addLoot(h, loot); if (full) lines.push("Bag full — gear placed in your Overflow Chest (Armory)");
           }

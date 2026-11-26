@@ -40,7 +40,7 @@ import gateConquest from "@/assets/gate-conquest.webp";
 import spireChest from "@/assets/spire-chest.webp";
 import { readAudioSettings, saveAudioSettings, soundtrackUrl, type AudioSettings } from "./audio";
 import { SettingsPanel } from "./Settings";
-import { BUILDINGS, CASTLE_BUILDINGS, heroStats, type BuildingId, type Hero, type Item } from "./data";
+import { BUILDINGS, CASTLE_BUILDINGS, clampDropLevel, heroStats, type BuildingId, type Hero, type Item } from "./data";
 import { CHESTS, addChests, rewardChestReady, rollBattleChest } from "./chests";
 import { vipXpMultiplier } from "./economy";
 import { confirmCardPurchase, reconcilePendingPurchases } from "./premium-shop";
@@ -128,6 +128,8 @@ export function Game() {
   // The fight on screen, plus the options that started it so a result can offer a rematch.
   const fightOpen = useRef(false);
   const lastFight = useRef<Parameters<StartBattle>[0] | null>(null);
+  /** The log the player chose to keep with this fight (see the battle's Save fight button). */
+  const savedLog = useRef<string[] | undefined>(undefined);
   const [entryError, setEntryError] = useState("");
   const [checkoutNotice, setCheckoutNotice] = useState("");
 
@@ -272,6 +274,7 @@ export function Game() {
     // Remembered so the result screen can offer the same fight again — through this same entry
     // point, so its stamina, duel allowance and blitz lock are checked once more.
     lastFight.current = o;
+    savedLog.current = undefined;
     starting.current = true;
     setEntryError("");
     void (async () => {
@@ -411,7 +414,7 @@ export function Game() {
       if (rarity !== null) {
         let found: Item | null = null;
         update((h) => {
-          found = makeDrop(h.cls, h.level + Math.floor(h.paragon / 2), rarity);
+          found = makeDrop(h.cls, clampDropLevel(h.level, h.level + Math.floor(h.paragon / 2)), rarity);
           addLoot(h, found);
         });
         const piece = found as Item | null;
@@ -447,6 +450,7 @@ export function Game() {
         boss: !!battle.right.boss,
         arena: /arena/i.test(battle.title),
         rewards: [...r.lines, ...(r.loot ? [r.loot.name] : [])],
+        log: savedLog.current,
       }),
     );
     // Daily & weekly challenges and level quests count every won fight.
@@ -733,6 +737,7 @@ export function Game() {
           title={battle.title}
           gate={battle.gate}
           onEnd={onEnd}
+          onSaveLog={(log) => { savedLog.current = log; }}
         />
       )}
       {entryError && (

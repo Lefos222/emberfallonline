@@ -40,11 +40,11 @@ const chapters: GuideChapter[] = [
     steps: [
       step(
         "Pick your hero",
-        "Warrior (sword and shield, energy), Mage (spells, mana) or Archer (arrows, focus). Each class has its own skills and its own resource bar. You can create more heroes later, so pick what looks fun.",
+        "Warrior (heavy armour and brute force), Mage (spell power and control) or Archer (speed, crits and evasion). Each class brings its own stat profile to every encounter. You can create more heroes later, so pick what looks fun.",
       ),
       step(
         "Open the War Gates",
-        "Tap the War Gates building in the castle, then the Campaign Gate tab. Stage 1 is an easy fight: press FIGHT, then pick a skill when it is your turn. A win pays XP, gold, a chance at gear, and Renown.",
+        "Tap the War Gates building in the castle, then the Campaign Gate tab. Stage 1 is an easy fight: press FIGHT and the encounter resolves on its own — your card and the enemy card trade blows until one falls. A win pays gold, a chance at gear, and Renown.",
       ),
       step(
         "Clear stage after stage",
@@ -52,7 +52,7 @@ const chapters: GuideChapter[] = [
       ),
       step(
         "Spend what you just earned",
-        "A level pays attribute points and a talent point. Put attributes into the stat your class uses. Talents unlock new abilities — take a damage ability first, it is the biggest power jump early on.",
+        "Every level takes 40 battles and pays attribute points and 2 Void Crystals. Put attributes into the stat your class uses — attack for damage, health and defence for survival — and spend the Crystals on advanced Barracks training.",
       ),
       step(
         "Wear anything better",
@@ -98,34 +98,34 @@ const chapters: GuideChapter[] = [
     id: "fight",
     tab: "Battles",
     title: "How a battle works",
-    blurb: "Turns, skills, potions and the two buttons that make fights shorter.",
+    blurb: "Static encounters: two cards, calculated blows and a result you accept.",
     steps: [
       step(
-        "Turns follow speed",
-        "The strip at the top of the fight shows who acts next. When it is your turn, pick a skill and then tap a target. Some skills hit one enemy, some hit all of them, and some help you instead. High-speed heroes can even act twice before slower behemoths.",
+        "Two cards, one result",
+        "Every encounter shows your character card and the enemy card side by side: portraits, names, levels, health bars and their stats. There is nothing to press mid-fight — the outcome is calculated from both stat blocks and the dice, Shakes & Fidget style.",
       ),
       step(
-        "Skills cost your resource",
-        "Every skill has a cooldown in turns, and most also cost energy, mana or focus. The basic attack is always free and refills your bar, so it is never wasted.",
+        "The blow-by-blow log",
+        "The middle panel lists every hit, critical strike, block and miss as it is calculated. When the fight ends the log names the winner, and OK accepts the result and shows your rewards.",
       ),
       step(
-        "Status conditions and crowd control",
-        "Watch for status icons: Burn deals fire damage over turns; Freeze skips enemy turns; Bleed damages on action; Stun incapacitates; and Shields absorb incoming damage before touching your HP.",
+        "Save the fights worth keeping",
+        "The Save fight button keeps that encounter's log in the Throne Hall's Battle History, so a boss kill can be read back later.",
       ),
       step(
-        "Two potions per fight",
-        "The potion button heals you and you carry two into every battle. They are free and refill every match — use them instead of losing.",
+        "Stats decide it",
+        "Attack, defence, health, crit chance, crit damage, penetration, accuracy, dodge, block and healing all matter. A level-matched hero wins most fights; a deeper stage, floor or dungeon is where the challenge comes from.",
       ),
       step(
-        "AUTO and the fast-forward",
-        "AUTO hands the fight to the hero: it picks the strongest ready skill each turn. The fast-forward arrow makes the same fight play out quicker. Both can be switched off at any time, and pressing A and F on a keyboard does the same.",
+        "Party encounters show every hero",
+        "In the Spire, every party member gets their own card — up to four — with their health and the damage they dealt. One fallen hero never ends the climb: the survivors fight on.",
       ),
       step(
         "Losing costs the same as winning",
-        "Entry is charged up front, so a loss is never double-priced. You keep what you already own, and the XP from a defeat still helps.",
+        "Entry is charged up front, so a loss is never double-priced. You keep what you already own, and the fight still counts toward your next level.",
       ),
     ],
-    tip: "Number keys 1-4 cast your skills during a battle, P drinks a potion, A toggles AUTO, and F toggles fast-forward.",
+    tip: "Encounters are automatic — your build, gear and level are the only inputs.",
   },
   {
     id: "gear",
@@ -378,8 +378,8 @@ const chapters: GuideChapter[] = [
     blurb: "Past level 20 the hero grows along many tracks at once. Here is what each one is for.",
     steps: [
       step(
-        "Talents and the Barracks",
-        "Talents unlock and improve abilities; the Barracks drills raise your percentage stats and your attributes over real time. Both are permanent and always worth doing.",
+        "The Barracks",
+        "The Barracks drills raise your percentage stats and your attributes over real time, and its advanced training spends Void Crystals from level-ups and bosses. All of it is permanent and always worth doing.",
       ),
       step(
         "Renown and Enlightenment",
@@ -469,7 +469,7 @@ const chapters: GuideChapter[] = [
       ),
       step(
         "Every track feeds the same number",
-        "Equipment and gems, attributes and talents, guild training, Barracks drills, Magic Tower Astrals, Runes, Renown, Enlightenment, Synthesis armour, titles and friendship all run through one stat pipeline. There is no side-track that grows a hero without moving the rating.",
+        "Equipment and gems, attributes, veteran rank, guild training, Barracks drills, Magic Tower Astrals, Runes, Renown, Enlightenment, Synthesis armour, titles and friendship all run through one stat pipeline. There is no side-track that grows a hero without moving the rating.",
       ),
       step(
         "Trained upgrades pay 1% more",
@@ -556,7 +556,7 @@ const chapters: GuideChapter[] = [
     steps: [
       step(
         "Asynchronous PvP Duels",
-        "Challenge rival player heroes in the Arena. Battles simulate asynchronous combat against their registered equipment and skill loadouts.",
+        "Challenge rival player heroes in the Arena. The encounter is calculated against their registered equipment and stats, and both cards are shown before the result.",
       ),
       step(
         "Ladder ranks and leagues",
@@ -567,8 +567,8 @@ const chapters: GuideChapter[] = [
         "Every duel awards Honor Tokens regardless of outcome. Spend Honor in the Arena vendor for exclusive PvP gear and combat scrolls.",
       ),
       step(
-        "Setting your defensive loadout",
-        "Configure your defensive skill bar and gear in the Arena panel so your hero fights effectively when other players challenge you.",
+        "Your gear is your defence",
+        "There is no skill bar to set: when another hero challenges you, the fight is calculated from the equipment you are wearing and your current stats.",
       ),
       step(
         "Daily duel allowances",
@@ -663,7 +663,7 @@ const chapters: GuideChapter[] = [
       ),
       step(
         "5. Tidy up & drill",
-        "Salvage junk gear, spend your attribute and talent points, queue up Barracks drills, and check the Auction House for an upgrade.",
+        "Salvage junk gear, spend your attribute points, queue up Barracks drills, and check the Auction House for an upgrade.",
       ),
     ],
     tip: "Everything daily resets at midnight in Greece (UTC+2 / EET), not at your own local midnight.",
@@ -800,7 +800,7 @@ export const GUIDE_GOALS: GuideGoal[] = [
   { id: "forge", label: "Forge something at the Forge", done: (h) => (h.crafts ?? 0) > 0 },
   { id: "dungeon", label: "Clear a Dungeon Gate run", done: (h) => Object.keys(h.dungeons ?? {}).length > 0 },
   { id: "farm", label: "Plant a crop on the farm", done: (h) => (h.farm?.slots ?? []).some(Boolean) },
-  { id: "talent", label: "Spend your first talent point", done: (h) => Object.keys(h.talents ?? {}).length > 0 },
+  { id: "battles40", label: "Fight 40 battles for a level", done: (h) => (h.record?.battles ?? 0) >= 40 },
   { id: "spire", label: "Clear a floor in the Spire Gate", done: (h) => Object.keys(h.spireFloors ?? {}).length > 0 },
 ];
 

@@ -2,6 +2,7 @@ import type { Hero } from "./data";
 import { type BonusFx, zeroFx, addMats, matCount, type Mat } from "./crafting";
 import { scaledGold } from "./gold";
 import { addStones } from "./enchant";
+import { guildRanks, type GuildRankState } from "./progress";
 
 // ---------- Guild contribution: gold → guild coins ----------
 /** 1000 gold = 1000 guild coins (1:1 rate). */
@@ -31,119 +32,17 @@ export function contributeGold(h: Hero, gold: number): string | null {
   return null;
 }
 
-// ---------- Guild Skill Tower ----------
-/**
- * The tower has no ceiling: every skill keeps levelling forever. Each rank costs guild coins
- * and, from the first rank on, gold as well — both prices climb by their own multiplier, so
- * the deep ranks stay a real sink instead of free power.
- */
-export interface GuildSkill {
-  id: string;
-  name: string;
-  desc: string;
-  stat: keyof BonusFx;
-  /** What one rank grants, in the stat's own unit. */
-  per: number;
-  /** Guild coins of the first rank. */
-  baseCost: number;
-  /** How much each further rank's coin price grows. */
-  costMult: number;
-  /** Gold of the first rank, paid on top of the coins (scaled by hero level). */
-  baseGold: number;
-  /** How much each further rank's gold price grows. */
-  goldMult: number;
-}
-
-export const GUILD_SKILLS: GuildSkill[] = [
-  { id: "g_atk", name: "Warlord's Might", desc: "+2% Physical Attack per rank", stat: "atkPct", per: 2, baseCost: 1000, costMult: 1.4, baseGold: 2000, goldMult: 1.4 },
-  { id: "g_def", name: "Guardian's Aegis", desc: "+2% Physical Defense per rank", stat: "defPct", per: 2, baseCost: 1000, costMult: 1.4, baseGold: 2000, goldMult: 1.4 },
-  { id: "g_hp", name: "Titan's Vigor", desc: "+3% Max HP per rank", stat: "hpPct", per: 3, baseCost: 1000, costMult: 1.4, baseGold: 2000, goldMult: 1.4 },
-  { id: "g_matk", name: "Archmage's Focus", desc: "+2% Magic Attack per rank", stat: "matkPct", per: 2, baseCost: 1000, costMult: 1.4, baseGold: 2000, goldMult: 1.4 },
-  { id: "g_mdef", name: "Wards of Ember", desc: "+2% Magic Defense per rank", stat: "mdefPct", per: 2, baseCost: 1000, costMult: 1.4, baseGold: 2000, goldMult: 1.4 },
-  { id: "g_crit", name: "Executioner's Eye", desc: "+0.5% Crit Chance per rank", stat: "crit", per: 0.5, baseCost: 1500, costMult: 1.5, baseGold: 3000, goldMult: 1.5 },
-  { id: "g_critDmg", name: "Devastation", desc: "+3% Crit Damage per rank", stat: "critDmg", per: 3, baseCost: 1500, costMult: 1.5, baseGold: 3000, goldMult: 1.5 },
-  { id: "g_pen", name: "Siegebreaker", desc: "+0.5% Armor Pen per rank", stat: "pen", per: 0.5, baseCost: 2000, costMult: 1.6, baseGold: 4000, goldMult: 1.6 },
-  { id: "g_dodge", name: "Phantom Step", desc: "+0.3% Dodge per rank", stat: "dodge", per: 0.3, baseCost: 2000, costMult: 1.6, baseGold: 4000, goldMult: 1.6 },
-  { id: "g_acc", name: "Trueshot", desc: "+0.5% Accuracy per rank", stat: "acc", per: 0.5, baseCost: 1500, costMult: 1.5, baseGold: 3000, goldMult: 1.5 },
-  { id: "g_block", name: "Bulwark Stance", desc: "+0.5% Block per rank", stat: "block", per: 0.5, baseCost: 2000, costMult: 1.6, baseGold: 4000, goldMult: 1.6 },
-  { id: "g_heal", name: "Vital Weaving", desc: "+1% Healing Power per rank", stat: "heal", per: 1, baseCost: 1500, costMult: 1.5, baseGold: 3000, goldMult: 1.5 },
-];
-
-export const guildSkillRank = (h: Pick<Hero, "guildSkills">, id: string) => Math.max(0, h.guildSkills?.[id] ?? 0);
-
-/** Total ranks a hero owns across the whole tower — the measure the reliquary unlocks on. */
-export const guildTotalRanks = (h: Pick<Hero, "guildSkills">) =>
-  GUILD_SKILLS.reduce((sum, s) => sum + guildSkillRank(h, s.id), 0);
-
-export interface GuildSkillPrice { coins: number; gold: number }
-
-/** What the next rank of a skill costs: guild coins and gold, both climbing with the rank. */
-export function guildSkillPrice(skill: GuildSkill, rank: number, level = 1): GuildSkillPrice {
-  return {
-    coins: Math.round(skill.baseCost * Math.pow(skill.costMult, rank)),
-    gold: scaledGold(Math.round(skill.baseGold * Math.pow(skill.goldMult, rank)), level),
-  };
-}
-
-/** Coin price only (kept for displays that show a single number). */
-export const guildSkillCost = (skill: GuildSkill, rank: number) => guildSkillPrice(skill, rank).coins;
-
-/** Why the next rank can't be bought, or null when it can. */
-export function guildSkillBlocker(h: Hero, skill: GuildSkill): string | null {
-  const price = guildSkillPrice(skill, guildSkillRank(h, skill.id), h.level);
-  if ((h.guildCoins ?? 0) < price.coins) return `Need ${price.coins.toLocaleString()} coins`;
-  if (h.gold < price.gold) return "Not enough gold";
-  return null;
-}
-
-/** How many ranks of a skill the hero can currently afford, capped at `want`. */
-export function affordableRanks(h: Hero, skill: GuildSkill, want: number): number {
-  let ranks = 0;
-  let coins = h.guildCoins ?? 0;
-  let gold = h.gold;
-  while (ranks < want) {
-    const price = guildSkillPrice(skill, guildSkillRank(h, skill.id) + ranks, h.level);
-    if (coins < price.coins || gold < price.gold) break;
-    coins -= price.coins;
-    gold -= price.gold;
-    ranks++;
-  }
-  return ranks;
-}
-
-/** Buy up to `count` ranks of one skill with guild coins and gold. */
-export function learnGuildSkill(h: Hero, id: string, count = 1): { bought: number; error: string | null } {
-  const skill = GUILD_SKILLS.find((s) => s.id === id);
-  if (!skill) return { bought: 0, error: "Unknown skill" };
-  let bought = 0;
-  while (bought < Math.max(1, count)) {
-    const rank = guildSkillRank(h, skill.id);
-    const price = guildSkillPrice(skill, rank, h.level);
-    if ((h.guildCoins ?? 0) < price.coins) break;
-    if (h.gold < price.gold) break;
-    h.guildCoins = (h.guildCoins ?? 0) - price.coins;
-    h.gold -= price.gold;
-    h.guildSkills = { ...(h.guildSkills ?? {}), [id]: rank + 1 };
-    trackGuildSpend(h, price.coins);
-    bought++;
-  }
-  if (bought === 0) {
-    const blocker = guildSkillBlocker(h, skill);
-    return { bought, error: blocker ?? "Nothing bought" };
-  }
-  return { bought, error: null };
-}
-
 // ---------- Reliquary ----------
 /**
- * Relics are the guild's heirlooms: each one wakes once the hero has climbed far enough up the
- * skill tower. They cost nothing to claim — the ranks already paid for them.
+ * Relics are the guild's heirlooms: each one wakes once the hero has given the guild enough gold
+ * (one rank per GUILD_RANK_GOLD donated, see guildRanks in progress.ts). They cost nothing to
+ * claim — the contributions already paid for them.
  */
 export interface GuildRelic {
   id: string;
   name: string;
   desc: string;
-  /** Total tower ranks needed to wake this relic. */
+  /** Guild ranks (gold donated) needed to wake this relic. */
   ranks: number;
   bonus: Partial<BonusFx>;
 }
@@ -158,10 +57,10 @@ export const GUILD_RELICS: GuildRelic[] = [
   { id: "ascendant_crown", name: "Ascendant Crown", desc: "Worn by a guild that outgrew its banner.", ranks: 130, bonus: { atkPct: 4, defPct: 4 } },
 ];
 
-export const relicUnlocked = (h: Pick<Hero, "guildSkills">, relic: GuildRelic) => guildTotalRanks(h) >= relic.ranks;
+export const relicUnlocked = (h: GuildRankState, relic: GuildRelic) => guildRanks(h) >= relic.ranks;
 
 /** The relic that wakes next, or null when every one of them has. */
-export function nextRelic(h: Pick<Hero, "guildSkills">): GuildRelic | null {
+export function nextRelic(h: GuildRankState): GuildRelic | null {
   return GUILD_RELICS.find((r) => !relicUnlocked(h, r)) ?? null;
 }
 
@@ -188,26 +87,13 @@ export function attuneRelic(h: Hero, id: string): string | null {
   return null;
 }
 
-export function relicFx(h: Pick<Hero, "guildSkills" | "relicAttune">): BonusFx {
+export function relicFx(h: GuildRankState & Pick<Hero, "relicAttune">): BonusFx {
   const out = zeroFx();
   for (const r of GUILD_RELICS) {
     if (!relicUnlocked(h, r)) continue;
     const p = relicPower(h, r.id);
     for (const [k, v] of Object.entries(r.bonus) as [keyof BonusFx, number][]) out[k] += v * p;
   }
-  return out;
-}
-
-/** Combat bonus from guild skill tower ranks and woken relics — feeds into computeStats. */
-export function guildFx(h: Pick<Hero, "guildSkills" | "relicAttune">): BonusFx {
-  const out = zeroFx();
-  if (h.guildSkills) {
-    for (const skill of GUILD_SKILLS) {
-      const rank = h.guildSkills[skill.id] ?? 0;
-      if (rank > 0) out[skill.stat] += skill.per * rank;
-    }
-  }
-  for (const [k, v] of Object.entries(relicFx(h)) as [keyof BonusFx, number][]) out[k] += v;
   return out;
 }
 

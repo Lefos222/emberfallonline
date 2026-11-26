@@ -6,7 +6,6 @@ import skeletonImg from "@/assets/enemy-skeleton.png";
 import goblinImg from "@/assets/enemy-goblin.png";
 import demonImg from "@/assets/enemy-demon.png";
 import dragonImg from "@/assets/enemy-dragon.png";
-import { talentFx } from "./talents";
 import {
   MAX_SOCKETS,
   astralFx,
@@ -20,10 +19,11 @@ import {
   type BonusFx,
   type Mat,
 } from "./crafting";
-import { setFx, type BattleEntry, type CombatRecord } from "./progress";
+import { BATTLES_PER_LEVEL, setFx, type BattleEntry, type CombatRecord } from "./progress";
+import type { HeroFace } from "./customization";
 import { goldGain, scaledGold } from "./gold";
 import { drillAttrs, drillFx, statTrainFx } from "./drills";
-import { guildFx } from "./guild-tower";
+import { relicFx } from "./guild-tower";
 import { normalizeSynth, synthFx } from "./synthesis";
 import { enlightenmentFx, soulFx } from "./enlightenment";
 import { renownFx } from "./renown";
@@ -456,6 +456,20 @@ export function posOf(eq: GearRecord, id: string): WearSlot | undefined {
   return WEAR_SLOTS.find((p) => eq[p]?.id === id);
 }
 
+/** How far above the hero's level a drop may roll. */
+export const DROP_LEVEL_AHEAD = 5;
+/** The level a piece of equipment requires: its own item level. */
+export const itemLevel = (it: Pick<Item, "ilvl">) => Math.max(1, Math.floor(it.ilvl));
+/** Whether a hero of this level meets a piece's requirement. */
+export const canWear = (level: number, it: Pick<Item, "ilvl">) => itemLevel(it) <= Math.max(1, Math.floor(level));
+/** The highest item level a drop may have for a hero of this level. */
+export const dropLevelCap = (level: number) => Math.max(1, Math.floor(level)) + DROP_LEVEL_AHEAD;
+/** Clamp any rolled item level into the hero's legal drop band (level .. level + 5). */
+export const clampDropLevel = (level: number, ilvl: number) => {
+  const lv = Math.max(1, Math.floor(level));
+  return Math.min(dropLevelCap(lv), Math.max(lv, Math.floor(ilvl)));
+};
+
 /** The piece a new item would displace: nothing while a position is free, else the weakest worn one. */
 export function wornCompare(h: { equipment: GearRecord }, it: Item): Item | undefined {
   const pos = wearOf(it.slot);
@@ -467,12 +481,16 @@ export function wornCompare(h: { equipment: GearRecord }, it: Item): Item | unde
  * Put a piece on: it fills the first free position for its slot, and when every position
  * is taken it replaces the weakest one — a second ring never silently overwrites the first.
  * Returns the position used, or null when the piece could not be worn.
+ *
+ * A piece carries a required level equal to its item level (see `itemLevel`), so nothing can be
+ * worn above the hero's own level. The same gate runs on the server's save validation.
  */
 export function equipItem(
-  h: { equipment: GearRecord; inventory: Item[] },
+  h: { equipment: GearRecord; inventory: Item[]; level: number },
   it: Item,
   at?: WearSlot,
 ): WearSlot | null {
+  if (!canWear(h.level, it)) return null;
   const pos = wearOf(it.slot);
   const target =
     (at && pos.includes(at) ? at : undefined) ??
@@ -571,6 +589,10 @@ export interface Hero {
   };
   stage: number;
   spire: number;
+  /** Battles fought since the last level-up; 40 of them pay the next level (see recordBattle). */
+  levelBattles?: number;
+  /** The level the battle counter belongs to, so a level-up from any source resets the count. */
+  battleLevel?: number;
   /** Best floor reached in each dungeon of the Spire Gate, by dungeon id (see spire-party.ts). */
   spireFloors?: Record<string, number>;
   spireVentures?: import("./spire-ventures").VentureState;
@@ -580,14 +602,8 @@ export interface Hero {
   wins: number;
   quests?: string[];
   dungeons?: Record<string, number>;
-  /** Skill tree ranks by talent id. */
-  talents?: Record<string, number>;
-  /** Extra skill points earned from quests and achievements (see talents.ts totalPoints). */
-  bonusPts?: number;
-  /** Optional chosen combat abilities; absent keeps the legacy full kit. */
-  skillLoadout?: string[];
-  /** Chosen class specialization id. */
-  spec?: string;
+  /** Chosen face for the layered portrait; absent keeps the original painted model (see customization.ts). */
+  face?: HeroFace;
   record?: CombatRecord;
   history?: BattleEntry[];
   /** Achievement ids whose one-time reward was claimed. */
@@ -601,10 +617,6 @@ export interface Hero {
   crafts?: number;
   /** Endgame: highest difficulty cleared per challenge boss. */
   challenges?: Record<string, number>;
-  /** Passive tree ranks by passive id (see passives.ts). */
-  passives?: Record<string, number>;
-  /** Insight banked for the passive tree; earned from real campaign, elite, boss and activity results. */
-  insight?: number;
   /** Endless Conquest: tokens earned from cleared floors and spent in the Conquest Gate, plus the
    *  blitz allowance, the Conquest Keys waiting in the pack and the Greek day a lit key covers
    *  (see conquest.ts). */
@@ -666,10 +678,8 @@ export interface Hero {
   /** Every monster defeated in a won battle (level quests count it beside the bestiary). */
   slain?: number;
   weekly?: { week: number; kills: number; claimed: boolean };
-  /** Guild coins earned by contributing gold; spent in the guild shop and skill tower. */
+  /** Guild coins earned by contributing gold; spent in the guild shop and reliquary. */
   guildCoins?: number;
-  /** Guild skill tower ranks by skill id (see guild-tower.ts). */
-  guildSkills?: Record<string, number>;
   /** Reliquary attunement level per woken guild relic (0-5). */
   relicAttune?: Record<string, number>;
   /** Fishing Pier: casts spent today and fish caught in total. */
@@ -791,14 +801,13 @@ export const LATE_CURVE_PER_LEVEL = 0.0015;
  *  (11 fights a level below 20 instead of 10). Change it here, never per call site. */
 export const LEVEL_COST_MULTIPLIER = 1.1;
 
-/** Fights one level costs, counted in cleared fights at the hero's own level.
- *  Levels 1–19 cost eleven fights each (ten × LEVEL_COST_MULTIPLIER); from level 20 the bill climbs smoothly (16, 20, 25 … 46 at 30,
- *  141 at 80) with no cliff, so a level is a session's work and the road to 80 is about five
- *  thousand wins — weeks of play, never one impossible bill. */
-export function fightsToLevel(level: number) {
-  const lv = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
-  const mid = lv > MID_RAMP_LEVEL ? 1 + (lv - MID_RAMP_LEVEL) * MID_RAMP_PER_LEVEL : 1;
-  return Math.round(baseFightsToLevel(level) * LEVEL_COST_MULTIPLIER * mid);
+/** Every level costs exactly this many battles (see recordBattle in progress.ts). */
+export { BATTLES_PER_LEVEL };
+
+/** Fights one level costs. The climb is deliberately flat: every level asks for 40 battles,
+ *  whether it is the second level or the hundredth, so progress is predictable and readable. */
+export function fightsToLevel(_level: number) {
+  return BATTLES_PER_LEVEL;
 }
 
 /** From this level every level asks MID_RAMP_PER_LEVEL more fights than the plain curve, so the
@@ -822,8 +831,10 @@ export function xpPerFight(level: number) {
   return stageRewards(Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)))).xp;
 }
 
-/** XP the current level still owes, and how many fights at the hero's own level that is. */
-export function fightsToNextLevel(h: Pick<Hero, "level" | "paragon" | "xp">) {
+/** Battles still owed for the next level. The saved counter is the truth once a hero has fought;
+ *  an older save without one falls back to the XP it has banked. */
+export function fightsToNextLevel(h: Pick<Hero, "level" | "paragon" | "xp" | "levelBattles">) {
+  if (h.levelBattles !== undefined) return Math.max(1, BATTLES_PER_LEVEL - Math.min(BATTLES_PER_LEVEL, Math.max(0, Math.floor(h.levelBattles))));
   const left = Math.max(0, xpToNext(h) - h.xp);
   return Math.max(1, Math.ceil(left / Math.max(1, xpPerFight(h.level))));
 }
@@ -953,12 +964,37 @@ function boosted<T extends object>(fx: T): T {
   return out as T;
 }
 
+/**
+ * The flat veteran curve that replaced the talent and passive trees.
+ *
+ * Those trees paid a hero a growing pile of percentage bonuses for points spent on skills. With
+ * the skill system removed, the same power is earned by levelling itself: every level adds a
+ * small, permanent bonus to the same stats the trees used to raise. Nothing is spent or chosen,
+ * so a hero can never fall behind by putting points in the "wrong" place.
+ */
+export function veteranFx(h: Pick<Hero, "level" | "paragon">): {
+  hpPct: number; atkPct: number; defPct: number; crit: number; dodge: number; critDmg: number; pen: number;
+} {
+  const lv = Math.max(1, h.level) + Math.max(0, h.paragon);
+  return {
+    hpPct: lv * 0.2,
+    atkPct: lv * 0.15,
+    defPct: lv * 0.12,
+    crit: lv * 0.02,
+    dodge: lv * 0.01,
+    critDmg: lv * 0.1,
+    pen: lv * 0.01,
+  };
+}
+
 function computeStats(
   h: Hero,
   opts: { gear: boolean; attrs: boolean; asc: boolean; talents?: boolean },
 ): Stats {
+  // Skills are gone: the old talent tree's power is folded into a flat veteran curve that every
+  // hero earns simply by levelling, so a hero is never weaker than the old tree made them.
   const tf = opts.talents
-    ? talentFx(h)
+    ? veteranFx(h)
     : { hpPct: 0, atkPct: 0, defPct: 0, crit: 0, dodge: 0, critDmg: 0, pen: 0 };
   if (opts.talents) tf.hpPct += friendshipHealthPct(h);
   // Gems add the chart's flat stats; Astrals, drills and guild skills stay percentage based.
@@ -968,7 +1004,7 @@ function computeStats(
   const xa = opts.talents ? boosted(astralFx(h)) : null;
   // Barracks drills are the hero's permanent training track beside the attribute points (see drills.ts).
   const dr = opts.talents ? boosted(drillFx(h)) : null;
-  const gf2 = opts.talents ? boosted(guildFx(h)) : null;
+  const gf2 = opts.talents ? boosted(relicFx(h)) : null;
   // Synthesis armour joins the same percentage pipeline as the other long-term tracks.
   const sy = opts.talents ? addFx(synthFx(h), awakeningFx(h)) : zeroFx();
   // Enlightenment and Soul infusions are the post-20 permanent tracks (see enlightenment.ts).
@@ -1232,7 +1268,7 @@ export function powerBreakdown(h: Hero): PowerSource[] {
     { label: "Attributes", power: withAttrs - base },
     { label: "Equipment", power: withGear - withAttrs },
     { label: `Ascension ${h.paragon}`, power: withAsc - withGear },
-    { label: "Skills, drills, Astrals, Synthesis, Enlightenment & Renown", power: total - withAsc },
+    { label: "Veteran rank, drills, Astrals, Synthesis, Enlightenment & Renown", power: total - withAsc },
   ];
 }
 export const powerOf = (s: { hp: number; atk: number; def: number; crit: number }) =>

@@ -1,8 +1,22 @@
 import type { HeroClass, Item, Slot } from "./data";
 
+/** Every level costs this many battles, counted by recordBattle below. */
+export const BATTLES_PER_LEVEL = 40;
+/** The class level cap; Ascension levels take over past it (see MAX_LEVEL in data.ts). */
+const LEVEL_CAP = 140;
+
+/**
+ * Gold a hero must donate to the guild for one guild rank. Ranks are the guild's own measure of
+ * standing (and the reliquary's unlock key), earned by contributing — never bought as skills.
+ */
+export const GUILD_RANK_GOLD = 5000;
+export interface GuildRankState { guildLedger?: { donated?: number; spent?: number } }
+export const guildRanks = (h: GuildRankState) =>
+  Math.max(0, Math.floor((h.guildLedger?.donated ?? 0) / GUILD_RANK_GOLD));
+
 /** Lifetime combat record saved with the hero. */
 export interface CombatRecord { battles: number; wins: number; losses: number; bosses: number; arenaWins: number; enhances: number; bestEnh: number }
-export interface BattleEntry { t: number; title: string; won: boolean; boss?: boolean; rewards: string[] }
+export interface BattleEntry { t: number; title: string; won: boolean; boss?: boolean; rewards: string[]; /** The fight's own log, when the player chose to save it. */ log?: string[] }
 
 export interface ProgressState {
   cls: HeroClass; level: number; paragon: number; stage: number; spire: number;
@@ -14,10 +28,13 @@ export interface ProgressState {
   conquest?: { tokens?: number };
   kills?: Record<string, number>;
   quests?: string[];
+  /** Battles fought since the last level-up, and the level they were counted for. */
+  levelBattles?: number;
+  battleLevel?: number;
+  voidCrystals?: number;
+  /** Gold given to the guild and coins spent in its hall (see guild-tower.ts). */
+  guildLedger?: { donated?: number; spent?: number };
   drills?: Record<string, number>;
-  talents?: Record<string, number>;
-  passives?: Record<string, number>;
-  guildSkills?: Record<string, number>;
   challenges?: Record<string, number>;
   gems?: Record<string, number>;
   synth?: { crafted?: string[]; worn?: Record<string, number> };
@@ -26,7 +43,6 @@ export interface ProgressState {
   dungeons?: Record<string, number>;
   attrDrills?: Record<string, number>;
   advancedDrills?: Record<string, number>;
-  voidCrystals?: number;
   rewardChest?: { claims?: number };
   dailyRewards?: { cycles?: number };
   eventBoss?: Record<string, number>;
@@ -62,12 +78,22 @@ export const emptyRecord = (): CombatRecord => ({ battles: 0, wins: 0, losses: 0
 export const HISTORY_CAP = 30;
 
 /** Append a finished battle to the hero's record and history (newest first). */
-export function recordBattle(h: ProgressState, e: { title: string; won: boolean; boss?: boolean; arena?: boolean; rewards: string[] }) {
+export function recordBattle(h: ProgressState, e: { title: string; won: boolean; boss?: boolean; arena?: boolean; rewards: string[]; log?: string[] }) {
   const r = { ...emptyRecord(), ...(h.record ?? {}) };
   r.battles++;
   if (e.won) { r.wins++; if (e.boss) r.bosses++; if (e.arena) r.arenaWins++; } else r.losses++;
   h.record = r;
-  h.history = [{ t: Date.now(), title: e.title, won: e.won, boss: e.boss, rewards: e.rewards.slice(0, 4) }, ...(h.history ?? [])].slice(0, HISTORY_CAP);
+  h.history = [{ t: Date.now(), title: e.title, won: e.won, boss: e.boss, rewards: e.rewards.slice(0, 4), log: e.log?.slice(0, 30) }, ...(h.history ?? [])].slice(0, HISTORY_CAP);
+  // Battle progress: every recorded battle is one step toward the next level. A level-up from any
+  // other source (a quest, a scroll) resets the count, so "battles to level" never lies.
+  if (h.battleLevel !== h.level) { h.levelBattles = 0; h.battleLevel = h.level; }
+  h.levelBattles = (h.levelBattles ?? 0) + 1;
+  if (h.levelBattles >= BATTLES_PER_LEVEL) {
+    h.levelBattles = 0;
+    if (h.level < LEVEL_CAP) h.level++; else h.paragon++;
+    h.battleLevel = h.level;
+    h.voidCrystals = (h.voidCrystals ?? 0) + 2;
+  }
 }
 
 export function recordEnhance(h: ProgressState, newEnh: number) {
@@ -184,14 +210,14 @@ export const ACHIEVEMENTS: Achievement[] = [
   ...tiers({ cat: "Exploration", desc: "Claim region quests", value: (h) => (h.quests ?? []).length }, "quests", ["Contract Taker", "Realm Completionist"], [4, 10], [800, 8000], [undefined, "Realm Completionist"]),
   // Bosses: named challenge bosses cleared at any difficulty
   ...tiers({ cat: "Bosses", desc: "Clear challenge bosses", value: (h) => Object.values(h.challenges ?? {}).filter((d) => d > 0).length }, "chal", ["Challenger", "Titan Slayer"], [1, 4], [2000, 25000], [undefined, "Titan Slayer"]),
-  // Guild: guild skill tower ranks
-  ...tiers({ cat: "Guild", desc: "Learn guild skill ranks", value: (h) => sum(h.guildSkills) }, "guild", ["Guild Initiate", "Tower Veteran", "Guild Paragon"], [5, 20, 50], [1500, 12000, 40000], [undefined, "Tower Veteran", "Guild Paragon"]),
+  // Guild: ranks earned by donating gold to the guild (see guildRanks)
+  ...tiers({ cat: "Guild", desc: "Donate gold to the guild", value: (h) => guildRanks(h) }, "guild", ["Guild Initiate", "Tower Veteran", "Guild Paragon"], [5, 20, 50], [1500, 12000, 40000], [undefined, "Tower Veteran", "Guild Paragon"]),
   // Training: barracks drill ranks
   ...tiers({ cat: "Training", desc: "Learn barracks drill ranks", value: (h) => sum(h.drills) }, "drills", ["Drill Recruit", "Drill Sergeant", "Warlord"], [3, 15, 40], [500, 9000, 30000], [undefined, undefined, "Warlord"]),
-  // Progression: skill tree ranks
-  ...tiers({ cat: "Progression", desc: "Spend points in the skill tree", value: (h) => sum(h.talents) }, "talentranks", ["Student of War", "Grandmaster"], [15, 50], [1500, 15000], [undefined, "Grandmaster"]),
-  // Progression: passive tree ranks
-  ...tiers({ cat: "Progression", desc: "Spend Insight in the passive tree", value: (h) => sum(h.passives) }, "passiveranks", ["Awakened", "Enlightened"], [10, 40], [2000, 20000], [undefined, "Enlightened"]),
+  // Progression: Arena duels won (the old skill-tree rungs, re-pointed at real play)
+  ...tiers({ cat: "Progression", desc: "Win Arena duels", value: (h) => rec(h).arenaWins }, "talentranks", ["Duelist", "Grandmaster"], [15, 50], [1500, 15000], [undefined, "Grandmaster"]),
+  // Progression: dungeon floors cleared (the old passive-tree rungs, re-pointed at real play)
+  ...tiers({ cat: "Progression", desc: "Clear dungeon floors", value: (h) => sum(h.dungeons) }, "passiveranks", ["Delver", "Enlightened"], [10, 40], [2000, 20000], [undefined, "Enlightened"]),
 
   // ---- Combat, extended ----
   ...tiers({ cat: "Combat", desc: "Fight any battle", value: (h) => rec(h).battles }, "battles", ["First Blood", "Skirmisher", "Battle-Hardened", "War Machine", "Eternal Soldier"], [1, 50, 250, 1000, 5000], [50, 400, 2500, 12000, 60000], [undefined, undefined, "Battle-Hardened", undefined, "Eternal Soldier"]),
@@ -244,7 +270,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   ...tiers({ cat: "Exploration", desc: "Plant your banner on the world map", value: (h) => (h as { worldCastle?: unknown }).worldCastle ? 1 : 0 }, "banner", ["Banner Lord"], [1], [5000], ["Banner Lord"]),
 
   // ---- Guild and training, extended ----
-  ...tiers({ cat: "Guild", desc: "Learn guild skill ranks", value: (h) => sum(h.guildSkills) }, "guild2", ["Guild Champion"], [100], [80000], ["Guild Champion"]),
+  ...tiers({ cat: "Guild", desc: "Donate gold to the guild", value: (h) => guildRanks(h) }, "guild2", ["Guild Champion"], [100], [80000], ["Guild Champion"]),
   ...tiers({ cat: "Training", desc: "Learn barracks drill ranks", value: (h) => sum(h.drills) }, "drills2", ["Drill Marshal", "Drill Legend"], [60, 100], [50000, 120000], ["Drill Marshal", "Drill Legend"]),
   ...tiers({ cat: "Training", desc: "Raise attribute drill ranks", value: (h) => sum(h.attrDrills) + sum(h.advancedDrills) }, "attrdrills", ["Iron Body", "Steel Body", "Adamant Body"], [10, 30, 60], [3000, 20000, 80000], [undefined, undefined, "Adamant Body"]),
 

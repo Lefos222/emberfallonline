@@ -15,6 +15,7 @@ import {
   rollRarity,
 } from "@/game/data";
 import { BOSS_CRYSTALS, CRYSTALS_PER_LEVEL, grant } from "@/game/logic";
+import { recordBattle } from "@/game/progress";
 import { barracksCost, barracksLevel, upgradeBarracks } from "@/game/barracks";
 import { ADVANCED_DRILLS, advancedBlocker, advancedCost, advancedRank, drillAttrs, trainAdvanced } from "@/game/drills";
 
@@ -100,12 +101,16 @@ describe("rarity is gated by level", () => {
 });
 
 describe("void crystals", () => {
-  it("pays crystals for every level gained", () => {
+  it("pays crystals for every level gained by fighting", () => {
     const h = newHero("Crystalfinder", "warrior");
     expect(h.voidCrystals).toBe(0);
-    const { levels } = grant(h, 100_000, 0);
-    expect(levels).toBeGreaterThan(1);
-    expect(h.voidCrystals).toBe(levels * CRYSTALS_PER_LEVEL);
+    // Forty recorded battles pay the next level (see recordBattle in progress.ts).
+    for (let i = 0; i < 40; i++) recordBattle(h, { title: "Fight", won: true, rewards: [] });
+    expect(h.level).toBe(2);
+    expect(h.voidCrystals).toBe(CRYSTALS_PER_LEVEL);
+    // XP no longer levels a hero on its own.
+    expect(grant(h, 100_000, 0).levels).toBe(0);
+    expect(h.level).toBe(2);
     expect(BOSS_CRYSTALS).toBeGreaterThan(0);
   });
 });

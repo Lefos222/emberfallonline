@@ -6,9 +6,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { tr } from "./i18n";
 import { fmt, GameTabs, Panel } from "./ui";
-import { Meter } from "./GateUI";
 import { Button } from "@/components/ui/button";
 import { CharacterModel } from "./CharacterModel";
+import { CombatStage } from "./CombatStage";
 import { arenaFor } from "./Battle";
 import { MATS, type Mat } from "./crafting";
 import { update, useGame } from "./store";
@@ -100,6 +100,17 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
     onBattleVisible?.(battle !== null);
     return () => onBattleVisible?.(false);
   }, [battle !== null, onBattleVisible]);
+  // Contribution: every blow a party member lands in the run is banked, so their card can show
+  // how much of the fight was theirs.
+  useEffect(() => {
+    const b = battle;
+    if (!b || b.t === lastTick.current) return;
+    lastTick.current = b.t;
+    for (const f of b.fx) {
+      if (f.kind === "heal") continue;
+      if (b.heroes.some((h) => h.id === f.src)) dealt.current[f.src] = (dealt.current[f.src] ?? 0) + Math.max(0, f.value);
+    }
+  }, [battle]);
   const [earned, setEarned] = useState(0);
   const [live, setLive] = useState(false);
   /** Climb first, then the party's seats, then what the chests hold. */
@@ -113,6 +124,9 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
   const matesRef = useRef<SpireMember[]>([]);
   const membersRef = useRef<SpireMember[]>([]);
   const battleRef = useRef<SpireBattle | null>(null);
+  /** Damage each party member has dealt in this run, for the contribution line on their card. */
+  const dealt = useRef<Record<string, number>>({});
+  const lastTick = useRef(-1);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const starting = useRef(false);
 
@@ -316,6 +330,8 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
       setMembers(party);
       setEarned(0);
       const first = newBattle(party, from, picked.id);
+      dealt.current = {};
+      lastTick.current = -1;
       battleRef.current = first;
       setBattle(first);
       link.current.send({ kind: "begin", members: party, floor: from, dungeon: picked.id });
@@ -735,125 +751,74 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
           />
           <div className="absolute inset-0 vignette" />
 
-          <div className="safe-top relative z-10 flex items-center justify-between gap-2 p-3">
-            <div className="font-display panel-title text-lg md:text-2xl">
-              <span className="block text-xs font-normal uppercase tracking-wide text-muted-foreground">
-                {tr(dungeonOf(battle.dungeon).name)}
-              </span>
-              {tr("Floor")} {battle.floor}{" "}
-              <span className="text-sm text-muted-foreground">/ {battle.floors ?? dungeonOf(battle.dungeon).floors}</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="slot px-2 py-1">
-                {tr("Chests won")} <b className="text-gold">{earned}</b>
-              </span>
-              <Button variant="ghost" className="btn-ghost px-2 py-1 text-xs" onClick={leaveFight}>
-                {tr("Leave")}
-              </Button>
-            </div>
-          </div>
-
-          {/* How far up the dungeon this climb has got, so the climb never feels endless. */}
-          <div className="relative z-10 px-3 md:px-10" aria-hidden="true">
-            <div className="h-1.5 w-full overflow-hidden rounded bg-background/70">
-              <div
-                className="h-full bg-gold transition-[width] duration-500"
-                style={{
-                  width: `${Math.min(100, Math.round((battle.floor / (battle.floors ?? dungeonOf(battle.dungeon).floors)) * 100))}%`,
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="relative z-10 flex flex-1 items-end justify-between gap-2 px-3 pb-3 md:px-10">
-            <div className="flex items-end justify-start gap-1 md:gap-3">
-              {battle.heroes.map((h) => {
-                const m = members.find((x) => x.id === h.id) ?? (h.id === self?.id ? self : undefined);
-                const down = h.hp <= 0;
-                const struck = battle.fx.some((f) => f.tgt === h.id || f.src === h.id);
-                return (
-                  <div
-                    key={h.id}
-                    className={`relative flex w-20 flex-col items-center md:w-28 ${down ? "opacity-40" : ""}`}
-                  >
-                    {/* The model needs its own box: `.hero-model` is absolutely laid out inside it. */}
-                    <div className={`h-24 w-20 shrink-0 md:h-36 md:w-28 ${struck ? "anim-lunge-r" : ""}`}>
-                      <CharacterModel
-                        cls={m?.cls ?? "warrior"}
-                        gender={m?.gender ?? "male"}
-                        synth={m?.synth}
-                        look={m?.look ?? null}
-                        pose={struck ? "action" : "auto"}
-                        className="h-full w-full"
-                      />
-                    </div>
-                    <span className="w-full truncate text-center text-[10px] font-bold">{m?.name ?? ""}</span>
-                    <Meter value={h.hp} max={h.max} fill="bar-hp" label={`${m?.name ?? ""} ${tr("Health")}`} />
-
-                    {down ? <span className="text-[9px] font-bold text-blood">{tr("Fallen")}</span> : null}
-                    {battle.fx
-                      .filter((f) => f.tgt === h.id)
-                      .map((f, i) => (
-                        <span
-                          key={`${battle.t}-${i}`}
-                          className={`pointer-events-none absolute left-1/2 top-2 anim-float font-display font-black drop-shadow-[0_2px_2px_black] ${
-                            f.kind === "heal" ? "text-r1" : f.kind === "miss" ? "text-muted-foreground" : "text-blood"
-                          }`}
-                        >
-                          {f.kind === "heal" ? `+${f.value}` : f.kind === "miss" ? tr("Miss") : `-${f.value}`}
-                        </span>
-                      ))}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="battle-foes flex flex-1 items-end justify-end gap-1 md:gap-4">
-              {battle.foes.map((f) => (
+          <div className="relative z-10 flex h-full min-h-0 flex-col">
+            {/* How far up the dungeon this climb has got, so the climb never feels endless. */}
+            <div className="safe-top px-3 pt-2" aria-hidden="true">
+              <div className="h-1.5 w-full overflow-hidden rounded bg-background/70">
                 <div
-                  key={f.uid}
-                  className={`relative flex flex-col items-center ${f.hp <= 0 ? "opacity-30" : ""}`}
-                  style={{ width: f.boss ? 150 : 96, maxWidth: "32%" }}
-                >
-                  <img
-                    src={f.img}
-                    alt={f.name}
-                    className={`max-h-24 object-contain md:max-h-36 ${f.boss ? "scale-110" : ""} ${
-                      battle.fx.some((x) => x.tgt === f.uid) ? "anim-hit" : ""
-                    }`}
-                  />
-                  <span className="w-full truncate text-center text-[10px] font-bold">{f.name}</span>
-                  <Meter value={f.hp} max={f.max} fill="bar-hp" label={`${f.name} ${tr("Health")}`} />
-                  {battle.fx
-                    .filter((x) => x.tgt === f.uid)
-                    .map((x, i) => (
-                      <span
-                        key={`${battle.t}-${i}`}
-                        className={`pointer-events-none absolute left-1/2 top-1 anim-float font-display font-black drop-shadow-[0_2px_2px_black] ${
-                          x.kind === "crit" ? "text-gold" : x.kind === "miss" ? "text-muted-foreground" : "text-foreground"
-                        }`}
-                      >
-                        {x.kind === "miss" ? tr("Miss") : `-${x.value}`}
-                      </span>
-                    ))}
-                </div>
-              ))}
+                  className="h-full bg-gold transition-[width] duration-500"
+                  style={{
+                    width: `${Math.min(100, Math.round((battle.floor / (battle.floors ?? dungeonOf(battle.dungeon).floors)) * 100))}%`,
+                  }}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="relative z-10 flex flex-col items-center gap-2 bg-gradient-to-t from-background via-background/90 to-transparent pb-3">
-            {/* A fallen hero does not end the climb: the rest of the party fights on without him. */}
-            {me && me.hp <= 0 && !battle.over && (
-              <p role="status" className="slot mx-3 px-2 py-1 text-center text-[11px] text-gold">
-                {tr("Your hero has fallen — the climb goes on without you until the party wins or falls.")}
-              </p>
-            )}
-            <div className="max-h-20 w-full max-w-2xl overflow-y-auto px-3 text-center text-[11px] text-muted-foreground">
-              {battle.log.map((line, i) => (
-                <div key={`${i}-${line}`} className={i === battle.log.length - 1 ? "text-foreground" : ""}>
-                  {line}
-                </div>
-              ))}
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <CombatStage
+                title={`${tr(dungeonOf(battle.dungeon).name)} · ${tr("Floor")} ${battle.floor} / ${battle.floors ?? dungeonOf(battle.dungeon).floors}`}
+                subtitle={tr("Party encounter")}
+                heroes={battle.heroes.map((h) => {
+                  const m = members.find((x) => x.id === h.id) ?? (h.id === self?.id ? self ?? undefined : undefined);
+                  return {
+                    id: h.id,
+                    name: m?.name ?? tr("Ally"),
+                    level: m?.level ?? 1,
+                    hp: h.hp,
+                    maxHp: h.max,
+                    atk: m?.atk ?? 0,
+                    def: m?.def ?? 0,
+                    crit: m?.crit ?? 0,
+                    dodge: m?.dodge ?? 0,
+                    cls: m?.cls,
+                    gender: m?.gender,
+                    look: m?.look,
+                    synth: m?.synth,
+                    face: m?.id === heroId ? hero?.face : undefined,
+                    damage: dealt.current[h.id],
+                  };
+                })}
+                foes={battle.foes.map((f) => ({
+                  id: f.uid,
+                  name: f.name,
+                  hp: f.hp,
+                  maxHp: f.max,
+                  atk: f.atk,
+                  def: f.def,
+                  boss: f.boss,
+                  img: f.img,
+                }))}
+                log={battle.log}
+                outcome={battle.over ? battle.outcome ?? "fallen" : null}
+                header={
+                  <>
+                    <span className="slot px-2 py-1 text-xs">
+                      {tr("Chests won")} <b className="text-gold">{earned}</b>
+                    </span>
+                    <Button variant="ghost" className="btn-ghost px-2 py-1 text-xs" onClick={leaveFight}>
+                      {tr("Leave")}
+                    </Button>
+                  </>
+                }
+                footer={
+                  me && me.hp <= 0 && !battle.over ? (
+                    // A fallen hero does not end the climb: the rest of the party fights on without him.
+                    <p role="status" className="slot px-2 py-1 text-center text-[11px] text-gold">
+                      {tr("Your hero has fallen — the climb goes on without you until the party wins or falls.")}
+                    </p>
+                  ) : null
+                }
+              />
             </div>
           </div>
 

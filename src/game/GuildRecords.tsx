@@ -4,7 +4,8 @@ import { ScrollText, Users } from "./PaintedIcons";
 import type { Tables } from "@/integrations/supabase/types";
 import { useGame } from "./store";
 import { fmt } from "./ui";
-import { guildTotalRanks, guildLedger, GUILD_SKILLS, guildSkillRank } from "./guild-tower";
+import { guildLedger } from "./guild-tower";
+import { guildRanks } from "./progress";
 
 export interface MemberHero { name: string; level: number; power: number }
 
@@ -29,7 +30,7 @@ export function GuildRecords({ guild, members, memberHeroes, heroId }: {
   const founded = new Date(guild.created_at);
   const ageDays = Math.max(0, Math.floor((Date.now() - founded.getTime()) / 86_400_000));
   const book = hero ? guildLedger(hero) : null;
-  const ranks = hero ? guildTotalRanks(hero) : 0;
+  const ranks = hero ? guildRanks(hero) : 0;
   const mySpot = roster.findIndex((m) => m.hero_id === heroId) + 1;
 
   return <div className="mt-5">
@@ -63,14 +64,9 @@ export function GuildRecords({ guild, members, memberHeroes, heroId }: {
           <div className="slot p-2"><span className="block text-muted-foreground">{t("Gold donated")}</span><b className="text-gold">{fmt(book?.donated ?? 0)}</b></div>
           <div className="slot p-2"><span className="block text-muted-foreground">{t("Coins spent")}</span><b className="text-gold">{fmt(book?.spent ?? 0)}</b></div>
           <div className="slot p-2"><span className="block text-muted-foreground">{t("Coins on hand")}</span><b className="text-gold">{fmt(hero?.guildCoins ?? 0)}</b></div>
-          <div className="slot p-2"><span className="block text-muted-foreground">{t("Tower ranks")}</span><b className="text-gold">{fmt(ranks)}</b></div>
+          <div className="slot p-2"><span className="block text-muted-foreground">{t("Guild ranks")}</span><b className="text-gold">{fmt(ranks)}</b></div>
         </div>
-        <h5 className="mt-3 font-display text-sm text-gold">{t("Tower breakdown")}</h5>
-        <div className="mt-1 max-h-56 overflow-y-auto pr-1">
-          {GUILD_SKILLS.map((s) => <div key={s.id} className="flex justify-between gap-2 border-b border-border py-1 text-xs">
-            <span className="truncate">{s.name}</span><span className="shrink-0 text-muted-foreground">{t("rank")} {hero ? guildSkillRank(hero, s.id) : 0}</span>
-          </div>)}
-        </div>
+        <p className="mt-2 text-[11px] text-muted-foreground">{t("Each guild rank is 5,000 gold donated to the hall.")}</p>
       </div>
     </div>
   </div>;

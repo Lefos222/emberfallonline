@@ -51,7 +51,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
           const roll = rollRelic(h, rank);
           const first = noteRelic(h, roll.piece.id);
           noteRelicClear(h, rank);
-          if (first) h.insight = (h.insight ?? 0) + 1;
+          if (first) h.voidCrystals = (h.voidCrystals ?? 0) + 2;
           loot = roll.item;
           const full = h.inventory.length >= invCap(h);
           addLoot(h, roll.item);
@@ -59,7 +59,7 @@ export function RelicTrials({ onClose, start }: { onClose: () => void; start: St
           const silk = 1 + Math.floor(rank / 2);
           addMats(h, { shadowSilk: silk });
           lines.push(`+${silk} Shadow Silk`);
-          if (first) lines.push("+1 Insight — new relic discovered");
+          if (first) lines.push("+2 Void Crystals — new relic discovered");
           if (full) lines.push("Bag full — the relic waits in your Overflow Chest (Armory)");
           if (levels) lines.push(`LEVEL UP ×${levels}!`);
         });

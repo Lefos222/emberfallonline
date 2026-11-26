@@ -82,38 +82,22 @@ function seeded(seed: number) {
 }
 
 describe("eleven fights a level, then a smooth climb", () => {
-  it("makes every level 10% harder than the old curve, and 3% more per level past 30", () => {
-    expect(LEVEL_COST_MULTIPLIER).toBe(1.1);
-    for (const lv of [1, 10, 19, 20, 30])
-      expect(fightsToLevel(lv)).toBe(Math.round(baseFightsToLevel(lv) * 1.1));
-    for (const lv of [40, 60, 80, 120])
-      expect(fightsToLevel(lv)).toBe(Math.round(baseFightsToLevel(lv) * 1.1 * (1 + (lv - 30) * 0.03)));
+  it("charges the same forty battles at every level, from the first to the cap", () => {
+    for (const lv of [1, 5, 10, 19, 20, 30, 40, 60, 80, 120, 140])
+      expect(fightsToLevel(lv), `level ${lv}`).toBe(40);
   });
-  it("costs exactly eleven fights a level up to level 19", () => {
-    expect(EASY_FIGHTS).toBe(10);
-    expect(xpToNext({ level: 0, paragon: 0 })).toBe(11 * stageRewards(1).xp);
-    for (const lv of [1, 5, 10, 17, 19]) {
-      expect(fightsToLevel(lv)).toBe(11);
-      expect(xpToNext({ level: lv, paragon: 0 })).toBe(11 * stageRewards(lv).xp);
-    }
+  it("reads the saved battle counter as the fights the next level still owes", () => {
+    expect(fightsToNextLevel({ level: 30, paragon: 0, xp: 0, levelBattles: 0 })).toBe(40);
+    expect(fightsToNextLevel({ level: 30, paragon: 0, xp: 0, levelBattles: 25 })).toBe(15);
+    expect(fightsToNextLevel({ level: 30, paragon: 0, xp: 0, levelBattles: 39 })).toBe(1);
   });
-  it("climbs gently from level 20 instead of jumping a wall", () => {
-    expect(fightsToLevel(20)).toBe(Math.round((EASY_FIGHTS + GRIND_FIGHTS) * 1.1));
-    for (let lv = 20; lv < MAX_LEVEL; lv++) {
-      // Every level asks for more than the one before it, and none of them doubles the last.
-      expect(fightsToLevel(lv + 1)).toBeGreaterThan(fightsToLevel(lv));
-      expect(fightsToLevel(lv + 1)).toBeLessThanOrEqual(fightsToLevel(lv) * 1.3);
+  it("keeps the XP bill priced at exactly the fights a level asks for", () => {
+    for (const lv of [1, 20, 40, 80, 140])
       expect(xpToNext({ level: lv, paragon: 0 })).toBe(fightsToLevel(lv) * xpPerFight(lv));
-    }
   });
   it("keeps every level a session's work, with no multi-million bill", () => {
-    // Level 30→31 used to demand 2.8 million XP; it is now dozens of fights (46, +10% = 51).
-    expect(fightsToLevel(30)).toBe(51);
-    // Past level 40 the curve steepens a touch (69 → 76 and 149 → 164 with the +10%).
-    expect(fightsToLevel(40)).toBe(99);
-    expect(fightsToLevel(80)).toBe(410);
     expect(xpToNext({ level: 30, paragon: 0 })).toBeLessThan(300_000);
-    for (const lv of [25, 30, 40, 50, 60, 80, 89]) expect(fightsToLevel(lv)).toBeLessThan(520);
+    for (const lv of [25, 30, 40, 50, 60, 80, 89, 140]) expect(fightsToLevel(lv)).toBe(40);
   });
   it("adds a little more work to every level past 40, without ever walling the climb", () => {
     // Level 40 itself keeps the old bill; past it each level asks for a hair more.
@@ -132,8 +116,8 @@ describe("eleven fights a level, then a smooth climb", () => {
   it("still takes thousands of wins to reach level 80 — weeks, not a weekend", () => {
     let total = 0;
     for (let lv = 1; lv < 80; lv++) total += fightsToLevel(lv);
-    expect(total).toBeGreaterThan(9_000);
-    expect(total).toBeLessThan(14_000);
+    expect(total).toBe(79 * 40);
+    expect(total).toBeGreaterThan(3_000);
   });
   it("counts the fights left in the current level from saved XP", () => {
     const hero = newHero("Balanced", "warrior");
@@ -151,7 +135,7 @@ describe("eleven fights a level, then a smooth climb", () => {
     expect(campaignFightRewards(31, 31, 90).xp).toBe(Math.round(xpPerFight(31) * 0.25));
     // A whole level is exactly that many fights — the HUD's count is the real one.
     expect(xpToNext({ level: 31, paragon: 0 })).toBe(fightsToLevel(31) * xpPerFight(31));
-    expect(fightsToNextLevel({ level: 31, paragon: 0, xp: 0 })).toBe(fightsToLevel(31));
+    expect(fightsToNextLevel({ level: 31, paragon: 0, xp: 0, levelBattles: 0 })).toBe(fightsToLevel(31));
   });
   it("gold rewards are nerfed versus the old formula", () => {
     for (const st of [10, 40, 80]) expect(stageRewards(st).gold).toBeLessThan((12 + 10 * Math.pow(st, 1.85)) * 0.7);
