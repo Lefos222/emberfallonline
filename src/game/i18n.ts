@@ -442,10 +442,6 @@ const TRANSLATIONS: Record<string, [el: string, pl: string]> = {
     "Πάτησε ένα κτίριο για να το ανοίξεις · σύρε το κάστρο για τα υπόλοιπα",
     "Dotknij budynku, aby go otworzyć · przeciągnij zamek, by zobaczyć resztę",
   ],
-  "Skill tree, stats & progression": [
-    "Δέντρο δεξιοτήτων, στατιστικά & πρόοδος",
-    "Drzewko umiejętności, statystyki i postęp",
-  ],
   "Inventory & equipment": ["Αποθήκη & εξοπλισμός", "Ekwipunek i wyposażenie"],
   "Attribute training": ["Εκπαίδευση χαρακτηριστικών", "Trening cech"],
   "Enhance & salvage gear": ["Βελτίωση & διάλυση εξοπλισμού", "Ulepszanie i rozbiór ekwipunku"],
@@ -632,10 +628,6 @@ const TRANSLATIONS: Record<string, [el: string, pl: string]> = {
     "Aukcje graczy — wymieniaj ekwipunek na złoto",
   ],
   "Shape materials into armor": ["Μετάτρεψε υλικά σε πανοπλία", "Przetwarzaj materiały na zbroje"],
-  "Skill tree, passives, hero training and achievements": [
-    "Δέντρο δεξιοτήτων, παθητικά, εκπαίδευση ήρωα και επιτεύγματα",
-    "Drzewko umiejętności, pasywki, trening i osiągnięcia",
-  ],
   "Spin for astrals and gems": [
     "Γύρισε για αστρικά και πετράδια",
     "Zakręć po astralne kamienie i klejnoty",

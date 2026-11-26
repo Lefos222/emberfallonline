@@ -115,10 +115,9 @@ describe("the Spire tab", () => {
 
     await waitFor(() => expect(bank.began).toBe(1));
     await screen.findByText(/Floor 1/);
-    // The hero is drawn, inside the box that gives the model its size.
-    const model = document.querySelector(".battle-screen [data-character-model]");
-    expect(model).toBeTruthy();
-    expect(model?.closest("div.h-24")).toBeTruthy();
+    // The climb is a static encounter report: the hero's own card, not an animated fight.
+    expect(screen.getAllByText("Climber").length).toBeGreaterThan(0);
+    expect(document.querySelector("[class*='anim-lunge']")).toBeNull();
     expect(screen.getByRole("button", { name: "Leave" })).toBeTruthy();
   });
 

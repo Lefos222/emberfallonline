@@ -25,8 +25,9 @@ describe("battle skillshots", () => {
 
   it("shows the static encounter cards instead of an animated fight", () => {
     render(<Battle left={mage} right={foe} onEnd={() => {}} />);
-    expect(screen.getByText("Hero")).toBeInTheDocument();
-    expect(screen.getByText("Goblin")).toBeInTheDocument();
+    // The name is drawn on the card and again in the stats column, so every match is the same fighter.
+    expect(screen.getAllByText("Hero").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Goblin").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /OK/ })).toBeInTheDocument();
     expect(document.querySelector("[class*='anim-lunge']")).toBeNull();
     expect(document.querySelector("[class*='anim-hit']")).toBeNull();

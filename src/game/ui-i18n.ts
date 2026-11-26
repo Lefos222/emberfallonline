@@ -402,11 +402,6 @@ export const UI_TEXT: Record<string, ContentRow> = {
       "Διάλεξε κατηγορία και μετά τη συντεχνία που θέλεις να πολεμήσεις. Ο αρχηγός ή ο αξιωματικός τους μπορεί να δεχτεί ή να αρνηθεί· ένας αποδεκτός πόλεμος διαρκεί 24 ώρες και πληρώνει και τις δύο πλευρές.",
       "Wybierz kategorię, a potem gildię, z którą chcesz walczyć. Ich przywódca lub oficer może przyjąć albo odrzucić; przyjęta wojna trwa 24 godziny i płaci obu stronom.",
     ],
-  "Every relic on these shelves was paid for by the skill tower. Climb the ranks and the next heirloom wakes on its own, adding its bonus to every fight.":
-    [
-      "Κάθε κειμήλιο σε αυτά τα ράφια πληρώθηκε από τον πύργο δεξιοτήτων. Ανέβα βαθμίδες και το επόμενο κειμήλιο ξυπνά μόνο του, προσθέτοντας το μπόνους του σε κάθε μάχη.",
-      "Każda relikwia na tych półkach została opłacona przez wieżę umiejętności. Wspinaj się po stopniach, a następna pamiątka budzi się sama, dodając swój bonus do każdej walki.",
-    ],
   "A permanent stat track beyond the campaign: each level grants +1% to attack, defense and health, fed by Battle Essence from every battle you win.":
     [
       "Μόνιμη πορεία στατιστικών πέρα από την εκστρατεία: κάθε επίπεδο δίνει +1% σε επίθεση, άμυνα και υγεία, τροφοδοτούμενο από Μαχική Ουσία από κάθε μάχη που κερδίζεις.",
@@ -466,11 +461,6 @@ export const UI_TEXT: Record<string, ContentRow> = {
     [
       "ακόμη. Συνέχισε να καθαρίζεις την Πύλη Εκστρατείας και μετά γύρνα για δυσκολίες αφεντικών, κυνήγι ελίτ και τον εβδομαδιαίο στόχο.",
       "do zdobycia. Oczyszczaj dalej Wrota kampanii, a potem wróć po poziomy trudności bossów, polowania na elity i cel tygodnia.",
-    ],
-  "Contribute gold to earn guild coins (1 gold = 1 guild coin). Spend them in the shop, the vault and the skill tower.":
-    [
-      "Συνεισφέρεις χρυσό για να κερδίσεις νομίσματα συντεχνίας (1 χρυσός = 1 νόμισμα συντεχνίας). Ξόδεψέ τα στο κατάστημα, στο θησαυροφυλάκιο και στον πύργο δεξιοτήτων.",
-      "Wpłać złoto, by zdobyć monety gildii (1 złoto = 1 moneta gildii). Wydaj je w sklepie, skarbcu i wieży umiejętności.",
     ],
   "% to a refinement roll and is spent whether the metal holds or not — refinement is its own track, and a piece can be refined again and again.":
     [
@@ -2535,6 +2525,58 @@ export const UI_TEXT: Record<string, ContentRow> = {
   "gold each": ["χρυσός το καθένα", "złota za sztukę"],
   "Sells for": ["Πωλείται για", "Sprzedaje się za"],
   "enchant chance": ["πιθανότητα μαγείας", "szansy na zaklęcie"],
+
+  // ---------- Static encounter report ----------
+  "Battle report": ["Αναφορά μάχης", "Raport z walki"],
+  "Party encounter": ["Ομαδική αναμέτρηση", "Starcie drużyny"],
+  "Ally": ["Σύμμαχος", "Sojusznik"],
+  "Character stats": ["Στατιστικά χαρακτήρα", "Statystyki postaci"],
+  "Enemy stats": ["Στατιστικά εχθρού", "Statystyki wroga"],
+  "Damage dealt": ["Ζημιά που προκλήθηκε", "Zadane obrażenia"],
+  "Dealt": ["Ζημιά", "Zadane"],
+  "Hit damage updates": ["Ενημερώσεις ζημιάς", "Aktualizacje obrażeń"],
+  "The fight has not started.": ["Η μάχη δεν έχει αρχίσει.", "Walka jeszcze się nie zaczęła."],
+  "OK": ["Εντάξει", "Dobrze"],
+  "Keep this fight's log in your battle history": ["Κράτα το αρχείο αυτής της μάχης στο ιστορικό σου", "Zachowaj zapis tej walki w historii"],
+  "Save fight": ["Αποθήκευση μάχης", "Zapisz walkę"],
+  "Fight saved": ["Η μάχη αποθηκεύτηκε", "Walka zapisana"],
+  // ---------- Face customizer ----------
+  "Face": ["Πρόσωπο", "Twarz"],
+  "Customize face": ["Προσαρμογή προσώπου", "Dostosuj twarz"],
+  "Save face": ["Αποθήκευση προσώπου", "Zapisz twarz"],
+  "Use original portrait": ["Χρήση αρχικού πορτρέτου", "Użyj oryginalnego portretu"],
+  "Choose the hero's face — skin, hair, eyes, brows and marks. It is cosmetic only: your class model, gear and stats stay exactly as they are.": [
+    "Διάλεξε το πρόσωπο του ήρωα — δέρμα, μαλλιά, μάτια, φρύδια και σημάδια. Είναι μόνο εμφάνιση: το μοντέλο της τάξης, ο εξοπλισμός και τα στατιστικά μένουν ακριβώς όπως είναι.",
+    "Wybierz twarz bohatera — skórę, włosy, oczy, brwi i znaki. To tylko wygląd: model klasy, ekwipunek i statystyki pozostają bez zmian.",
+  ],
+  "You are wearing the original portrait. Customize it whenever you like — nothing about your character changes but the look.": [
+    "Φοράς το αρχικό πορτρέτο. Προσάρμοσέ το όποτε θέλεις — τίποτα στον χαρακτήρα δεν αλλάζει παρά μόνο η εμφάνιση.",
+    "Nosisz oryginalny portret. Dostosuj go, kiedy chcesz — w postaci zmienia się tylko wygląd.",
+  ],
+  "Skin": ["Δέρμα", "Skóra"],
+  "Hair style": ["Χτένισμα", "Fryzura"],
+  "Hair colour": ["Χρώμα μαλλιών", "Kolor włosów"],
+  "Eyes": ["Μάτια", "Oczy"],
+  "Eye colour": ["Χρώμα ματιών", "Kolor oczu"],
+  "Brows": ["Φρύδια", "Brwi"],
+  "Facial hair": ["Γενειάδα", "Zarost"],
+  "Mark": ["Σημάδι", "Znak"],
+  // ---------- Guild ranks & reliquary ----------
+  "Guild ranks": ["Βαθμοί συντεχνίας", "Rangi gildii"],
+  "guild ranks": ["βαθμοί συντεχνίας", "rangi gildii"],
+  "guild ranks from your own gifts · founded": ["βαθμοί συντεχνίας από τις δικές σου προσφορές · ιδρύθηκε", "rangi gildii z własnych darów · założona"],
+  "Each guild rank is 5,000 gold donated to the hall.": ["Κάθε βαθμός συντεχνίας είναι 5.000 χρυσός που δωρίζεται στην αίθουσα.", "Każda ranga gildii to 5 000 złota przekazane do sali."],
+  "Every relic on these shelves was earned by giving to the guild. Each rank is 5,000 gold donated — climb the ranks and the next heirloom wakes on its own, adding its bonus to every fight.": [
+    "Κάθε κειμήλιο σε αυτά τα ράφια κερδήθηκε με προσφορές στη συντεχνία. Κάθε βαθμός είναι 5.000 χρυσός δωρεά — ανέβα βαθμούς και το επόμενο κειμήλιο ξυπνά μόνο του, προσθέτοντας το μπόνους του σε κάθε μάχη.",
+    "Każda relikwia na tych półkach została zdobyta przez dawanie gildii. Każda ranga to 5 000 złota darowizny — wspinaj się w rangach, a kolejna relikwia obudzi się sama, dodając swoją premię do każdej walki.",
+  ],
+  "Contribute gold to earn guild coins (1 gold = 1 guild coin). Spend them in the shop and the vault.": [
+    "Πρόσφερε χρυσό για να κερδίσεις νομίσματα συντεχνίας (1 χρυσός = 1 νόμισμα). Ξόδεψέ τα στο κατάστημα και στο θησαυροφυλάκιο.",
+    "Przekazuj złoto, aby zdobywać monety gildii (1 złoto = 1 moneta). Wydawaj je w sklepie i skarbcu.",
+  ],
+  // ---------- Panels ----------
+  "Hero training, achievements and battle history": ["Εκπαίδευση ήρωα, επιτεύγματα και ιστορικό μαχών", "Trening bohatera, osiągnięcia i historia walk"],
+  "Sound, music and language": ["Ήχος, μουσική και γλώσσα", "Dźwięk, muzyka i język"],
 
   // @@ROWS@@
 };

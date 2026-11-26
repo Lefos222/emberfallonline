@@ -197,7 +197,7 @@ describe("campaign balance", () => {
   it("pays rewards on the same curve the next level costs", () => {
     // One cleared stage is one fight: the level bill divided by a stage's XP is the fight count.
     for (const stage of [5, 10, 17]) {
-      expect(xpToNext({ level: stage, paragon: 0 }) / xpPerFight(stage)).toBe(11);
+      expect(xpToNext({ level: stage, paragon: 0 }) / xpPerFight(stage)).toBe(fightsToLevel(stage));
     }
     // From level 20 the bill is exactly the level's fight count times its fight pay.
     for (const stage of [40, 50, 60, 80]) {

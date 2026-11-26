@@ -1466,7 +1466,7 @@ export const BUILDINGS = [
     x: 29,
     y: 24,
     r: 7,
-    desc: "Skill tree, stats & progression",
+    desc: "Hero training, achievements and battle history",
     soon: false,
   },
   {

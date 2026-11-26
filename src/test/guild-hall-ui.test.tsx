@@ -34,7 +34,8 @@ describe("the guild reliquary", () => {
     setHero(hero);
     render(<GuildReliquary />);
     expect(screen.getByText(/0\/7 relics woken/)).toBeInTheDocument();
-    expect(screen.getByText("Ember Banner")).toBeInTheDocument();
+    // Named once as the next heirloom and once on its shelf.
+    expect(screen.getAllByText("Ember Banner").length).toBeGreaterThan(0);
     expect(screen.getByText(/3 guild ranks/)).toBeInTheDocument();
   });
 });

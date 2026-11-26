@@ -36,7 +36,7 @@ export function GuildContribute() {
         <span className="flex items-center gap-2"><GoldCoin size={16} />{tr("Guild Treasury")}</span>
         <span className="text-lg">{fmt(coins)}  {tr("coins")}</span>
       </div>
-      <p className="text-xs text-muted-foreground">{tr("Contribute gold to earn guild coins (1 gold = 1 guild coin). Spend them in the shop, the vault and the skill tower.")}</p>
+      <p className="text-xs text-muted-foreground">{tr("Contribute gold to earn guild coins (1 gold = 1 guild coin). Spend them in the shop and the vault.")}</p>
       <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
         <div className="slot p-2"><span className="block text-muted-foreground">{tr("Gold donated")}</span><Gold n={book.donated} /></div>
         <div className="slot p-2"><span className="block text-muted-foreground">{tr("Coins spent")}</span><span className="font-bold text-gold">{fmt(book.spent)}</span></div>
