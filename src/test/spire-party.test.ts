@@ -12,33 +12,23 @@ import {
   parseReward,
   parseSpireState,
   partyCode,
-  skillReady,
   spawnFloor,
   tick,
   type SpireBattle,
   type SpireMember,
-  type SpireSkill,
 } from "@/game/spire-party";
-
-/** A stand-in for a real class kit: one blow, one area hit, one heal and one guard. */
-const KIT: SpireSkill[] = [
-  { id: "strike", name: "Heavy Strike", icon: "sword", cd: 1500, mult: 2.4, hits: 1, aoe: false, crit: false, heal: 0, guard: 0, kind: "hit" },
-  { id: "sweep", name: "Whirlwind", icon: "swords", cd: 8000, mult: 1.1, hits: 1, aoe: true, crit: false, heal: 0, guard: 0, kind: "hit" },
-  { id: "mend", name: "Battle Cry", icon: "megaphone", cd: 10000, mult: 0, hits: 1, aoe: false, crit: false, heal: 0.28, guard: 0, kind: "heal" },
-  { id: "guard", name: "Shield Guard", icon: "shield", cd: 8000, mult: 0, hits: 1, aoe: false, crit: false, heal: 0, guard: 45, kind: "guard" },
-];
 
 const member = (over: Partial<SpireMember> = {}): SpireMember => ({
   id: "h1", name: "Ann", cls: "warrior", gender: "female", level: 1,
-  hp: 400, atk: 1e9, def: 0, crit: 0, dodge: 0, kit: KIT, ...over,
+  hp: 400, atk: 1e9, def: 0, crit: 0, dodge: 0, ...over,
 });
 
 /** Runs ticks until the fight reports something worth asserting, or the guard runs out. */
-function run(battle: SpireBattle, party: SpireMember[], casts: { hero: string; skill: string }[] = [], ticks = 40) {
+function run(battle: SpireBattle, party: SpireMember[], ticks = 40) {
   let b = battle;
   let cleared: number | null = null;
   for (let i = 0; i < ticks && cleared === null && !b.over; i += 1) {
-    const r = tick(b, party, casts);
+    const r = tick(b, party);
     b = r.battle;
     cleared = r.cleared;
   }
@@ -89,10 +79,10 @@ describe("the Spire's floors", () => {
     const battle: SpireBattle = {
       dungeon: dungeon.id, floors: dungeon.floors,
       floor: dungeon.floors, t: 0, pause: 0, over: false, fx: [], log: [],
-      heroes: [{ id: "h1", hp: 400, max: 400, cd: {}, swing: 0 }],
+      heroes: [{ id: "h1", hp: 400, max: 400, swing: 0 }],
       foes: [{ uid: "f", name: "Cinder Warden", img: "", hp: 1, max: 1, atk: 1, def: 0, boss: true, swing: 9999 }],
     };
-    const r = tick(battle, party, []);
+    const r = tick(battle, party);
     expect(r.cleared).toBe(dungeon.floors);
     expect(r.battle.over).toBe(true);
     expect(r.battle.outcome).toBe("summit");
@@ -112,7 +102,7 @@ describe("the shared party fight", () => {
 
     // The next floor's enemies arrive right after the pause.
     let b = cleared.battle;
-    for (let i = 0; i < FLOOR_PAUSE_MS / 500; i += 1) b = tick(b, party, []).battle;
+    for (let i = 0; i < FLOOR_PAUSE_MS / 500; i += 1) b = tick(b, party).battle;
     expect(b.pause).toBe(0);
     expect(b.foes.every((f) => f.hp > 0)).toBe(true);
   });
@@ -122,12 +112,12 @@ describe("the shared party fight", () => {
     const battle: SpireBattle = {
       floor: 3, t: 0, pause: 0, over: false, fx: [], log: [],
       heroes: [
-        { id: "h1", hp: 0, max: 400, cd: {}, swing: 600 },
-        { id: "h2", hp: 200, max: 400, cd: {}, swing: 0 },
+        { id: "h1", hp: 0, max: 400, swing: 600 },
+        { id: "h2", hp: 200, max: 400, swing: 0 },
       ],
       foes: [{ uid: "f", name: "Goblin Brute", img: "", hp: 1, max: 1, atk: 1, def: 0, boss: false, swing: 9999 }],
     };
-    const r = tick(battle, party, []);
+    const r = tick(battle, party);
     expect(r.cleared).toBe(3);
     // Nothing brings a dead hero back: no floor clear, no breather, no heal.
     expect(r.battle.heroes[0].hp).toBe(0);
@@ -140,13 +130,13 @@ describe("the shared party fight", () => {
     const battle: SpireBattle = {
       floor: 9, t: 0, pause: 0, over: false, fx: [], log: [],
       heroes: [
-        { id: "h1", hp: 1, max: 400, cd: {}, swing: 99999 },
-        { id: "h2", hp: 400, max: 400, cd: {}, swing: 99999 },
+        { id: "h1", hp: 1, max: 400, swing: 99999 },
+        { id: "h2", hp: 400, max: 400, swing: 99999 },
       ],
       foes: [{ uid: "f", name: "Bone Reaver", img: "", hp: 999999, max: 999999, atk: 500, def: 0, boss: false, swing: 0 }],
     };
     // rand() = 0 targets the first living hero, so the party's first hero is the one who falls.
-    const r = tick(battle, party, [], () => 0);
+    const r = tick(battle, party, () => 0);
     expect(r.battle.heroes[0].hp).toBe(0);
     expect(r.battle.over).toBe(false);
     expect(r.cleared).toBeNull();
@@ -157,10 +147,10 @@ describe("the shared party fight", () => {
     const party = [member({ atk: 1 })];
     const battle: SpireBattle = {
       floor: 4, t: 0, pause: 0, over: false, fx: [], log: [],
-      heroes: [{ id: "h1", hp: 1, max: 400, cd: {}, swing: 9999 }],
+      heroes: [{ id: "h1", hp: 1, max: 400, swing: 9999 }],
       foes: [{ uid: "f", name: "Crimson Fiend", img: "", hp: 999, max: 999, atk: 1e6, def: 0, boss: false, swing: 0 }],
     };
-    const r = tick(battle, party, [], () => 0);
+    const r = tick(battle, party, () => 0);
     expect(r.battle.over).toBe(true);
     expect(r.battle.outcome).toBe("fallen");
     expect(r.cleared).toBeNull();
@@ -170,68 +160,13 @@ describe("the shared party fight", () => {
     const party = [member()];
     const battle: SpireBattle = {
       floor: SPIRE_FLOORS, t: 0, pause: 0, over: false, fx: [], log: [],
-      heroes: [{ id: "h1", hp: 400, max: 400, cd: {}, swing: 0 }],
+      heroes: [{ id: "h1", hp: 400, max: 400, swing: 0 }],
       foes: [{ uid: "f", name: "Blood-Moon Wyrm", img: "", hp: 1, max: 1, atk: 1, def: 0, boss: true, swing: 9999 }],
     };
-    const r = tick(battle, party, []);
+    const r = tick(battle, party);
     expect(r.cleared).toBe(SPIRE_FLOORS);
     expect(r.battle.over).toBe(true);
     expect(r.battle.outcome).toBe("summit");
-  });
-
-  it("keeps every class skill on its own cooldown, so it cannot be spammed", () => {
-    const party = [member({ crit: 0 })];
-    const battle: SpireBattle = {
-      floor: 5, t: 0, pause: 0, over: false, fx: [], log: [],
-      heroes: [{ id: "h1", hp: 400, max: 400, cd: {}, swing: 99999 }],
-      foes: [{ uid: "f", name: "Bone Reaver", img: "", hp: 999999, max: 999999, atk: 1, def: 0, boss: false, swing: 99999 }],
-    };
-    const once = tick(battle, party, [{ hero: "h1", skill: "strike" }, { hero: "h1", skill: "strike" }], () => 0.5);
-    expect(once.battle.fx.filter((f) => f.skill === "strike")).toHaveLength(1);
-    expect(once.battle.heroes[0].cd["strike"]).toBeGreaterThan(0);
-    expect(skillReady(once.battle.heroes[0], "strike")).toBe(false);
-    expect(skillReady(once.battle.heroes[0], "sweep")).toBe(true);
-  });
-
-  it("ignores casts from a hero who is not in the party or is already down", () => {
-    const party = [member()];
-    const battle: SpireBattle = {
-      floor: 6, t: 0, pause: 0, over: false, fx: [], log: [],
-      heroes: [{ id: "h1", hp: 0, max: 400, cd: {}, swing: 99999 }, { id: "h2", hp: 400, max: 400, cd: {}, swing: 99999 }],
-      foes: [{ uid: "f", name: "Crimson Fiend", img: "", hp: 999999, max: 999999, atk: 1, def: 0, boss: false, swing: 99999 }],
-    };
-    const r = tick(battle, [...party, member({ id: "h2" })], [
-      { hero: "h1", skill: "strike" },
-      { hero: "ghost", skill: "strike" },
-    ], () => 0.5);
-    expect(r.battle.fx).toHaveLength(0);
-  });
-
-  it("heals the mage's whole party and the others only themselves", () => {
-    const party = [member({ id: "m", cls: "mage", atk: 1 }), member({ id: "w", cls: "warrior", atk: 1 })];
-    const battle: SpireBattle = {
-      floor: 7, t: 0, pause: 0, over: false, fx: [], log: [],
-      heroes: [{ id: "m", hp: 100, max: 400, cd: {}, swing: 99999 }, { id: "w", hp: 100, max: 400, cd: {}, swing: 99999 }],
-      foes: [{ uid: "f", name: "Crimson Fiend", img: "", hp: 999999, max: 999999, atk: 0, def: 0, boss: false, swing: 99999 }],
-    };
-    const r = tick(battle, party, [{ hero: "m", skill: "mend" }]);
-    expect(r.battle.fx.filter((f) => f.kind === "heal").map((f) => f.tgt)).toEqual(["m", "w"]);
-  });
-
-  it("turns aside damage while the hero holds a guard", () => {
-    const party = [member({ id: "h1", atk: 1 })];
-    const battle: SpireBattle = {
-      floor: 8, t: 0, pause: 0, over: false, fx: [], log: [],
-      heroes: [{ id: "h1", hp: 400, max: 400, cd: {}, swing: 99999 }],
-      foes: [{ uid: "f", name: "Bone Reaver", img: "", hp: 999999, max: 999999, atk: 100, def: 0, boss: false, swing: 0 }],
-    };
-    const plain = tick(battle, party, [], () => 0.5).battle.heroes[0].hp;
-    const guardedBattle: SpireBattle = {
-      ...battle,
-      heroes: [{ id: "h1", hp: 400, max: 400, cd: {}, swing: 99999, guard: 3000, guardPct: 45 }],
-    };
-    const guarded = tick(guardedBattle, party, [], () => 0.5).battle.heroes[0].hp;
-    expect(400 - guarded).toBeLessThan(400 - plain);
   });
 });
 

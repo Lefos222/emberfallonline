@@ -173,23 +173,10 @@ describe("the party's live fight", () => {
     expect(answer?.battle.floor).toBe(1);
     expect(mate.screen.getByText(/Floor 1/)).toBeTruthy();
 
-    // 5: Bo casts one of their own skills — the leader runs it and the result comes back
-    const skill = mate.view.container.querySelector(
-      ".battle-screen button[title]",
-    ) as HTMLButtonElement | null;
-    expect(skill).toBeTruthy();
-    const skillName = skill?.getAttribute("title") ?? "";
-    const beforeCast = bus.sent.length;
-    fireEvent.click(skill as HTMLButtonElement);
-    await settle(TICK_MS);
-    expect(
-      bus.sent.slice(beforeCast).some((s) => s.msg.kind === "cast" && s.msg.hero === "hero-b"),
-    ).toBe(true);
-    // The button now shows the cooldown the leader's fight charged it.
-    const charged = mate.view.container.querySelector(
-      `.battle-screen button[title="${skillName}"]`,
-    );
-    expect(charged?.textContent).toMatch(/\d{1,2}/);
+    // 5: the fight ticks on automatically — every screen keeps drawing the live battle
+    const beforeTick = bus.sent.length;
+    await settle(TICK_MS * 2);
+    expect(bus.sent.slice(beforeTick).some((s) => s.msg.kind === "tick")).toBe(true);
 
     // 6: Bo leaves — Cy's screen keeps fighting instead of losing the party
     fireEvent.click(mate.screen.getByRole("button", { name: "Leave" }));

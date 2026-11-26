@@ -1,5 +1,5 @@
 import { BATTLE_BOSSES, ENEMY_ROSTER } from './bestiary';
-import { MAX_LEVEL, SKILLS, WORLD_DRIFT, stageFoe, type Foe } from './data';
+import { MAX_LEVEL, WORLD_DRIFT, stageFoe, type Foe } from './data';
 import { statusOf, type WorldEvent } from './events';
 
 /** Which roster an event draws its champion from. */
@@ -35,7 +35,6 @@ export function eventEncounter(ev: WorldEvent, startedAt: number, heroLevel = ev
     level: stage,
     boss: ev.kind === 'siege' || ev.kind === 'bloodmoon',
     rosterId: entry.id,
-    skills: Object.values(SKILLS).flat().filter(s => s.id === entry.signatureAbilityId),
   };
 }
 

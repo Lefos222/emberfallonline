@@ -6,7 +6,7 @@ import skeletonImg from "@/assets/enemy-skeleton.png";
 import goblinImg from "@/assets/enemy-goblin.png";
 import demonImg from "@/assets/enemy-demon.png";
 import dragonImg from "@/assets/enemy-dragon.png";
-import { talentFx, talentSkills } from "./talents";
+import { talentFx } from "./talents";
 import {
   MAX_SOCKETS,
   astralFx,
@@ -1395,42 +1395,9 @@ export function campaignFightRewards(level: number, stage: number, frontier: num
     : { xp, gold, replay };
 }
 
-// ---------- Skills ----------
-export interface Skill {
-  id: string;
-  name: string;
-  mult: number;
-  hits?: number;
-  cd: number;
-  heal?: number;
-  stun?: boolean;
-  teamHeal?: number;
-  crit?: boolean;
-  icon: string;
-}
-export const SKILLS: Record<HeroClass, Skill[]> = locAll(
-  {
-    warrior: [
-      { id: "strike", name: "Strike", mult: 1, cd: 0, icon: "sword" },
-      { id: "cleave", name: "Cleave", mult: 1.9, cd: 3, icon: "axe" },
-      { id: "rage", name: "Bloodrage", mult: 2.8, cd: 5, heal: 0.15, icon: "flame" },
-    ],
-    mage: [
-      { id: "bolt", name: "Arcane Bolt", mult: 1, cd: 0, icon: "sparkles" },
-      { id: "nova", name: "Frost Nova", mult: 1.5, cd: 4, stun: true, icon: "snowflake" },
-      { id: "meteor", name: "Meteor", mult: 3.3, cd: 5, icon: "flame" },
-    ],
-    archer: [
-      { id: "shot", name: "Shot", mult: 1, cd: 0, icon: "target" },
-      { id: "volley", name: "Volley", mult: 0.75, hits: 3, cd: 3, icon: "wind" },
-      { id: "snipe", name: "Death Snipe", mult: 2.6, cd: 5, crit: true, icon: "crosshair" },
-    ],
-  },
-  ["name"],
-);
-
-/** Battle abilities for a hero, including skill-tree upgrades. */
-export const heroSkills = (h: Hero): Skill[] => talentSkills(SKILLS[h.cls], h);
+// ---------- Combat ----------
+// Fights are passive-only: there are no abilities, cooldowns or resources. Everything a hero
+// brings to a duel is a stat, so `combat.ts` needs nothing beyond the numbers below.
 
 /** Armor can never reduce a hit below this share of its raw damage, so stacked defense stays
  *  useful without ever making a fight unloseable (or an enemy unkillable). */

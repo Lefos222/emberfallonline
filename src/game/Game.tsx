@@ -12,7 +12,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityBoard, LuckyShots, Mailbox } from "./Rewards";
-import { LootGrid } from "./LootGrid";
 import { ArtIcon, type ArtIconName } from "./ArtIcon";
 import { GuildHall } from "./GuildHall";
 import { WorldChat } from "./WorldChat";
@@ -66,7 +65,8 @@ import { reportGuildBattle } from "./guild-events";
 import { addXpScrolls, rollXpScroll } from "./xp-scrolls";
 import { CharacterSelect } from "./CharacterSelect";
 import { ProfilePanel } from "./ProfilePanel";
-import { Battle, type Fighter } from "./Battle";
+import { Battle, type BattleEndHp, type Fighter } from "./Battle";
+import { BattleSummary } from "./BattleSummary";
 import { Campaign, Forge, HeroHall, Temple, heroFighter, type StartBattle } from "./panels";
 import { Arena } from "./Arena";
 import { ThroneHall } from "./ThroneHall";
@@ -82,7 +82,7 @@ import { Crafting, GemWorkshop, MagicTower } from "./Workshop";
 import { battleMats, matsLine, addMats, MATS } from "./crafting";
 import { addStones, rollStoneDrop } from "./enchant";
 import { addFateStones, rollFateStone } from "./fate";
-import { ItemCard, Panel, useEscapeClose } from "./ui";
+import { Panel, useEscapeClose } from "./ui";
 import { CONQUEST_LEVEL, canEnterConquest } from "./data";
 import { QuestsButton, QuestsPanel } from "./Quests";
 import { claimableLevelQuests, rollLevelQuests } from "./level-quests";
@@ -113,6 +113,7 @@ export function Game() {
     won: boolean;
     lines: string[];
     loot?: Item | null;
+    hp?: BattleEndHp;
   }>(null);
   const [partyBattleVisible, setPartyBattleVisible] = useState(false);
   const [crafting, setCrafting] = useState(false);
@@ -349,7 +350,7 @@ export function Game() {
   }); // eslint-disable-line react-hooks/exhaustive-deps
 
   const settled = useRef<object | null>(null);
-  const onEnd = async (won: boolean) => {
+  const onEnd = async (won: boolean, hp?: BattleEndHp) => {
     // Rewards resolve exactly once per battle, even if onEnd fires twice.
     if (!battle || settled.current === battle) return;
     settled.current = battle;
@@ -483,7 +484,7 @@ export function Game() {
       }
     }
     playBattleEndSound();
-    setResult({ won, ...r });
+    setResult({ won, ...r, hp });
   };
 
   return (
@@ -743,27 +744,19 @@ export function Game() {
           </div>
         </div>
       )}
-      {result && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4">
-          <div className="game-panel anim-pop w-full max-w-sm p-6 text-center">
-            <h2
-              className={`font-display text-5xl font-black ${result.won ? "panel-title" : "text-blood"}`}
-            >
-              {result.won ? tr("VICTORY") : tr("DEFEAT")}
-            </h2>
-            <LootGrid lines={result.lines} />
-            {result.loot && <ItemCard item={result.loot} />}
-            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-              <button className="btn-gold flex-1 py-2.5 text-lg" onClick={closeResult}>
-                 {tr("Continue")} </button>
-              {lastFight.current && (
-                <button className="btn-ghost flex-1 py-2.5 text-lg" onClick={repeatFight}>
-                  {tr("Fight again")}
-                </button>
-              )}
-            </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">{tr("Enter continues · Esc closes")}</p>
-          </div>
+      {result && battle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-background/80 p-4">
+          <BattleSummary
+            left={battle.left}
+            right={battle.right}
+            hp={result.hp}
+            won={result.won}
+            lines={result.lines}
+            loot={result.loot}
+            canRepeat={!!lastFight.current}
+            onContinue={closeResult}
+            onRepeat={repeatFight}
+          />
         </div>
       )}
     </div>

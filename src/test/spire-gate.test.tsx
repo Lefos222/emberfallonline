@@ -107,7 +107,7 @@ describe("the Spire tab", () => {
     expect(status.textContent).toContain("one more climb today");
   });
 
-  it("starts the climb on floor one and puts the class skills in reach", async () => {
+  it("starts the climb on floor one and shows the hero ready to fight", async () => {
     store.hero = newHero("Climber", "warrior");
     open();
 
@@ -115,10 +115,6 @@ describe("the Spire tab", () => {
 
     await waitFor(() => expect(bank.began).toBe(1));
     await screen.findByText(/Floor 1/);
-    // The hero's whole kit is in reach, not a stub of three buttons.
-    for (const skill of ["Heavy Strike", "Cleave", "Bloodrage", "Shield Guard", "Taunting Blow", "Counterattack"]) {
-      expect(screen.getAllByText(skill).length).toBeGreaterThan(0);
-    }
     // The hero is drawn, inside the box that gives the model its size.
     const model = document.querySelector(".battle-screen [data-character-model]");
     expect(model).toBeTruthy();

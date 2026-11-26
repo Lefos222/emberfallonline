@@ -87,20 +87,7 @@ const FX_ART: Record<string, React.ReactNode> = {
 
 /** A player skill's own impact: a unique shape, motion and colour (see skillFx). */
 const SHAPE_PAINT: Record<string, string> = { blade: slashFx, cross: slashFx, fang: slashFx, flame: fireFx, comet: fireFx, rune: arcaneFx, vortex: arcaneFx, star: arcaneFx, ring: arcaneFx, shard: arcaneFx, bolt: arcaneFx, crown: healFx };
-export function SkillImpact({ fx }: { fx: { shape: string; motion: string; hue: string } }) {
+export function SkillImpact(_props: { fx: { shape: string; motion: string; hue: string } }) {
   // Skill pictures over enemies are removed from the game by request.
-  if (fx) return null;
-  const paint = SHAPE_PAINT[fx.shape];
-  return (<>
-    <i className={"fx-bloom fx-bloom-" + fx.motion} aria-hidden="true" style={{ color: fx.hue }} />
-    {paint && <img src={paint} alt="" aria-hidden="true" draggable={false} className={`combat-effect combat-paint fx-${fx.motion}`} />}
-    <svg
-      className={`combat-effect skill-fx fx-${fx.motion}`}
-      style={{ stroke: fx.hue, color: fx.hue }}
-      viewBox="0 0 200 240"
-      aria-hidden="true"
-    >
-      {FX_ART[fx.shape]}
-    </svg>
-  </>);
+  return null;
 }

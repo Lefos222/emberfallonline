@@ -80,5 +80,5 @@ export function sceneFor(title?: string | null, boss?: boolean): string {
 }
 
 export function ambienceFor(scene: string): Ambience {
-  return AMBIENCE[scene] ?? AMBIENCE.field;
+  return AMBIENCE[scene] ?? AMBIENCE["field"];
 }
