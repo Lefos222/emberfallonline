@@ -1,4 +1,4 @@
-import { makeItem, type Hero, type Item, type Slot } from "./data";
+import { clampDropLevel, makeItem, type Hero, type Item, type Slot } from "./data";
 import { scaledGold } from "./gold";
 import { isArmor, type Mat } from "./crafting";
 
@@ -24,7 +24,7 @@ export function rollBlackMarket(h: Hero, rnd: () => number = Math.random) {
   const luckySlot = lucky ? open[Math.floor(rnd() * open.length)] : null;
   const items: Item[] = SLOTS.map((slot) => {
     const rarity = isArmor(slot) ? 1 : slot === luckySlot ? 3 : rnd() < 0.5 ? 2 : 1;
-    return makeItem(h.cls, h.level + 3, rarity, slot);
+    return makeItem(h.cls, clampDropLevel(h.level, h.level + 3), rarity, slot);
   });
   const mats: BmMat[] = [
     { mat: "frostCrystal", qty: swing(3, rnd), gold: scaledGold(12000, h.level) },

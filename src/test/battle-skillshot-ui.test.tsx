@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { act, render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { Battle, type Fighter } from "@/game/Battle";
 import { shotFor } from "@/game/battle-shots";
 import mageOrb from "@/assets/fx/skills/mage-orb.svg";
@@ -23,18 +23,12 @@ describe("battle skillshots", () => {
     expect(shotFor("mage", true)).toBe(beastClaw);
   });
 
-  it("plays the lunge and hit animations during a real auto-battle", async () => {
-    const battle = render(<Battle left={mage} right={foe} onEnd={() => {}} auto />);
-    let lunged = false;
-    let hit = false;
-    // The attack and reaction animations only live for the length of one blow, so sample while it plays.
-    for (let i = 0; i < 40 && !(lunged && hit); i += 1) {
-      await act(async () => { await new Promise((r) => setTimeout(r, 80)); });
-      if (document.querySelector("[class*='anim-lunge']")) lunged = true;
-      if (document.querySelector("[class*='anim-hit']")) hit = true;
-    }
-    expect(lunged).toBe(true);
-    expect(hit).toBe(true);
-    battle.unmount();
-  }, 15000);
+  it("shows the static encounter cards instead of an animated fight", () => {
+    render(<Battle left={mage} right={foe} onEnd={() => {}} />);
+    expect(screen.getByText("Hero")).toBeInTheDocument();
+    expect(screen.getByText("Goblin")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /OK/ })).toBeInTheDocument();
+    expect(document.querySelector("[class*='anim-lunge']")).toBeNull();
+    expect(document.querySelector("[class*='anim-hit']")).toBeNull();
+  });
 });

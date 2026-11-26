@@ -40,17 +40,17 @@ const CLASSES = [
     name: "Knight",
     role: "The wall",
     img: knight,
-    text: "Hold the front line. Heavy armour, deep health and a bloodrage that turns a long fight in your favour.",
+    text: "Hold the front line. Heavy armour, deep health and the strength to outlast any encounter.",
     tags: ["Frontline", "Sustain", "Heavy armour"],
-    skills: "Strike · Cleave · Bloodrage",
+    style: "Armour · Health · Endurance",
   },
   {
     name: "Mage",
     role: "The storm",
     img: mage,
-    text: "Break a whole room at once. Frost holds enemies in place while meteors end them — and Renewal keeps a party standing.",
+    text: "Rain ruin from afar. Spell power and control turn a long encounter into a short one.",
     tags: ["Burst", "Control", "Party healing"],
-    skills: "Arcane Bolt · Frost Nova · Meteor",
+    style: "Spell power · Control · Focus",
   },
   {
     name: "Archer",
@@ -58,14 +58,14 @@ const CLASSES = [
     img: archer,
     text: "Strike first and never be hit. Precision shots, dodges and volleys that grow with every critical hit.",
     tags: ["Precision", "Critical", "Speed"],
-    skills: "Shot · Volley · Death Snipe",
+    style: "Precision · Critical · Speed",
   },
 ];
 
 const FEATURES = [
   { img: castle.url, title: "Your own castle", text: "Upgrade the Blacksmith, Barracks, Gold Mine, Magic Tower and more. Every building opens a new way to grow your hero." },
   { img: spire, title: "War Gates & dungeons", text: "Climb the Campaign, Dungeon and Conquest gates, and the Party Spire with friends — bosses guard the rarest materials." },
-  { img: arena, title: "Arena & Arena Clash", text: "Duel any hero in the Blood Arena, or join Arena Clash every six hours: parties of up to four fight live, in sync." },
+  { img: arena, title: "Arena & Arena Clash", text: "Duel any hero in the Blood Arena, or join Arena Clash every six hours: parties of up to four face the encounter together, each hero with their own card." },
   { img: guildHall, title: "Guilds & Guild Wars", text: "Raid guild bosses, share weekly quests and declare wars from 5v5 to 100v100." },
   { img: worldMap, title: "The World Tree", text: "Explore a painted realm of keeps, ruins and sealed vaults, raid sites and chase daily bounties." },
   { img: tower, title: "Forge, gems & Astrals", text: "Craft Synthesis and Epic armour, cut gems, summon Astrals and try your luck with Lucky Shots." },
@@ -217,7 +217,7 @@ function Home() {
         <p className="text-center font-display text-sm uppercase tracking-widest text-gold/80">Choose your path</p>
         <h2 className="mt-1 text-center font-display text-3xl text-gold">Three classes, three ways to win</h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
-          Every class carries its own active skills, passive talents and party role. Pick the one that fits how you fight — the castle serves all three.
+          Every class brings its own stat profile and party role. Pick the one that fits how you fight — the castle serves all three.
         </p>
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {CLASSES.map((c) => (
@@ -234,7 +234,7 @@ function Home() {
                     <span key={tag} className="slot px-2 py-0.5">{tag}</span>
                   ))}
                 </div>
-                <p className="mt-3 text-xs text-gold/90">{c.skills}</p>
+                <p className="mt-3 text-xs text-gold/90">{c.style}</p>
               </div>
             </article>
           ))}

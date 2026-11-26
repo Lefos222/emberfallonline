@@ -1,4 +1,4 @@
-import { invCap, makeItem, type Hero, type Item, type Slot } from "./data";
+import { clampDropLevel, invCap, makeItem, type Hero, type Item, type Slot } from "./data";
 import { scaledGold } from "./gold";
 
 /**
@@ -29,7 +29,7 @@ export function rollCatalogue(h: Pick<Hero, "cls" | "level">, rand = Math.random
     const slot = CATALOGUE_SLOTS[i % CATALOGUE_SLOTS.length];
     const rarity = rand() < 0.25 ? 1 : 0;
     const ilvl = Math.max(1, Math.round(h.level * 0.55 + rand() * 3));
-    return makeItem(h.cls, ilvl, rarity, slot);
+    return makeItem(h.cls, clampDropLevel(h.level, ilvl), rarity, slot);
   });
 }
 

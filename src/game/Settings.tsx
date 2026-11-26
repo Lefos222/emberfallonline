@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { FastForward, Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import { SOUNDTRACKS, type AudioSettings } from "./audio";
-import { readFastFights, saveFastFights } from "./battle-prefs";
 import { Panel } from "./ui";
 import { useT , t} from "./i18n";
 import { LanguagePicker } from "./LanguagePicker";
@@ -18,15 +17,8 @@ export function SettingsPanel({
 }) {
   const t = useT();
   const percent = Math.round(settings.volume * 100);
-  // Fight pacing is a device preference, remembered here like the music settings.
-  const [fast, setFast] = useState(readFastFights);
-  const pickFast = () => {
-    const next = !fast;
-    setFast(next);
-    saveFastFights(next);
-  };
   return (
-    <Panel title={t("Settings")} subtitle={t("Sound, music and fight pacing")} onClose={onClose}>
+    <Panel title={t("Settings")} subtitle={t("Sound, music and language")} onClose={onClose}>
       {/* The player picks their language by hand; it is remembered on this device. */}
       <section className="slot mb-4 p-3">
         <h3 className="mb-2 font-display text-sm text-gold">{t("Language")}</h3>
@@ -94,24 +86,6 @@ export function SettingsPanel({
         {t("Music starts after your first tap on the castle. Your choice and volume are remembered on this device.")}
       </p>
 
-      <section className="slot mt-4 p-3">
-        <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <h3 className="font-display text-sm text-gold">{t("Fight speed")}</h3>
-            <p className="text-[11px] text-muted-foreground">
-              {t("Fast-forward shortens every fight. Remembered on this device; F switches it during a battle.")}
-            </p>
-          </div>
-          <button
-            className="btn-ghost flex shrink-0 items-center gap-1 px-2 py-1 text-xs"
-            onClick={pickFast}
-            aria-pressed={fast}
-          >
-            <FastForward className="h-4 w-4" />
-            {t(fast ? "Fast" : "Normal")}
-          </button>
-        </div>
-      </section>
     </Panel>
   );
 }

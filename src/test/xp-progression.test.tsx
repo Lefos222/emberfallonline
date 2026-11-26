@@ -24,14 +24,13 @@ import { LevelProgress } from "@/game/LevelCurve";
 import { ConquestTokens } from "@/game/ConquestGate";
 
 describe("the level bill the player sees", () => {
-  it("reads a mid-game level as dozens of fights, never a multi-million bill", () => {
+  it("reads every level as the same 40 fights, from the first level to the last", () => {
     const hero = { ...newHero("Veteran", "warrior"), level: 30 };
     store.hero = hero;
     render(<LevelProgress hero={hero} rows={2} />);
-    expect(screen.getByText(/this level costs 51 fights/)).toBeTruthy();
-    // 30→31 costs 51 fights (46 + 10%) at 3,615 XP each, so the whole level is exactly
-    // 51 × 3,615 = 184.4K XP — not 2.8 million, and not a bill the fight pay cannot fill.
-    expect(screen.getByText("184.4K XP")).toBeTruthy();
+    expect(screen.getByText("Level 30")).toBeTruthy();
+    expect(screen.getByText("0 / 40 fights")).toBeTruthy();
+    expect(screen.getAllByText(/this level costs 40 fights/).length).toBeGreaterThan(0);
     expect(screen.getByText("Level 31")).toBeTruthy();
   });
 

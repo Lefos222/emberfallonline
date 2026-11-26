@@ -22,13 +22,11 @@ describe("progress", () => {
     const h = newHero("Tester", "mage");
     h.kills = { wolf: 20, boar: 10 };
     h.drills = { vitality: 3 };
-    h.talents = { t1: 5, t2: 10 };
     h.quests = ["wilds-elite", "wilds-boss"];
     const byId = (id: string) => ACHIEVEMENTS.find((a) => a.id === id)!;
     expect(isClaimable(h, byId("kills_1"))).toBe(true); // 30 kills ≥ 25
     expect(isClaimable(h, byId("kills_2"))).toBe(false); // 30 < 250
     expect(isClaimable(h, byId("drills_1"))).toBe(true);
-    expect(isClaimable(h, byId("talentranks_1"))).toBe(true); // 15 ranks
     expect(isClaimable(h, byId("quests_1"))).toBe(false); // needs 4
     expect(ACHIEVEMENTS.some((a) => a.cat === "Endless")).toBe(true);
   });

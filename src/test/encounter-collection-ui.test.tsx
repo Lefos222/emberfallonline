@@ -28,18 +28,17 @@ describe('battle discovery reads back through the Bestiary', () => {
     expect(screen.getByRole('img', { name: 'Goblin Brute' })).toBeInTheDocument();
   });
 
-  it('wins a real auto-battle and reads one recorded defeat back from the save', async () => {
-    vi.useFakeTimers();
+  it('wins a real encounter and reads one recorded defeat back from the save', async () => {
     setHero(newHero('Collector', 'warrior'));
     const foe = { ...stageFoe(1), hp: 1, def: 0, dodge: 0, atk: 1 };
     const left = { ...foe, name: 'Collector', cls: 'warrior' as const, hp: 1000, atk: 10000, dodge: 100 };
     const onEnd = vi.fn(async () => {});
     const battle = render(<Battle left={left} right={foe} onEnd={onEnd} auto />);
-    for (let i = 0; i < 20 && !onEnd.mock.calls.length; i++) {
-      await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
-    }
+    // The fight is calculated when the screen opens; OK accepts the result.
+    fireEvent.click(screen.getByRole('button', { name: /OK/ }));
+    await act(async () => { await Promise.resolve(); });
     expect(onEnd).toHaveBeenCalledExactlyOnceWith(true, expect.objectContaining({ foe: expect.any(Number), hero: expect.any(Number) }));
-    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    await act(async () => { await Promise.resolve(); });
     const hero = getState().hero;
     if (!hero) throw new Error('Missing collector save');
     expect(rosterProgress(hero, 'encounter:enemy:Goblin%20Brute')).toEqual({ state: 'defeated', count: 1 });

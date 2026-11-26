@@ -1,5 +1,5 @@
 import { t } from "./i18n";
-import { LATE_LEVEL, fightsToLevel, fightsToNextLevel, xpPerFight, xpToNext, type Hero } from "./data";
+import { BATTLES_PER_LEVEL, fightsToLevel, fightsToNextLevel, type Hero } from "./data";
 import { fmt } from "./ui";
 
 /**
@@ -7,8 +7,8 @@ import { fmt } from "./ui";
  * what the next few levels ask for: eleven fights a level below 20, then a smooth climb with no wall.
  */
 export function LevelProgress({ hero, rows = 0 }: { hero: Hero; rows?: number }) {
-  const need = xpToNext(hero);
-  const pct = Math.min(100, (hero.xp / Math.max(1, need)) * 100);
+  const fought = Math.min(BATTLES_PER_LEVEL, Math.max(0, hero.levelBattles ?? 0));
+  const pct = (fought / BATTLES_PER_LEVEL) * 100;
   const left = fightsToNextLevel(hero);
   return (
     <div className="slot space-y-2 p-3">
@@ -17,14 +17,13 @@ export function LevelProgress({ hero, rows = 0 }: { hero: Hero; rows?: number })
            {t("Level")} {hero.level}
           {hero.paragon > 0 && <span className="ml-1 text-xs text-foreground/80">{t("Ascension")} {hero.paragon}</span>}
         </span>
-        <span className="text-muted-foreground">{fmt(hero.xp)} / {fmt(need)}  {t("XP")}</span>
+        <span className="text-muted-foreground">{fought} / {BATTLES_PER_LEVEL}  {t("fights")}</span>
       </div>
       <div className="bar-track h-2.5">
         <div className="bar-xp h-full" style={{ width: `${pct}%` }} />
       </div>
       <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-xs text-muted-foreground">
         <span><b className="text-foreground">{left}</b>  {t("more fight")}{left === 1 ? "" : "s"}  {t("to level")} {hero.level + 1}</span>
-        <span>{fmt(xpPerFight(hero.level))}  {t("XP a fight")}</span>
         <span>{t("this level costs")} {fmt(fightsToLevel(hero.level))}  {t("fights")}</span>
       </div>
       {rows > 0 && <LevelLadder level={hero.level} rows={rows} />}
@@ -39,15 +38,14 @@ function LevelLadder({ level, rows }: { level: number; rows: number }) {
     <div className="pt-1">
       <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 md:grid-cols-5">
         {list.map((lv) => (
-          <div key={lv} className={`rounded border px-2 py-1 text-center text-xs ${lv >= LATE_LEVEL ? "border-gold/60 bg-gold/10" : "border-border"}`}>
+          <div key={lv} className="rounded border border-border px-2 py-1 text-center text-xs">
             <div className="font-display font-bold text-gold">{t("Level")} {lv + 1}</div>
             <div className="text-foreground">{fmt(fightsToLevel(lv))}  {t("fights")}</div>
-            <div className="text-muted-foreground">{fmt(xpToNext({ level: lv, paragon: 0 }))}  {t("XP")}</div>
           </div>
         ))}
       </div>
       <p className="mt-2 text-[11px] text-muted-foreground">
-         {t("Levels 1–")}{LATE_LEVEL - 1}  {t("cost")} {fightsToLevel(1)}  {t("fights each. From level")} {LATE_LEVEL}  {t("the bill climbs gently —")} {fmt(fightsToLevel(20))}  {t("fights at 20,")} {fmt(fightsToLevel(50))}  {t("at 50,")} {fmt(fightsToLevel(80))}  {t("at 80 — so every level is a session's work and none of them is a wall.")} </p>
+         {t("this level costs")} {fightsToLevel(1)}  {t("fights")} </p>
     </div>
   );
 }

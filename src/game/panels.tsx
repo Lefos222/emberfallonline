@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import {
   type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, goldEnhanceAllowed, ENHANCE_MAX, REFINE_STAT_BONUS, refineRank, heroStats, invCap, bagSize, matSlots, MAT_STACK, bagRowCost, MAX_BAG_ROWS, sellValue,
-  CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, campaignFightRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
+  CONQUEST_LEVEL, MAX_LEVEL, BATTLES_PER_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, canWear, itemLevel, stageFoe, stageRewards, campaignFightRewards, xpToNext, xpPerFight, zoneOf, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import {
   addConquestTokens, CONQUEST_XP_RATE, conquestDropFloor, conquestFoe, conquestKeyActive,
@@ -148,7 +148,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               ["Physical defense", fmt(s.pdef)], ["Magic defense", fmt(s.mdef)],
               ["Critical chance", `${s.crit}%`], ["Critical damage", `${s.critDmg}%`],
               ["Armor penetration", `${s.pen}%`], ["Accuracy", `${s.acc}%`],
-              ["Evasion", `${s.dodge}%`], ["XP", `${fmt(hero.xp)} / ${fmt(xpToNext(hero))}`],
+              ["Evasion", `${s.dodge}%`], ["Battles to level", `${Math.min(BATTLES_PER_LEVEL, Math.max(0, hero.levelBattles ?? 0))} / ${BATTLES_PER_LEVEL}`],
             ] as const).map(([k, v]) => (
               <div key={k} className="flex justify-between border-b border-border/30 py-0.5"><span className="text-muted-foreground">{k}</span><span className="font-bold">{v}</span></div>
             ))}
@@ -276,7 +276,13 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
                 <button className="btn-blood px-4 py-1.5 text-sm" onClick={() => { unequip(selItem); setSel(null); }}>{t("Unequip")}</button>
               ) : (
                 <>
-                  <button className="btn-gold px-4 py-1.5 text-sm" onClick={() => { equip(selItem); setSel(null); }}>{t("Equip")}</button>
+                  {canWear(hero.level, selItem) ? (
+                    <button className="btn-gold px-4 py-1.5 text-sm" onClick={() => { equip(selItem); setSel(null); }}>{t("Equip")}</button>
+                  ) : (
+                    <button className="btn-gold px-4 py-1.5 text-sm" disabled title={`Requires level ${itemLevel(selItem)} — you are level ${hero.level}`}>
+                      {t("Lv")} {itemLevel(selItem)}
+                    </button>
+                  )}
                   <button className="btn-blood px-4 py-1.5 text-sm" onClick={() => { sell(selItem); setSel(null); }}>{t("Sell")} <Gold n={sellValue(selItem)} /></button>
                 </>
               )}
@@ -986,40 +992,4 @@ export function Temple({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** The top-left HUD's XP readout: the exact numbers, the bar, and what the next level really asks. */
-export function XpBar({ hero }: { hero: Hero }) {
-  const need = xpToNext(hero);
-  const pct = Math.min(100, Math.max(0, (hero.xp / Math.max(1, need)) * 100));
-  const left = fightsToNextLevel(hero);
-  const next =
-    hero.level >= MAX_LEVEL ? `Ascension ${hero.paragon + 1}` : `level ${hero.level + 1}`;
-  return (
-    <div className="hud-xp" title={`${fmt(hero.xp)} / ${fmt(need)} XP · ${left} fight${left === 1 ? "" : "s"} to ${next}`}>
-      <div className="mb-0.5 flex items-baseline justify-between gap-1 text-[10px] leading-none">
-        <span className="truncate font-bold text-xp">
-          {fmt(hero.xp)}
-          <span className="text-muted-foreground"> / {fmt(need)}  {t("XP")}</span>
-        </span>
-        <span className="shrink-0 font-bold text-foreground/80">{pct.toFixed(pct < 10 ? 1 : 0)}%</span>
-      </div>
-      <div
-        className="bar-track hud-xp-track w-full"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(pct)}
-        aria-label={`Experience toward ${next}`}
-      >
-        <div className="bar-xp h-full" style={{ width: `${pct}%` }} />
-      </div>
-      <div className="mt-0.5 flex items-baseline justify-between gap-1 text-[9px] uppercase tracking-wider text-muted-foreground">
-        <span className="truncate">
-          {left}  {t("fight")}{left === 1 ? "" : "s"} → {next}
-        </span>
-        <span className="shrink-0 text-gold/90" title={t("XP a fight at your own level pays before scroll buffs")}>
-          {fmt(xpPerFight(hero.level))}  {t("xp/fight")} </span>
-      </div>
-    </div>
-  );
-}
 

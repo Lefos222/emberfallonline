@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { GUILD_RELICS, attuneCost, attuneRelic, relicFx } from "@/game/guild-tower";
 import type { Hero } from "@/game/data";
 
-const hero = (coins: number) => ({ guildSkills: { g_atk: 3, g_def: 3 }, guildCoins: coins } as unknown as Hero);
+const hero = (coins: number) => ({ guildLedger: { donated: 25_000 }, guildCoins: coins } as unknown as Hero);
 
 describe("reliquary attunement", () => {
   it("costs 600 coins per shelf per level", () => {

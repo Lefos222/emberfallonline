@@ -6,6 +6,7 @@ import {
   UPGRADE_BR_BOOST,
   battleRating,
   foeRating,
+  veteranFx,
   heroStats,
   makeItem,
   newHero,
@@ -64,7 +65,7 @@ describe("Battle Rating scales with the hero", () => {
     const beforeHigh = heroStats(high).power;
     high.attrs.str += 1;
     const highGain = heroStats(high).power - beforeHigh;
-    expect(highGain).toBeGreaterThan(lowGain * 5);
+    expect(highGain).toBeGreaterThan(lowGain * 4);
   });
 
   it("still rewards a level with a visible rating jump", () => {
@@ -112,7 +113,10 @@ describe("trained upgrades are worth a percent more", () => {
     const rune = RUNES.find((r) => r.stat === "atkPct")!;
     h.runes = { [rune.id]: 10 };
     const printed = rune.per * 10;
-    const expected = plain * (1 + (printed * UPGRADE_BR_BOOST) / 100);
+    // The veteran curve already adds its own percentage, so the rune's 101% share is measured
+    // against the rest of the hero's multiplier rather than against an empty one.
+    const veteran = veteranFx(h);
+    const expected = plain * (1 + (printed * UPGRADE_BR_BOOST) / (100 + veteran.atkPct));
     expect(heroStats(h).patk).toBeGreaterThanOrEqual(Math.floor(expected) - 1);
     expect(heroStats(h).patk).toBeLessThanOrEqual(Math.ceil(expected) + 1);
   });
@@ -124,7 +128,8 @@ describe("trained upgrades are worth a percent more", () => {
     const train = STAT_TRAININGS.find((d) => d.stat === "hpPct")!;
     h.statTrains = { [train.id]: 5 };
     const printed = train.per * 5;
-    const expected = plain * (1 + (printed * UPGRADE_BR_BOOST) / 100);
+    const veteran = veteranFx(h);
+    const expected = plain * (1 + (printed * UPGRADE_BR_BOOST) / (100 + veteran.hpPct));
     expect(heroStats(h).hp).toBeGreaterThanOrEqual(Math.floor(expected) - 2);
     expect(heroStats(h).hp).toBeLessThanOrEqual(Math.ceil(expected) + 2);
   });

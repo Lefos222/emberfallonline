@@ -2,8 +2,10 @@ import { tr } from "./i18n";
 import { useState } from "react";
 import { Check, Gift, Sparkles, Trophy } from "lucide-react";
 import { AVATAR_COUNT, AvatarIcon } from "./AvatarIcon";
-import { Portrait } from "./CharacterSelect";
-import { CLASSES, heroStats, powerBreakdown, xpToNext } from "./data";
+import { HeroPortrait } from "./HeroPortrait";
+import { FaceCustomizer } from "./FaceCustomizer";
+import { heroAppearance } from "./appearance";
+import { BATTLES_PER_LEVEL, CLASSES, heroStats, powerBreakdown } from "./data";
 import { update, updateProfile, useGame } from "./store";
 import { GameTabs, Panel, fmt } from "./ui";
 import { LevelProgress } from "./LevelCurve";
@@ -39,6 +41,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
   const [pub, setPub] = useState(row?.is_public ?? true);
   if (!hero) return null;
   const stats = heroStats(hero);
+  const look = heroAppearance(hero, gender);
   const rec = { ...emptyRecord(), ...(hero.record ?? {}) };
   const equipped = activeTitle(hero);
   const claimed = new Set(hero.titleClaimed ?? []);
@@ -77,7 +80,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
             <div className={`slot w-full overflow-hidden p-0 ${frameClass(frame)}`}>
               {hero.avatar !== undefined
                 ? <AvatarIcon index={hero.avatar} fill className="block aspect-square w-full" />
-                : <Portrait cls={hero.cls} gender={gender} className="w-full" />}
+                : <HeroPortrait cls={hero.cls} gender={gender} face={hero.face} synth={look.synth} look={look.look} className="w-full" />}
             </div>
             <div className="text-center">
               <div className="font-display text-2xl leading-tight">{hero.name}</div>
@@ -110,7 +113,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
             <div>
               <div className="mb-1 flex items-baseline justify-between">
                 <span className="font-display text-gold">{tr("Next level")}</span>
-                <span className="text-xs text-muted-foreground">{fmt(hero.xp)} / {fmt(xpToNext(hero))}  {tr("XP")}</span>
+                <span className="text-xs text-muted-foreground">{Math.min(BATTLES_PER_LEVEL, Math.max(0, hero.levelBattles ?? 0))} / {BATTLES_PER_LEVEL}  {tr("fights")}</span>
               </div>
               <LevelProgress hero={hero} rows={1} />
             </div>
@@ -240,18 +243,18 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
 
       {tab === "appearance" && (
         <div className="space-y-4">
+          <FaceCustomizer />
           <div className="flex flex-wrap items-center gap-3">
             <div className={`slot w-28 overflow-hidden p-0 ${frameClass(frame)}`}>
               {hero.avatar !== undefined
                 ? <AvatarIcon index={hero.avatar} fill className="block aspect-square w-full" />
-                : <Portrait cls={hero.cls} gender={gender} className="w-full" />}
+                : <HeroPortrait cls={hero.cls} gender={gender} face={hero.face} synth={look.synth} look={look.look} className="w-full" />}
             </div>
             <div className="text-sm text-muted-foreground">
                {tr("Portrait, frame and biography appear on your public profile, in the arena and on the rankings.")} </div>
           </div>
           <div className="text-sm">
-            <div className="font-display text-gold">{tr("Portrait")}</div>
-            <div className="mt-1 grid grid-cols-5 gap-1 sm:grid-cols-10">
+            <div className="font-display text-gold">{tr("Portrait")}</div>            <div className="mt-1 grid grid-cols-5 gap-1 sm:grid-cols-10">
               {Array.from({ length: AVATAR_COUNT }, (_, i) => (
                 <button key={i} type="button" aria-label={`Portrait ${i + 1}`} aria-pressed={hero.avatar === i}
                   className={`rounded ${hero.avatar === i ? "ring-2 ring-gold" : "opacity-75 hover:opacity-100"}`}

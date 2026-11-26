@@ -5,6 +5,7 @@ import { setFx } from "@/game/progress";
 describe("two ring slots", () => {
   it("wears two rings at once and both raise the character", () => {
     const h = newHero("Tester", "warrior");
+    h.level = 20;
     const r1 = makeItem("warrior", 20, 3, "ring");
     const r2 = makeItem("warrior", 20, 3, "ring");
     h.inventory = [r1, r2];
@@ -22,6 +23,7 @@ describe("two ring slots", () => {
 
   it("a third ring swaps out the weaker one and the loser returns to the bag exactly once", () => {
     const h = newHero("Tester", "archer");
+    h.level = 40;
     const weak = makeItem("archer", 10, 2, "ring");
     const mid = makeItem("archer", 20, 3, "ring");
     const strong = makeItem("archer", 40, 4, "ring");
@@ -38,6 +40,7 @@ describe("two ring slots", () => {
 
   it("a save written before the second ring slot still loads with its ring where it was", () => {
     const h = newHero("Veteran", "mage");
+    h.level = 12;
     const ring = makeItem("mage", 12, 2, "ring");
     h.equipment = { weapon: h.equipment.weapon!, armour: h.equipment.armour!, ring };
     expect(h.equipment.ring2).toBeUndefined();
@@ -54,6 +57,7 @@ describe("two ring slots", () => {
 
   it("a full bag refuses to unequip instead of destroying the ring", () => {
     const h = newHero("Tester", "warrior");
+    h.level = 10;
     const ring = makeItem("warrior", 10, 2, "ring");
     h.inventory = Array.from({ length: invCap(h) }, () => makeItem("warrior", 1, 0, "boots"));
     equipItem(h, ring);
@@ -64,6 +68,7 @@ describe("two ring slots", () => {
 
   it("a second ring from the same family feeds the set bonus", () => {
     const h = newHero("Tester", "warrior");
+    h.level = 20;
     h.equipment.weapon!.name = "Moonlit Blade";
     h.equipment.armour!.name = "Moonlit Plate";
     const r1 = makeItem("warrior", 20, 3, "ring"); r1.name = "Moonlit Signet";

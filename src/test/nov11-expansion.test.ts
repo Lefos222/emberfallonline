@@ -1,14 +1,9 @@
 import { describe,it,expect } from "vitest";
 import { heroStats,newHero,matSlots } from "@/game/data";
-import { TREES } from "@/game/talents";
 import { warDropKind,WAR_MATERIAL_CHANCE } from "@/game/war-drops";
 import { friendshipHealthPct } from "@/game/friendship";
 import { readFileSync } from "node:fs";
 describe("November 11 requested rules",()=>{
- for(const cls of ["warrior","mage","archer"] as const){
-  it(`${cls} gains exactly four active-styled talent nodes`,()=>expect(TREES[cls].flatMap(s=>s.talents).filter(t=>t.id.includes("new_active"))).toHaveLength(4));
-  it(`${cls} gains exactly four passive talent nodes`,()=>expect(TREES[cls].flatMap(s=>s.talents).filter(t=>t.id.includes("new_passive"))).toHaveLength(4));
- }
  it("splits item rolls into 50% materials and 50% gear",()=>{expect(WAR_MATERIAL_CHANCE).toBe(.5);expect(Array.from({length:100},(_,i)=>warDropKind(()=>i/100)).filter(k=>k==="materials")).toHaveLength(50);expect(warDropKind(()=>.5)).toBe("gear");});
  it("friendship keeps increasing stats and BR beyond high point totals",()=>{const h=newHero("Friend","warrior");h.srv={friendship:{points:100000}};const a=heroStats(h);h.srv.friendship={points:100100};expect(friendshipHealthPct(h)).toBeCloseTo(10010);expect(heroStats(h).hp).toBeGreaterThan(a.hp);expect(heroStats(h).power).toBeGreaterThan(a.power);});
  it("rose stacks occupy inventory slots",()=>{const h=newHero("Rose","mage");h.srv={friendship:{roses:10000}};expect(matSlots(h)).toBe(2);});

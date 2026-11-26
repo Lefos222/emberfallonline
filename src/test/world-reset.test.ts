@@ -30,7 +30,6 @@ describe("world reset", () => {
     old.spire = 31;
     old.wins = 402;
     old.inventory = [{ id: "x", slot: "weapon", cls: "warrior", rarity: 5, ilvl: 90, icon: 2, enh: 12, name: "Old Blade" }];
-    old.talents = { strike: 5 };
     old.kills = { wolf: 40 };
 
     const clean = resetHero(old);
@@ -45,7 +44,6 @@ describe("world reset", () => {
     expect(clean.spire).toBe(1);
     expect(clean.wins).toBe(0);
     expect(clean.inventory).toEqual([]);
-    expect(clean.talents).toBeUndefined();
     expect(clean.kills).toBeUndefined();
     expect(clean.resetAt).toBe(WORLD_RESET_ID);
     // The starter kit survives, so a level-0 hero can fight from the first stage.

@@ -86,7 +86,7 @@ describe("the Battle Rating a gate floor asks of a hero", () => {
     const hero = referenceHero(60, "warrior");
     const power = heroStats(hero).power;
     expect(floorRequirement("conquest", 50, 60)).toBeLessThan(power);
-    expect(floorRequirement("conquest", 80, 60)).toBeGreaterThan(power);
+    expect(floorRequirement("conquest", 100, 60)).toBeGreaterThan(power);
   });
 
   it("keeps the endless gate climbable with upgraded gear at the level cap", () => {

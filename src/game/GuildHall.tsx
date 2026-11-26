@@ -10,14 +10,15 @@ import { returnedSave } from "./services-contract";
 import { Panel } from "./ui";
 import { RequestStatus, useRequest } from "./Rewards";
 import { GuildContribute, GuildShopPanel, GuildVaultPanel } from './GuildShop';
-import { GuildSkillTower, GuildReliquary } from './GuildTower';
+import { GuildReliquary } from './GuildTower';
 import { GuildRecords, type MemberHero } from './GuildRecords';
 import { GuildHallScene, type GuildLocation } from './GuildHallScene';
 import { GuildWars } from './GuildWars';
 import { GuildEvents } from './GuildEvents';
 import { GuildStorage } from './GuildStorage';
 import type { StartBattle } from './panels';
-import { GUILD_RELICS, guildTotalRanks, relicUnlocked } from './guild-tower';
+import { GUILD_RELICS, relicUnlocked } from './guild-tower';
+import { guildRanks } from './progress';
 
 export function GuildHall({ onClose, start }: { onClose: () => void; start: StartBattle }) {
   const { heroId, hero } = useGame();
@@ -228,7 +229,6 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
       </div>}
 
       {location === "tower" && <div className="mt-5">
-        <GuildSkillTower />
         <GuildReliquary />
       </div>}
 
@@ -254,7 +254,7 @@ export function GuildHall({ onClose, start }: { onClose: () => void; start: Star
             <p className="mt-1 break-words text-sm">{guild.description || "No description yet."}</p>
             {guild.announcement && <p className="mt-2 border-l-2 border-primary pl-3 text-sm">{guild.announcement}</p>}
           </>}
-          <p className="mt-2 text-xs text-muted-foreground">{t("Guild level")} {guild.level} · {guildTotalRanks(hero ?? {})}  {t("tower ranks among your own deeds · founded")} {new Date(guild.created_at).toLocaleDateString()}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{t("Guild level")} {guild.level} · {guildRanks(hero ?? {})}  {t("guild ranks from your own gifts · founded")} {new Date(guild.created_at).toLocaleDateString()}</p>
         </div>
 
         {/* Applications moderation for leaders/officers */}

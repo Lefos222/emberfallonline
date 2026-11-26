@@ -25,7 +25,7 @@ const BUILDINGS: GuildBuilding[] = [
   },
   {
     id: "tower",
-    name: "Master Skill Tower",
+    name: "Reliquary Tower",
     hint: "Endless stat ranks",
     box: { left: 23, top: 5, width: 16, height: 53 },
   },
@@ -52,7 +52,7 @@ const BUILDINGS: GuildBuilding[] = [
 
 /**
  * The guild courtyard under the blood moon: the merchant's stall at the left, the master
- * skill tower behind it, the tiered skill tower in the middle and the keep on the right.
+ * reliquary tower behind it, the tiered tower in the middle and the keep on the right.
  * Each painted building is the way into that part of the hall.
  */
 export function GuildHallScene({
