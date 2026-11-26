@@ -1,9 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { adoptServerSave, withServerHero } from "./store";
 import { object, returnedSave } from "./services-contract";
-import { heroSkills, heroStats, stageFoe, type EnemyType, type Hero, type HeroClass, type Skill } from "./data";
+import { heroStats, stageFoe, type EnemyType, type Hero } from "./data";
 import { heroAppearance } from "./appearance";
-import { buildKit, type TSkill } from "./combat";
 import type { Mat } from "./crafting";
 
 /** The Party Spire: 1-4 heroes fight one live battle that never leaves the arena. */
@@ -68,14 +67,8 @@ export interface SpireMember {
   id: string; name: string; cls: "warrior" | "mage" | "archer"; gender: "male" | "female";
   synth?: number | null; look?: number | null; level: number;
   hp: number; atk: number; def: number; crit: number; dodge: number;
-  /** The hero's own battle kit, so the Spire uses the abilities the rest of the game gives them. */
-  kit?: SpireSkill[];
 }
-export interface LiveHero {
-  id: string; hp: number; max: number; cd: Record<string, number>; swing: number;
-  /** A raised guard: milliseconds left and the share of incoming damage it turns aside. */
-  guard?: number; guardPct?: number;
-}
+export interface LiveHero { id: string; hp: number; max: number; swing: number }
 export interface LiveFoe { uid: string; name: string; img: string; hp: number; max: number; atk: number; def: number; boss: boolean; swing: number }
 export interface Fx { src: string; tgt: string; kind: "hit" | "crit" | "heal" | "miss"; value: number; skill?: string }
 export interface SpireBattle {
@@ -86,52 +79,6 @@ export interface SpireBattle {
   floors?: number;
   /** Why the fight stopped: the whole party fell, or the summit was reached. */
   outcome?: "fallen" | "summit";
-}
-
-/** A skill cast from the hero's own kit, in the real-time terms of the shared Spire fight. */
-export interface SpireSkill {
-  id: string; name: string; icon: string;
-  /** Milliseconds between casts. */
-  cd: number;
-  mult: number; hits: number; aoe: boolean; crit: boolean;
-  /** Share of the caster's health restored; 0 for a damaging skill. */
-  heal: number;
-  /** Share of incoming damage a guard turns aside; 0 for anything else. */
-  guard: number;
-  teamHeal?: number;
-  kind: "hit" | "heal" | "guard";
-}
-
-/** One turn of the tactical battle is about two seconds of the live Spire fight. */
-export const SKILL_TURN_MS = 2000;
-/** The basic attack costs no turn, but in real time it still waits for its swing. */
-export const BASIC_ATTACK_MS = 1500;
-/** A raised guard holds for this long. */
-export const GUARD_MS = 3000;
-
-/** The tactical kit mapped onto the Spire: attacks, a heal and a guard, nothing invented. */
-const toSpireSkill = (s: TSkill): SpireSkill => {
-  const heal = s.teamHeal ?? (s.target === "enemy" ? 0 : (s.heal ?? 0));
-  const raw = s.selfApplies?.value ?? 25;
-  const pct = raw > 0 && raw < 1 ? Math.round(raw * 100) : raw;
-  const guard = s.mult === 0 && !heal && s.target !== "enemy" ? Math.min(45, Math.max(15, pct)) : 0;
-  return {
-    id: s.id, name: s.name, icon: s.icon,
-    cd: s.cd > 0 ? s.cd * SKILL_TURN_MS : BASIC_ATTACK_MS,
-    mult: s.mult,
-    hits: s.hits ?? 1,
-    aoe: s.target === "all",
-    crit: !!s.crit,
-    heal,
-    teamHeal: s.teamHeal,
-    guard,
-    kind: heal > 0 ? "heal" : guard > 0 ? "guard" : "hit",
-  };
-};
-
-/** A hero's real battle kit: class skills, talent unlocks and the extra class abilities. */
-export function spireKit(cls: HeroClass, skills?: Skill[], chosen?: string[]): SpireSkill[] {
-  return buildKit(cls, skills, chosen).map(toSpireSkill);
 }
 
 /** The hero's own party entry: live stats plus the appearance the others see. */
@@ -151,12 +98,8 @@ export function memberOf(hero: Hero, gender: "male" | "female", id: string): Spi
     def: Math.round(s.def),
     crit: s.crit,
     dodge: s.dodge,
-    kit: spireKit(hero.cls, heroSkills(hero), hero.skillLoadout),
   };
 }
-
-/** A member's kit, or the class kit of a hero whose client did not send one. */
-export const kitOf = (m: SpireMember): SpireSkill[] => (m.kit && m.kit.length ? m.kit : spireKit(m.cls));
 
 const TYPES: EnemyType[] = ["goblin", "skeleton", "demon"];
 
@@ -197,22 +140,17 @@ export function newBattle(members: SpireMember[], floor = 1, dungeon?: string): 
   return {
     dungeon: d.id, floors: d.floors,
     floor: start, t: 0, pause: 0, over: false, fx: [], log: [],
-    heroes: members.map((m) => ({ id: m.id, hp: m.hp, max: m.hp, cd: {}, swing: 600 })),
+    heroes: members.map((m) => ({ id: m.id, hp: m.hp, max: m.hp, swing: 600 })),
     foes: spawnFloor(start, partyLevel(members), members.length, Math.random, floorOpts(d.id, start)),
   };
 }
 
 const hit = (atk: number, mult: number, def: number, rand: () => number) => Math.max(1, Math.round(atk * mult * (0.9 + rand() * 0.2) - def * 0.45));
 
-/** A skill can be cast when the hero is standing and its own cooldown has run out. */
-export function skillReady(hero: LiveHero | undefined, skill: string): boolean {
-  return !!hero && hero.hp > 0 && (hero.cd[skill] ?? 0) <= 0;
-}
-
 export interface TickResult { battle: SpireBattle; cleared: number | null }
 
 /** Advances the shared battle by one tick. Only the party leader runs this; everyone else draws the broadcast result. */
-export function tick(prev: SpireBattle, members: SpireMember[], casts: { hero: string; skill: string }[], rand = Math.random): TickResult {
+export function tick(prev: SpireBattle, members: SpireMember[], rand = Math.random): TickResult {
   const b: SpireBattle = structuredClone(prev);
   b.t += TICK_MS; b.fx = [];
   let cleared: number | null = null;
@@ -238,32 +176,8 @@ export function tick(prev: SpireBattle, members: SpireMember[], casts: { hero: s
     b.fx.push({ src, tgt: f.uid, kind: c ? "crit" : "hit", value: d, skill });
   };
 
-  // Player skills, validated against cooldowns here so a client cannot cast faster than allowed.
-  for (const c of casts) {
-    const h = b.heroes.find((x) => x.id === c.hero); const m = stat(c.hero);
-    if (!h || !m || !skillReady(h, c.skill)) continue;
-    const sk = kitOf(m).find((k) => k.id === c.skill);
-    if (!sk) continue;
-    const foes = liveFoes();
-    if (sk.kind === "hit" && foes.length) {
-      // A single-target skill lands on the weakest foe; an area skill on all of them.
-      const targets = sk.aoe ? foes : [foes.reduce((a, f) => (f.hp < a.hp ? f : a))];
-      for (const f of targets) for (let i = 0; i < sk.hits && f.hp > 0; i += 1) strikeFoe(h.id, f, m.atk, sk.mult, m.crit + (sk.crit ? 100 : 10), sk.id);
-    } else if (sk.kind === "heal") {
-      const targets = m.cls === "mage" ? liveHeroes() : [h];
-      for (const t of targets) { const v = Math.min(t.max - t.hp, Math.round(t.max * sk.heal)); t.hp += v; b.fx.push({ src: h.id, tgt: t.id, kind: "heal", value: v, skill: sk.id }); }
-      log(`${m.name} calls on ${sk.name}.`);
-    } else if (sk.kind === "guard") {
-      h.guard = GUARD_MS; h.guardPct = sk.guard;
-      log(`${m.name} raises ${sk.name}.`);
-    } else continue;
-    h.cd[sk.id] = sk.cd;
-  }
-
-  // Auto attacks.
+  // Heroes swing on their own timer: no abilities to cast, only their stats.
   for (const h of liveHeroes()) {
-    for (const k of Object.keys(h.cd)) h.cd[k] = Math.max(0, h.cd[k] - TICK_MS);
-    if (h.guard) h.guard = Math.max(0, h.guard - TICK_MS);
     h.swing -= TICK_MS;
     const m = stat(h.id); const foes = liveFoes();
     if (h.swing <= 0 && m && foes.length) { strikeFoe(h.id, foes[0], m.atk, 1, m.crit); h.swing = 1200; }
@@ -275,8 +189,7 @@ export function tick(prev: SpireBattle, members: SpireMember[], casts: { hero: s
     f.swing = f.boss ? 1300 : 1600;
     const target = heroes[Math.floor(rand() * heroes.length)]; const m = stat(target.id);
     if (m && rand() * 100 < Math.min(40, m.dodge)) { b.fx.push({ src: f.uid, tgt: target.id, kind: "miss", value: 0 }); continue; }
-    const guard = target.guard ? 1 - (target.guardPct ?? 0) / 100 : 1;
-    const d = Math.max(1, Math.round(hit(f.atk, 1, m?.def ?? 0, rand) * guard));
+    const d = Math.max(1, Math.round(hit(f.atk, 1, m?.def ?? 0, rand)));
     target.hp = Math.max(0, target.hp - d);
     b.fx.push({ src: f.uid, tgt: target.id, kind: "hit", value: d });
     // One hero going down never ends the climb: the rest of the party fights on. The fallen hero

@@ -14,7 +14,7 @@ import { Shield, Swords } from "./PaintedIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import {
-  SKILLS, heroSkills, type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, goldEnhanceAllowed, ENHANCE_MAX, REFINE_STAT_BONUS, refineRank, heroStats, invCap, bagSize, matSlots, MAT_STACK, bagRowCost, MAX_BAG_ROWS, sellValue,
+  type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, goldEnhanceAllowed, ENHANCE_MAX, REFINE_STAT_BONUS, refineRank, heroStats, invCap, bagSize, matSlots, MAT_STACK, bagRowCost, MAX_BAG_ROWS, sellValue,
   CONQUEST_LEVEL, MAX_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, stageFoe, stageRewards, campaignFightRewards, xpToNext, xpPerFight, fightsToNextLevel, zoneOf, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import {
@@ -62,7 +62,7 @@ export type StartBattle = (opts: {
 export const heroFighter = (h: Hero, s: Stats, gender: "male" | "female"): Fighter => ({
   name: h.name, img: CLASSES[h.cls].img, hp: s.hp, atk: s.atk, def: s.def, crit: s.crit, dodge: s.dodge,
   critDmg: s.critDmg, pen: s.pen, acc: s.acc, block: s.block, heal: s.heal,
-  level: h.level + h.paragon, cls: h.cls, gender, skills: heroSkills(h), skillLoadout: h.skillLoadout, ...heroAppearance(h, gender),
+  level: h.level + h.paragon, cls: h.cls, gender, ...heroAppearance(h, gender),
 });
 
 const SLOT_LABEL: Record<Slot, string> = { helmet: "Head", armour: "Chest", boots: "Feet", belt: "Waist", weapon: "Weapon", ring: "Ring", talisman: "Amulet" };

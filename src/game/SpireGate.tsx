@@ -9,7 +9,6 @@ import { fmt, GameTabs, Panel } from "./ui";
 import { Meter } from "./GateUI";
 import { Button } from "@/components/ui/button";
 import { CharacterModel } from "./CharacterModel";
-import { SkillIcon } from "./SkillIcon";
 import { arenaFor } from "./Battle";
 import { MATS, type Mat } from "./crafting";
 import { update, useGame } from "./store";
@@ -24,14 +23,12 @@ import {
   dungeonOf,
   dungeonUnlocked,
   endSpire,
-  kitOf,
   loadSpire,
   memberOf,
   newBattle,
   openSpireChest,
   partyCode,
   reportClear,
-  skillReady,
   tick,
   useVulcanCard,
   type SpireBattle,
@@ -116,7 +113,6 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
   const matesRef = useRef<SpireMember[]>([]);
   const membersRef = useRef<SpireMember[]>([]);
   const battleRef = useRef<SpireBattle | null>(null);
-  const casts = useRef<{ hero: string; skill: string }[]>([]);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const starting = useRef(false);
 
@@ -137,7 +133,6 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
     if (timer.current) clearInterval(timer.current);
     timer.current = null;
     battleRef.current = null;
-    casts.current = [];
     setBattle(null);
   }, []);
 
@@ -147,7 +142,6 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
     timer.current = null;
     // The fight is over for this hero: the next join must be free to start a fresh climb.
     battleRef.current = null;
-    casts.current = [];
     void endSpire()
       .catch(() => {})
       .then(() => refresh());
@@ -234,10 +228,6 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
         case "busy": {
           if (leaderRef.current) return;
           setNote(tr("The party's climb is already underway — wait for the next one."));
-          break;
-        }
-        case "cast": {
-          if (leaderRef.current) casts.current.push({ hero: m.hero, skill: m.skill });
           break;
         }
         case "bye": {
@@ -333,9 +323,7 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
       timer.current = setInterval(() => {
         const prev = battleRef.current;
         if (!prev || prev.over) return;
-        const pending = casts.current;
-        casts.current = [];
-        const result = tick(prev, membersRef.current, pending);
+        const result = tick(prev, membersRef.current);
         battleRef.current = result.battle;
         setBattle(result.battle);
         link.current.send({ kind: "tick", battle: result.battle, cleared: result.cleared });
@@ -348,13 +336,6 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
       starting.current = false;
       setBusy(false);
     }
-  };
-
-  const cast = (skill: string) => {
-    const me = battle?.heroes.find((h) => h.id === heroId);
-    if (!me || !skillReady(me, skill)) return;
-    if (leaderRef.current) casts.current.push({ hero: me.id, skill });
-    else link.current.send({ kind: "cast", hero: me.id, skill });
   };
 
   const leaveFight = () => {
@@ -461,8 +442,6 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
   const cards = vulcanCards(hero ?? {});
   const bests = hero?.spireFloors ?? {};
   const me = battle?.heroes.find((h) => h.id === heroId);
-  /** The hero's own abilities — the same kit the rest of the game fights with. */
-  const myKit = self ? kitOf(self) : [];
 
   return (
     <>
@@ -810,7 +789,7 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
                     </div>
                     <span className="w-full truncate text-center text-[10px] font-bold">{m?.name ?? ""}</span>
                     <Meter value={h.hp} max={h.max} fill="bar-hp" label={`${m?.name ?? ""} ${tr("Health")}`} />
-                    {h.guard ? <span className="text-[9px] font-bold text-r2">◈ {tr("Guard")}</span> : null}
+
                     {down ? <span className="text-[9px] font-bold text-blood">{tr("Fallen")}</span> : null}
                     {battle.fx
                       .filter((f) => f.tgt === h.id)
@@ -869,32 +848,6 @@ export function SpireGate({ onClose, onBattleVisible, header }: { onClose: () =>
                 {tr("Your hero has fallen — the climb goes on without you until the party wins or falls.")}
               </p>
             )}
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {myKit.map((sk) => {
-                const cd = me?.cd[sk.id] ?? 0;
-                const readyNow = skillReady(me, sk.id);
-                return (
-                  <Button
-                    key={sk.id}
-                    variant="ghost"
-                    onClick={() => cast(sk.id)}
-                    disabled={!readyNow || battle.over}
-                    className={`slot relative flex h-16 w-16 flex-col items-center justify-center gap-0.5 rarity-4 transition hover:scale-105 disabled:opacity-50 md:h-20 md:w-20 ${
-                      readyNow ? "ring-1 ring-gold/60" : ""
-                    }`}
-                    title={sk.name}
-                  >
-                    <SkillIcon icon={sk.icon} className="h-8 w-8 md:h-10 md:w-10" />
-                    <span className="px-0.5 text-center text-[9px] font-bold uppercase leading-tight">{sk.name}</span>
-                    {cd > 0 && (
-                      <span className="absolute inset-0 flex items-center justify-center rounded-md bg-background/75 font-display text-xl">
-                        {Math.ceil(cd / 1000)}
-                      </span>
-                    )}
-                  </Button>
-                );
-              })}
-            </div>
             <div className="max-h-20 w-full max-w-2xl overflow-y-auto px-3 text-center text-[11px] text-muted-foreground">
               {battle.log.map((line, i) => (
                 <div key={`${i}-${line}`} className={i === battle.log.length - 1 ? "text-foreground" : ""}>

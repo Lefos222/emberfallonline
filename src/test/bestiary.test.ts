@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { buildKit } from '../game/combat';
 import { BATTLE_BOSSES, BOSS_ART_AUDIT, BOSS_ROSTER, ENEMY_ROSTER, ROSTER, ENCOUNTER_TABLES, encounterEntry, recordRosterEncounter, rosterProgress, validateRoster } from '../game/bestiary';
 
 describe('audited bestiary', () => {
@@ -24,9 +23,9 @@ describe('audited bestiary', () => {
     expect(() => validateRoster([ROSTER[0]!, ROSTER[0]!])).toThrow('Duplicate');
     expect(() => validateRoster([{ ...ROSTER[0]!, sprite: { ...ROSTER[0]!.sprite, x: 1920 } }])).toThrow('Invalid sprite');
   });
-  it('references only real combat abilities and encounter entries', () => {
-    const abilities = new Set(['warrior', 'mage', 'archer'].flatMap(cls => buildKit(cls as 'warrior' | 'mage' | 'archer').map(s => s.id)));
-    for (const e of ROSTER) expect(abilities.has(e.signatureAbilityId)).toBe(true);
+  it('references only real encounter entries', () => {
+    // signatureAbilityId is a legacy field (abilities were removed); it just needs to be a non-empty string.
+    for (const e of ROSTER) expect(typeof e.signatureAbilityId).toBe('string');
     const ids = new Set(ROSTER.map(e => e.id));
     for (const table of Object.values(ENCOUNTER_TABLES)) for (const id of table) expect(ids.has(id)).toBe(true);
     expect(encounterEntry('elite', 60).id).toBe('enemy-0-0');

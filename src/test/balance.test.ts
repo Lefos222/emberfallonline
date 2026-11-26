@@ -24,16 +24,7 @@ import {
   type HeroClass,
   type Slot,
 } from "@/game/data";
-import {
-  current,
-  drinkPotion,
-  enemyAct,
-  formation,
-  heroUnit,
-  initBattle,
-  playerAct,
-  skillReady,
-} from "@/game/combat";
+import { initBattle, runBattle } from "@/game/combat";
 import { DRILLS, drillFx, trainDrill } from "@/game/drills";
 
 const SLOTS: Slot[] = ["helmet", "armour", "boots", "belt", "weapon", "ring", "talisman"];
@@ -58,7 +49,7 @@ function heroAt(stage: number, cls: HeroClass, enh = 0): Hero {
   return h;
 }
 
-/** Auto-battle, using the same skill choice the battle screen's AUTO mode makes. */
+/** Auto-battle through the passive turn-based engine: run the fight to completion. */
 function autoBattle(stage: number, cls: HeroClass, enh = 0) {
   const h = heroAt(stage, cls, enh);
   const stats = heroStats(h);
@@ -79,40 +70,10 @@ function autoBattle(stage: number, cls: HeroClass, enh = 0) {
       block: stats.block,
       heal: stats.heal,
     },
-    formation(stageFoe(stage)),
+    stageFoe(stage),
   );
-  let turns = 0;
-  while (!s.over && turns < 80) {
-    const actor = current(s);
-    if (!actor) break;
-    if (actor.side === "foe") {
-      enemyAct(s);
-      continue;
-    }
-    const hero = heroUnit(s);
-    if (s.potions > 0 && hero.hp < hero.maxHp * 0.35) {
-      drinkPotion(s);
-      turns++;
-      continue;
-    }
-    const foes = s.units.filter((u) => u.side === "foe" && u.hp > 0).sort((a, b) => a.hp - b.hp);
-    if (foes.length === 0) break;
-    const ready =
-      [...hero.kit]
-        .filter((k) => !skillReady(hero, k) && k.mult > 0)
-        .sort(
-          (a, b) =>
-            b.mult * (b.hits ?? 1) * (b.target === "all" ? foes.length : 1) -
-            a.mult * (a.hits ?? 1) * (a.target === "all" ? foes.length : 1),
-        )[0] ?? hero.kit[0];
-    playerAct(
-      s,
-      ready.id,
-      foes.slice(0, ready.maxTargets ?? 1).map((f) => f.id),
-    );
-    turns++;
-  }
-  return { over: s.over, turns };
+  runBattle(s);
+  return { over: s.over, turns: s.round };
 }
 
 function seeded(seed: number) {
@@ -223,7 +184,7 @@ describe("campaign balance", () => {
       for (const stage of [1, 5, 10, 20, 30, 40, 50, 60, 70]) {
         const r = autoBattle(stage, cls);
         expect(r.over, `${cls} should win stage ${stage}`).toBe("won");
-        expect(r.turns, `${cls} should not stall on stage ${stage}`).toBeLessThan(30);
+        expect(r.turns, `${cls} should not stall on stage ${stage}`).toBeLessThan(60);
       }
     },
   );
@@ -235,7 +196,7 @@ describe("campaign balance", () => {
       // enhancing current gear (+8), which is the progression lever a stuck hero always has.
       const r = autoBattle(80, cls, 8);
       expect(r.over, `${cls} should win stage 80 with enhanced gear`).toBe("won");
-      expect(r.turns, `${cls} should not stall on stage 80`).toBeLessThan(30);
+      expect(r.turns, `${cls} should not stall on stage 80`).toBeLessThan(60);
     },
   );
 

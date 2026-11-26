@@ -38,7 +38,7 @@ describe('battle discovery reads back through the Bestiary', () => {
     for (let i = 0; i < 20 && !onEnd.mock.calls.length; i++) {
       await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
     }
-    expect(onEnd).toHaveBeenCalledExactlyOnceWith(true);
+    expect(onEnd).toHaveBeenCalledExactlyOnceWith(true, expect.objectContaining({ foe: expect.any(Number), hero: expect.any(Number) }));
     await act(async () => { await vi.advanceTimersByTimeAsync(0); });
     const hero = getState().hero;
     if (!hero) throw new Error('Missing collector save');

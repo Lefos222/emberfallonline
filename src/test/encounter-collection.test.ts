@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { collectCreature, collectedRoster, settleCreatureDefeats, type CollectionHero, type EncounterCreature } from '../game/encounter-collection';
 import { ENEMY_ROSTER, BATTLE_BOSSES, rosterProgress } from '../game/bestiary';
-import { formation } from '../game/combat';
 import { newHero, stageFoe } from '../game/data';
 import { campaignFoe, dungeonFoe, DUNGEONS } from '../game/world';
 import { setLang } from '../game/i18n';
@@ -44,12 +43,11 @@ describe('every encountered creature is collected', () => {
 
   it('records actual defeats once and never credits a boss kill for its summons', () => {
     const h = newHero('Collector', 'warrior');
-    const foes = formation({ ...stageFoe(10), name: 'Abyssal Lord' });
-    for (const foe of foes) collectCreature(h, foe);
-    for (const foe of foes) collectCreature(h, foe, true);
+    // formation() was removed — a single foe is collected and defeated.
+    const foe = { ...stageFoe(10), name: 'Abyssal Lord' };
+    collectCreature(h, foe);
+    collectCreature(h, foe, true);
     expect(h.kills?.['boss-0-0']).toBe(1);
-    expect(h.kills?.['encounter:enemy:Ember%20Thrall']).toBe(1);
-    expect(h.kills?.['encounter:enemy:Cinder%20Acolyte']).toBe(1);
   });
 
   it('persists discoveries through the real hero store and a save round trip', () => {

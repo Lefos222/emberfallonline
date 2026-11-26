@@ -1,11 +1,10 @@
 import { tr } from "./i18n";
 import { useState, useRef, useMemo } from "react";
-import { Eye, Lock, RotateCcw, Star } from "lucide-react";
+import { Lock, RotateCcw, Star } from "lucide-react";
 import { CLASSES } from "./data";
 import { update, useGame } from "./store";
 import { fmt, Gold } from "./ui";
 import { SPEC_LEVEL, TREES, freePoints, learnBlocker, rankCost, resetCost, spentIn, talentIcon, totalPoints, type Talent, type TalentFx } from "./talents";
-import { SkillPreview } from "./SkillPreview";
 import { SkillIcon } from "./SkillIcon";
 
 const fxLabels: Record<keyof TalentFx, string> = {
@@ -15,21 +14,9 @@ const fxLabels: Record<keyof TalentFx, string> = {
 const fxText = (fx: TalentFx, rank: number) =>
   (Object.keys(fx) as (keyof TalentFx)[]).map(k => `+${Number(((fx[k] ?? 0) * rank).toFixed(2))}% ${fxLabels[k]}`).join(" · ");
 
-/** Human-readable per-rank effects of a talent (stats, ability boosts or a new ability). */
+/** Human-readable per-rank effects of a talent: every node is a permanent stat gain. */
 function talentEffects(t: Talent, rank: number): string {
-  if (t.fx && Object.keys(t.fx).length) return fxText(t.fx, rank);
-  if (t.boost) {
-    const name = t.boost.skill.charAt(0).toUpperCase() + t.boost.skill.slice(1);
-    return `+${t.boost.multPct * rank}% damage to ${name}`;
-  }
-  if (t.ability) {
-    const a = t.ability;
-    if (t.teamHealPerRank) return `${Math.round(t.teamHealPerRank * Math.max(1,rank) * 100)}% ${tr("Health")} · ${tr("All allies")}`;
-    const dmg = `${Math.round(a.mult * 100)}%${a.hits ? ` × ${a.hits} hits` : ""}`;
-    const tags = [a.stun ? "stuns" : "", a.crit ? "always crits" : "", a.heal ? `heals ${Math.round(a.heal * 100)}%` : ""].filter(Boolean).join(", ");
-    return `${dmg} damage${tags ? ` · ${tags}` : ""}${t.selfBoost && rank > 1 ? ` · +${t.selfBoost.multPct * (rank - 1)}% from upgrades` : ""}`;
-  }
-  return t.desc;
+  return Object.keys(t.fx).length ? fxText(t.fx, rank) : t.desc;
 }
 
 interface NodePos { x: number; y: number }
@@ -42,11 +29,10 @@ const ROW_Y = [80, 160, 240, 320, 400];
 
 /** Rendered as the Skill Tree tab inside the Throne Hall, mirroring the Passive tree canvas. */
 export function SkillTreeContent() {
-  const { hero, gender } = useGame();
+  const { hero } = useGame();
   const [hovered, setHovered] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
-  const [previewId, setPreviewId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   if (!hero) return null;
 
@@ -84,8 +70,6 @@ export function SkillTreeContent() {
     return list;
   }, [hero, trees]);
 
-  const preview = trees.flatMap(s => s.talents).find(t => t.id === previewId) ?? null;
-
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -108,7 +92,7 @@ export function SkillTreeContent() {
       </div>
 
       {hero.level >= SPEC_LEVEL && !hero.spec && (
-        <p className="mb-3 text-sm text-gold">{tr("Choose a specialization to unlock its tier 3+ abilities — you can change it later with a reset.")}</p>
+        <p className="mb-3 text-sm text-gold">{tr("Choose a specialization to unlock its deeper talents — you can change it later with a reset.")}</p>
       )}
 
       <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
@@ -192,8 +176,6 @@ export function SkillTreeContent() {
                   <span className="absolute left-0.5 top-0.5 rounded bg-background/80 px-1 font-display text-[9px] font-bold" style={{
                     color: maxed ? "var(--gold)" : r > 0 ? "var(--foreground)" : "var(--muted-foreground)",
                   }}>{t.tier}</span>
-                  {/* Ability marker */}
-                  {t.ability && <span className="absolute right-1 top-1 text-[10px] text-gold">◆</span>}
                   {/* Ready glow ring */}
                   {ready && <span className="absolute inset-0 animate-ping rounded-full" style={{
                     border: "1px solid var(--gold)", opacity: 0.3, animationDuration: "2s",
@@ -208,7 +190,7 @@ export function SkillTreeContent() {
         <section className="slot flex flex-col p-4" aria-live="polite">
           <h3 className="flex items-center gap-2 font-display text-lg text-gold">
             <SkillIcon icon={talentIcon(detail)} className="h-8 w-8 shrink-0" />
-            <span>{detail.ability ? "◆ " : ""}{detail.name}</span>
+            <span>{detail.name}</span>
           </h3>
           <div className="mb-1 text-sm text-muted-foreground">
             {detailSpec.name}  {tr("specialization · Tier")} {detail.tier}
@@ -230,17 +212,9 @@ export function SkillTreeContent() {
               onClick={() => learn(detail.id)}>
               {blocker ?? `Learn rank ${rank + 1} · ${rankCost(detail, rank)} pt`}
             </button>
-            {detail.ability && (
-              <button type="button" className="btn-ghost w-full px-4 py-2 text-sm text-gold"
-                onClick={() => setPreviewId(id => id === detail.id ? null : detail.id)}>
-                <Eye className="h-4 w-4" />{previewId === detail.id ? tr("Hide preview") : `Preview ${detail.name}`}
-              </button>
-            )}
           </div>
         </section>
       </div>
-
-      {preview && <SkillPreview talent={preview} cls={hero.cls} gender={gender} locked={learnBlocker(hero, preview.id)} />}
     </>
   );
 }

@@ -1,6 +1,6 @@
 import { attrCost, type Attr, type Hero } from './data';
 import { BATTLE_BOSSES, ENEMY_ROSTER } from './bestiary';
-import { SKILLS, stageFoe } from './data';
+import { stageFoe } from './data';
 import { trainingDiscount } from './barracks';
 import { scaledGold } from './gold';
 import { locAll } from './i18n';
@@ -40,5 +40,5 @@ export function expeditionFoe(h: Hero, index: number) {
   if (!entry) throw new Error('Encounter unavailable');
   const level = Math.max(expedition.level, h.level + h.paragon);
   return { ...stageFoe(level, ["citadel", "heart"].includes(expedition.id) ? 1.2 : 1), name: entry.name, sprite: entry.sprite,
-    boss: ["citadel", "heart"].includes(expedition.id), rosterId: entry.id, skills: Object.values(SKILLS).flat().filter(s=>s.id===entry.signatureAbilityId) };
+    boss: ["citadel", "heart"].includes(expedition.id), rosterId: entry.id };
 }

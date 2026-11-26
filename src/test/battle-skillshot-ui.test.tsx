@@ -23,19 +23,18 @@ describe("battle skillshots", () => {
     expect(shotFor("mage", true)).toBe(beastClaw);
   });
 
-  it("looses the class's painted skillshot and bursts on the target", async () => {
+  it("plays the lunge and hit animations during a real auto-battle", async () => {
     const battle = render(<Battle left={mage} right={foe} onEnd={() => {}} auto />);
-    let shotSrc: string | null = null;
-    let impact = false;
-    // The projectile and its burst only live for the length of one blow, so sample while it plays.
-    for (let i = 0; i < 40 && !(shotSrc && impact); i += 1) {
+    let lunged = false;
+    let hit = false;
+    // The attack and reaction animations only live for the length of one blow, so sample while it plays.
+    for (let i = 0; i < 40 && !(lunged && hit); i += 1) {
       await act(async () => { await new Promise((r) => setTimeout(r, 80)); });
-      const shot = document.querySelector(".battle-shot") as HTMLImageElement | null;
-      if (shot) shotSrc = shot.getAttribute("src");
-      if (document.querySelector(".battle-impact")) impact = true;
+      if (document.querySelector("[class*='anim-lunge']")) lunged = true;
+      if (document.querySelector("[class*='anim-hit']")) hit = true;
     }
-    expect(shotSrc).toBe(mageOrb);
-    expect(impact).toBe(true);
+    expect(lunged).toBe(true);
+    expect(hit).toBe(true);
     battle.unmount();
   }, 15000);
 });

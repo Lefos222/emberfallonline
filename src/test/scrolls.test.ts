@@ -1,23 +1,22 @@
 import { describe, expect, it, vi } from 'vitest';
 import { SCROLLS, activeScrolls, scrollFighter, scrollState, scrollXp } from '@/game/scrolls';
-import { heroUnit, initBattle, playerAct } from '@/game/combat';
+import { initBattle, step, heroUnit } from '@/game/combat';
 import { grant } from '@/game/logic';
 import { newHero } from '@/game/data';
 
 const f = { name: 'Hero', img: '', hp: 1000, atk: 100, def: 50, crit: 0, dodge: 0, level: 1, cls: 'warrior' as const, acc: 100 };
+const enemy = { name: 'Enemy', img: '', hp: 10000, atk: 1, def: 0, crit: 0, dodge: 0, level: 1, acc: 0 };
 describe('confirmed scroll battle rules', () => {
   it('damage scroll grants exactly 20% attack once, not per turn', () => {
-    const s = initBattle(scrollFighter(f, ['dmg']), [{ ...f, name: 'Enemy', cls: undefined, hp: 10000, def: 0, atk: 1 }]);
+    const s = initBattle(scrollFighter(f, ['dmg']), enemy);
     expect(heroUnit(s).atk).toBe(120);
-    vi.spyOn(Math, 'random').mockReturnValue(.5);
-    const r = playerAct(s, 'strike', ['F0']);
-    expect(r.ok).toBe(true);
+    vi.spyOn(Math, "random").mockReturnValue(.5);
+    step(s);
     expect(heroUnit(s).atk).toBe(120);
-    if (r.ok) expect(r.events.find(e => e.kind === 'dmg')?.value).toBeGreaterThan(100);
     vi.restoreAllMocks();
   });
   it('defence scroll grants exactly 20% defence', () => {
-    expect(heroUnit(initBattle(scrollFighter(f, ['def']), [f])).def).toBe(60);
+    expect(heroUnit(initBattle(scrollFighter(f, ['def']), enemy)).def).toBe(60);
   });
   it('XP scroll grants 20% actual XP with normal level handling', () => {
     const h = newHero('Test', 'warrior'); h.xp = 0;

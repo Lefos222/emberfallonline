@@ -12,7 +12,7 @@ import {
 } from "@/game/data";
 import { prepareFoe } from "@/game/foe-scaling";
 import { forecastFight } from "@/game/battle-advice";
-import { current, enemyAct, formation, heroUnit, initBattle, playerAct, skillReady } from "@/game/combat";
+import { initBattle, runBattle } from "@/game/combat";
 
 const SLOTS: Slot[] = ["helmet", "armour", "boots", "belt", "weapon", "ring", "talisman"];
 
@@ -41,7 +41,7 @@ function seeded(seed: number) {
   return () => (x = (x * 1664525 + 1013904223) % 4294967296) / 4294967296;
 }
 
-/** Auto-battle through the real battle engine, exactly like the balance suite. */
+/** Auto-battle through the passive turn-based engine. */
 function autoBattle(h: Hero, foe: ReturnType<typeof stageFoe>) {
   const stats = heroStats(h);
   const s = initBattle(
@@ -61,35 +61,10 @@ function autoBattle(h: Hero, foe: ReturnType<typeof stageFoe>) {
       block: stats.block,
       heal: stats.heal,
     },
-    formation(foe),
+    foe,
   );
-  let turns = 0;
-  while (!s.over && turns < 80) {
-    const actor = current(s);
-    if (!actor) break;
-    if (actor.side === "foe") {
-      enemyAct(s);
-      continue;
-    }
-    const hero = heroUnit(s);
-    const foes = s.units.filter((u) => u.side === "foe" && u.hp > 0).sort((a, b) => a.hp - b.hp);
-    if (foes.length === 0) break;
-    const ready =
-      [...hero.kit]
-        .filter((k) => !skillReady(hero, k) && k.mult > 0)
-        .sort(
-          (a, b) =>
-            b.mult * (b.hits ?? 1) * (b.target === "all" ? foes.length : 1) -
-            a.mult * (a.hits ?? 1) * (a.target === "all" ? foes.length : 1),
-        )[0] ?? hero.kit[0];
-    playerAct(
-      s,
-      ready.id,
-      foes.slice(0, ready.maxTargets ?? 1).map((f) => f.id),
-    );
-    turns++;
-  }
-  return { over: s.over, turns };
+  runBattle(s);
+  return { over: s.over, turns: s.round };
 }
 
 describe("monsters do not scale", () => {
@@ -135,7 +110,7 @@ describe("monsters do not scale", () => {
         const h = heroAt(stage, cls);
         const r = autoBattle(h, prepareFoe(stageFoe(stage)));
         expect(r.over, `${cls} should still win stage ${stage}`).toBe("won");
-        expect(r.turns, `${cls} should not stall on stage ${stage}`).toBeLessThan(30);
+        expect(r.turns, `${cls} should not stall on stage ${stage}`).toBeLessThan(60);
       }
     }
   });

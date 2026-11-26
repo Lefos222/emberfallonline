@@ -2,13 +2,12 @@ import { tr } from "./i18n";
 import { useState } from "react";
 import { Check, Gift, Skull } from "lucide-react";
 import { ACHIEVEMENTS, ACH_CATEGORIES, SET_BONUSES, achGold, achProgress, activeSets, emptyRecord, isClaimable, sortAchievements, type AchCategory } from "./progress";
-import { CLASSES, heroSkills, heroStats, powerBreakdown, xpToNext, type Hero } from "./data";
+import { CLASSES, heroStats, powerBreakdown, xpToNext, type Hero } from "./data";
 import { update, useGame } from "./store";
 import { GameTabs, Gold, Panel, fmt } from "./ui";
 import { LevelProgress } from "./LevelCurve";
 import { TREES } from "./talents";
 import { RenownTraining } from "./RenownPanel";
-import { SkillLoadout } from "./SkillLoadout";
 import { SkillTreeContent } from "./SkillTree";
 import { PassiveTreeContent } from "./PassiveTree";
 
@@ -150,23 +149,13 @@ export function ThroneHall({ onClose }: { onClose: () => void }) {
                 <b>{x.name}</b> ({x.count}/6): {SET_BONUSES.map((b) => <span key={b.pieces} className={x.count >= b.pieces ? "text-gold" : "text-muted-foreground"}> {b.pieces}{tr("pc")} {b.label};</span>)}
               </div>
             ))}
-            <div className="mb-2 mt-4 font-display">{tr("Abilities")}</div>
-            {heroSkills(hero).map((k) => (
-              <div key={k.id} className="slot mb-1 px-3 py-1.5 text-sm">
-                <b>{k.name}</b> — {Math.round(k.mult * (k.hits ?? 1) * 100)}{tr("% dmg")}{k.hits ? ` (${k.hits} hits)` : ""}{tr(", cooldown")} {k.cd}
-                {k.heal ? `, heals ${Math.round(k.heal * 100)}%` : ""}{k.stun ? tr(", stuns") : ""}{k.crit ? tr(", always crits") : ""}
-              </div>
-            ))}
           </div>
         </div>
         </div>
       ) : tab === "passives" ? (
         <PassiveTreeContent />
       ) : (
-        <>
-          <SkillLoadout />
-          <SkillTreeContent />
-        </>
+        <SkillTreeContent />
       )}
     </Panel>
   );

@@ -7,8 +7,10 @@ import { MITIGATION_FLOOR, type Foe, type Stats } from "./data";
  * so a "Fair" pill really means the hero wins with room to spare.
  */
 
-/** A hero's turn averages a little above a basic attack, because skills and crits are turned on. */
-export const HERO_TURN_MULT = 1.35;
+/** The hero's passive damage multiplier (see HERO_ATTACK_MULT in combat.ts). */
+export const HERO_TURN_MULT = 2;
+/** Foes hit at their raw strength (see FOE_ATTACK_MULT in combat.ts). */
+export const FOE_TURN_MULT = 1;
 /** Margin at which a fight reads Fair: the hero lasts this many times longer than the kill takes. */
 export const FAIR_MARGIN = 1.6;
 /** A comfortable fight: twice as long lived as the kill needs. */
@@ -52,7 +54,7 @@ export function damagePerTurn(
 
 export function forecastFight(stats: Stats, foe: Foe): FightForecast {
   const mine = damagePerTurn(stats.atk, HERO_TURN_MULT, stats.crit, stats.critDmg, stats.pen, stats.acc, foe.def, foe.dodge);
-  const theirs = damagePerTurn(foe.atk, 1, foe.crit ?? 0, 200, 0, 0, stats.def, stats.dodge);
+  const theirs = damagePerTurn(foe.atk, FOE_TURN_MULT, foe.crit ?? 0, 200, 0, 0, stats.def, stats.dodge);
   const turns = Math.max(1, Math.round(foe.hp / mine));
   const survival = Math.max(1, Math.round(stats.hp / theirs));
   const margin = survival / turns;

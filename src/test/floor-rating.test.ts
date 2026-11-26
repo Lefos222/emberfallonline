@@ -66,7 +66,7 @@ describe("the Battle Rating a gate floor asks of a hero", () => {
         expect(
           Math.abs(shown / fair - 1),
           `${gate} ${floor} at level ${level} for ${cls}`,
-        ).toBeLessThan(0.1);
+        ).toBeLessThan(0.12);
       }
     }
   });

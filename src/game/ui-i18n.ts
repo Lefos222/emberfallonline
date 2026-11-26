@@ -553,6 +553,11 @@ export const UI_TEXT: Record<string, ContentRow> = {
       "Διάλεξε ειδίκευση για να ξεκλειδώσεις τις ικανότητές της από βαθμίδα 3 και πάνω — μπορείς να την αλλάξεις αργότερα με επαναφορά.",
       "Wybierz specjalizację, by odblokować jej zdolności od 3. stopnia — możesz ją później zmienić przez reset.",
     ],
+  "Choose a specialization to unlock its deeper talents — you can change it later with a reset.":
+    [
+      "Διάλεξε ειδίκευση για να ξεκλειδώσεις τα βαθύτερα ταλέντα της — μπορείς να την αλλάξεις αργότερα με επαναφορά.",
+      "Wybierz specjalizację, by odblokować jej głębsze talenty — możesz ją później zmienić przez reset.",
+    ],
   "Declare war in a 5v5 – 100v100 bracket · the other guild accepts or declines · every hero gets":
     [
       "Κήρυξε πόλεμο σε κατηγορία 5v5 – 100v100 · η άλλη συντεχνία δέχεται ή αρνείται · κάθε ήρωας παίρνει",
