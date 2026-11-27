@@ -26,6 +26,8 @@ export interface Unit {
   gender?: 'male' | 'female'; scrolls?: ('dmg' | 'def' | 'xp')[]; look?: number | null; synth?: number | null;
   maxHp: number; hp: number; atk: number; def: number; crit: number; critDmg: number; dodge: number;
   pen: number; acc: number; block: number; heal: number;
+  /** Rage, 0..RAGE_MAX: built by trading blows, spent on one Rage Strike when full. */
+  rage: number;
 }
 
 export type EvKind = "dmg" | "crit" | "miss" | "block" | "death" | "info";
@@ -42,6 +44,16 @@ export interface BattleState {
 }
 
 export const BLOCK_CAP = 25;
+/** Rage: every blow landed builds RAGE_ON_HIT (a critical RAGE_ON_CRIT), every blow taken
+ *  RAGE_ON_HURT and a dodge RAGE_ON_MISS. A full bar turns the next blow into a Rage Strike:
+ *  RAGE_STRIKE_MULT damage that cannot be dodged or blocked, then the bar empties. */
+export const RAGE_MAX = 100;
+export const RAGE_ON_HIT = 20;
+export const RAGE_ON_CRIT = 30;
+export const RAGE_ON_HURT = 15;
+export const RAGE_ON_MISS = 10;
+export const RAGE_STRIKE_MULT = 1.8;
+const addRage = (u: Unit, n: number) => { u.rage = Math.min(RAGE_MAX, u.rage + n); };
 export const HEAL_CAP = 50;
 
 /**
@@ -58,7 +70,7 @@ function toUnit(f: FighterInput, side: Unit["side"], id: string): Unit {
     level: f.level, gender: f.gender, scrolls: f.scrolls, look: f.look, synth: f.synth,
     maxHp: Math.max(1, Math.round(f.hp)), hp: Math.max(1, Math.round(f.hp)), atk: f.atk, def: f.def, crit: f.crit,
     critDmg: f.critDmg ?? 200, dodge: f.dodge, pen: f.pen ?? 0, acc: f.acc ?? 0,
-    block: Math.min(BLOCK_CAP, f.block ?? (f.boss ? 5 : 0)), heal: Math.min(HEAL_CAP, f.heal ?? 0),
+    block: Math.min(BLOCK_CAP, f.block ?? (f.boss ? 5 : 0)), heal: Math.min(HEAL_CAP, f.heal ?? 0), rage: 0,
   };
 }
 
@@ -101,9 +113,20 @@ export function step(s: BattleState): StepResult {
   const d = s.units[s.turn === 0 ? 1 : 0]!;
   const events: CEvent[] = [];
   const mult = a.side === "hero" ? HERO_ATTACK_MULT : FOE_ATTACK_MULT;
-  const r = calcDamage(a.atk, d.def, mult, a.crit, d.dodge, false, a.critDmg, a.pen, a.acc);
+  const fury = a.rage >= RAGE_MAX;
+  const r = fury
+    ? { ...calcDamage(a.atk, d.def, mult * RAGE_STRIKE_MULT, a.crit, 0, false, a.critDmg, a.pen, 1000), miss: false }
+    : calcDamage(a.atk, d.def, mult, a.crit, d.dodge, false, a.critDmg, a.pen, a.acc);
   let line: string;
-  if (r.miss) {
+  if (fury) {
+    a.rage = 0;
+    const dmg = Math.max(1, r.dmg);
+    d.hp = Math.max(0, d.hp - dmg);
+    addRage(d, RAGE_ON_HURT);
+    events.push({ kind: "crit", src: a.id, tgt: d.id, value: dmg, text: `🔥${dmg.toLocaleString()}` });
+    line = tr("{name} unleashes a Rage Strike on {target} for {n}!", { name: a.name, target: d.name, n: dmg.toLocaleString() });
+  } else if (r.miss) {
+    addRage(d, RAGE_ON_MISS);
     events.push({ kind: "miss", src: a.id, tgt: d.id, text: tr("MISS") });
     line = tr("{name} misses {target}.", { name: a.name, target: d.name });
   } else {
@@ -111,6 +134,8 @@ export function step(s: BattleState): StepResult {
     const blocked = d.block > 0 && Math.random() * 100 < d.block;
     if (blocked) dmg = Math.max(1, Math.round(dmg * 0.5));
     d.hp = Math.max(0, d.hp - dmg);
+    addRage(a, r.crit ? RAGE_ON_CRIT : RAGE_ON_HIT);
+    addRage(d, RAGE_ON_HURT);
     events.push({
       kind: blocked ? "block" : r.crit ? "crit" : "dmg",
       src: a.id, tgt: d.id, value: dmg,
@@ -122,6 +147,7 @@ export function step(s: BattleState): StepResult {
         ? tr("{name} lands a critical hit on {target} for {n}.", { name: a.name, target: d.name, n: dmg.toLocaleString() })
         : tr("{name} hits {target} for {n}.", { name: a.name, target: d.name, n: dmg.toLocaleString() });
   }
+  if (alive(a) && a.rage >= RAGE_MAX && !fury) line += " " + tr("{name} is enraged!", { name: a.name });
   if (!alive(d)) events.push({ kind: "death", tgt: d.id, text: tr("{name} falls!", { name: d.name }) });
   s.log = [line, ...(alive(d) ? [] : [tr("{name} falls!", { name: d.name })]), ...s.log].slice(0, 30);
   checkOver(s);
@@ -148,14 +174,15 @@ export function unitRating(u: Unit): number {
 
 /**
  * War Gate pacing (presentation of the same fight, not its rewards): the monster's health is
- * capped so the hero needs about 3-5 blows — fewer the stronger the hero is against it —
- * which keeps a gate fight around 10-15 seconds.
+ * capped so the hero needs about 7-11 blows — fewer the stronger the hero is against it —
+ * which keeps a gate fight long enough to read like a real duel.
  */
 export function paceGateBattle(s: BattleState) {
   const hero = heroUnit(s);
   const foe = foeUnit(s);
   const ratio = Math.max(0, Math.min(1, unitRating(hero) / Math.max(1, unitRating(foe))));
-  const hits = 3 + (1 - ratio) * 2;
+  // Longer, more believable exchanges: roughly 7-11 blows from the hero before the monster falls.
+  const hits = 7 + (1 - ratio) * 4;
   const cap = Math.max(1, Math.round(hero.atk * hits));
   if (foe.maxHp > cap) { foe.maxHp = cap; foe.hp = Math.min(foe.hp, cap); }
 }

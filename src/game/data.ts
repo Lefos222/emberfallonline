@@ -19,7 +19,7 @@ import {
   type BonusFx,
   type Mat,
 } from "./crafting";
-import { BATTLES_PER_LEVEL, setFx, type BattleEntry, type CombatRecord } from "./progress";
+import { BATTLES_PER_LEVEL, battlesForLevel, setFx, type BattleEntry, type CombatRecord } from "./progress";
 import type { HeroFace } from "./customization";
 import { goldGain, scaledGold } from "./gold";
 import { drillAttrs, drillFx, statTrainFx } from "./drills";
@@ -802,12 +802,12 @@ export const LATE_CURVE_PER_LEVEL = 0.0015;
 export const LEVEL_COST_MULTIPLIER = 1.1;
 
 /** Every level costs exactly this many battles (see recordBattle in progress.ts). */
-export { BATTLES_PER_LEVEL };
+export { BATTLES_PER_LEVEL, battlesForLevel };
 
 /** Fights one level costs. The climb is deliberately flat: every level asks for 40 battles,
  *  whether it is the second level or the hundredth, so progress is predictable and readable. */
-export function fightsToLevel(_level: number) {
-  return BATTLES_PER_LEVEL;
+export function fightsToLevel(level: number) {
+  return battlesForLevel(level);
 }
 
 /** From this level every level asks MID_RAMP_PER_LEVEL more fights than the plain curve, so the
@@ -834,7 +834,7 @@ export function xpPerFight(level: number) {
 /** Battles still owed for the next level. The saved counter is the truth once a hero has fought;
  *  an older save without one falls back to the XP it has banked. */
 export function fightsToNextLevel(h: Pick<Hero, "level" | "paragon" | "xp" | "levelBattles">) {
-  if (h.levelBattles !== undefined) return Math.max(1, BATTLES_PER_LEVEL - Math.min(BATTLES_PER_LEVEL, Math.max(0, Math.floor(h.levelBattles))));
+  if (h.levelBattles !== undefined) { const need = battlesForLevel(h.level); return Math.max(1, need - Math.min(need, Math.max(0, Math.floor(h.levelBattles)))); }
   const left = Math.max(0, xpToNext(h) - h.xp);
   return Math.max(1, Math.ceil(left / Math.max(1, xpPerFight(h.level))));
 }
@@ -907,6 +907,11 @@ export function normalizeHero(h: Hero): Hero {
   for (const pos of WEAR_SLOTS) {
     const worn = h.equipment[pos];
     if (worn && worn.rarity > maxRarity) delete h.equipment[pos];
+  }
+  // Gear above the hero's level can never stay worn: it goes back to the bag until they reach it.
+  for (const pos of WEAR_SLOTS) {
+    const worn = h.equipment[pos];
+    if (worn && !canWear(h.level, worn)) { delete h.equipment[pos]; h.inventory = [...h.inventory, worn]; }
   }
   // Enhancement is capped at +60 now: older saves that climbed past it are clamped down.
   for (const it of [...h.inventory, ...WEAR_SLOTS.map((p) => h.equipment[p])]) {

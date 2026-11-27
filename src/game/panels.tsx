@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { recordEnhance } from "./progress";
 import {
   type Foe, CLASSES, enhanceChance, enhanceCost, enhanceMaxed, enhanceStoneChance, enchantStoneCost, goldEnhanceAllowed, ENHANCE_MAX, REFINE_STAT_BONUS, refineRank, heroStats, invCap, bagSize, matSlots, MAT_STACK, bagRowCost, MAX_BAG_ROWS, sellValue,
-  CONQUEST_LEVEL, MAX_LEVEL, BATTLES_PER_LEVEL, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, canWear, itemLevel, stageFoe, stageRewards, campaignFightRewards, xpToNext, xpPerFight, zoneOf, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
+  CONQUEST_LEVEL, MAX_LEVEL, BATTLES_PER_LEVEL, battlesForLevel, SLOTS, WEAR_SLOTS, WEAR_LABEL, wearOf, equipItem, unequipItem, wornCompare, posOf, powerBreakdown, canWear, itemLevel, stageFoe, stageRewards, campaignFightRewards, xpToNext, xpPerFight, zoneOf, foeRating, type Attr, type EnemyType, type Hero, type Item, type Slot, type Stats, type WearSlot,
 } from "./data";
 import {
   addConquestTokens, CONQUEST_XP_RATE, conquestDropFloor, conquestFoe, conquestKeyActive,
@@ -148,7 +148,7 @@ export function HeroHall({ onClose, title = "Armory" }: { onClose: () => void; t
               ["Physical defense", fmt(s.pdef)], ["Magic defense", fmt(s.mdef)],
               ["Critical chance", `${s.crit}%`], ["Critical damage", `${s.critDmg}%`],
               ["Armor penetration", `${s.pen}%`], ["Accuracy", `${s.acc}%`],
-              ["Evasion", `${s.dodge}%`], ["Battles to level", `${Math.min(BATTLES_PER_LEVEL, Math.max(0, hero.levelBattles ?? 0))} / ${BATTLES_PER_LEVEL}`],
+              ["Evasion", `${s.dodge}%`], ["Battles to level", `${Math.min(battlesForLevel(hero.level), Math.max(0, hero.levelBattles ?? 0))} / ${battlesForLevel(hero.level)}`],
             ] as const).map(([k, v]) => (
               <div key={k} className="flex justify-between border-b border-border/30 py-0.5"><span className="text-muted-foreground">{k}</span><span className="font-bold">{v}</span></div>
             ))}

@@ -82,14 +82,15 @@ function seeded(seed: number) {
 }
 
 describe("eleven fights a level, then a smooth climb", () => {
-  it("charges the same forty battles at every level, from the first to the cap", () => {
-    for (const lv of [1, 5, 10, 19, 20, 30, 40, 60, 80, 120, 140])
-      expect(fightsToLevel(lv), `level ${lv}`).toBe(40);
+  it("charges forty battles up to level 20 and forty more for every level above 20", () => {
+    for (const lv of [1, 5, 10, 19]) expect(fightsToLevel(lv), `level ${lv}`).toBe(40);
+    for (const lv of [20, 21, 30, 40, 60, 80, 120, 140]) expect(fightsToLevel(lv), `level ${lv}`).toBe(80);
   });
   it("reads the saved battle counter as the fights the next level still owes", () => {
-    expect(fightsToNextLevel({ level: 30, paragon: 0, xp: 0, levelBattles: 0 })).toBe(40);
-    expect(fightsToNextLevel({ level: 30, paragon: 0, xp: 0, levelBattles: 25 })).toBe(15);
-    expect(fightsToNextLevel({ level: 30, paragon: 0, xp: 0, levelBattles: 39 })).toBe(1);
+    expect(fightsToNextLevel({ level: 30, paragon: 0, xp: 0, levelBattles: 0 })).toBe(80);
+    expect(fightsToNextLevel({ level: 30, paragon: 0, xp: 0, levelBattles: 25 })).toBe(55);
+    expect(fightsToNextLevel({ level: 30, paragon: 0, xp: 0, levelBattles: 79 })).toBe(1);
+    expect(fightsToNextLevel({ level: 10, paragon: 0, xp: 0, levelBattles: 25 })).toBe(15);
   });
   it("keeps the XP bill priced at exactly the fights a level asks for", () => {
     for (const lv of [1, 20, 40, 80, 140])
@@ -97,7 +98,7 @@ describe("eleven fights a level, then a smooth climb", () => {
   });
   it("keeps every level a session's work, with no multi-million bill", () => {
     expect(xpToNext({ level: 30, paragon: 0 })).toBeLessThan(300_000);
-    for (const lv of [25, 30, 40, 50, 60, 80, 89, 140]) expect(fightsToLevel(lv)).toBe(40);
+    for (const lv of [25, 30, 40, 50, 60, 80, 89, 140]) expect(fightsToLevel(lv)).toBe(80);
   });
   it("adds a little more work to every level past 40, without ever walling the climb", () => {
     // Level 40 itself keeps the old bill; past it each level asks for a hair more.
@@ -116,7 +117,7 @@ describe("eleven fights a level, then a smooth climb", () => {
   it("still takes thousands of wins to reach level 80 — weeks, not a weekend", () => {
     let total = 0;
     for (let lv = 1; lv < 80; lv++) total += fightsToLevel(lv);
-    expect(total).toBe(79 * 40);
+    expect(total).toBe(19 * 40 + 60 * 80);
     expect(total).toBeGreaterThan(3_000);
   });
   it("counts the fights left in the current level from saved XP", () => {

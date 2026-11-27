@@ -13,6 +13,7 @@ import { collectCreature, settleCreatureDefeats } from "./encounter-collection";
 import { getState, update } from "./store";
 import { tr } from "./i18n";
 import { CombatStage } from "./CombatStage";
+import { battleStepMs } from "./battle-prefs";
 import {
   foeUnit, heroUnit, initBattle, paceGateBattle, runBattle,
   type BattleState, type FighterInput,
@@ -76,7 +77,7 @@ export function Battle({ left, right, onEnd, title, gate = false, onSaveLog }: {
   // Reveal the calculated blows in order, so the log reads like a fight without any animation.
   useEffect(() => {
     if (shown >= chrono.length) return;
-    const t = setTimeout(() => setShown((n) => n + 1), 90);
+    const t = setTimeout(() => setShown((n) => n + 1), battleStepMs());
     return () => clearTimeout(t);
   }, [shown, chrono.length]);
 

@@ -1,5 +1,5 @@
 import { t } from "./i18n";
-import { BATTLES_PER_LEVEL, fightsToLevel, fightsToNextLevel, type Hero } from "./data";
+import { BATTLES_PER_LEVEL, battlesForLevel, fightsToLevel, fightsToNextLevel, type Hero } from "./data";
 import { fmt } from "./ui";
 
 /**
@@ -7,8 +7,8 @@ import { fmt } from "./ui";
  * what the next few levels ask for: eleven fights a level below 20, then a smooth climb with no wall.
  */
 export function LevelProgress({ hero, rows = 0 }: { hero: Hero; rows?: number }) {
-  const fought = Math.min(BATTLES_PER_LEVEL, Math.max(0, hero.levelBattles ?? 0));
-  const pct = (fought / BATTLES_PER_LEVEL) * 100;
+  const fought = Math.min(battlesForLevel(hero.level), Math.max(0, hero.levelBattles ?? 0));
+  const pct = (fought / battlesForLevel(hero.level)) * 100;
   const left = fightsToNextLevel(hero);
   return (
     <div className="slot space-y-2 p-3">
@@ -17,7 +17,7 @@ export function LevelProgress({ hero, rows = 0 }: { hero: Hero; rows?: number })
            {t("Level")} {hero.level}
           {hero.paragon > 0 && <span className="ml-1 text-xs text-foreground/80">{t("Ascension")} {hero.paragon}</span>}
         </span>
-        <span className="text-muted-foreground">{fought} / {BATTLES_PER_LEVEL}  {t("fights")}</span>
+        <span className="text-muted-foreground">{fought} / {battlesForLevel(hero.level)}  {t("fights")}</span>
       </div>
       <div className="bar-track h-2.5">
         <div className="bar-xp h-full" style={{ width: `${pct}%` }} />

@@ -5,7 +5,7 @@ import { AvatarIcon } from "./AvatarIcon";
 import { Portrait } from "./CharacterSelect";
 import { frameClass } from "./profile-frames";
 import { heroAppearance } from "./appearance";
-import { BATTLES_PER_LEVEL, CLASSES, heroStats, type Hero } from "./data";
+import { BATTLES_PER_LEVEL, battlesForLevel, CLASSES, heroStats, type Hero } from "./data";
 import { premiumState, premiumVipLevel } from "./economy";
 import {
   CAMPAIGN_STAMINA,
@@ -64,8 +64,8 @@ export function Hud({
   if (!hero) return null;
   const s = heroStats(hero);
   const vip = premiumVipLevel(hero);
-  const battles = Math.min(BATTLES_PER_LEVEL, Math.max(0, hero.levelBattles ?? 0));
-  const xpPct = (battles / BATTLES_PER_LEVEL) * 100;
+  const battles = Math.min(battlesForLevel(hero.level), Math.max(0, hero.levelBattles ?? 0));
+  const xpPct = (battles / battlesForLevel(hero.level)) * 100;
   return (
     <div className="hud-top pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2">
       <div className="player-card pc2 pointer-events-auto">
@@ -97,9 +97,9 @@ export function Hud({
             <div className="pc2-bar pc2-hp" role="progressbar" aria-label={t("Health")} aria-valuenow={s.hp}>
               <div style={{ width: "100%" }} /><span>{fmt(s.hp)} / {fmt(s.hp)}</span>
             </div>
-            <div className="pc2-bar pc2-xp" role="progressbar" aria-label="Battle progress" aria-valuenow={battles} aria-valuemax={BATTLES_PER_LEVEL}
-              title={`${battles} / ${BATTLES_PER_LEVEL} battles to level ${hero.level + 1}`}>
-              <div style={{ width: `${xpPct}%` }} /><span>{battles} / {BATTLES_PER_LEVEL} {t("fights")}</span>
+            <div className="pc2-bar pc2-xp" role="progressbar" aria-label="Battle progress" aria-valuenow={battles} aria-valuemax={battlesForLevel(hero.level)}
+              title={`${battles} / ${battlesForLevel(hero.level)} battles to level ${hero.level + 1}`}>
+              <div style={{ width: `${xpPct}%` }} /><span>{battles} / {battlesForLevel(hero.level)} {t("fights")}</span>
             </div>
             <div className="pc2-rating">
               <span className="pc2-rating-label">{t("Battle Rating:")}</span>

@@ -24,13 +24,13 @@ import { LevelProgress } from "@/game/LevelCurve";
 import { ConquestTokens } from "@/game/ConquestGate";
 
 describe("the level bill the player sees", () => {
-  it("reads every level as the same 40 fights, from the first level to the last", () => {
+  it("reads a level above 20 as 80 fights", () => {
     const hero = { ...newHero("Veteran", "warrior"), level: 30 };
     store.hero = hero;
     render(<LevelProgress hero={hero} rows={2} />);
     expect(screen.getByText("Level 30")).toBeTruthy();
-    expect(screen.getByText("0 / 40 fights")).toBeTruthy();
-    expect(screen.getAllByText(/this level costs 40 fights/).length).toBeGreaterThan(0);
+    expect(screen.getByText("0 / 80 fights")).toBeTruthy();
+    expect(screen.getAllByText(/this level costs 80 fights/).length).toBeGreaterThan(0);
     expect(screen.getByText("Level 31")).toBeTruthy();
   });
 

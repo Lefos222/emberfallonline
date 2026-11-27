@@ -2,6 +2,13 @@ import type { HeroClass, Item, Slot } from "./data";
 
 /** Every level costs this many battles, counted by recordBattle below. */
 export const BATTLES_PER_LEVEL = 40;
+/** Past this level every level asks for EXTRA_BATTLES_PAST_20 more battles. */
+export const BATTLE_RAMP_LEVEL = 20;
+export const EXTRA_BATTLES_PAST_20 = 40;
+/** Battles the level after `level` costs: 40 up to level 20, then 80 for every level above 20. */
+export function battlesForLevel(level: number) {
+  return Math.floor(level) >= BATTLE_RAMP_LEVEL ? BATTLES_PER_LEVEL + EXTRA_BATTLES_PAST_20 : BATTLES_PER_LEVEL;
+}
 /** The class level cap; Ascension levels take over past it (see MAX_LEVEL in data.ts). */
 const LEVEL_CAP = 140;
 
@@ -88,7 +95,7 @@ export function recordBattle(h: ProgressState, e: { title: string; won: boolean;
   // other source (a quest, a scroll) resets the count, so "battles to level" never lies.
   if (h.battleLevel !== h.level) { h.levelBattles = 0; h.battleLevel = h.level; }
   h.levelBattles = (h.levelBattles ?? 0) + 1;
-  if (h.levelBattles >= BATTLES_PER_LEVEL) {
+  if (h.levelBattles >= battlesForLevel(h.level)) {
     h.levelBattles = 0;
     if (h.level < LEVEL_CAP) h.level++; else h.paragon++;
     h.battleLevel = h.level;

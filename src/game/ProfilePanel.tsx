@@ -5,7 +5,7 @@ import { AVATAR_COUNT, AvatarIcon } from "./AvatarIcon";
 import { HeroPortrait } from "./HeroPortrait";
 import { FaceCustomizer } from "./FaceCustomizer";
 import { heroAppearance } from "./appearance";
-import { BATTLES_PER_LEVEL, CLASSES, heroStats, powerBreakdown } from "./data";
+import { BATTLES_PER_LEVEL, battlesForLevel, CLASSES, heroStats, powerBreakdown } from "./data";
 import { update, updateProfile, useGame } from "./store";
 import { GameTabs, Panel, fmt } from "./ui";
 import { LevelProgress } from "./LevelCurve";
@@ -113,7 +113,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
             <div>
               <div className="mb-1 flex items-baseline justify-between">
                 <span className="font-display text-gold">{tr("Next level")}</span>
-                <span className="text-xs text-muted-foreground">{Math.min(BATTLES_PER_LEVEL, Math.max(0, hero.levelBattles ?? 0))} / {BATTLES_PER_LEVEL}  {tr("fights")}</span>
+                <span className="text-xs text-muted-foreground">{Math.min(battlesForLevel(hero.level), Math.max(0, hero.levelBattles ?? 0))} / {battlesForLevel(hero.level)}  {tr("fights")}</span>
               </div>
               <LevelProgress hero={hero} rows={1} />
             </div>

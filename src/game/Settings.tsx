@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Volume2, VolumeX } from "lucide-react";
+import { Globe, Music, Swords, Volume2, VolumeX } from "lucide-react";
+import { BATTLE_SPEEDS, getBattleSpeed, setBattleSpeed, type BattleSpeed } from "./battle-prefs";
 import { SOUNDTRACKS, type AudioSettings } from "./audio";
 import { Panel } from "./ui";
 import { useT , t} from "./i18n";
@@ -17,16 +18,18 @@ export function SettingsPanel({
 }) {
   const t = useT();
   const percent = Math.round(settings.volume * 100);
+  const [speed, setSpeed] = useState<BattleSpeed>(() => getBattleSpeed());
+  const pickSpeed = (v: BattleSpeed) => { setSpeed(v); setBattleSpeed(v); };
   return (
-    <Panel title={t("Settings")} subtitle={t("Sound, music and language")} onClose={onClose}>
+    <Panel title={t("Settings")} subtitle={t("Language, sound and battles")} onClose={onClose}>
       {/* The player picks their language by hand; it is remembered on this device. */}
       <section className="slot mb-4 p-3">
-        <h3 className="mb-2 font-display text-sm text-gold">{t("Language")}</h3>
+        <h3 className="mb-2 flex items-center gap-2 font-display text-sm text-gold"><Globe className="h-4 w-4" />{t("Language")}</h3>
         <LanguagePicker />
       </section>
       <section className="slot p-3">
         <div className="mb-2 flex items-center justify-between gap-2">
-          <h3 className="font-display text-sm text-gold">{t("Music volume")}</h3>
+          <h3 className="flex items-center gap-2 font-display text-sm text-gold"><Volume2 className="h-4 w-4" />{t("Music volume")}</h3>
           <button
             className="btn-ghost flex items-center gap-1 px-2 py-1 text-xs"
             onClick={() => onChange({ muted: !settings.muted })}
@@ -53,7 +56,26 @@ export function SettingsPanel({
         </div>
       </section>
 
-      <h3 className="mt-4 mb-2 font-display text-sm text-gold">{t("Soundtrack")}</h3>
+      <section className="slot mt-4 p-3">
+        <h3 className="mb-1 flex items-center gap-2 font-display text-sm text-gold"><Swords className="h-4 w-4" />{t("Battle speed")}</h3>
+        <p className="mb-2 text-[11px] text-muted-foreground">{t("How fast the blows of a fight play out. The result is the same at every speed.")}</p>
+        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t("Battle speed")}>
+          {BATTLE_SPEEDS.map((o) => (
+            <button
+              key={o.id}
+              role="radio"
+              aria-checked={speed === o.id}
+              onClick={() => pickSpeed(o.id)}
+              className={`slot p-2 text-left transition hover:scale-[1.01] ${speed === o.id ? "ring-2 ring-gold" : ""}`}
+            >
+              <span className="block text-sm font-bold">{t(o.label)}</span>
+              <span className="block text-[11px] text-muted-foreground">{t(o.note)}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <h3 className="mt-4 mb-2 flex items-center gap-2 font-display text-sm text-gold"><Music className="h-4 w-4" />{t("Soundtrack")}</h3>
       <div className="grid gap-2 sm:grid-cols-2">
         {SOUNDTRACKS.map((track, i) => {
           const active = settings.track === track.id;
